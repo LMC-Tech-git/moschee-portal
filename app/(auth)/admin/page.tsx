@@ -24,6 +24,7 @@ export default function AdminDashboard() {
     pendingMembers: 0,
     activeCampaigns: 0,
     totalDonationsCents: 0,
+    campaignDonationsCents: 0,
     publishedPosts: 0,
     upcomingEvents: 0,
     totalEvents: 0,
