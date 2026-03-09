@@ -366,7 +366,7 @@ export interface Invite {
   type: "personal" | "group";
   label: string;
   email: string;
-  role: "member" | "teacher" | "admin";
+  role: "member" | "teacher" | "admin" | "imam";
   initial_status: "pending" | "active";
   max_uses: number; // 1 für personal, n für group (0=unbegrenzt)
   uses_count: number;

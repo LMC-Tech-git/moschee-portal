@@ -37,8 +37,12 @@ function mapRecordToMosque(record: RecordModel): Mosque {
     paypal_donate_url: record.paypal_donate_url || "",
     external_donation_url: record.external_donation_url || "",
     external_donation_label: record.external_donation_label || "",
+    zip_code: record.zip_code || "",
+    website: record.website || "",
     brand_logo: record.brand_logo || "",
     brand_primary_color: record.brand_primary_color || "",
+    brand_accent_color: record.brand_accent_color || "",
+    brand_theme: record.brand_theme || "default",
     created: record.created || "",
     updated: record.updated || "",
   };

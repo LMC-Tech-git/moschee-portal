@@ -98,7 +98,7 @@ export async function createStudent(
 
     // Moschee laden → Land für Telefonnormalisierung bestimmen
     const mosque = await pb.collection("mosques").getOne(mosqueId);
-    const country = detectCountryFromMosque(mosque);
+    const country = detectCountryFromMosque(mosque as { timezone?: string; address?: string; city?: string });
     const normalizedParentPhone = applyPhoneNorm(validated.parent_phone || "", country);
 
     const normalizedMotherPhone = applyPhoneNorm(validated.mother_phone || "", country);
@@ -162,7 +162,7 @@ export async function updateStudent(
 
     // Moschee laden → Land für Telefonnormalisierung bestimmen
     const mosque = await pb.collection("mosques").getOne(mosqueId);
-    const country = detectCountryFromMosque(mosque);
+    const country = detectCountryFromMosque(mosque as { timezone?: string; address?: string; city?: string });
     const normalizedParentPhone = applyPhoneNorm(validated.parent_phone || "", country);
 
     const normalizedMotherPhone = applyPhoneNorm(validated.mother_phone || "", country);
@@ -238,7 +238,7 @@ export async function importStudentsBulk(
 
     // Moschee einmalig laden → Land für Telefonnormalisierung
     const mosque = await pb.collection("mosques").getOne(mosqueId);
-    const country = detectCountryFromMosque(mosque);
+    const country = detectCountryFromMosque(mosque as { timezone?: string; address?: string; city?: string });
 
     let created = 0;
     let enrolled = 0;

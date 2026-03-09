@@ -131,7 +131,7 @@ export async function updateMember(
 
     // Moschee laden → Land für Telefonnormalisierung bestimmen
     const mosque = await pb.collection("mosques").getOne(mosqueId);
-    const country = detectCountryFromMosque(mosque);
+    const country = detectCountryFromMosque(mosque as { timezone?: string; address?: string; city?: string });
     const normalizedPhone = applyPhoneNorm(data.phone, country);
 
     const changes: Record<string, unknown> = {};
@@ -259,7 +259,7 @@ export async function updateProfile(
     let normalizedPhone = (data.phone ?? "").trim();
     if (user.mosque_id) {
       const mosque = await pb.collection("mosques").getOne(user.mosque_id);
-      const country = detectCountryFromMosque(mosque);
+      const country = detectCountryFromMosque(mosque as { timezone?: string; address?: string; city?: string });
       normalizedPhone = applyPhoneNorm(data.phone, country);
     }
 
