@@ -15,9 +15,7 @@ const envSchema = z.object({
   NEXT_PUBLIC_POCKETBASE_URL: z
     .string()
     .url("NEXT_PUBLIC_POCKETBASE_URL muss eine gültige URL sein"),
-  NEXT_PUBLIC_APP_URL: z
-    .string()
-    .url("NEXT_PUBLIC_APP_URL muss eine gültige URL sein"),
+  NEXT_PUBLIC_APP_URL: z.string().url().optional(),
   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().optional(),
 
   // -------------------------------------------------------
@@ -27,14 +25,10 @@ const envSchema = z.object({
   // In Produktion: https://api.moschee.app
   POCKETBASE_URL: z.string().url().optional(),
 
-  // PocketBase Admin-Credentials — erforderlich für Server Actions
-  PB_ADMIN_EMAIL: z
-    .string()
-    .email("PB_ADMIN_EMAIL muss eine gültige E-Mail sein")
-    .min(1, "PB_ADMIN_EMAIL ist erforderlich"),
-  PB_ADMIN_PASSWORD: z
-    .string()
-    .min(8, "PB_ADMIN_PASSWORD muss mindestens 8 Zeichen lang sein"),
+  // PocketBase Admin-Credentials — zur Laufzeit erforderlich, optional beim Build
+  // Werden als Server-Umgebungsvariablen gesetzt (nicht in .env-Dateien)
+  PB_ADMIN_EMAIL: z.string().email().optional(),
+  PB_ADMIN_PASSWORD: z.string().min(8).optional(),
 
   // Stripe — optional (Portal funktioniert ohne Zahlungen)
   STRIPE_SECRET_KEY: z.string().optional(),
