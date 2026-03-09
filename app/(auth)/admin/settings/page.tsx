@@ -1,0 +1,1584 @@
+"use client";
+
+import { useEffect, useState, useRef } from "react";
+import { Settings, Palette, Clock, Sliders, Save, RotateCcw, Upload, X, Check, ChevronDown, ChevronUp, GraduationCap, Mail, CheckCircle, AlertCircle, Send } from "lucide-react";
+import { useMosque } from "@/lib/mosque-context";
+import { useAuth } from "@/lib/auth-context";
+import {
+  getPortalSettings,
+  updateBrandingSettings,
+  updatePrayerSettings,
+  updateDefaultSettings,
+  getMadrasaFeeSettings,
+  updateMadrasaFeeSettings,
+  getPbSmtpSettings,
+  updatePbSmtpSettings,
+} from "@/lib/actions/settings";
+import type { PbSmtpSettings } from "@/lib/actions/settings";
+import { sendTestEmailAction } from "@/lib/actions/email";
+import { THEME_PRESETS, PRAYER_METHODS, PRAYER_PROVIDERS } from "@/lib/constants";
+import type { TuneOffsets } from "@/lib/prayer";
+import { DEFAULT_TUNE } from "@/lib/prayer";
+import type { Mosque, Settings as SettingsType } from "@/types";
+
+const PB_URL = process.env.NEXT_PUBLIC_POCKETBASE_URL || "";
+
+const TABS = [
+  { id: "branding", label: "Branding", icon: Palette },
+  { id: "prayer", label: "Gebetszeiten", icon: Clock },
+  { id: "defaults", label: "Defaults", icon: Sliders },
+  { id: "madrasa", label: "Madrasa", icon: GraduationCap },
+  { id: "email", label: "E-Mail", icon: Mail },
+] as const;
+
+type TabId = (typeof TABS)[number]["id"];
+
+// =========================================
+// Sub-components
+// =========================================
+
+function StatusMessage({
+  status,
+}: {
+  status: { type: "success" | "error"; message: string } | null;
+}) {
+  if (!status) return null;
+  return (
+    <div
+      className={`flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium ${
+        status.type === "success"
+          ? "bg-emerald-50 text-emerald-700"
+          : "bg-red-50 text-red-700"
+      }`}
+    >
+      {status.type === "success" ? (
+        <Check className="h-4 w-4" />
+      ) : (
+        <X className="h-4 w-4" />
+      )}
+      {status.message}
+    </div>
+  );
+}
+
+function SectionCard({
+  title,
+  description,
+  children,
+}: {
+  title: string;
+  description?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="rounded-xl border border-gray-200 bg-white p-6">
+      <div className="mb-5">
+        <h2 className="text-base font-semibold text-gray-900">{title}</h2>
+        {description && (
+          <p className="mt-1 text-sm text-gray-500">{description}</p>
+        )}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+// =========================================
+// Main Page
+// =========================================
+
+export default function AdminSettingsPage() {
+  const { mosqueId } = useMosque();
+  const { user } = useAuth();
+  const [activeTab, setActiveTab] = useState<TabId>("branding");
+  const [mosque, setMosque] = useState<Mosque | null>(null);
+  const [settings, setSettings] = useState<SettingsType | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [madrasaFeeSettings, setMadrasaFeeSettings] = useState<{
+    madrasa_fees_enabled: boolean;
+    madrasa_default_fee_cents: number;
+  }>({ madrasa_fees_enabled: false, madrasa_default_fee_cents: 1000 });
+
+  useEffect(() => {
+    if (!mosqueId) return;
+    async function load() {
+      const [portalResult, feeResult] = await Promise.all([
+        getPortalSettings(mosqueId),
+        getMadrasaFeeSettings(mosqueId),
+      ]);
+      if (portalResult.success && portalResult.mosque && portalResult.settings) {
+        setMosque(portalResult.mosque);
+        setSettings(portalResult.settings);
+      }
+      if (feeResult.success && feeResult.data) {
+        setMadrasaFeeSettings(feeResult.data);
+      }
+      setIsLoading(false);
+    }
+    load();
+  }, [mosqueId]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-200 border-t-emerald-600" />
+      </div>
+    );
+  }
+
+  if (!mosque || !settings) {
+    return (
+      <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-center text-sm text-red-700">
+        Einstellungen konnten nicht geladen werden.
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      {/* Header */}
+      <div className="mb-6 flex items-center gap-3">
+        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-100">
+          <Settings className="h-5 w-5 text-emerald-600" />
+        </div>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Einstellungen</h1>
+          <p className="text-sm text-gray-500">{mosque.name}</p>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="mb-6 flex gap-1 rounded-xl border border-gray-200 bg-gray-100 p-1">
+        {TABS.map(({ id, label, icon: Icon }) => (
+          <button
+            key={id}
+            type="button"
+            onClick={() => setActiveTab(id)}
+            className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors ${
+              activeTab === id
+                ? "bg-white text-gray-900 shadow-sm"
+                : "text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            <Icon className="h-4 w-4" />
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {/* Tab Content */}
+      {activeTab === "branding" && (
+        <BrandingTab
+          mosque={mosque}
+          mosqueId={mosqueId}
+          userId={user?.id || ""}
+          onSaved={(updated) => setMosque({ ...mosque, ...updated })}
+        />
+      )}
+      {activeTab === "prayer" && (
+        <PrayerTab
+          settings={settings}
+          mosque={mosque}
+          mosqueId={mosqueId}
+          userId={user?.id || ""}
+          onSaved={(updates) => {
+            setSettings({
+              ...settings,
+              prayer_method: updates.prayer_method,
+              prayer_provider: updates.prayer_provider as "aladhan" | "off",
+              tune: updates.tune,
+            });
+            if (updates.lat !== null && updates.lon !== null) {
+              setMosque({ ...mosque, latitude: updates.lat, longitude: updates.lon });
+            }
+          }}
+        />
+      )}
+      {activeTab === "defaults" && (
+        <DefaultsTab
+          settings={settings}
+          mosqueId={mosqueId}
+          userId={user?.id || ""}
+          onSaved={(updated) => setSettings({ ...settings, ...updated })}
+        />
+      )}
+      {activeTab === "madrasa" && (
+        <MadrasaTab
+          mosqueId={mosqueId}
+          userId={user?.id || ""}
+          feeSettings={madrasaFeeSettings}
+          donationProvider={mosque.donation_provider}
+          onSaved={(updated) => setMadrasaFeeSettings({ ...madrasaFeeSettings, ...updated })}
+        />
+      )}
+      {activeTab === "email" && (
+        <EmailTab
+          mosqueId={mosqueId}
+          adminEmail={user?.email || ""}
+        />
+      )}
+    </div>
+  );
+}
+
+// =========================================
+// Tab: Branding
+// =========================================
+
+function BrandingTab({
+  mosque,
+  mosqueId,
+  userId,
+  onSaved,
+}: {
+  mosque: Mosque;
+  mosqueId: string;
+  userId: string;
+  onSaved: (updated: Partial<Mosque>) => void;
+}) {
+  const [form, setForm] = useState({
+    name: mosque.name || "",
+    address: mosque.address || "",
+    zip_code: mosque.zip_code || "",
+    city: mosque.city || "",
+    phone: mosque.phone || "",
+    email: mosque.email || "",
+    website: mosque.website || "",
+    brand_theme: mosque.brand_theme || "emerald",
+    brand_primary_color: mosque.brand_primary_color || "#059669",
+    brand_accent_color: mosque.brand_accent_color || "#d97706",
+  });
+  const [logoPreview, setLogoPreview] = useState<string | null>(
+    mosque.brand_logo ? `${PB_URL}/api/files/mosques/${mosque.id}/${mosque.brand_logo}` : null
+  );
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [removeLogo, setRemoveLogo] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [status, setStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [hexError, setHexError] = useState<{ primary?: string; accent?: string }>({});
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const isCustomTheme = form.brand_theme === "custom";
+
+  function validateHex(val: string) {
+    return /^#[0-9A-Fa-f]{6}$/.test(val);
+  }
+
+  function handleThemeSelect(themeId: string) {
+    const preset = THEME_PRESETS.find((p) => p.id === themeId);
+    setForm((prev) => ({
+      ...prev,
+      brand_theme: themeId,
+      brand_primary_color: preset?.primary || prev.brand_primary_color,
+      brand_accent_color: preset?.accent || prev.brand_accent_color,
+    }));
+    setHexError({});
+  }
+
+  function handleLogoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!["image/png", "image/jpeg", "image/webp", "image/svg+xml"].includes(file.type)) {
+      setStatus({ type: "error", message: "Nur PNG, JPG, WebP oder SVG erlaubt." });
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      setStatus({ type: "error", message: "Logo darf maximal 2 MB groß sein." });
+      return;
+    }
+    setLogoFile(file);
+    setLogoPreview(URL.createObjectURL(file));
+    setRemoveLogo(false);
+    setStatus(null);
+  }
+
+  function handleRemoveLogo() {
+    setLogoFile(null);
+    setLogoPreview(null);
+    setRemoveLogo(true);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
+  async function handleSave() {
+    const errors: { primary?: string; accent?: string } = {};
+    if (isCustomTheme && !validateHex(form.brand_primary_color)) {
+      errors.primary = "Ungültige Farbe. Bitte #RRGGBB-Format verwenden.";
+    }
+    if (isCustomTheme && !validateHex(form.brand_accent_color)) {
+      errors.accent = "Ungültige Farbe. Bitte #RRGGBB-Format verwenden.";
+    }
+    if (errors.primary || errors.accent) {
+      setHexError(errors);
+      return;
+    }
+    setHexError({});
+    setIsSaving(true);
+    setStatus(null);
+
+    const fd = new FormData();
+    Object.entries(form).forEach(([k, v]) => fd.append(k, v));
+    if (logoFile) fd.append("brand_logo", logoFile);
+    if (removeLogo) fd.append("remove_logo", "1");
+
+    const result = await updateBrandingSettings(mosqueId, userId, fd);
+    setIsSaving(false);
+    if (result.success) {
+      setStatus({ type: "success", message: "Branding gespeichert." });
+      onSaved({ ...form });
+    } else {
+      setStatus({ type: "error", message: result.error || "Fehler beim Speichern." });
+    }
+  }
+
+  function handleReset() {
+    setForm({
+      name: mosque.name || "",
+      address: mosque.address || "",
+      zip_code: mosque.zip_code || "",
+      city: mosque.city || "",
+      phone: mosque.phone || "",
+      email: mosque.email || "",
+      website: mosque.website || "",
+      brand_theme: mosque.brand_theme || "emerald",
+      brand_primary_color: mosque.brand_primary_color || "#059669",
+      brand_accent_color: mosque.brand_accent_color || "#d97706",
+    });
+    setLogoFile(null);
+    setRemoveLogo(false);
+    setLogoPreview(mosque.brand_logo ? `${PB_URL}/api/files/mosques/${mosque.id}/${mosque.brand_logo}` : null);
+    setHexError({});
+    setStatus(null);
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Gemeinde-Informationen */}
+      <SectionCard title="Gemeinde-Informationen" description="Name, Adresse und Kontaktdaten der Gemeinde.">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="sm:col-span-2">
+            <label className="mb-1.5 block text-sm font-medium text-gray-700">
+              Gemeindename <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              value={form.name}
+              onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+              placeholder="DITIB Ulm e.V."
+            />
+          </div>
+          <div className="sm:col-span-2">
+            <label className="mb-1.5 block text-sm font-medium text-gray-700">Straße & Hausnummer</label>
+            <input
+              type="text"
+              value={form.address}
+              onChange={(e) => setForm((p) => ({ ...p, address: e.target.value }))}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+              placeholder="Musterstraße 1"
+            />
+          </div>
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-gray-700">PLZ</label>
+            <input
+              type="text"
+              value={form.zip_code}
+              onChange={(e) => setForm((p) => ({ ...p, zip_code: e.target.value }))}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+              placeholder="89073"
+              maxLength={10}
+            />
+          </div>
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-gray-700">Stadt</label>
+            <input
+              type="text"
+              value={form.city}
+              onChange={(e) => setForm((p) => ({ ...p, city: e.target.value }))}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+              placeholder="Ulm"
+            />
+          </div>
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-gray-700">Telefon</label>
+            <input
+              type="tel"
+              value={form.phone}
+              onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+              placeholder="+49 731 123456"
+            />
+          </div>
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-gray-700">E-Mail</label>
+            <input
+              type="email"
+              value={form.email}
+              onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+              placeholder="info@moschee.de"
+            />
+          </div>
+          <div className="sm:col-span-2">
+            <label className="mb-1.5 block text-sm font-medium text-gray-700">Website</label>
+            <input
+              type="url"
+              value={form.website}
+              onChange={(e) => setForm((p) => ({ ...p, website: e.target.value }))}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+              placeholder="https://www.moschee.de"
+            />
+          </div>
+        </div>
+      </SectionCard>
+
+      {/* Logo */}
+      <SectionCard title="Logo" description="Logo der Gemeinde (PNG, JPG, WebP oder SVG, max. 2 MB).">
+        <div className="flex items-start gap-4">
+          <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-gray-200 bg-gray-50">
+            {logoPreview ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={logoPreview} alt="Logo" className="h-full w-full object-contain p-1" />
+            ) : (
+              <span className="text-2xl font-bold text-gray-300">
+                {form.name.charAt(0).toUpperCase() || "M"}
+              </span>
+            )}
+          </div>
+          <div className="flex-1 space-y-2">
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                <Upload className="h-4 w-4" />
+                Logo hochladen
+              </button>
+              {logoPreview && (
+                <button
+                  type="button"
+                  onClick={handleRemoveLogo}
+                  className="inline-flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-100"
+                >
+                  <X className="h-4 w-4" />
+                  Entfernen
+                </button>
+              )}
+            </div>
+            <p className="text-xs text-gray-400">
+              Empfohlen: quadratisch, mindestens 200×200 px
+            </p>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/png,image/jpeg,image/webp,image/svg+xml"
+              className="hidden"
+              onChange={handleLogoChange}
+            />
+          </div>
+        </div>
+      </SectionCard>
+
+      {/* Theme */}
+      <SectionCard title="Farbschema" description="Wähle ein Farbschema oder definiere eigene Farben.">
+        {/* Preset Grid */}
+        <div className="mb-5 grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5">
+          {THEME_PRESETS.map((preset) => (
+            <button
+              key={preset.id}
+              type="button"
+              onClick={() => handleThemeSelect(preset.id)}
+              className={`group relative flex flex-col items-center gap-2 rounded-xl border-2 p-3 text-center transition-all ${
+                form.brand_theme === preset.id
+                  ? "border-emerald-500 bg-emerald-50"
+                  : "border-gray-200 hover:border-gray-300"
+              }`}
+            >
+              {preset.id === "custom" ? (
+                <div className="flex h-8 w-14 items-center justify-center rounded-md border border-dashed border-gray-300 bg-gray-50 text-lg">
+                  ✏️
+                </div>
+              ) : (
+                <div className="flex gap-1">
+                  <div
+                    className="h-8 w-6 rounded-l-md"
+                    style={{ background: preset.primary }}
+                  />
+                  <div
+                    className="h-8 w-6 rounded-r-md"
+                    style={{ background: preset.accent }}
+                  />
+                </div>
+              )}
+              <span className="text-xs font-medium leading-tight text-gray-700">
+                {preset.name}
+              </span>
+              {form.brand_theme === preset.id && (
+                <div className="absolute right-1.5 top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500">
+                  <Check className="h-2.5 w-2.5 text-white" />
+                </div>
+              )}
+            </button>
+          ))}
+        </div>
+
+        {/* Custom Colors */}
+        {isCustomTheme && (
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                Primärfarbe <span className="text-gray-400 font-normal">(#RRGGBB)</span>
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="color"
+                  value={form.brand_primary_color}
+                  onChange={(e) => setForm((p) => ({ ...p, brand_primary_color: e.target.value }))}
+                  className="h-9 w-12 cursor-pointer rounded border border-gray-300"
+                />
+                <input
+                  type="text"
+                  value={form.brand_primary_color}
+                  onChange={(e) => setForm((p) => ({ ...p, brand_primary_color: e.target.value }))}
+                  className={`flex-1 rounded-lg border px-3 py-2 text-sm font-mono focus:outline-none focus:ring-1 ${
+                    hexError.primary
+                      ? "border-red-400 focus:border-red-400 focus:ring-red-400"
+                      : "border-gray-300 focus:border-emerald-500 focus:ring-emerald-500"
+                  }`}
+                  placeholder="#059669"
+                  maxLength={7}
+                />
+              </div>
+              {hexError.primary && (
+                <p className="mt-1 text-xs text-red-600">{hexError.primary}</p>
+              )}
+            </div>
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                Akzentfarbe <span className="text-gray-400 font-normal">(#RRGGBB)</span>
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="color"
+                  value={form.brand_accent_color}
+                  onChange={(e) => setForm((p) => ({ ...p, brand_accent_color: e.target.value }))}
+                  className="h-9 w-12 cursor-pointer rounded border border-gray-300"
+                />
+                <input
+                  type="text"
+                  value={form.brand_accent_color}
+                  onChange={(e) => setForm((p) => ({ ...p, brand_accent_color: e.target.value }))}
+                  className={`flex-1 rounded-lg border px-3 py-2 text-sm font-mono focus:outline-none focus:ring-1 ${
+                    hexError.accent
+                      ? "border-red-400 focus:border-red-400 focus:ring-red-400"
+                      : "border-gray-300 focus:border-emerald-500 focus:ring-emerald-500"
+                  }`}
+                  placeholder="#d97706"
+                  maxLength={7}
+                />
+              </div>
+              {hexError.accent && (
+                <p className="mt-1 text-xs text-red-600">{hexError.accent}</p>
+              )}
+            </div>
+          </div>
+        )}
+      </SectionCard>
+
+      {/* Actions */}
+      <div className="flex items-center justify-between gap-4">
+        <StatusMessage status={status} />
+        <div className="ml-auto flex gap-3">
+          <button
+            type="button"
+            onClick={handleReset}
+            className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          >
+            <RotateCcw className="h-4 w-4" />
+            Zurücksetzen
+          </button>
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={isSaving}
+            className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-60"
+          >
+            <Save className="h-4 w-4" />
+            {isSaving ? "Speichern..." : "Speichern"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// =========================================
+// Tab: Gebetszeiten
+// =========================================
+
+const TUNE_LABELS: { key: keyof TuneOffsets; label: string }[] = [
+  { key: "fajr",    label: "Fajr"    },
+  { key: "sunrise", label: "Shuruk"  },
+  { key: "dhuhr",   label: "Dhuhr"   },
+  { key: "asr",     label: "Asr"     },
+  { key: "maghrib", label: "Maghrib" },
+  { key: "isha",    label: "Isha"    },
+];
+
+function parseTune(raw: string): TuneOffsets {
+  try {
+    return raw ? { ...DEFAULT_TUNE, ...(JSON.parse(raw) as Partial<TuneOffsets>) } : { ...DEFAULT_TUNE };
+  } catch {
+    return { ...DEFAULT_TUNE };
+  }
+}
+
+function PrayerTab({
+  settings,
+  mosque,
+  mosqueId,
+  userId,
+  onSaved,
+}: {
+  settings: SettingsType;
+  mosque: Mosque;
+  mosqueId: string;
+  userId: string;
+  onSaved: (updates: {
+    prayer_method: number;
+    prayer_provider: string;
+    tune: string;
+    lat: number | null;
+    lon: number | null;
+  }) => void;
+}) {
+  const [prayerProvider, setPrayerProvider] = useState<"aladhan" | "off">(
+    (settings.prayer_provider as "aladhan" | "off") || "aladhan"
+  );
+  const [prayerMethod, setPrayerMethod] = useState(settings.prayer_method || 13);
+  const [latitude, setLatitude] = useState(
+    mosque.latitude ? String(mosque.latitude) : ""
+  );
+  const [longitude, setLongitude] = useState(
+    mosque.longitude ? String(mosque.longitude) : ""
+  );
+  const [tune, setTune] = useState<TuneOffsets>(() => parseTune(settings.tune || ""));
+  const [showTune, setShowTune] = useState(false);
+  const [coordError, setCoordError] = useState<{ lat?: string; lon?: string }>({});
+  const [isSaving, setIsSaving] = useState(false);
+  const [status, setStatus] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
+
+  function parseCoord(val: string): number | null {
+    const n = parseFloat(val.trim());
+    return isNaN(n) ? null : n;
+  }
+
+  async function handleSave() {
+    const errors: { lat?: string; lon?: string } = {};
+    const lat = latitude.trim() ? parseCoord(latitude) : null;
+    const lon = longitude.trim() ? parseCoord(longitude) : null;
+
+    if (prayerProvider === "aladhan") {
+      if (latitude.trim() && lat === null) {
+        errors.lat = "Ungültige Zahl (z.B. 48.4010)";
+      } else if (lat !== null && (lat < -90 || lat > 90)) {
+        errors.lat = "Breitengrad muss zwischen -90 und 90 liegen.";
+      }
+      if (longitude.trim() && lon === null) {
+        errors.lon = "Ungültige Zahl (z.B. 9.9876)";
+      } else if (lon !== null && (lon < -180 || lon > 180)) {
+        errors.lon = "Längengrad muss zwischen -180 und 180 liegen.";
+      }
+    }
+
+    if (errors.lat || errors.lon) {
+      setCoordError(errors);
+      return;
+    }
+    setCoordError({});
+    setIsSaving(true);
+    setStatus(null);
+
+    const tuneJson = JSON.stringify(tune);
+    const result = await updatePrayerSettings(mosqueId, userId, {
+      prayer_method: prayerMethod,
+      prayer_provider: prayerProvider,
+      tune: tuneJson,
+      latitude: lat,
+      longitude: lon,
+    });
+
+    setIsSaving(false);
+    if (result.success) {
+      setStatus({ type: "success", message: "Gebetszeiten-Einstellungen gespeichert." });
+      onSaved({ prayer_method: prayerMethod, prayer_provider: prayerProvider, tune: tuneJson, lat, lon });
+    } else {
+      setStatus({ type: "error", message: result.error || "Fehler beim Speichern." });
+    }
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Provider-Auswahl */}
+      <SectionCard
+        title="Gebetszeiten-Provider"
+        description="Wähle den Anbieter für die Gebetszeiten-Berechnung."
+      >
+        <div className="flex flex-wrap gap-3">
+          {PRAYER_PROVIDERS.map(({ value, label }) => (
+            <label
+              key={value}
+              className={`flex cursor-pointer items-center gap-2 rounded-xl border-2 px-5 py-3 transition-colors ${
+                prayerProvider === value
+                  ? "border-emerald-500 bg-emerald-50"
+                  : "border-gray-200 hover:border-gray-300"
+              }`}
+            >
+              <input
+                type="radio"
+                name="prayer_provider"
+                value={value}
+                checked={prayerProvider === value}
+                onChange={() => setPrayerProvider(value as "aladhan" | "off")}
+                className="h-4 w-4 accent-emerald-600"
+              />
+              <span className="text-sm font-medium text-gray-800">{label}</span>
+            </label>
+          ))}
+        </div>
+      </SectionCard>
+
+      {prayerProvider === "aladhan" && (
+        <>
+          {/* Koordinaten */}
+          <SectionCard
+            title="Standort-Koordinaten"
+            description="Breitengrad und Längengrad der Moschee für die genaue Berechnung."
+          >
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                  Breitengrad (Latitude)
+                </label>
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  value={latitude}
+                  onChange={(e) => {
+                    setLatitude(e.target.value);
+                    setCoordError((p) => ({ ...p, lat: undefined }));
+                  }}
+                  className={`w-full rounded-lg border px-3 py-2 text-sm font-mono focus:outline-none focus:ring-1 ${
+                    coordError.lat
+                      ? "border-red-400 focus:border-red-400 focus:ring-red-400"
+                      : "border-gray-300 focus:border-emerald-500 focus:ring-emerald-500"
+                  }`}
+                  placeholder="48.4010"
+                />
+                {coordError.lat && (
+                  <p className="mt-1 text-xs text-red-600">{coordError.lat}</p>
+                )}
+              </div>
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                  Längengrad (Longitude)
+                </label>
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  value={longitude}
+                  onChange={(e) => {
+                    setLongitude(e.target.value);
+                    setCoordError((p) => ({ ...p, lon: undefined }));
+                  }}
+                  className={`w-full rounded-lg border px-3 py-2 text-sm font-mono focus:outline-none focus:ring-1 ${
+                    coordError.lon
+                      ? "border-red-400 focus:border-red-400 focus:ring-red-400"
+                      : "border-gray-300 focus:border-emerald-500 focus:ring-emerald-500"
+                  }`}
+                  placeholder="9.9876"
+                />
+                {coordError.lon && (
+                  <p className="mt-1 text-xs text-red-600">{coordError.lon}</p>
+                )}
+              </div>
+            </div>
+            <p className="mt-3 text-xs text-gray-400">
+              Tipp: Koordinaten auf{" "}
+              <span className="font-medium text-gray-500">maps.google.com</span>{" "}
+              → Rechtsklick auf den Standort.
+            </p>
+          </SectionCard>
+
+          {/* Berechnungsmethode */}
+          <SectionCard
+            title="Berechnungsmethode"
+            description="Methode 13 (Diyanet) ist für türkische Gemeinden in Deutschland empfohlen."
+          >
+            <div className="space-y-2">
+              {PRAYER_METHODS.map(({ method, name }) => (
+                <label
+                  key={method}
+                  className={`flex cursor-pointer items-center gap-3 rounded-xl border-2 px-4 py-3 transition-colors ${
+                    prayerMethod === method
+                      ? "border-emerald-500 bg-emerald-50"
+                      : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="prayer_method"
+                    value={method}
+                    checked={prayerMethod === method}
+                    onChange={() => setPrayerMethod(method)}
+                    className="h-4 w-4 accent-emerald-600"
+                  />
+                  <span className="text-sm font-medium text-gray-800">{name}</span>
+                  {method === 3 && (
+                    <span className="ml-auto rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                      Europa
+                    </span>
+                  )}
+                  {method === 13 && (
+                    <span className="ml-auto rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">
+                      Diyanet
+                    </span>
+                  )}
+                </label>
+              ))}
+            </div>
+          </SectionCard>
+
+          {/* Feinabstimmung (Tune) */}
+          <SectionCard
+            title="Feinabstimmung (Offsets)"
+            description="Minuten-Korrekturen je Gebet. Positiv = später, negativ = früher."
+          >
+            <button
+              type="button"
+              onClick={() => setShowTune((v) => !v)}
+              className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900"
+            >
+              {showTune ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : (
+                <ChevronDown className="h-4 w-4" />
+              )}
+              {showTune ? "Offsets ausblenden" : "Offsets anzeigen / bearbeiten"}
+            </button>
+
+            {showTune && (
+              <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+                {TUNE_LABELS.map(({ key, label }) => (
+                  <div key={key}>
+                    <label className="mb-1 block text-xs font-medium text-gray-600">
+                      {label}
+                    </label>
+                    <div className="flex items-center gap-1">
+                      <input
+                        type="number"
+                        value={tune[key]}
+                        min={-60}
+                        max={60}
+                        onChange={(e) =>
+                          setTune((prev) => ({
+                            ...prev,
+                            [key]: parseInt(e.target.value) || 0,
+                          }))
+                        }
+                        className="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm font-mono text-center focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                      />
+                      <span className="text-xs text-gray-400">min</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {!showTune && Object.values(tune).some((v) => v !== 0) && (
+              <p className="mt-2 text-xs text-amber-600">
+                Aktive Offsets: {TUNE_LABELS.filter(({ key }) => tune[key] !== 0)
+                  .map(({ key, label }) => `${label} ${tune[key] > 0 ? "+" : ""}${tune[key]}`)
+                  .join(", ")}
+              </p>
+            )}
+          </SectionCard>
+        </>
+      )}
+
+      {prayerProvider === "off" && (
+        <div className="rounded-xl border border-gray-200 bg-gray-50 p-5 text-sm text-gray-500">
+          Gebetszeiten-Widget ist deaktiviert. Es wird auf der öffentlichen Seite nicht angezeigt.
+        </div>
+      )}
+
+      <div className="flex items-center justify-between gap-4">
+        <StatusMessage status={status} />
+        <div className="ml-auto">
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={isSaving}
+            className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-60"
+          >
+            <Save className="h-4 w-4" />
+            {isSaving ? "Speichern..." : "Speichern"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// =========================================
+// Tab: Defaults
+// =========================================
+
+function DefaultsTab({
+  settings,
+  mosqueId,
+  userId,
+  onSaved,
+}: {
+  settings: SettingsType;
+  mosqueId: string;
+  userId: string;
+  onSaved: (updated: Partial<SettingsType>) => void;
+}) {
+  const [form, setForm] = useState({
+    locale: settings.locale || "de",
+    default_post_visibility: settings.default_post_visibility || "public",
+    default_event_visibility: settings.default_event_visibility || "public",
+    donation_quick_amounts: settings.donation_quick_amounts || "10,25,50,100",
+  });
+  const [amountsError, setAmountsError] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [status, setStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
+
+  function validateAmounts(val: string) {
+    const parts = val.split(",").map((s) => s.trim());
+    const valid = parts.every((p) => /^\d+(\.\d{1,2})?$/.test(p) && parseFloat(p) > 0);
+    return valid;
+  }
+
+  async function handleSave() {
+    if (!validateAmounts(form.donation_quick_amounts)) {
+      setAmountsError("Bitte kommagetrennte Beträge eingeben, z.B. 10,25,50,100");
+      return;
+    }
+    setAmountsError("");
+    setIsSaving(true);
+    setStatus(null);
+    const result = await updateDefaultSettings(mosqueId, userId, form);
+    setIsSaving(false);
+    if (result.success) {
+      setStatus({ type: "success", message: "Standard-Einstellungen gespeichert." });
+      onSaved(form);
+    } else {
+      setStatus({ type: "error", message: result.error || "Fehler beim Speichern." });
+    }
+  }
+
+  function handleReset() {
+    setForm({
+      locale: settings.locale || "de",
+      default_post_visibility: settings.default_post_visibility || "public",
+      default_event_visibility: settings.default_event_visibility || "public",
+      donation_quick_amounts: settings.donation_quick_amounts || "10,25,50,100",
+    });
+    setAmountsError("");
+    setStatus(null);
+  }
+
+  const quickAmounts = form.donation_quick_amounts
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  return (
+    <div className="space-y-6">
+      {/* Sprache */}
+      <SectionCard title="Sprache" description="Standardsprache der Oberfläche.">
+        <div className="flex gap-3">
+          {[
+            { value: "de", label: "Deutsch 🇩🇪" },
+            { value: "tr", label: "Türkçe 🇹🇷" },
+          ].map(({ value, label }) => (
+            <label
+              key={value}
+              className={`flex cursor-pointer items-center gap-2 rounded-xl border-2 px-5 py-3 transition-colors ${
+                form.locale === value
+                  ? "border-emerald-500 bg-emerald-50"
+                  : "border-gray-200 hover:border-gray-300"
+              }`}
+            >
+              <input
+                type="radio"
+                name="locale"
+                value={value}
+                checked={form.locale === value}
+                onChange={() => setForm((p) => ({ ...p, locale: value }))}
+                className="h-4 w-4 accent-emerald-600"
+              />
+              <span className="text-sm font-medium text-gray-800">{label}</span>
+            </label>
+          ))}
+        </div>
+      </SectionCard>
+
+      {/* Standard-Sichtbarkeit */}
+      <SectionCard
+        title="Standard-Sichtbarkeit"
+        description="Vorauswahl beim Erstellen neuer Beiträge und Veranstaltungen."
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="mb-2 block text-sm font-medium text-gray-700">Beiträge</label>
+            <div className="flex gap-3">
+              {[
+                { value: "public", label: "Öffentlich" },
+                { value: "members", label: "Nur Mitglieder" },
+              ].map(({ value, label }) => (
+                <label
+                  key={value}
+                  className={`flex cursor-pointer items-center gap-2 rounded-xl border-2 px-4 py-2.5 transition-colors ${
+                    form.default_post_visibility === value
+                      ? "border-emerald-500 bg-emerald-50"
+                      : "border-gray-200 hover:border-gray-300"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="post_visibility"
+                    value={value}
+                    checked={form.default_post_visibility === value}
+                    onChange={() => setForm((p) => ({ ...p, default_post_visibility: value }))}
+                    className="h-4 w-4 accent-emerald-600"
+                  />
+                  <span className="text-sm font-medium text-gray-800">{label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+          <div>
+            <label className="mb-2 block text-sm font-medium text-gray-700">Veranstaltungen</label>
+            <div className="flex gap-3">
+              {[
+                { value: "public", label: "Öffentlich" },
+                { value: "members", label: "Nur Mitglieder" },
+              ].map(({ value, label }) => (
+                <label
+                  key={value}
+                  className={`flex cursor-pointer items-center gap-2 rounded-xl border-2 px-4 py-2.5 transition-colors ${
+                    form.default_event_visibility === value
+                      ? "border-emerald-500 bg-emerald-50"
+                      : "border-gray-200 hover:border-gray-300"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="event_visibility"
+                    value={value}
+                    checked={form.default_event_visibility === value}
+                    onChange={() => setForm((p) => ({ ...p, default_event_visibility: value }))}
+                    className="h-4 w-4 accent-emerald-600"
+                  />
+                  <span className="text-sm font-medium text-gray-800">{label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        </div>
+      </SectionCard>
+
+      {/* Spenden Schnellbeträge */}
+      <SectionCard
+        title="Spenden-Schnellbeträge"
+        description="Kommagetrennte Beträge in EUR, die auf der Spendenseite als Schnellauswahl angezeigt werden."
+      >
+        <div>
+          <input
+            type="text"
+            value={form.donation_quick_amounts}
+            onChange={(e) => {
+              setForm((p) => ({ ...p, donation_quick_amounts: e.target.value }));
+              setAmountsError("");
+            }}
+            className={`w-full rounded-lg border px-3 py-2 text-sm font-mono focus:outline-none focus:ring-1 ${
+              amountsError
+                ? "border-red-400 focus:border-red-400 focus:ring-red-400"
+                : "border-gray-300 focus:border-emerald-500 focus:ring-emerald-500"
+            }`}
+            placeholder="10,25,50,100"
+          />
+          {amountsError && (
+            <p className="mt-1 text-xs text-red-600">{amountsError}</p>
+          )}
+          {/* Vorschau */}
+          {quickAmounts.length > 0 && !amountsError && (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {quickAmounts.map((amt, i) => (
+                <span
+                  key={i}
+                  className="rounded-full bg-amber-100 px-3 py-1 text-sm font-medium text-amber-700"
+                >
+                  {amt} €
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      </SectionCard>
+
+      {/* Actions */}
+      <div className="flex items-center justify-between gap-4">
+        <StatusMessage status={status} />
+        <div className="ml-auto flex gap-3">
+          <button
+            type="button"
+            onClick={handleReset}
+            className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          >
+            <RotateCcw className="h-4 w-4" />
+            Zurücksetzen
+          </button>
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={isSaving}
+            className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-60"
+          >
+            <Save className="h-4 w-4" />
+            {isSaving ? "Speichern..." : "Speichern"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// =========================================
+// Tab: Madrasa
+// =========================================
+
+function MadrasaTab({
+  mosqueId,
+  userId,
+  feeSettings,
+  donationProvider,
+  onSaved,
+}: {
+  mosqueId: string;
+  userId: string;
+  feeSettings: { madrasa_fees_enabled: boolean; madrasa_default_fee_cents: number };
+  donationProvider: string;
+  onSaved: (updated: { madrasa_fees_enabled: boolean; madrasa_default_fee_cents: number }) => void;
+}) {
+  const [feesEnabled, setFeesEnabled] = useState(feeSettings.madrasa_fees_enabled);
+  const [defaultFeeCents, setDefaultFeeCents] = useState(feeSettings.madrasa_default_fee_cents);
+  const [isSaving, setIsSaving] = useState(false);
+  const [status, setStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
+
+  const defaultFeeEur = (defaultFeeCents / 100).toFixed(2);
+  const stripeEnabled = donationProvider === "stripe";
+
+  async function handleSave() {
+    setIsSaving(true);
+    setStatus(null);
+    const result = await updateMadrasaFeeSettings(mosqueId, userId, {
+      madrasa_fees_enabled: feesEnabled,
+      madrasa_default_fee_cents: defaultFeeCents,
+    });
+    setIsSaving(false);
+    if (result.success) {
+      setStatus({ type: "success", message: "Madrasa-Einstellungen gespeichert." });
+      onSaved({ madrasa_fees_enabled: feesEnabled, madrasa_default_fee_cents: defaultFeeCents });
+    } else {
+      setStatus({ type: "error", message: result.error || "Fehler beim Speichern." });
+    }
+  }
+
+  function handleReset() {
+    setFeesEnabled(feeSettings.madrasa_fees_enabled);
+    setDefaultFeeCents(feeSettings.madrasa_default_fee_cents);
+    setStatus(null);
+  }
+
+  return (
+    <div className="space-y-6">
+      <SectionCard
+        title="Monatliche Gebühren"
+        description="Aktiviert die Gebührenverwaltung für Madrasa-Schüler. Pro Schüler wird ein monatlicher Beitrag erfasst."
+      >
+        <label className="flex cursor-pointer items-center justify-between gap-4 rounded-xl border border-gray-200 p-4 hover:bg-gray-50">
+          <div>
+            <p className="font-medium text-gray-900">Gebühren aktivieren</p>
+            <p className="mt-0.5 text-sm text-gray-500">
+              Ermöglicht die Erfassung und Verwaltung von Monatsgebühren je Schüler.
+            </p>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={feesEnabled}
+            onClick={() => setFeesEnabled((p) => !p)}
+            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 ${
+              feesEnabled ? "bg-emerald-600" : "bg-gray-300"
+            }`}
+          >
+            <span
+              className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow ring-0 transition-transform ${
+                feesEnabled ? "translate-x-5" : "translate-x-0"
+              }`}
+            />
+          </button>
+        </label>
+      </SectionCard>
+
+      {feesEnabled && (
+        <>
+          <SectionCard
+            title="Standard-Betrag"
+            description="Wird beim Erstellen der monatlichen Gebühren vorausgefüllt. Kann je Monat angepasst werden."
+          >
+            <div className="flex items-center gap-3">
+              <div className="relative w-40">
+                <input
+                  type="number"
+                  min="0"
+                  step="0.50"
+                  value={defaultFeeEur}
+                  onChange={(e) => {
+                    const eur = parseFloat(e.target.value) || 0;
+                    setDefaultFeeCents(Math.round(eur * 100));
+                  }}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 pr-8 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">€</span>
+              </div>
+              <span className="text-sm text-gray-500">{defaultFeeCents} Cent</span>
+            </div>
+          </SectionCard>
+
+          <SectionCard
+            title="Online-Zahlung"
+            description="Eltern mit Portal-Account können Gebühren online bezahlen."
+          >
+            {stripeEnabled ? (
+              <div className="flex items-start gap-3 rounded-lg border border-emerald-200 bg-emerald-50 p-4">
+                <Check className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
+                <div className="text-sm text-emerald-800">
+                  <p className="font-medium">Stripe ist aktiv</p>
+                  <p className="mt-0.5 text-emerald-700">
+                    Eltern mit Portal-Account können Gebühren per Stripe-Checkout online bezahlen.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4">
+                <X className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
+                <div className="text-sm text-amber-800">
+                  <p className="font-medium">Kein Stripe-Zahlungsanbieter konfiguriert</p>
+                  <p className="mt-0.5 text-amber-700">
+                    Wähle Stripe als Zahlungsanbieter im Branding-Tab um Online-Zahlungen für Gebühren zu aktivieren.
+                  </p>
+                </div>
+              </div>
+            )}
+          </SectionCard>
+        </>
+      )}
+
+      <div className="flex items-center justify-between gap-4">
+        <StatusMessage status={status} />
+        <div className="ml-auto flex gap-3">
+          <button
+            type="button"
+            onClick={handleReset}
+            className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          >
+            <RotateCcw className="h-4 w-4" />
+            Zurücksetzen
+          </button>
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={isSaving}
+            className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-60"
+          >
+            <Save className="h-4 w-4" />
+            {isSaving ? "Speichern..." : "Speichern"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// =========================================
+// E-Mail Tab
+// =========================================
+
+const DEFAULT_SMTP: PbSmtpSettings = {
+  smtp: {
+    enabled: true,
+    host: "smtp.resend.com",
+    port: 465,
+    username: "resend",
+    password: "",
+    tls: true,
+    authMethod: "PLAIN",
+    localName: "",
+  },
+  meta: {
+    senderName: "Moschee Portal",
+    senderAddress: "",
+    appName: "Moschee Portal",
+    appUrl: process.env.NEXT_PUBLIC_APP_URL || "",
+  },
+};
+
+function EmailTab({ mosqueId: _mosqueId, adminEmail }: { mosqueId: string; adminEmail: string }) {
+  const [smtpData, setSmtpData] = useState<PbSmtpSettings>(DEFAULT_SMTP);
+  const [isLoadingSmtp, setIsLoadingSmtp] = useState(true);
+  const [testEmail, setTestEmail] = useState(adminEmail);
+  const [isTesting, setIsTesting] = useState(false);
+  const [isSavingSmtp, setIsSavingSmtp] = useState(false);
+  const [smtpStatus, setSmtpStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [testStatus, setTestStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
+
+  useEffect(() => {
+    getPbSmtpSettings().then((r) => {
+      if (r.success && r.data) setSmtpData(r.data);
+      setIsLoadingSmtp(false);
+    });
+  }, []);
+
+  async function handleTestEmail() {
+    if (!testEmail.trim()) return;
+    setIsTesting(true);
+    setTestStatus(null);
+    const r = await sendTestEmailAction(testEmail.trim());
+    setTestStatus(
+      r.success
+        ? { type: "success", message: "Test-E-Mail erfolgreich gesendet!" }
+        : { type: "error", message: r.error || "Fehler beim Senden der Test-E-Mail." }
+    );
+    setIsTesting(false);
+  }
+
+  async function handleSaveSmtp() {
+    setIsSavingSmtp(true);
+    setSmtpStatus(null);
+    const r = await updatePbSmtpSettings(smtpData);
+    setSmtpStatus(
+      r.success
+        ? { type: "success", message: "SMTP-Einstellungen gespeichert!" }
+        : { type: "error", message: r.error || "Fehler beim Speichern." }
+    );
+    setIsSavingSmtp(false);
+  }
+
+  function updateSmtp(field: keyof PbSmtpSettings["smtp"], value: string | number | boolean) {
+    setSmtpData((prev) => ({ ...prev, smtp: { ...prev.smtp, [field]: value } }));
+  }
+
+  function updateMeta(field: keyof PbSmtpSettings["meta"], value: string) {
+    setSmtpData((prev) => ({ ...prev, meta: { ...prev.meta, [field]: value } }));
+  }
+
+  const inputCls = "w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500";
+  const labelCls = "block text-sm font-medium text-gray-700 mb-1";
+
+  return (
+    <div className="space-y-6">
+      {/* Resend API Status */}
+      <SectionCard
+        title="Resend API (App-E-Mails)"
+        description="Versendet Newsletter, Event-Bestätigungen, Spendenquittungen und Madrasa-Mahnungen."
+      >
+        <div className="space-y-4">
+          <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800">
+            <p className="font-medium mb-1">Konfiguration über Umgebungsvariablen</p>
+            <p className="text-blue-700 mb-2">Trage folgende Werte in deine <code className="rounded bg-blue-100 px-1">.env.local</code> ein:</p>
+            <pre className="rounded bg-blue-100 p-3 text-xs font-mono text-blue-900 whitespace-pre-wrap">
+{`RESEND_API_KEY=re_xxxxxxxxxxxxxxxx
+RESEND_FROM_EMAIL=Moschee Portal <noreply@deine-domain.de>`}
+            </pre>
+            <p className="mt-2 text-blue-700">
+              Den API-Key erhältst du kostenlos unter{" "}
+              <a href="https://resend.com" target="_blank" rel="noopener noreferrer" className="underline font-medium">
+                resend.com
+              </a>
+              . Der kostenlose Plan beinhaltet 3.000 E-Mails/Monat.
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <label className={labelCls}>Test-E-Mail senden</label>
+            <div className="flex gap-2">
+              <input
+                type="email"
+                value={testEmail}
+                onChange={(e) => setTestEmail(e.target.value)}
+                placeholder="empfaenger@beispiel.de"
+                className={`${inputCls} flex-1`}
+              />
+              <button
+                type="button"
+                onClick={handleTestEmail}
+                disabled={isTesting || !testEmail.trim()}
+                className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-60"
+              >
+                {isTesting ? (
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                ) : (
+                  <Send className="h-4 w-4" />
+                )}
+                {isTesting ? "Sende..." : "Senden"}
+              </button>
+            </div>
+            {testStatus && (
+              <div
+                className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm ${
+                  testStatus.type === "success"
+                    ? "bg-emerald-50 text-emerald-700"
+                    : "bg-red-50 text-red-700"
+                }`}
+              >
+                {testStatus.type === "success" ? (
+                  <CheckCircle className="h-4 w-4 shrink-0" />
+                ) : (
+                  <AlertCircle className="h-4 w-4 shrink-0" />
+                )}
+                {testStatus.message}
+              </div>
+            )}
+          </div>
+        </div>
+      </SectionCard>
+
+      {/* PocketBase SMTP */}
+      <SectionCard
+        title="PocketBase SMTP (Passwort-Reset & Auth-E-Mails)"
+        description="PocketBase versendet Passwort-Reset-Links über diesen SMTP-Server. Verwende Resend als SMTP-Relay für eine einheitliche E-Mail-Infrastruktur."
+      >
+        {isLoadingSmtp ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="h-6 w-6 animate-spin rounded-full border-4 border-emerald-200 border-t-emerald-600" />
+          </div>
+        ) : (
+          <div className="space-y-5">
+            {/* Resend SMTP Tipp */}
+            <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+              <p className="font-medium mb-1">Resend als SMTP-Relay einrichten</p>
+              <p className="text-amber-700">
+                Host: <code className="rounded bg-amber-100 px-1">smtp.resend.com</code> &bull;
+                Port: <code className="rounded bg-amber-100 px-1">465</code> &bull;
+                Benutzername: <code className="rounded bg-amber-100 px-1">resend</code> &bull;
+                Passwort: dein Resend API-Key
+              </p>
+              <p className="mt-2 text-amber-700 font-medium">Wichtig – Action-URL in PocketBase Admin:</p>
+              <code className="block mt-1 rounded bg-amber-100 px-2 py-1 text-xs font-mono break-all">
+                {(process.env.NEXT_PUBLIC_APP_URL || "https://deine-domain.de") + "/passwort-zuruecksetzen?token={TOKEN}"}
+              </code>
+            </div>
+
+            {/* SMTP Felder */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="col-span-2 sm:col-span-1">
+                <label className={labelCls}>SMTP Host</label>
+                <input
+                  type="text"
+                  value={smtpData.smtp.host}
+                  onChange={(e) => updateSmtp("host", e.target.value)}
+                  placeholder="smtp.resend.com"
+                  className={inputCls}
+                />
+              </div>
+              <div>
+                <label className={labelCls}>Port</label>
+                <input
+                  type="number"
+                  value={smtpData.smtp.port}
+                  onChange={(e) => updateSmtp("port", parseInt(e.target.value) || 465)}
+                  placeholder="465"
+                  className={inputCls}
+                />
+              </div>
+              <div>
+                <label className={labelCls}>Benutzername</label>
+                <input
+                  type="text"
+                  value={smtpData.smtp.username}
+                  onChange={(e) => updateSmtp("username", e.target.value)}
+                  placeholder="resend"
+                  className={inputCls}
+                />
+              </div>
+              <div>
+                <label className={labelCls}>Passwort (API-Key)</label>
+                <input
+                  type="password"
+                  value={smtpData.smtp.password}
+                  onChange={(e) => updateSmtp("password", e.target.value)}
+                  placeholder="re_xxxxxxxx"
+                  className={inputCls}
+                />
+              </div>
+              <div className="col-span-2 sm:col-span-1">
+                <label className={labelCls}>Absender-Name</label>
+                <input
+                  type="text"
+                  value={smtpData.meta.senderName}
+                  onChange={(e) => updateMeta("senderName", e.target.value)}
+                  placeholder="Moschee Portal"
+                  className={inputCls}
+                />
+              </div>
+              <div className="col-span-2 sm:col-span-1">
+                <label className={labelCls}>Absender-Adresse</label>
+                <input
+                  type="email"
+                  value={smtpData.meta.senderAddress}
+                  onChange={(e) => updateMeta("senderAddress", e.target.value)}
+                  placeholder="noreply@deine-domain.de"
+                  className={inputCls}
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <input
+                id="smtp-tls"
+                type="checkbox"
+                checked={smtpData.smtp.tls}
+                onChange={(e) => updateSmtp("tls", e.target.checked)}
+                className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+              />
+              <label htmlFor="smtp-tls" className="text-sm text-gray-700">
+                TLS / SSL verwenden
+              </label>
+            </div>
+
+            <div className="flex items-center justify-between gap-4 pt-2">
+              <StatusMessage status={smtpStatus} />
+              <button
+                type="button"
+                onClick={handleSaveSmtp}
+                disabled={isSavingSmtp}
+                className="ml-auto inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-60"
+              >
+                <Save className="h-4 w-4" />
+                {isSavingSmtp ? "Speichern..." : "SMTP speichern"}
+              </button>
+            </div>
+          </div>
+        )}
+      </SectionCard>
+    </div>
+  );
+}

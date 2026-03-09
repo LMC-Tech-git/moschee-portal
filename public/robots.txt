@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /mitglieder
+Disallow: /lehrer
+Disallow: /api/
+Disallow: /login
+Disallow: /register
+
+Sitemap: https://moschee-portal.de/sitemap.xml

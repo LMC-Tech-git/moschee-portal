@@ -1,0 +1,332 @@
+"use server";
+
+import { getAdminPB } from "@/lib/pocketbase-admin";
+import { studentSchema, type StudentInput } from "@/lib/validations";
+import { logAudit } from "@/lib/audit";
+import { applyPhoneNorm, detectCountryFromMosque } from "@/lib/phone";
+import type { Student } from "@/types";
+import type { RecordModel } from "pocketbase";
+
+// --- Helpers ---
+
+function mapRecord(record: RecordModel): Student {
+  return {
+    id: record.id,
+    mosque_id: record.mosque_id || "",
+    first_name: record.first_name || "",
+    last_name: record.last_name || "",
+    date_of_birth: record.date_of_birth || "",
+    gender: record.gender || "",
+    parent_id: record.parent_id || "",
+    parent_name: record.parent_name || "",
+    parent_phone: record.parent_phone || "",
+    address: record.address || "",
+    school_name: record.school_name || "",
+    school_class: record.school_class || "",
+    health_notes: record.health_notes || "",
+    mother_name: record.mother_name || "",
+    mother_phone: record.mother_phone || "",
+    father_name: record.father_name || "",
+    father_phone: record.father_phone || "",
+    membership_status: record.membership_status || "",
+    notes: record.notes || "",
+    status: record.status || "active",
+    created: record.created || "",
+    updated: record.updated || "",
+  };
+}
+
+interface ActionResult<T = void> {
+  success: boolean;
+  data?: T;
+  error?: string;
+}
+
+/**
+ * Alle aktiven Schüler einer Moschee laden.
+ */
+export async function getStudentsByMosque(
+  mosqueId: string,
+  includeInactive = false
+): Promise<ActionResult<Student[]>> {
+  try {
+    const pb = await getAdminPB();
+    const filter = includeInactive
+      ? `mosque_id = "${mosqueId}"`
+      : `mosque_id = "${mosqueId}" && status = "active"`;
+    const records = await pb.collection("students").getFullList({
+      filter,
+      sort: "first_name,last_name",
+    });
+    return { success: true, data: records.map(mapRecord) };
+  } catch (error) {
+    console.error("[Students] Fehler beim Laden:", error);
+    return { success: false, error: "Schüler konnten nicht geladen werden" };
+  }
+}
+
+/**
+ * Einzelnen Schüler laden.
+ */
+export async function getStudentById(
+  studentId: string,
+  mosqueId: string
+): Promise<ActionResult<Student>> {
+  try {
+    const pb = await getAdminPB();
+    const record = await pb.collection("students").getOne(studentId);
+    if (record.mosque_id !== mosqueId) {
+      return { success: false, error: "Schüler nicht gefunden" };
+    }
+    return { success: true, data: mapRecord(record) };
+  } catch {
+    return { success: false, error: "Schüler nicht gefunden" };
+  }
+}
+
+/**
+ * Neuen Schüler erstellen.
+ */
+export async function createStudent(
+  mosqueId: string,
+  userId: string,
+  input: StudentInput
+): Promise<ActionResult<Student>> {
+  try {
+    const validated = studentSchema.parse(input);
+    const pb = await getAdminPB();
+
+    // Moschee laden → Land für Telefonnormalisierung bestimmen
+    const mosque = await pb.collection("mosques").getOne(mosqueId);
+    const country = detectCountryFromMosque(mosque);
+    const normalizedParentPhone = applyPhoneNorm(validated.parent_phone || "", country);
+
+    const normalizedMotherPhone = applyPhoneNorm(validated.mother_phone || "", country);
+    const normalizedFatherPhone = applyPhoneNorm(validated.father_phone || "", country);
+
+    const record = await pb.collection("students").create({
+      mosque_id: mosqueId,
+      first_name: validated.first_name,
+      last_name: validated.last_name,
+      date_of_birth: validated.date_of_birth,
+      gender: validated.gender || "",
+      parent_id: validated.parent_id || "",
+      parent_name: validated.parent_name || "",
+      parent_phone: normalizedParentPhone,
+      address: validated.address || "",
+      school_name: validated.school_name || "",
+      school_class: validated.school_class || "",
+      health_notes: validated.health_notes || "",
+      mother_name: validated.mother_name || "",
+      mother_phone: normalizedMotherPhone,
+      father_name: validated.father_name || "",
+      father_phone: normalizedFatherPhone,
+      membership_status: validated.membership_status || "",
+      notes: validated.notes || "",
+      status: validated.status,
+    });
+
+    await logAudit({
+      mosqueId,
+      userId,
+      action: "student.created",
+      entityType: "student",
+      entityId: record.id,
+      details: { name: `${validated.first_name} ${validated.last_name}` },
+    });
+
+    return { success: true, data: mapRecord(record) };
+  } catch (error) {
+    console.error("[Students] Fehler beim Erstellen:", error);
+    return { success: false, error: "Schüler konnte nicht erstellt werden" };
+  }
+}
+
+/**
+ * Schüler aktualisieren.
+ */
+export async function updateStudent(
+  studentId: string,
+  mosqueId: string,
+  userId: string,
+  input: StudentInput
+): Promise<ActionResult<Student>> {
+  try {
+    const validated = studentSchema.parse(input);
+    const pb = await getAdminPB();
+
+    const existing = await pb.collection("students").getOne(studentId);
+    if (existing.mosque_id !== mosqueId) {
+      return { success: false, error: "Schüler nicht gefunden" };
+    }
+
+    // Moschee laden → Land für Telefonnormalisierung bestimmen
+    const mosque = await pb.collection("mosques").getOne(mosqueId);
+    const country = detectCountryFromMosque(mosque);
+    const normalizedParentPhone = applyPhoneNorm(validated.parent_phone || "", country);
+
+    const normalizedMotherPhone = applyPhoneNorm(validated.mother_phone || "", country);
+    const normalizedFatherPhone = applyPhoneNorm(validated.father_phone || "", country);
+
+    const record = await pb.collection("students").update(studentId, {
+      first_name: validated.first_name,
+      last_name: validated.last_name,
+      date_of_birth: validated.date_of_birth,
+      gender: validated.gender || "",
+      parent_id: validated.parent_id || "",
+      parent_name: validated.parent_name || "",
+      parent_phone: normalizedParentPhone,
+      address: validated.address || "",
+      school_name: validated.school_name || "",
+      school_class: validated.school_class || "",
+      health_notes: validated.health_notes || "",
+      mother_name: validated.mother_name || "",
+      mother_phone: normalizedMotherPhone,
+      father_name: validated.father_name || "",
+      father_phone: normalizedFatherPhone,
+      membership_status: validated.membership_status || "",
+      notes: validated.notes || "",
+      status: validated.status,
+    });
+
+    await logAudit({
+      mosqueId,
+      userId,
+      action: "student.updated",
+      entityType: "student",
+      entityId: studentId,
+      details: { name: `${validated.first_name} ${validated.last_name}` },
+    });
+
+    return { success: true, data: mapRecord(record) };
+  } catch (error) {
+    console.error("[Students] Fehler beim Aktualisieren:", error);
+    return { success: false, error: "Schüler konnte nicht aktualisiert werden" };
+  }
+}
+
+// ─── Bulk Import ────────────────────────────────────────────────────────────
+
+export interface ImportStudentRow {
+  first_name: string;
+  last_name: string;
+  date_of_birth: string; // YYYY-MM-DD
+  gender?: string;
+  parent_name?: string;
+  parent_phone?: string;
+  notes?: string;
+}
+
+export interface ImportStudentsResult {
+  created: number;
+  enrolled: number;
+  errors: string[];
+}
+
+/**
+ * Mehrere Schüler auf einmal importieren (aus CSV/Excel).
+ * Erstellt Schüler-Records und schreibt sie optional in einen Kurs ein.
+ */
+export async function importStudentsBulk(
+  mosqueId: string,
+  userId: string,
+  courseId: string | null,
+  rows: ImportStudentRow[]
+): Promise<ActionResult<ImportStudentsResult>> {
+  try {
+    const pb = await getAdminPB();
+
+    // Moschee einmalig laden → Land für Telefonnormalisierung
+    const mosque = await pb.collection("mosques").getOne(mosqueId);
+    const country = detectCountryFromMosque(mosque);
+
+    let created = 0;
+    let enrolled = 0;
+    const errors: string[] = [];
+
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      const rowLabel = `${row.first_name} ${row.last_name}`.trim() || `Zeile ${i + 2}`;
+
+      if (!row.first_name?.trim() || !row.last_name?.trim()) {
+        errors.push(`Zeile ${i + 2}: Vorname und Nachname sind erforderlich`);
+        continue;
+      }
+      if (!row.date_of_birth) {
+        errors.push(`${rowLabel}: Geburtstag fehlt`);
+        continue;
+      }
+
+      try {
+        const normalizedParentPhone = applyPhoneNorm(row.parent_phone || "", country);
+
+        const record = await pb.collection("students").create({
+          mosque_id: mosqueId,
+          first_name: row.first_name.trim(),
+          last_name: row.last_name.trim(),
+          date_of_birth: row.date_of_birth,
+          gender: row.gender || "",
+          parent_name: (row.parent_name || "").trim(),
+          parent_phone: normalizedParentPhone,
+          notes: (row.notes || "").trim(),
+          status: "active",
+        });
+        created++;
+
+        if (courseId) {
+          try {
+            await pb.collection("course_enrollments").create({
+              mosque_id: mosqueId,
+              course_id: courseId,
+              student_id: record.id,
+              status: "enrolled",
+              enrolled_at: new Date().toISOString(),
+            });
+            enrolled++;
+          } catch {
+            errors.push(`${rowLabel}: Schüler erstellt, Einschreibung fehlgeschlagen`);
+          }
+        }
+      } catch {
+        errors.push(`${rowLabel}: Erstellung fehlgeschlagen`);
+      }
+    }
+
+    await logAudit({
+      mosqueId,
+      userId,
+      action: "student.imported",
+      entityType: "student",
+      entityId: courseId || mosqueId,
+      details: { created, enrolled, error_count: errors.length, course_id: courseId },
+    });
+
+    return { success: true, data: { created, enrolled, errors } };
+  } catch (error) {
+    console.error("[Students] Fehler beim Import:", error);
+    return { success: false, error: "Import fehlgeschlagen" };
+  }
+}
+
+/**
+ * Mitglieder einer Moschee als mögliche Elternteile laden.
+ */
+export async function getParentCandidates(
+  mosqueId: string
+): Promise<ActionResult<{ id: string; name: string }[]>> {
+  try {
+    const pb = await getAdminPB();
+    const records = await pb.collection("users").getFullList({
+      filter: `mosque_id = "${mosqueId}" && status = "active"`,
+      sort: "first_name",
+    });
+    const parents = records.map((r) => ({
+      id: r.id,
+      name: `${r.first_name || ""} ${r.last_name || ""}`.trim() || r.email || r.id,
+    }));
+    return { success: true, data: parents };
+  } catch (error) {
+    console.error("[Students] Fehler beim Laden der Eltern:", error);
+    return { success: false, error: "Eltern konnten nicht geladen werden" };
+  }
+}

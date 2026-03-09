@@ -1,0 +1,177 @@
+"use server";
+
+import { getAdminPB } from "@/lib/pocketbase-admin";
+import { processEmailQueue, sendEmailDirect } from "@/lib/email";
+import { renderFeeReminder } from "@/lib/email/templates";
+import { logAudit } from "@/lib/audit";
+
+// =========================================
+// Queue verarbeiten (Newsletter + alle queued)
+// =========================================
+
+/**
+ * Verarbeitet alle ausstehenden E-Mails einer Moschee.
+ * Wird vom Admin über "Jetzt senden" Button ausgelöst.
+ */
+export async function processNewsletterQueue(
+  mosqueId: string,
+  userId: string
+): Promise<{ success: boolean; sent?: number; failed?: number; error?: string }> {
+  try {
+    const result = await processEmailQueue(mosqueId);
+
+    if (result.skipped === -1) {
+      return { success: false, error: "E-Mail-Service nicht konfiguriert. Bitte RESEND_API_KEY setzen." };
+    }
+
+    await logAudit({
+      mosqueId,
+      userId,
+      action: "newsletter.sent",
+      entityType: "email_outbox",
+      entityId: "",
+      details: { sent: result.sent, failed: result.failed },
+    });
+
+    return { success: true, sent: result.sent, failed: result.failed };
+  } catch (error) {
+    console.error("[actions/email] processNewsletterQueue:", error);
+    return { success: false, error: "Fehler beim Verarbeiten der E-Mail-Warteschlange" };
+  }
+}
+
+// =========================================
+// Queue-Statistik für Admin-UI
+// =========================================
+
+export async function getEmailQueueStats(mosqueId: string): Promise<{
+  queued: number;
+  sent: number;
+  failed: number;
+}> {
+  try {
+    const pb = await getAdminPB();
+
+    const [queuedList, sentList, failedList] = await Promise.all([
+      pb.collection("email_outbox").getList(1, 1, {
+        filter: `mosque_id = "${mosqueId}" && status = "queued"`,
+        fields: "id",
+      }),
+      pb.collection("email_outbox").getList(1, 1, {
+        filter: `mosque_id = "${mosqueId}" && status = "sent"`,
+        fields: "id",
+      }),
+      pb.collection("email_outbox").getList(1, 1, {
+        filter: `mosque_id = "${mosqueId}" && status = "failed"`,
+        fields: "id",
+      }),
+    ]);
+
+    return {
+      queued: queuedList.totalItems,
+      sent: sentList.totalItems,
+      failed: failedList.totalItems,
+    };
+  } catch (err) {
+    console.error("[actions/email] getEmailQueueStats:", err);
+    return { queued: 0, sent: 0, failed: 0 };
+  }
+}
+
+// =========================================
+// Gebühren-Mahnung (Madrasa)
+// =========================================
+
+/**
+ * Sendet eine Mahnungs-E-Mail an die Eltern für eine offene Madrasa-Gebühr.
+ */
+export async function sendFeeReminderEmail(
+  mosqueId: string,
+  userId: string,
+  feeId: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const pb = await getAdminPB();
+
+    // Gebühr laden
+    const fee = await pb.collection("student_fees").getOne(feeId);
+    if (fee.mosque_id !== mosqueId) {
+      return { success: false, error: "Ungültige Gebühr" };
+    }
+    if (fee.status !== "open") {
+      return { success: false, error: "Nur offene Gebühren können gemahnt werden" };
+    }
+
+    // Schüler laden
+    const student = await pb.collection("students").getOne(fee.student_id);
+    if (!student.parent_id) {
+      return { success: false, error: "Kein Elternteil dem Schüler zugeordnet" };
+    }
+
+    // Elternteil laden
+    const parent = await pb.collection("users").getOne(student.parent_id);
+    if (!parent.email) {
+      return { success: false, error: "Elternteil hat keine E-Mail-Adresse" };
+    }
+
+    // Moschee für Namen laden
+    const mosque = await pb.collection("mosques").getOne(mosqueId);
+
+    // Monat formatieren: "2025-07" → "Juli 2025"
+    const [year, month] = (fee.month_key as string).split("-");
+    const monthLabel = new Date(parseInt(year), parseInt(month) - 1, 1)
+      .toLocaleDateString("de-DE", { month: "long", year: "numeric" });
+
+    const amountEur = ((fee.amount_cents as number) / 100).toFixed(2).replace(".", ",");
+
+    const html = renderFeeReminder({
+      mosqueName: mosque.name,
+      parentName: parent.name || undefined,
+      studentName: `${student.first_name} ${student.last_name}`,
+      monthLabel,
+      amountEur,
+      accentColor: mosque.brand_primary_color || undefined,
+    });
+
+    const sendResult = await sendEmailDirect({
+      to: parent.email,
+      subject: `Erinnerung: Madrasa-Gebühr ${monthLabel} — ${mosque.name}`,
+      html,
+    });
+
+    if (!sendResult.success) {
+      return { success: false, error: sendResult.error || "E-Mail konnte nicht gesendet werden" };
+    }
+
+    // Audit-Log
+    await logAudit({
+      mosqueId,
+      userId,
+      action: "fee_reminder.sent",
+      entityType: "student_fees",
+      entityId: feeId,
+      details: {
+        student: `${student.first_name} ${student.last_name}`,
+        parent_email: parent.email,
+        month_key: fee.month_key,
+      },
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("[actions/email] sendFeeReminderEmail:", error);
+    return { success: false, error: "Fehler beim Senden der Mahnung" };
+  }
+}
+
+// =========================================
+// Test-E-Mail
+// =========================================
+
+export async function sendTestEmailAction(
+  toEmail: string
+): Promise<{ success: boolean; error?: string }> {
+  const { sendTestEmail } = await import("@/lib/email");
+  const result = await sendTestEmail(toEmail);
+  return result;
+}

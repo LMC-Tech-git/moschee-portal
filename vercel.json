@@ -1,0 +1,37 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+
+  "framework": "nextjs",
+
+  "regions": ["fra1"],
+
+  "buildCommand": "next build",
+  "outputDirectory": ".next",
+  "installCommand": "npm ci",
+
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store, max-age=0" }
+      ]
+    }
+  ],
+
+  "redirects": [
+    {
+      "source": "/home",
+      "destination": "/",
+      "permanent": true
+    }
+  ],
+
+  "rewrites": [],
+
+  "cleanUrls": true,
+  "trailingSlash": false,
+
+  "env": {
+    "NEXT_PUBLIC_APP_URL": "https://moschee.app"
+  }
+}

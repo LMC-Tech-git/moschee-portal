@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" rx="64" fill="#059669"/>
+  <g transform="translate(256,240)">
+    <!-- Moschee Kuppel -->
+    <ellipse cx="0" cy="-20" rx="100" ry="80" fill="#ffffff" opacity="0.95"/>
+    <!-- Halbmond -->
+    <circle cx="0" cy="-96" r="20" fill="#fbbf24"/>
+    <circle cx="7" cy="-98" r="15" fill="#059669"/>
+    <!-- Minarett links -->
+    <rect x="-136" y="-72" width="20" height="132" rx="4" fill="#ffffff" opacity="0.9"/>
+    <circle cx="-126" cy="-76" r="12" fill="#ffffff" opacity="0.9"/>
+    <!-- Minarett rechts -->
+    <rect x="116" y="-72" width="20" height="132" rx="4" fill="#ffffff" opacity="0.9"/>
+    <circle cx="126" cy="-76" r="12" fill="#ffffff" opacity="0.9"/>
+    <!-- Basis -->
+    <rect x="-124" y="52" width="248" height="40" rx="8" fill="#ffffff" opacity="0.85"/>
+    <!-- Text -->
+    <text x="0" y="136" text-anchor="middle" fill="#ffffff" font-family="Arial,sans-serif" font-size="40" font-weight="bold">MOSCHEE</text>
+    <text x="0" y="172" text-anchor="middle" fill="#d1fae5" font-family="Arial,sans-serif" font-size="28" letter-spacing="8">PORTAL</text>
+  </g>
+</svg>
