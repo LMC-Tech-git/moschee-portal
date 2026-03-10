@@ -90,7 +90,7 @@ export default function HomePage() {
   if (isLoading || loadingSlug) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
-        <h1 className="sr-only">Moschee-Portal</h1>
+        <h1 className="sr-only">moschee.app</h1>
         <div className="h-10 w-10 animate-spin rounded-full border-4 border-emerald-200 border-t-emerald-600" />
       </div>
     );
@@ -115,11 +115,11 @@ export default function HomePage() {
           {/* Badge */}
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-1.5 text-sm font-medium text-emerald-700">
             <span className="h-2 w-2 rounded-full bg-emerald-500" aria-hidden="true" />
-            Jetzt in der Pilotphase
+            Jetzt verfügbar
           </div>
 
           <h1 className="mb-5 text-4xl font-extrabold tracking-tight text-gray-900 sm:text-5xl lg:text-6xl">
-            Das digitale Portal{" "}
+            Die digitale Plattform{" "}
             <span className="text-emerald-600">für Ihre Moschee</span>
           </h1>
 
@@ -131,10 +131,10 @@ export default function HomePage() {
 
           <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
             <a
-              href="mailto:info@moschee.app?subject=Pilotmoschee%20anfragen"
+              href="mailto:kontakt@moschee.app?subject=Demo%20anfragen"
               className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-7 py-3.5 text-base font-bold text-white shadow-sm transition-colors hover:bg-emerald-700"
             >
-              Pilotmoschee anfragen
+              Kostenlos anfragen
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </a>
             <Link
@@ -194,7 +194,7 @@ export default function HomePage() {
                 <span className="text-emerald-600">nicht für Tech-Konzerne</span>
               </h2>
               <p className="mb-6 text-gray-600 leading-relaxed">
-                Moschee-Portal wurde gemeinsam mit Gemeinden entwickelt, die
+                moschee.app wurde gemeinsam mit Gemeinden entwickelt, die
                 genau wissen, welche Herausforderungen der Alltag mit sich
                 bringt. Kein unnötiger Schnickschnack — nur das, was wirklich
                 gebraucht wird.
@@ -229,15 +229,14 @@ export default function HomePage() {
             Bereit, Ihre Gemeinde zu digitalisieren?
           </h2>
           <p className="mb-8 text-emerald-100">
-            Wir nehmen derzeit ausgewählte Pilotmoscheen auf. Schreiben Sie uns —
-            die Einrichtung ist kostenlos und unkompliziert.
+            Starten Sie jetzt — kostenlos, ohne Vertragsbindung und ohne technisches Vorwissen.
           </p>
           <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
             <a
-              href="mailto:info@moschee.app?subject=Pilotmoschee%20anfragen"
+              href="mailto:kontakt@moschee.app?subject=Demo%20anfragen"
               className="inline-flex items-center gap-2 rounded-xl bg-white px-7 py-3.5 text-base font-bold text-emerald-700 shadow-sm transition-colors hover:bg-emerald-50"
             >
-              Pilotmoschee anfragen
+              Kostenlos anfragen
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </a>
             <Link
@@ -249,7 +248,7 @@ export default function HomePage() {
             </Link>
           </div>
           <p className="mt-6 text-sm text-emerald-200">
-            info@moschee.app
+            kontakt@moschee.app
           </p>
         </div>
       </section>

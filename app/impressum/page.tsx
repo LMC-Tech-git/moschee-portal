@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Impressum | Moschee-Portal",
-  description: "Impressum und rechtliche Angaben gemäß § 5 TMG zum Moschee-Portal – der digitalen Plattform für muslimische Gemeinden.",
+  title: "Impressum | moschee.app",
+  description: "Impressum und rechtliche Angaben gemäß § 5 TMG zu moschee.app",
   openGraph: {
-    title: "Impressum | Moschee-Portal",
-    description: "Impressum und rechtliche Angaben gemäß § 5 TMG zum Moschee-Portal.",
+    title: "Impressum | moschee.app",
+    description: "Impressum und rechtliche Angaben gemäß § 5 TMG zu moschee.app",
   },
 };
 
@@ -19,33 +19,25 @@ export default function ImpressumPage() {
           <div>
             <h2 className="text-xl font-bold text-gray-900">Angaben gemäß § 5 TMG</h2>
             <p className="mt-2 text-gray-600">
-              Islamische Gemeinde Musterstadt e.V.<br />
-              Musterstraße 1<br />
-              12345 Musterstadt
-            </p>
-          </div>
-
-          <div>
-            <h2 className="text-xl font-bold text-gray-900">Vertreten durch</h2>
-            <p className="mt-2 text-gray-600">
-              Vorstandsvorsitzender: [Name eintragen]
+              LMC Tech<br />
+              Inhaber: [Vorname Nachname]<br />
+              [Straße und Hausnummer]<br />
+              [PLZ] [Stadt]<br />
+              Deutschland
             </p>
           </div>
 
           <div>
             <h2 className="text-xl font-bold text-gray-900">Kontakt</h2>
             <p className="mt-2 text-gray-600">
-              Telefon: [Telefonnummer]<br />
-              E-Mail: info@moschee-portal.de
+              E-Mail: kontakt@moschee.app
             </p>
           </div>
 
           <div>
-            <h2 className="text-xl font-bold text-gray-900">Registereintrag</h2>
+            <h2 className="text-xl font-bold text-gray-900">Steuerliche Angaben</h2>
             <p className="mt-2 text-gray-600">
-              Eingetragen im Vereinsregister.<br />
-              Registergericht: Amtsgericht Musterstadt<br />
-              Registernummer: VR [Nummer]
+              Steuernummer: [wird nach Registrierung beim Finanzamt ergänzt]
             </p>
           </div>
 

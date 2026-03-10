@@ -18,9 +18,9 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "Moschee-Portal - Ihre digitale Gemeinde",
+  title: "moschee.app - Ihre digitale Gemeinde",
   description:
-    "Die digitale Plattform für muslimische Gemeinden in Deutschland. Spendenverwaltung, Mitgliedersystem, Gebetszeiten und mehr.",
+    "Die digitale Plattform für muslimische Gemeinden in Deutschland. Gebetszeiten, Mitglieder, Spenden, Veranstaltungen und Madrasa.",
   keywords: [
     "Moschee",
     "Gemeinde",
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Moschee-Portal",
+    title: "moschee.app",
   },
   formatDetection: {
     telephone: false,

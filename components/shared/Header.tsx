@@ -73,16 +73,16 @@ export default function Header() {
           ) : (
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-600">
               <span className="text-lg font-bold text-white" aria-hidden="true">
-                {mosque?.name?.charAt(0)?.toUpperCase() || "M"}
+                {mosque.name.charAt(0).toUpperCase()}
               </span>
             </div>
           )}
           <div>
             <span className="text-lg font-bold text-emerald-700">
-              {mosque?.name || "Moschee-Portal"}
+              {mosque?.name || "moschee.app"}
             </span>
             <span className="hidden text-xs text-gray-500 sm:block">
-              {mosque ? mosque.city || "Ihre digitale Gemeinde" : "Ihre digitale Gemeinde"}
+              {mosque ? mosque.city || "Ihre digitale Gemeinde" : "Die Plattform für Moscheegemeinden"}
             </span>
           </div>
         </Link>
