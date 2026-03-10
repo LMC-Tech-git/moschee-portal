@@ -73,7 +73,7 @@ export default function Header() {
           ) : (
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-600">
               <span className="text-lg font-bold text-white" aria-hidden="true">
-                {mosque.name.charAt(0).toUpperCase()}
+                {mosque?.name?.charAt(0)?.toUpperCase()}
               </span>
             </div>
           )}
