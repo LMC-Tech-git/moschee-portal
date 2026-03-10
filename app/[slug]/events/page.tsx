@@ -12,15 +12,44 @@ import { eventCategoryLabels } from "@/lib/constants";
 import { getNextOccurrence } from "@/lib/recurrence";
 import type { Event } from "@/types";
 
-export async function generateMetadata({ params }: { params: { slug: string } }) {
+export async function generateMetadata({
+  params,
+  searchParams,
+}: {
+  params: { slug: string };
+  searchParams?: { category?: string };
+}) {
   const mosque = await resolveMosqueBySlug(params.slug);
   if (!mosque) return { title: "Nicht gefunden" };
-  const title = `Veranstaltungen | ${mosque.name}`;
-  const description = `Veranstaltungen und Events der ${mosque.name}. Gemeinde-Treffen, Vorträge, Jugendarbeit und mehr.`;
+
+  const categoryMap: Record<string, string> = {
+    community: "Gemeinschaft",
+    lecture: "Vorträge",
+    quran: "Koran",
+    ramadan: "Ramadan",
+    other: "Sonstiges",
+  };
+
+  const catLabel = searchParams?.category ? categoryMap[searchParams.category] ?? searchParams.category : null;
+  const title = catLabel
+    ? `Veranstaltungen – ${catLabel} | ${mosque.name}`
+    : `Veranstaltungen | ${mosque.name}`;
+  const description = `Veranstaltungen und Events der ${mosque.name}. Gemeinschaftstreffen, Vorträge und mehr.`;
+
   return {
     title,
     description,
-    openGraph: { title, description, type: "website" as const },
+    alternates: {
+      canonical: `https://moschee.app/${params.slug}/events`,
+    },
+    robots: searchParams?.category ? { index: false } : undefined,
+    openGraph: {
+      title,
+      description,
+      type: "website" as const,
+      url: `https://moschee.app/${params.slug}/events`,
+      siteName: "moschee.app",
+    },
   };
 }
 

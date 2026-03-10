@@ -3,6 +3,9 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Impressum | moschee.app",
   description: "Impressum und rechtliche Angaben gemäß § 5 TMG zu moschee.app",
+  alternates: {
+    canonical: "https://moschee.app/impressum",
+  },
   openGraph: {
     title: "Impressum | moschee.app",
     description: "Impressum und rechtliche Angaben gemäß § 5 TMG zu moschee.app",

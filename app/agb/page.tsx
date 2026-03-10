@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Allgemeine Geschäftsbedingungen | Moschee-Portal",
-  description: "Nutzungsbedingungen und AGB für das Moschee-Portal – das digitale Portal für muslimische Gemeinden in Deutschland.",
+  title: "Allgemeine Geschäftsbedingungen | moschee.app",
+  description: "Nutzungsbedingungen und AGB für moschee.app – das digitale Portal für muslimische Gemeinden in Deutschland.",
   openGraph: {
-    title: "Allgemeine Geschäftsbedingungen | Moschee-Portal",
-    description: "Nutzungsbedingungen und AGB für das Moschee-Portal.",
+    title: "Allgemeine Geschäftsbedingungen | moschee.app",
+    description: "Nutzungsbedingungen und AGB für moschee.app.",
   },
 };
 

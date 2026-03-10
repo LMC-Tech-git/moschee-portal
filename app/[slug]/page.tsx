@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { cookies } from "next/headers";
 import Link from "next/link";
+import Image from "next/image";
 import {
   Building2,
   MapPin,
@@ -81,12 +82,15 @@ export default async function MosqueDashboard({
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             {mosque.brand_logo ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={`${PB_URL}/api/files/mosques/${mosque.id}/${mosque.brand_logo}`}
-                alt={mosque.name}
-                className="mx-auto mb-4 max-h-24 max-w-[200px] object-contain"
-              />
+              <div className="relative mx-auto mb-4 h-24 w-[200px]">
+                <Image
+                  src={`${PB_URL}/api/files/mosques/${mosque.id}/${mosque.brand_logo}`}
+                  alt={mosque.name}
+                  fill
+                  className="object-contain"
+                  sizes="200px"
+                />
+              </div>
             ) : (
               <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-white/10">
                 <Building2 className="h-8 w-8 text-white" aria-hidden="true" />

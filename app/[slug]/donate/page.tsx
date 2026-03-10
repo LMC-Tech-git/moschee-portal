@@ -8,7 +8,13 @@ import { CampaignCard } from "@/components/campaigns/CampaignCard";
 import { formatCurrencyCents } from "@/lib/utils";
 import type { CampaignWithProgress } from "@/types";
 
-export async function generateMetadata({ params }: { params: { slug: string } }) {
+export async function generateMetadata({
+  params,
+  searchParams,
+}: {
+  params: { slug: string };
+  searchParams?: { campaign?: string };
+}) {
   const result = await resolveMosqueWithSettings(params.slug);
   if (!result) return { title: "Nicht gefunden" };
   const title = `Spenden | ${result.mosque.name}`;
@@ -16,7 +22,17 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   return {
     title,
     description,
-    openGraph: { title, description, type: "website" as const },
+    alternates: {
+      canonical: `https://moschee.app/${params.slug}/donate`,
+    },
+    robots: searchParams?.campaign ? { index: false } : undefined,
+    openGraph: {
+      title,
+      description,
+      type: "website" as const,
+      url: `https://moschee.app/${params.slug}/donate`,
+      siteName: "moschee.app",
+    },
   };
 }
 

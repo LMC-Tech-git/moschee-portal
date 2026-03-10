@@ -16,6 +16,17 @@ const nextConfig = {
     },
   },
 
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'http',
+        hostname: '91.98.142.128',
+        port: '8090',
+        pathname: '/api/files/**',
+      },
+    ],
+  },
+
   async headers() {
     return [
       {

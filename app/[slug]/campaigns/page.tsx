@@ -16,7 +16,16 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   return {
     title,
     description,
-    openGraph: { title, description, type: "website" as const },
+    alternates: {
+      canonical: `https://moschee.app/${params.slug}/campaigns`,
+    },
+    openGraph: {
+      title,
+      description,
+      type: "website" as const,
+      url: `https://moschee.app/${params.slug}/campaigns`,
+      siteName: "moschee.app",
+    },
   };
 }
 

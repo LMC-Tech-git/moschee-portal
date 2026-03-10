@@ -2,6 +2,7 @@
 export const dynamic = "force-dynamic";
 
 import { notFound } from "next/navigation";
+import Image from "next/image";
 import Link from "next/link";
 import { ChevronLeft, Heart, Users, Calendar, TrendingUp } from "lucide-react";
 import { resolveMosqueBySlug } from "@/lib/resolve-mosque";
@@ -12,6 +13,30 @@ import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 
 const PB_URL = process.env.NEXT_PUBLIC_POCKETBASE_URL || "";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { slug: string; id: string };
+}) {
+  try {
+    const mosque = await resolveMosqueBySlug(params.slug);
+    const result = await getCampaignById(params.id, mosque?.id ?? "");
+    if (!result.success || !result.data) return { title: "Kampagne" };
+    const title = `${result.data.title} | ${mosque?.name ?? "Gemeinde"}`;
+    const description = result.data.description
+      ? result.data.description.slice(0, 160)
+      : `Spendenaufruf der ${mosque?.name ?? "Gemeinde"}`;
+    return {
+      title,
+      description,
+      alternates: { canonical: `https://moschee.app/${params.slug}/campaigns/${params.id}` },
+      openGraph: { title, description, type: "article" as const },
+    };
+  } catch {
+    return { title: "Kampagne" };
+  }
+}
 
 export default async function PublicCampaignPage({
   params,
@@ -73,13 +98,13 @@ export default async function PublicCampaignPage({
 
           {/* Cover-Bild */}
           {campaign.cover_image && (
-            <div className="overflow-hidden rounded-xl bg-gray-100">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+            <div className="relative overflow-hidden rounded-xl bg-gray-100" style={{ maxHeight: "400px", minHeight: "200px" }}>
+              <Image
                 src={`${PB_URL}/api/files/campaigns/${campaign.id}/${campaign.cover_image}`}
                 alt={campaign.title}
-                className="w-full object-cover"
-                style={{ maxHeight: "400px" }}
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, 800px"
               />
             </div>
           )}

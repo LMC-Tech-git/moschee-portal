@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { cookies } from "next/headers";
+import Image from "next/image";
 import Link from "next/link";
 import {
   ChevronLeft,
@@ -24,6 +25,30 @@ import { GuestRegistrationForm } from "./GuestRegistrationForm";
 import { MemberRegistrationButton } from "./MemberRegistrationButton";
 
 const PB_URL = process.env.NEXT_PUBLIC_POCKETBASE_URL || "";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { slug: string; eventId: string };
+}) {
+  try {
+    const mosque = await resolveMosqueBySlug(params.slug);
+    const result = await getEventById(params.eventId, mosque?.id ?? "");
+    if (!result.success || !result.data) return { title: "Veranstaltung" };
+    const title = `${result.data.title} | ${mosque?.name ?? "Gemeinde"}`;
+    const description = result.data.description
+      ? result.data.description.slice(0, 160)
+      : `Veranstaltung der ${mosque?.name ?? "Gemeinde"}`;
+    return {
+      title,
+      description,
+      alternates: { canonical: `https://moschee.app/${params.slug}/events/${params.eventId}` },
+      openGraph: { title, description, type: "article" as const },
+    };
+  } catch {
+    return { title: "Veranstaltung" };
+  }
+}
 
 const PRAYER_LABELS: Record<string, string> = {
   fajr:    "nach dem Morgengebet",
@@ -192,13 +217,13 @@ export default async function PublicEventPage({
 
           {/* Cover-Bild */}
           {event.cover_image && (
-            <div className="overflow-hidden rounded-xl bg-gray-100">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+            <div className="relative overflow-hidden rounded-xl bg-gray-100" style={{ maxHeight: "400px", minHeight: "200px" }}>
+              <Image
                 src={`${PB_URL}/api/files/events/${event.id}/${event.cover_image}`}
                 alt={event.title}
-                className="w-full object-cover"
-                style={{ maxHeight: "400px" }}
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, 800px"
               />
             </div>
           )}

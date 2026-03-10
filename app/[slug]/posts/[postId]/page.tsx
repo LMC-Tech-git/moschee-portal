@@ -1,13 +1,39 @@
 import { notFound } from "next/navigation";
 import { cookies } from "next/headers";
 import Link from "next/link";
+import Image from "next/image";
 import { ChevronLeft, Calendar, User, Pin } from "lucide-react";
 import { resolveMosqueBySlug } from "@/lib/resolve-mosque";
+import { getAdminPB } from "@/lib/pocketbase-admin";
 import { getPostById } from "@/lib/actions/posts";
 import { formatDate } from "@/lib/utils";
 import { postCategoryLabels, postCategoryColors } from "@/lib/constants";
 
 const PB_URL = process.env.NEXT_PUBLIC_POCKETBASE_URL || "";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { slug: string; postId: string };
+}) {
+  try {
+    const pb = await getAdminPB();
+    const post = await pb.collection("posts").getOne(params.postId, { fields: "title,content" });
+    const mosque = await resolveMosqueBySlug(params.slug);
+    const title = `${post.title} | ${mosque?.name ?? "Gemeinde"}`;
+    const description = post.content
+      ? post.content.replace(/<[^>]+>/g, "").slice(0, 160)
+      : `Beitrag der ${mosque?.name ?? "Gemeinde"}`;
+    return {
+      title,
+      description,
+      alternates: { canonical: `https://moschee.app/${params.slug}/posts/${params.postId}` },
+      openGraph: { title, description, type: "article" as const },
+    };
+  } catch {
+    return { title: "Beitrag" };
+  }
+}
 
 export default async function PostDetailPage({
   params,
@@ -114,13 +140,15 @@ export default async function PostDetailPage({
                   rel="noopener noreferrer"
                   className="group relative overflow-hidden rounded-xl bg-gray-100"
                 >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={`${PB_URL}/api/files/posts/${post.id}/${filename}`}
-                    alt={`Bild ${idx + 1} – ${post.title}`}
-                    className="w-full object-cover transition-transform duration-200 group-hover:scale-105"
-                    style={{ aspectRatio: "4/3" }}
-                  />
+                  <div className="relative w-full" style={{ aspectRatio: "4/3" }}>
+                    <Image
+                      src={`${PB_URL}/api/files/posts/${post.id}/${filename}`}
+                      alt={`Bild ${idx + 1} – ${post.title}`}
+                      fill
+                      className="object-cover transition-transform duration-200 group-hover:scale-105"
+                      sizes="(max-width: 768px) 100vw, 50vw"
+                    />
+                  </div>
                 </a>
               ))}
             </div>

@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Datenschutzerklärung | Moschee-Portal",
-  description: "Datenschutzerklärung des Moschee-Portals: Informationen zur DSGVO-konformen Verarbeitung personenbezogener Daten.",
+  title: "Datenschutzerklärung | moschee.app",
+  description: "Datenschutzerklärung von moschee.app: Informationen zur DSGVO-konformen Verarbeitung personenbezogener Daten.",
+  alternates: {
+    canonical: "https://moschee.app/datenschutz",
+  },
   openGraph: {
-    title: "Datenschutzerklärung | Moschee-Portal",
-    description: "Datenschutzerklärung des Moschee-Portals: DSGVO-konforme Datenverarbeitung.",
+    title: "Datenschutzerklärung | moschee.app",
+    description: "Datenschutzerklärung von moschee.app: DSGVO-konforme Datenverarbeitung.",
   },
 };
 

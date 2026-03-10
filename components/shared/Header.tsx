@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState, useEffect, useCallback } from "react";
 import {
   Home,
@@ -64,12 +65,15 @@ export default function Header() {
         {/* Logo */}
         <Link href="/" className="flex items-center gap-3">
           {mosque?.brand_logo && mosque?.id ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={`${PB_URL}/api/files/mosques/${mosque.id}/${mosque.brand_logo}`}
-              alt={mosque.name || "Logo"}
-              className="h-10 w-auto max-w-[120px] object-contain"
-            />
+            <div className="relative h-10 w-[120px]">
+              <Image
+                src={`${PB_URL}/api/files/mosques/${mosque.id}/${mosque.brand_logo}`}
+                alt={mosque.name || "Logo"}
+                fill
+                className="object-contain"
+                sizes="120px"
+              />
+            </div>
           ) : (
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-600">
               <span className="text-lg font-bold text-white" aria-hidden="true">

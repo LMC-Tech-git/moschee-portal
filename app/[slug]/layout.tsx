@@ -15,16 +15,21 @@ export async function generateMetadata({
   const result = await resolveMosqueWithSettings(params.slug);
   if (!result) return { title: "Nicht gefunden" };
 
-  const title = `${result.mosque.name} | Moschee-Portal`;
+  const title = `${result.mosque.name} — Digitales Gemeinde-Portal`;
   const description = `Willkommen beim digitalen Portal der ${result.mosque.name}${result.mosque.city ? ` in ${result.mosque.city}` : ""}. Gebetszeiten, Veranstaltungen, Spenden und mehr.`;
 
   return {
     title,
     description,
+    alternates: {
+      canonical: `https://moschee.app/${params.slug}`,
+    },
     openGraph: {
       title,
       description,
       type: "website",
+      url: `https://moschee.app/${params.slug}`,
+      siteName: "moschee.app",
     },
   };
 }

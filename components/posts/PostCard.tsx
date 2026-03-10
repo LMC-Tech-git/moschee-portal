@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Pin, Calendar, User, Images } from "lucide-react";
 import type { Post } from "@/types";
 import { formatDate } from "@/lib/utils";
@@ -61,11 +62,12 @@ export function PostCard({ post, compact, href }: PostCardProps) {
       {/* Cover-Bild */}
       {firstImage && (
         <div className="relative mx-auto aspect-square w-1/2 overflow-hidden rounded-lg bg-gray-100">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+          <Image
             src={`${PB_URL}/api/files/posts/${post.id}/${firstImage}`}
             alt={post.title}
-            className="h-full w-full object-contain"
+            fill
+            className="object-contain"
+            sizes="(max-width: 768px) 50vw, 300px"
           />
           {extraImageCount > 0 && (
             <div className="absolute bottom-2 right-2 flex items-center gap-1 rounded-full bg-black/60 px-2 py-0.5 text-xs text-white">

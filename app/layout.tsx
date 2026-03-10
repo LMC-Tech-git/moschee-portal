@@ -18,9 +18,13 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "moschee.app - Ihre digitale Gemeinde",
+  metadataBase: new URL("https://moschee.app"),
+  title: {
+    default: "moschee.app — Die digitale Plattform für Moscheegemeinden",
+    template: "%s | moschee.app",
+  },
   description:
-    "Die digitale Plattform für muslimische Gemeinden in Deutschland. Gebetszeiten, Mitglieder, Spenden, Veranstaltungen und Madrasa.",
+    "Die digitale Plattform für muslimische Gemeinden in Deutschland. Gebetszeiten, Mitglieder, Spenden, Veranstaltungen und Madrasa – alles in einem Portal.",
   keywords: [
     "Moschee",
     "Gemeinde",
@@ -28,7 +32,26 @@ export const metadata: Metadata = {
     "Gebetszeiten",
     "Islam",
     "Deutschland",
+    "Madrasa",
   ],
+  alternates: {
+    canonical: "https://moschee.app",
+  },
+  openGraph: {
+    type: "website",
+    locale: "de_DE",
+    url: "https://moschee.app",
+    siteName: "moschee.app",
+    title: "moschee.app — Die digitale Plattform für Moscheegemeinden",
+    description:
+      "Die digitale Plattform für muslimische Gemeinden in Deutschland. Gebetszeiten, Veranstaltungen, Spenden und mehr.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "moschee.app — Die digitale Plattform für Moscheegemeinden",
+    description:
+      "Die digitale Plattform für muslimische Gemeinden in Deutschland.",
+  },
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
