@@ -39,6 +39,7 @@ const ROLE_OPTIONS = [
   { value: "member", label: "Mitglied" },
   { value: "imam", label: "Imam" },
   { value: "teacher", label: "Lehrer/in" },
+  { value: "editor", label: "Editor (Beiträge, Events, Kampagnen)" },
   { value: "admin", label: "Administrator" },
 ] as const;
 
@@ -52,7 +53,7 @@ export function CreateInviteDialog({
 }: Props) {
   const [step, setStep] = useState<Step>("form");
   const [inviteType, setInviteType] = useState<InviteType>("personal");
-  const [role, setRole] = useState<"member" | "teacher" | "imam" | "admin">("member");
+  const [role, setRole] = useState<"member" | "teacher" | "imam" | "editor" | "admin">("member");
   const [initialStatus, setInitialStatus] = useState<"pending" | "active">("pending");
   const [label, setLabel] = useState("");
   const [email, setEmail] = useState("");
@@ -353,7 +354,7 @@ export function CreateInviteDialog({
                 </p>
                 <p>
                   <span className="font-medium">Rolle:</span>{" "}
-                  {{ member: "Mitglied", imam: "Imam", teacher: "Lehrer/in", admin: "Administrator" }[role]}
+                  {{ member: "Mitglied", imam: "Imam", teacher: "Lehrer/in", editor: "Editor", admin: "Administrator" }[role]}
                 </p>
                 <p>
                   <span className="font-medium">Status:</span>{" "}

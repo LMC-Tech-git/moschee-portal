@@ -20,7 +20,7 @@ interface AuthUser {
   phone: string;
   member_no: string;
   mosque_id: string;
-  role: "member" | "admin" | "teacher" | "imam";
+  role: "member" | "admin" | "teacher" | "imam" | "editor" | "super_admin";
   status: "pending" | "active" | "blocked";
 }
 
@@ -63,7 +63,7 @@ function mapRecordToUser(record: RecordModel): AuthUser {
     phone: record.phone || "",
     member_no: record.member_no || record.membership_number || "",
     mosque_id: record.mosque_id || "",
-    role: record.role === "admin" ? "admin" : record.role === "teacher" ? "teacher" : record.role === "imam" ? "imam" : "member",
+    role: (["admin","teacher","imam","editor","super_admin"] as const).includes(record.role) ? record.role as AuthUser["role"] : "member",
     status: record.status || "pending",
   };
 }
@@ -107,6 +107,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = useCallback(() => {
     pb.authStore.clear();
     setUser(null);
+    // Hard redirect: loescht Next.js Router-Cache komplett, Middleware prueft Cookie neu
+    window.location.href = '/login';
   }, [pb]);
 
   const refreshUser = useCallback(async () => {

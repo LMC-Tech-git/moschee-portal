@@ -18,6 +18,8 @@ export async function middleware(request: NextRequest) {
   const isProtectedRoute =
     pathname.startsWith("/admin") ||
     pathname.startsWith("/member") ||
+    pathname.startsWith("/lehrer") ||
+    pathname.startsWith("/imam") ||
     pathname.startsWith("/mitglieder"); // Legacy, wird in Phase 6 entfernt
 
   if (isProtectedRoute && !authCookie?.value) {

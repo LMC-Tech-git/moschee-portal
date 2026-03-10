@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Users,
   Target,
@@ -13,11 +14,14 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { useMosque } from "@/lib/mosque-context";
+import { useAuth } from "@/lib/auth-context";
 import { formatCurrencyCents } from "@/lib/utils";
 import { getDashboardStats, type DashboardStats } from "@/lib/actions/dashboard";
 
 export default function AdminDashboard() {
-  const { mosqueId } = useMosque();
+  const { mosqueId, isLoading: mosqueLoading } = useMosque();
+  const { user } = useAuth();
+  const router = useRouter();
   const [stats, setStats] = useState<DashboardStats>({
     totalMembers: 0,
     activeMembers: 0,
@@ -32,6 +36,13 @@ export default function AdminDashboard() {
     registrationsThisMonth: 0,
   });
   const [isLoading, setIsLoading] = useState(true);
+
+  // Super Admin ohne gewählte Moschee → Plattform-Dashboard
+  useEffect(() => {
+    if (!mosqueLoading && user?.role === "super_admin" && !mosqueId) {
+      router.replace("/admin/platform");
+    }
+  }, [mosqueLoading, user?.role, mosqueId, router]);
 
   useEffect(() => {
     if (!mosqueId) return;

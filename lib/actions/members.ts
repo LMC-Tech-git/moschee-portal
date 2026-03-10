@@ -41,7 +41,7 @@ export async function getMembersByMosque(
   mosqueId: string,
   options?: {
     status?: "pending" | "active" | "inactive" | "blocked";
-    role?: "admin" | "member" | "teacher";
+    role?: "admin" | "member" | "teacher" | "imam" | "editor";
     search?: string;
     page?: number;
     limit?: number;
@@ -216,7 +216,7 @@ export async function updateMemberRole(
   memberId: string,
   mosqueId: string,
   adminUserId: string,
-  newRole: "admin" | "member"
+  newRole: "admin" | "member" | "teacher" | "imam" | "editor"
 ): Promise<ActionResult> {
   try {
     const pb = await getAdminPB();

@@ -76,7 +76,7 @@ export interface User {
   member_no: string;
   membership_number: string; // deprecated alias für member_no
   status: "pending" | "active" | "inactive" | "blocked";
-  role: "admin" | "member" | "teacher" | "imam";
+  role: "admin" | "member" | "teacher" | "imam" | "editor" | "super_admin";
   created: string;
   updated: string;
 }

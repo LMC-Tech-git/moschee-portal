@@ -371,3 +371,24 @@ export const PRAYER_METHODS = [
   { method: 13, name: "Diyanet İşleri Başkanlığı (Türkei)" },
   { method: 15, name: "Moonsighting Committee Worldwide" },
 ] as const;
+
+// =========================================
+// Rollen-Labels
+// =========================================
+
+export const ROLE_LABELS: Record<string, string> = {
+  super_admin: 'Plattform-Admin',
+  admin: 'Administrator',
+  editor: 'Editor',
+  imam: 'Imam',
+  teacher: 'Lehrer',
+  member: 'Mitglied',
+};
+
+export const ROLE_OPTIONS = [
+  { value: 'member',  label: 'Mitglied' },
+  { value: 'admin',   label: 'Administrator' },
+  { value: 'editor',  label: 'Editor (Beiträge, Events, Kampagnen)' },
+  { value: 'teacher', label: 'Lehrer (Madrasa)' },
+  { value: 'imam',    label: 'Imam (Beiträge posten)' },
+] as const;

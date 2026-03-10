@@ -115,3 +115,73 @@ export async function getDashboardStats(
     return defaults;
   }
 }
+
+
+// --- Plattform-Statistiken (nur super_admin) ---
+
+export interface MosqueStat {
+  id: string;
+  name: string;
+  city: string;
+  slug: string;
+  memberCount: number;
+}
+
+export interface PlatformStats {
+  totalMosques: number;
+  totalMembers: number;
+  totalDonationsCents: number;
+  activeCampaigns: number;
+  mosques: MosqueStat[];
+}
+
+export async function getPlatformStats(): Promise<PlatformStats> {
+  const pb = await getAdminPB();
+
+  const [mosques, membersResult, campaignsResult] = await Promise.all([
+    pb.collection("mosques").getFullList({ sort: "name" }),
+    pb.collection("users").getList(1, 1, {}),
+    pb.collection("campaigns").getList(1, 1, { filter: "is_active = true" }),
+  ]);
+
+  const mosqueStats: MosqueStat[] = await Promise.all(
+    mosques.map(async (m) => {
+      try {
+        const memberResult = await pb
+          .collection("users")
+          .getList(1, 1, { filter: `mosque_id = "${m.id}"` });
+        return {
+          id: m.id,
+          name: m.name || "",
+          city: m.city || "",
+          slug: m.slug || "",
+          memberCount: memberResult.totalItems,
+        };
+      } catch {
+        return { id: m.id, name: m.name || "", city: m.city || "", slug: m.slug || "", memberCount: 0 };
+      }
+    })
+  );
+
+  let totalDonationsCents = 0;
+  try {
+    const allDonations = await pb.collection("donations").getFullList({
+      filter: 'status = "paid"',
+      fields: "amount_cents,amount",
+    });
+    totalDonationsCents = allDonations.reduce(
+      (sum, d) => sum + (d.amount_cents || Math.round((d.amount || 0) * 100)),
+      0
+    );
+  } catch {
+    // Donations Collection koennte leer sein
+  }
+
+  return {
+    totalMosques: mosques.length,
+    totalMembers: membersResult.totalItems,
+    totalDonationsCents,
+    activeCampaigns: campaignsResult.totalItems,
+    mosques: mosqueStats,
+  };
+}

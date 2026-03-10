@@ -39,6 +39,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { formatDate, formatCurrency } from "@/lib/utils";
+import { ROLE_OPTIONS } from "@/lib/constants";
 import type { User as UserType, Donation, EventRegistration } from "@/types";
 
 export default function MitgliedBearbeitenPage() {
@@ -299,10 +300,11 @@ export default function MitgliedBearbeitenPage() {
                   onChange={(e) => setRole(e.target.value)}
                   className="w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                 >
-                  <option value="member">Mitglied</option>
-                  <option value="imam">Imam</option>
-                  <option value="teacher">Lehrer</option>
-                  <option value="admin">Admin</option>
+                  {ROLE_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
                 </select>
               </div>
 

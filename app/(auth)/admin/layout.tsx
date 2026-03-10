@@ -18,66 +18,88 @@ import {
   Banknote,
   Settings,
   ClipboardList,
+  Globe,
+  Crown,
+  Edit3,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useMosque } from "@/lib/mosque-context";
+import { MoscheeSelektor } from "@/components/admin/MoscheeSelektor";
 import { cn } from "@/lib/utils";
+
+// Editor darf nur diese Routen besuchen
+const EDITOR_ALLOWED_PREFIXES = [
+  "/admin/posts",
+  "/admin/events",
+  "/admin/kampagnen",
+];
 
 const adminNav = [
   {
     label: "Dashboard",
     href: "/admin",
     icon: LayoutDashboard,
+    roles: ["admin", "super_admin"],
   },
   {
     label: "Beiträge",
     href: "/admin/posts",
     icon: FileText,
+    roles: ["admin", "super_admin", "editor"],
   },
   {
     label: "Veranstaltungen",
     href: "/admin/events",
     icon: CalendarDays,
+    roles: ["admin", "super_admin", "editor"],
   },
   {
     label: "Mitglieder",
     href: "/admin/mitglieder",
     icon: Users,
+    roles: ["admin", "super_admin"],
   },
   {
     label: "Kampagnen",
     href: "/admin/kampagnen",
     icon: Target,
+    roles: ["admin", "super_admin", "editor"],
   },
   {
     label: "Spenden",
     href: "/admin/spenden",
     icon: Banknote,
+    roles: ["admin", "super_admin"],
   },
   {
     label: "Madrasa",
     href: "/admin/madrasa",
     icon: BookOpen,
+    roles: ["admin", "super_admin"],
   },
   {
     label: "Newsletter",
     href: "/admin/newsletter",
     icon: Mail,
+    roles: ["admin", "super_admin"],
   },
   {
     label: "Einladungen",
     href: "/admin/invites",
     icon: Link2,
+    roles: ["admin", "super_admin"],
   },
   {
     label: "Audit-Log",
     href: "/admin/audit",
     icon: ClipboardList,
+    roles: ["admin", "super_admin"],
   },
   {
     label: "Einstellungen",
     href: "/admin/settings",
     icon: Settings,
+    roles: ["admin", "super_admin"],
   },
 ];
 
@@ -92,11 +114,31 @@ export default function AdminLayout({
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  const role = user?.role;
+  const canAccess =
+    role === "admin" || role === "super_admin" || role === "editor";
+  const isSuperAdmin = role === "super_admin";
+  const isEditor = role === "editor";
+
+  // Zugangsschutz
   useEffect(() => {
-    if (!isLoading && (!isAuthenticated || user?.role !== "admin")) {
+    if (!isLoading && (!isAuthenticated || !canAccess)) {
       router.push("/");
     }
-  }, [isAuthenticated, isLoading, user, router]);
+  }, [isAuthenticated, isLoading, canAccess, router]);
+
+  // Editor: Weiterleitung bei unerlaubten Routen
+  useEffect(() => {
+    if (!isLoading && isEditor && isAuthenticated) {
+      const isAllowed = EDITOR_ALLOWED_PREFIXES.some(
+        (prefix) =>
+          pathname === prefix || pathname.startsWith(prefix + "/")
+      );
+      if (!isAllowed) {
+        router.replace("/admin/posts");
+      }
+    }
+  }, [isLoading, isEditor, isAuthenticated, pathname, router]);
 
   if (isLoading) {
     return (
@@ -109,9 +151,14 @@ export default function AdminLayout({
     );
   }
 
-  if (!isAuthenticated || user?.role !== "admin") {
+  if (!isAuthenticated || !canAccess) {
     return null;
   }
+
+  // Nav-Items nach Rolle filtern
+  const visibleNav = adminNav.filter((item) =>
+    (item.roles as string[]).includes(role ?? "")
+  );
 
   return (
     <div className="flex min-h-[calc(100vh-73px)]">
@@ -142,23 +189,56 @@ export default function AdminLayout({
       >
         <div className="flex h-full flex-col">
           {/* Sidebar Header */}
-          <div className="border-b border-gray-100 px-4 py-4">
+          <div className="border-b border-gray-100 px-4 py-4 space-y-3">
             <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100">
-                <Shield className="h-4 w-4 text-emerald-600" />
-              </div>
+              {isSuperAdmin ? (
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-100">
+                  <Crown className="h-4 w-4 text-purple-600" />
+                </div>
+              ) : (
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100">
+                  <Shield className="h-4 w-4 text-emerald-600" />
+                </div>
+              )}
               <div>
                 <p className="text-sm font-semibold text-gray-800">
-                  {mosque?.name || "Admin-Panel"}
+                  {isSuperAdmin
+                    ? "Plattform-Admin"
+                    : mosque?.name || "Admin-Panel"}
                 </p>
-                <p className="text-xs text-gray-500">{user?.full_name}</p>
+                <p className="text-xs text-gray-500">
+                  {isEditor ? "Editor-Zugang" : user?.full_name}
+                </p>
               </div>
             </div>
+
+            {/* Moschee-Selektor für Super Admin */}
+            {isSuperAdmin && <MoscheeSelektor />}
+
+            {/* Plattform-Übersicht Link für Super Admin */}
+            {isSuperAdmin && (
+              <Link
+                href="/admin/platform"
+                onClick={() => setSidebarOpen(false)}
+                className="flex items-center gap-2 rounded-lg border border-purple-200 bg-purple-50 px-3 py-2 text-xs font-medium text-purple-700 hover:bg-purple-100 transition-colors"
+              >
+                <Globe className="h-3.5 w-3.5" />
+                Plattform-Übersicht
+              </Link>
+            )}
+
+            {/* Editor-Badge */}
+            {isEditor && (
+              <div className="flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700">
+                <Edit3 className="h-3.5 w-3.5" />
+                Editor-Zugang (Posts · Events · Kampagnen)
+              </div>
+            )}
           </div>
 
           {/* Navigation */}
           <nav className="flex-1 space-y-1 px-3 py-4">
-            {adminNav.map((item) => {
+            {visibleNav.map((item) => {
               const isActive =
                 pathname === item.href ||
                 (item.href !== "/admin" && pathname.startsWith(item.href));

@@ -21,6 +21,8 @@ import {
   BookOpen,
   Megaphone,
   Settings,
+  Crown,
+  Edit3,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useMosque } from "@/lib/mosque-context";
@@ -42,7 +44,9 @@ export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { user, isAuthenticated, logout } = useAuth();
   const { mosque } = useMosque();
-  const isAdmin = user?.role === "admin";
+  const isAdmin = user?.role === "admin" || user?.role === "super_admin" || user?.role === "editor";
+  const isSuperAdmin = user?.role === "super_admin";
+  const isEditor = user?.role === "editor";
   const isTeacher = user?.role === "teacher";
   const isImam = user?.role === "imam";
   const slug = mosque?.slug;
@@ -147,13 +151,31 @@ export default function Header() {
                 <User className="h-4 w-4" aria-hidden="true" />
                 {user?.first_name || user?.full_name}
               </Link>
-              {isAdmin && (
+              {isSuperAdmin && (
+                <Link
+                  href="/admin"
+                  className="flex items-center gap-1.5 rounded-lg bg-purple-50 px-3 py-2 text-sm font-medium text-purple-700 hover:bg-purple-100"
+                >
+                  <Crown className="h-4 w-4" aria-hidden="true" />
+                  Plattform
+                </Link>
+              )}
+              {user?.role === "admin" && (
                 <Link
                   href="/admin"
                   className="flex items-center gap-1.5 rounded-lg bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-600 hover:bg-emerald-100"
                 >
                   <Shield className="h-4 w-4" aria-hidden="true" />
                   Admin
+                </Link>
+              )}
+              {isEditor && (
+                <Link
+                  href="/admin/posts"
+                  className="flex items-center gap-1.5 rounded-lg bg-blue-50 px-3 py-2 text-sm font-medium text-blue-600 hover:bg-blue-100"
+                >
+                  <Edit3 className="h-4 w-4" aria-hidden="true" />
+                  Editor
                 </Link>
               )}
               {isTeacher && (
@@ -263,22 +285,16 @@ export default function Header() {
           {isAdmin && (
             <div className="mt-2 border-t border-gray-100 pt-2">
               <p className="px-4 py-1 text-xs font-semibold uppercase tracking-wider text-gray-400">
-                Admin
+                {isSuperAdmin ? "Plattform" : isEditor ? "Editor" : "Admin"}
               </p>
-              {adminLinks.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className="flex items-center gap-2 rounded-lg px-4 py-3 text-sm font-medium text-gray-700 hover:bg-emerald-50 hover:text-emerald-600"
-                    onClick={closeMobileMenu}
-                  >
-                    <Icon className="h-4 w-4" />
-                    {item.label}
-                  </Link>
-                );
-              })}
+              <Link
+                href={isEditor ? "/admin/posts" : "/admin"}
+                className="flex items-center gap-2 rounded-lg px-4 py-3 text-sm font-medium text-gray-700 hover:bg-emerald-50 hover:text-emerald-600"
+                onClick={closeMobileMenu}
+              >
+                {isSuperAdmin ? <Crown className="h-4 w-4" /> : isEditor ? <Edit3 className="h-4 w-4" /> : <Shield className="h-4 w-4" />}
+                {isSuperAdmin ? "Plattform-Dashboard" : isEditor ? "Editor-Bereich" : "Admin-Panel"}
+              </Link>
             </div>
           )}
 
