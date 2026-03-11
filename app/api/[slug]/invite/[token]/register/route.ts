@@ -7,6 +7,7 @@ import { getAdminPB } from "@/lib/pocketbase-admin";
 import { logAudit } from "@/lib/audit";
 import { inviteRegisterSchema } from "@/lib/validations";
 import { notifyAdmins } from "@/lib/email/notify-admin";
+import { checkDemoLimit } from "@/lib/demo";
 
 /**
  * POST /api/[slug]/invite/[token]/register
@@ -82,6 +83,15 @@ export async function POST(
 
   const invite = validationResult.invite!;
   const pb = await getAdminPB();
+
+  // 4b. Demo-Limit prüfen
+  const demoCheck = await checkDemoLimit(mosque.id, "members");
+  if (!demoCheck.allowed) {
+    return NextResponse.json(
+      { success: false, error: demoCheck.error },
+      { status: 429 }
+    );
+  }
 
   // 5. User-Account erstellen (mosque_id, role, status aus Invite — NICHT vom Client)
   let userId: string;

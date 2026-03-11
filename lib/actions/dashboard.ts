@@ -141,7 +141,7 @@ export async function getPlatformStats(): Promise<PlatformStats> {
   const [mosques, membersResult, campaignsResult] = await Promise.all([
     pb.collection("mosques").getFullList({ sort: "name" }),
     pb.collection("users").getList(1, 1, {}),
-    pb.collection("campaigns").getList(1, 1, { filter: "is_active = true" }),
+    pb.collection("campaigns").getList(1, 1, { filter: 'status = "active"' }),
   ]);
 
   const mosqueStats: MosqueStat[] = await Promise.all(

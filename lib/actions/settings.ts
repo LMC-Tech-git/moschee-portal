@@ -62,10 +62,14 @@ export async function updateBrandingSettings(
       pbFormData.append("brand_logo", logoFile as Blob, (logoFile as File).name || "logo");
     }
 
-    // Logo löschen
+    // Logo löschen: PocketBase erwartet den echten Dateinamen im "field-" Feld
     const removeLogo = formData.get("remove_logo");
     if (removeLogo === "1") {
-      pbFormData.append("brand_logo-", "");
+      const currentRecord = await pb.collection("mosques").getOne(mosqueId, { fields: "brand_logo" });
+      const currentLogo = currentRecord.brand_logo as string;
+      if (currentLogo) {
+        pbFormData.append("brand_logo-", currentLogo);
+      }
     }
 
     await pb.collection("mosques").update(mosqueId, pbFormData);

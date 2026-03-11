@@ -251,6 +251,9 @@ export async function createPost(
   formData: FormData
 ): Promise<ActionResult<Post>> {
   try {
+    const demoCheck = await checkDemoLimit(mosqueId, "posts");
+    if (!demoCheck.allowed) return { success: false, error: demoCheck.error };
+
     const validated = postSchema.parse({
       title: (formData.get("title") as string) || "",
       content: (formData.get("content") as string) || "",

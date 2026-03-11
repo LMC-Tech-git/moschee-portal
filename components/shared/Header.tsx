@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import Image from "next/image";
 import { useState, useEffect, useCallback } from "react";
 import {
@@ -40,16 +41,33 @@ const adminLinks = [
   { label: "Einstellungen", href: "/admin/settings", icon: Settings },
 ];
 
+
+const AVATAR_GRADIENTS = [
+  "from-emerald-400 to-teal-600",
+  "from-blue-400 to-indigo-600",
+  "from-violet-400 to-purple-600",
+  "from-amber-400 to-orange-500",
+  "from-rose-400 to-pink-600",
+  "from-teal-400 to-cyan-600",
+  "from-sky-400 to-blue-600",
+  "from-fuchsia-400 to-violet-600",
+];
+
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { user, isAuthenticated, logout } = useAuth();
   const { mosque } = useMosque();
+  const pathname = usePathname();
   const isAdmin = user?.role === "admin" || user?.role === "super_admin" || user?.role === "editor";
   const isSuperAdmin = user?.role === "super_admin";
   const isEditor = user?.role === "editor";
   const isTeacher = user?.role === "teacher";
   const isImam = user?.role === "imam";
-  const slug = mosque?.slug;
+  // URL-Slug hat Vorrang auf öffentlichen Moschee-Seiten (verhindert falsche Links bei eingeloggten Usern)
+  const HEADER_RESERVED = ['admin','member','lehrer','imam','login','register','api','invite'];
+  const pathParts = pathname.split('/').filter(Boolean);
+  const urlSlug = pathParts.length > 0 && !HEADER_RESERVED.includes(pathParts[0]) ? pathParts[0] : null;
+  const slug = urlSlug ?? mosque?.slug;
 
   const closeMobileMenu = useCallback(() => setMobileMenuOpen(false), []);
 
@@ -69,19 +87,23 @@ export default function Header() {
         {/* Logo */}
         <Link href="/" className="flex items-center gap-3">
           {mosque?.brand_logo && mosque?.id ? (
-            <div className="relative h-10 w-[120px]">
+            <div className="relative h-10 w-10">
               <Image
                 src={`${PB_URL}/api/files/mosques/${mosque.id}/${mosque.brand_logo}`}
                 alt={mosque.name || "Logo"}
                 fill
                 className="object-contain"
-                sizes="120px"
+                sizes="40px"
               />
             </div>
           ) : (
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-600">
-              <span className="text-lg font-bold text-white" aria-hidden="true">
-                {mosque?.name?.charAt(0)?.toUpperCase()}
+            <div
+              className={`flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br ${
+                AVATAR_GRADIENTS[(mosque?.id?.charCodeAt(0) ?? 0) % AVATAR_GRADIENTS.length]
+              }`}
+            >
+              <span className="text-base font-bold text-white" aria-hidden="true">
+                {mosque?.name?.charAt(0)?.toUpperCase() ?? "M"}
               </span>
             </div>
           )}

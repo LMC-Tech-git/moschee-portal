@@ -36,15 +36,27 @@
 }
 
 @layer components {
+  /* Einheitliches Card-Pattern */
+  .card-base {
+    @apply rounded-2xl border border-gray-100 bg-white shadow-sm
+           transition-shadow duration-200 hover:shadow-md;
+  }
+
   .btn-primary {
-    @apply inline-flex items-center justify-center rounded-lg bg-primary-500 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2;
+    @apply inline-flex items-center justify-center rounded-lg bg-primary-500 px-6 py-3 text-sm font-semibold text-white
+           transition-all duration-200 hover:bg-primary-600 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0
+           focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2;
   }
 
   .btn-secondary {
-    @apply inline-flex items-center justify-center rounded-lg bg-secondary-500 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-secondary-600 focus:outline-none focus:ring-2 focus:ring-secondary-500 focus:ring-offset-2;
+    @apply inline-flex items-center justify-center rounded-lg bg-secondary-500 px-6 py-3 text-sm font-semibold text-white
+           transition-all duration-200 hover:bg-secondary-600 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0
+           focus:outline-none focus:ring-2 focus:ring-secondary-500 focus:ring-offset-2;
   }
 
   .btn-outline {
-    @apply inline-flex items-center justify-center rounded-lg border-2 border-primary-500 px-6 py-3 text-sm font-semibold text-primary-500 transition-colors hover:bg-primary-500 hover:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2;
+    @apply inline-flex items-center justify-center rounded-lg border-2 border-primary-500 px-6 py-3 text-sm font-semibold text-primary-500
+           transition-all duration-200 hover:bg-primary-500 hover:text-white hover:shadow-md hover:-translate-y-0.5 active:translate-y-0
+           focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2;
   }
 }

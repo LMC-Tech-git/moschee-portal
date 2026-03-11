@@ -75,6 +75,28 @@ export default async function MosqueDashboard({
     ? campaignsResult.data || []
     : [];
 
+  // ── Gebetszeiten: Nächstes Gebet berechnen (server-side) ──────────────────
+  const PRAYER_LIST = [
+    { key: "fajr" as const,    label: "Fajr"    },
+    { key: "sunrise" as const, label: "Aufgang" },
+    { key: "dhuhr" as const,   label: "Dhuhr"   },
+    { key: "asr" as const,     label: "Asr"     },
+    { key: "maghrib" as const, label: "Maghrib" },
+    { key: "isha" as const,    label: "Isha"    },
+  ] as { key: keyof PrayerTimes; label: string }[];
+  const prayerMins = (t: string) => {
+    const [h, m] = t.split(":").map(Number);
+    return h * 60 + m;
+  };
+  const nowDate = new Date();
+  const nowMins = nowDate.getHours() * 60 + nowDate.getMinutes();
+  let nextPrayerKey: string | null = null;
+  if (prayerTimes) {
+    for (const { key } of PRAYER_LIST) {
+      if (prayerMins(prayerTimes[key]) > nowMins) { nextPrayerKey = key; break; }
+    }
+  }
+
   return (
     <>
       {/* Moschee Header */}
@@ -82,18 +104,18 @@ export default async function MosqueDashboard({
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             {mosque.brand_logo ? (
-              <div className="relative mx-auto mb-4 h-24 w-[200px]">
+              <div className="relative mx-auto mb-6 h-36 w-36 drop-shadow-xl sm:h-40 sm:w-40">
                 <Image
                   src={`${PB_URL}/api/files/mosques/${mosque.id}/${mosque.brand_logo}`}
                   alt={mosque.name}
                   fill
                   className="object-contain"
-                  sizes="200px"
+                  sizes="160px"
                 />
               </div>
             ) : (
-              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-white/10">
-                <Building2 className="h-8 w-8 text-white" aria-hidden="true" />
+              <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-white/10">
+                <Building2 className="h-10 w-10 text-white" aria-hidden="true" />
               </div>
             )}
             <h1 className="text-3xl font-extrabold text-white sm:text-4xl">
@@ -105,46 +127,62 @@ export default async function MosqueDashboard({
                 {mosque.city}
               </p>
             )}
-            {prayerTimes?.hijriDate && (
-              <p className="mt-1 text-sm text-emerald-200">{prayerTimes.hijriDate}</p>
-            )}
           </div>
         </div>
       </section>
 
       {/* Gebetszeiten — nur anzeigen wenn Provider aktiv und Daten vorhanden */}
       {prayerTimes && (
-        <section aria-label="Heutige Gebetszeiten" className="border-b border-gray-100 bg-gray-50 py-6">
+        <section aria-label="Heutige Gebetszeiten" className="border-b border-gray-100 bg-white py-6">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-between">
+            <div className="mb-4 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Clock className="h-5 w-5 text-emerald-600" aria-hidden="true" />
-                <h2 className="text-lg font-bold text-emerald-700">
-                  Heutige Gebetszeiten
-                </h2>
+                <h2 className="text-lg font-bold text-gray-900">Heutige Gebetszeiten</h2>
               </div>
-              <div className="flex flex-wrap justify-center gap-6">
-                {(
-                  [
-                    { key: "fajr",    label: "Morgen"     },
-                    { key: "sunrise", label: "Aufgang"    },
-                    { key: "dhuhr",   label: "Mittag"     },
-                    { key: "asr",     label: "Nachmittag" },
-                    { key: "maghrib", label: "Abend"      },
-                    { key: "isha",    label: "Nacht"      },
-                  ] as { key: keyof PrayerTimes; label: string }[]
-                ).map(({ key, label }) => (
-                  <div key={key} className="text-center">
-                    <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
+              {prayerTimes.hijriDate && (
+                <span className="text-sm text-gray-400 hidden sm:block">{prayerTimes.hijriDate}</span>
+              )}
+            </div>
+            <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
+              {PRAYER_LIST.map(({ key, label }) => {
+                const time = prayerTimes[key];
+                const isNext = key === nextPrayerKey;
+                const isPast = !isNext && prayerMins(time) < nowMins;
+                return (
+                  <div
+                    key={key}
+                    className={`relative flex flex-col items-center gap-1.5 rounded-xl px-3 py-3 text-center transition-all ${
+                      isNext
+                        ? "bg-emerald-50 ring-2 ring-emerald-500 shadow-sm"
+                        : isPast
+                        ? "opacity-40 bg-gray-50"
+                        : "bg-gray-50"
+                    }`}
+                  >
+                    {isNext && (
+                      <span className="absolute -top-1 -right-1 flex h-3 w-3" aria-hidden="true">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                        <span className="relative inline-flex h-3 w-3 rounded-full bg-emerald-500" />
+                      </span>
+                    )}
+                    <p className={`text-xs font-semibold uppercase tracking-wide ${
+                      isNext ? "text-emerald-700" : "text-gray-500"
+                    }`}>
                       {label}
                     </p>
-                    <p className="text-lg font-bold text-emerald-600">
-                      {prayerTimes[key] as string}
+                    <p className={`font-mono text-base font-bold tabular-nums leading-none ${
+                      isNext ? "text-emerald-600" : "text-gray-900"
+                    }`}>
+                      {time}
                     </p>
                   </div>
-                ))}
-              </div>
+                );
+              })}
             </div>
+            {prayerTimes.hijriDate && (
+              <p className="mt-3 text-center text-xs text-gray-400 sm:hidden">{prayerTimes.hijriDate}</p>
+            )}
           </div>
         </section>
       )}

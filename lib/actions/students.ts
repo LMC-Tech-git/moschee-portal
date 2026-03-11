@@ -6,6 +6,7 @@ import { logAudit } from "@/lib/audit";
 import { applyPhoneNorm, detectCountryFromMosque } from "@/lib/phone";
 import type { Student } from "@/types";
 import type { RecordModel } from "pocketbase";
+import { checkDemoLimit } from "@/lib/demo";
 
 // --- Helpers ---
 
@@ -95,6 +96,9 @@ export async function createStudent(
   try {
     const validated = studentSchema.parse(input);
     const pb = await getAdminPB();
+
+    const demoCheck = await checkDemoLimit(mosqueId, "students");
+    if (!demoCheck.allowed) return { success: false, error: demoCheck.error };
 
     // Moschee laden → Land für Telefonnormalisierung bestimmen
     const mosque = await pb.collection("mosques").getOne(mosqueId);

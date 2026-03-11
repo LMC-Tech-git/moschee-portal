@@ -19,11 +19,15 @@ export default function PlatformDashboard() {
   const router = useRouter();
   const [stats, setStats] = useState<PlatformStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     getPlatformStats()
       .then(setStats)
-      .catch(console.error)
+      .catch((err) => {
+        console.error("PlatformStats Fehler:", err);
+        setError("Statistiken konnten nicht geladen werden.");
+      })
       .finally(() => setIsLoading(false));
   }, []);
 
@@ -82,6 +86,13 @@ export default function PlatformDashboard() {
         </div>
       </div>
 
+      {/* Fehler */}
+      {error && (
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
+        </div>
+      )}
+
       {/* KPI Cards */}
       {isLoading ? (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
@@ -136,11 +147,13 @@ export default function PlatformDashboard() {
               />
             ))}
           </div>
-        ) : stats?.mosques.length === 0 ? (
-          <p className="text-sm text-gray-500">Keine Gemeinden vorhanden.</p>
+        ) : !stats || stats.mosques.length === 0 ? (
+          <p className="text-sm text-gray-500">
+            {!stats ? "Daten nicht verfügbar." : "Keine Gemeinden vorhanden."}
+          </p>
         ) : (
           <div className="space-y-2">
-            {stats?.mosques.map((m) => (
+            {stats.mosques.map((m) => (
               <div
                 key={m.id}
                 className="flex items-center justify-between rounded-xl bg-white p-4 shadow-sm ring-1 ring-gray-100"

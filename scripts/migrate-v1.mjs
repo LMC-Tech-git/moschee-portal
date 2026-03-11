@@ -553,7 +553,7 @@ const INVITES_COLLECTION = {
     {
       name: "role",
       type: "select",
-      options: { values: ["member", "teacher", "imam", "admin"], maxSelect: 1 },
+      options: { values: ["member", "teacher", "imam", "editor", "admin"], maxSelect: 1 },
     },
     {
       name: "initial_status",
@@ -842,20 +842,21 @@ async function main() {
       console.log("   ⏭️  users: alle V1-Felder vorhanden");
     }
 
-    // users: role-Feld um "imam" erweitern
+    // users: role-Feld um "imam", "editor", "super_admin" erweitern
     const userColCurrent = (await getExistingCollections()).find((c) => c.name === "users");
     const roleField = (userColCurrent?.schema || []).find((f) => f.name === "role");
     if (roleField && roleField.options?.values) {
       const currentValues = roleField.options.values;
-      if (!currentValues.includes("imam")) {
-        const updatedValues = [...currentValues.filter((v) => v !== "admin"), "imam", "admin"];
+      const requiredRoles = ["member", "teacher", "imam", "editor", "admin", "super_admin"];
+      const missingRoles = requiredRoles.filter((r) => !currentValues.includes(r));
+      if (missingRoles.length > 0) {
         const updatedSchema = (userColCurrent.schema || []).map((f) =>
-          f.name === "role" ? { ...f, options: { ...f.options, values: updatedValues } } : f
+          f.name === "role" ? { ...f, options: { ...f.options, values: requiredRoles } } : f
         );
         await updateCollection("users", { schema: updatedSchema });
-        console.log("   ✅ users: role-Feld um 'imam' erweitert");
+        console.log(`   ✅ users: role-Feld erweitert um: ${missingRoles.join(", ")}`);
       } else {
-        console.log("   ⏭️  users: role-Feld enthält bereits 'imam'");
+        console.log("   ⏭️  users: role-Feld enthält bereits alle Rollen");
       }
     }
   }
@@ -999,6 +1000,26 @@ async function main() {
       console.log(`   ✅ settings (madrasa): ${fieldsToAdd.map((f) => f.name).join(", ")} hinzugefügt`);
     } else {
       console.log("   ⏭️  settings: alle Madrasa-Felder vorhanden");
+    }
+  }
+
+  // 10a. invites: role-Feld um "editor" erweitern
+  if (collectionMap.invites) {
+    const invitesCol = (await getExistingCollections()).find((c) => c.name === "invites");
+    const roleField = (invitesCol?.schema || []).find((f) => f.name === "role");
+    if (roleField && roleField.options?.values) {
+      const currentValues = roleField.options.values;
+      const requiredRoles = ["member", "teacher", "imam", "editor", "admin"];
+      const missingRoles = requiredRoles.filter((r) => !currentValues.includes(r));
+      if (missingRoles.length > 0) {
+        const updatedSchema = (invitesCol.schema || []).map((f) =>
+          f.name === "role" ? { ...f, options: { ...f.options, values: requiredRoles } } : f
+        );
+        await updateCollection("invites", { schema: updatedSchema });
+        console.log(`   ✅ invites: role-Feld erweitert um: ${missingRoles.join(", ")}`);
+      } else {
+        console.log("   ⏭️  invites: role-Feld enthält bereits alle Rollen");
+      }
     }
   }
 

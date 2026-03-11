@@ -7,6 +7,7 @@ import { sendEmailDirect } from "@/lib/email";
 import { renderEventConfirmation } from "@/lib/email/templates";
 import type { Event, EventRegistration } from "@/types";
 import type { RecordModel } from "pocketbase";
+import { checkDemoLimit } from "@/lib/demo";
 
 // --- Helpers ---
 
@@ -274,6 +275,9 @@ export async function createEvent(
   try {
     const validated = eventSchema.parse(input);
     const pb = await getAdminPB();
+
+    const demoCheck = await checkDemoLimit(mosqueId, "events");
+    if (!demoCheck.allowed) return { success: false, error: demoCheck.error };
 
     const record = await pb.collection("events").create({
       ...validated,

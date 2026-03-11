@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { Settings, Palette, Clock, Sliders, Save, RotateCcw, Upload, X, Check, ChevronDown, ChevronUp, GraduationCap, Mail, CheckCircle, AlertCircle, Send } from "lucide-react";
 import { useMosque } from "@/lib/mosque-context";
 import { useAuth } from "@/lib/auth-context";
@@ -236,6 +237,8 @@ function BrandingTab({
   userId: string;
   onSaved: (updated: Partial<Mosque>) => void;
 }) {
+  const { refreshMosque } = useMosque();
+  const router = useRouter();
   const [form, setForm] = useState({
     name: mosque.name || "",
     address: mosque.address || "",
@@ -324,7 +327,14 @@ function BrandingTab({
     setIsSaving(false);
     if (result.success) {
       setStatus({ type: "success", message: "Branding gespeichert." });
-      onSaved({ ...form });
+      setLogoFile(null);
+      setRemoveLogo(false);
+      onSaved({ ...form, ...(removeLogo ? { brand_logo: "" } : {}) });
+      if (typeof refreshMosque === "function") {
+        refreshMosque();
+      } else {
+        router.refresh();
+      }
     } else {
       setStatus({ type: "error", message: result.error || "Fehler beim Speichern." });
     }

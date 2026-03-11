@@ -14,6 +14,11 @@ import {
   CheckCircle2,
   LogIn,
   Building2,
+  Shield,
+  User,
+  Copy,
+  Check,
+  PlayCircle,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 
@@ -23,36 +28,48 @@ const FEATURES = [
     title: "Gebetszeiten",
     description:
       "Automatische Gebetszeiten für Ihren Standort — täglich aktuell, mit individuellen Feinabstimmungen.",
+    iconBg: "bg-emerald-50",
+    iconColor: "text-emerald-600",
   },
   {
     icon: Bell,
     title: "Ankündigungen",
     description:
       "Neuigkeiten und Beiträge direkt für Mitglieder und die Öffentlichkeit veröffentlichen.",
+    iconBg: "bg-blue-50",
+    iconColor: "text-blue-600",
   },
   {
     icon: Calendar,
     title: "Veranstaltungen",
     description:
       "Events anlegen, Anmeldungen verwalten und Teilnehmerlisten exportieren.",
+    iconBg: "bg-violet-50",
+    iconColor: "text-violet-600",
   },
   {
     icon: Heart,
     title: "Spendenkampagnen",
     description:
       "Transparente Fundraising-Seiten mit Echtzeit-Fortschritt und Online-Zahlung via Stripe.",
+    iconBg: "bg-amber-50",
+    iconColor: "text-amber-600",
   },
   {
     icon: Users,
     title: "Mitgliederverwaltung",
     description:
       "Mitglieder einladen, Rollen vergeben und den Überblick behalten.",
+    iconBg: "bg-rose-50",
+    iconColor: "text-rose-600",
   },
   {
     icon: BookOpen,
     title: "Madrasa",
     description:
       "Kurse, Schüler, Anwesenheit und Gebühren — alles an einem Ort verwalten.",
+    iconBg: "bg-teal-50",
+    iconColor: "text-teal-600",
   },
 ];
 
@@ -63,13 +80,42 @@ const FOR_WHO = [
   "Madrasa-Betreiber, die Schüler und Kurse digital verwalten wollen",
 ];
 
+const DEMO_MOSQUE_ID = process.env.NEXT_PUBLIC_DEMO_MOSQUE_ID ?? "";
+
+const DEMO_ACCOUNTS = [
+  {
+    role: "Admin",
+    roleDesc: "Vollzugriff auf alle Funktionen",
+    email: "demo-admin@moschee.app",
+    icon: Shield,
+    badgeClass: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  },
+  {
+    role: "Lehrer",
+    roleDesc: "Madrasa & Anwesenheit verwalten",
+    email: "demo-teacher@moschee.app",
+    icon: BookOpen,
+    badgeClass: "bg-blue-50 text-blue-700 border-blue-200",
+  },
+  {
+    role: "Mitglied",
+    roleDesc: "Portal & Mitgliederbereich",
+    email: "demo-member@moschee.app",
+    icon: User,
+    badgeClass: "bg-violet-50 text-violet-700 border-violet-200",
+  },
+];
+
 export default function HomePage() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
   const [loadingSlug, setLoadingSlug] = useState(false);
+  const [copiedEmail, setCopiedEmail] = useState<string | null>(null);
 
   // Eingeloggte User → automatisch zum Moschee-Dashboard
+  // Ausnahme: ?noredirect=1 (z.B. vom Demo-Banner "← Zur Startseite")
   useEffect(() => {
+    if (typeof window !== "undefined" && window.location.search.includes("noredirect=1")) return;
     if (!isLoading && isAuthenticated && user?.mosque_id) {
       setLoadingSlug(true);
       fetch(
@@ -87,6 +133,12 @@ export default function HomePage() {
     }
   }, [isLoading, isAuthenticated, user, router]);
 
+  function copyEmail(email: string) {
+    navigator.clipboard.writeText(email).catch(() => {});
+    setCopiedEmail(email);
+    setTimeout(() => setCopiedEmail(null), 2000);
+  }
+
   if (isLoading || loadingSlug) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
@@ -101,18 +153,14 @@ export default function HomePage() {
 
       {/* ── Hero ─────────────────────────────────────────────────────── */}
       <section className="relative overflow-hidden bg-white px-4 pb-20 pt-16 sm:pt-24">
-        {/* Dezenter Hintergrund-Akzent */}
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-x-0 -top-40 z-0 transform-gpu overflow-hidden blur-3xl"
         >
-          <div
-            className="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-emerald-100 to-emerald-50 opacity-60 sm:left-[calc(50%-30rem)] sm:w-[72rem]"
-          />
+          <div className="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-emerald-100 to-emerald-50 opacity-60 sm:left-[calc(50%-30rem)] sm:w-[72rem]" />
         </div>
 
         <div className="relative z-10 mx-auto max-w-3xl text-center">
-          {/* Badge */}
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-1.5 text-sm font-medium text-emerald-700">
             <span className="h-2 w-2 rounded-full bg-emerald-500" aria-hidden="true" />
             Jetzt verfügbar
@@ -132,21 +180,122 @@ export default function HomePage() {
           <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
             <a
               href="mailto:kontakt@moschee.app?subject=Demo%20anfragen"
-              className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-7 py-3.5 text-base font-bold text-white shadow-sm transition-colors hover:bg-emerald-700"
+              className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-7 py-3.5 text-base font-bold text-white shadow-sm transition-all duration-200 hover:bg-emerald-700 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0"
             >
               Kostenlos anfragen
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </a>
-            <Link
-              href="/login"
-              className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-7 py-3.5 text-base font-semibold text-gray-700 shadow-sm transition-colors hover:bg-gray-50"
-            >
-              <LogIn className="h-4 w-4" aria-hidden="true" />
-              Anmelden
-            </Link>
+            {DEMO_MOSQUE_ID ? (
+              <Link
+                href="/demo"
+                className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-7 py-3.5 text-base font-semibold text-gray-700 shadow-sm transition-all duration-200 hover:bg-gray-50 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0"
+              >
+                <PlayCircle className="h-4 w-4 text-emerald-500" aria-hidden="true" />
+                Demo ansehen
+              </Link>
+            ) : (
+              <Link
+                href="/login"
+                className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-7 py-3.5 text-base font-semibold text-gray-700 shadow-sm transition-all duration-200 hover:bg-gray-50 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0"
+              >
+                <LogIn className="h-4 w-4" aria-hidden="true" />
+                Anmelden
+              </Link>
+            )}
           </div>
         </div>
       </section>
+
+      {/* ── Demo ausprobieren ───────────────────────────────────────── */}
+      {DEMO_MOSQUE_ID && (
+        <section
+          className="border-y border-emerald-100 bg-gradient-to-b from-emerald-50 to-white px-4 py-14 sm:py-16"
+          aria-labelledby="demo-heading"
+        >
+          <div className="mx-auto max-w-4xl">
+            <div className="mb-10 text-center">
+              <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-white px-4 py-1.5 text-sm font-medium text-emerald-700">
+                <PlayCircle className="h-4 w-4" aria-hidden="true" />
+                Live-Demo
+              </div>
+              <h2 id="demo-heading" className="mb-3 text-3xl font-bold text-gray-900">
+                Jetzt selbst ausprobieren
+              </h2>
+              <p className="text-gray-600">
+                Keine Registrierung nötig — alle Funktionen live testen.{" "}
+                <span className="font-semibold text-gray-800">
+                  Passwort für alle Accounts:{" "}
+                  <code className="rounded bg-gray-100 px-1.5 py-0.5 text-sm text-emerald-700">
+                    Demo1234!
+                  </code>
+                </span>
+              </p>
+            </div>
+
+            {/* Account-Karten */}
+            <div className="mb-8 grid gap-4 sm:grid-cols-3">
+              {DEMO_ACCOUNTS.map((account) => {
+                const Icon = account.icon;
+                const isCopied = copiedEmail === account.email;
+                return (
+                  <div
+                    key={account.role}
+                    className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm"
+                  >
+                    <div className="mb-3 flex items-center gap-3">
+                      <div
+                        className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border ${account.badgeClass}`}
+                      >
+                        <Icon className="h-4 w-4" aria-hidden="true" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-gray-900">{account.role}</p>
+                        <p className="text-xs text-gray-500">{account.roleDesc}</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => copyEmail(account.email)}
+                      className="flex w-full items-center justify-between gap-2 rounded-lg bg-gray-50 px-3 py-2 text-left transition-colors hover:bg-gray-100"
+                      title="E-Mail kopieren"
+                    >
+                      <span className="truncate font-mono text-xs text-gray-600">
+                        {account.email}
+                      </span>
+                      {isCopied ? (
+                        <Check className="h-3.5 w-3.5 shrink-0 text-emerald-500" aria-hidden="true" />
+                      ) : (
+                        <Copy className="h-3.5 w-3.5 shrink-0 text-gray-400" aria-hidden="true" />
+                      )}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* CTAs */}
+            <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <Link
+                href="/demo"
+                className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-6 py-3 text-sm font-bold text-white shadow-sm transition-colors hover:bg-emerald-700"
+              >
+                <PlayCircle className="h-4 w-4" aria-hidden="true" />
+                Demo-Portal öffnen
+              </Link>
+              <Link
+                href="/login"
+                className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-6 py-3 text-sm font-semibold text-gray-700 shadow-sm transition-colors hover:bg-gray-50"
+              >
+                <LogIn className="h-4 w-4" aria-hidden="true" />
+                Als Admin anmelden
+              </Link>
+            </div>
+            <p className="mt-4 text-center text-xs text-gray-400">
+              Demo-Daten können jederzeit zurückgesetzt werden.
+            </p>
+          </div>
+        </section>
+      )}
 
       {/* ── Features ─────────────────────────────────────────────────── */}
       <section className="bg-gray-50 px-4 py-16 sm:py-20" aria-labelledby="features-heading">
@@ -159,7 +308,6 @@ export default function HomePage() {
               Ein vollständiges System — keine Einzellösungen, kein Flickenteppich.
             </p>
           </div>
-
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {FEATURES.map((feature) => {
               const Icon = feature.icon;
@@ -168,15 +316,11 @@ export default function HomePage() {
                   key={feature.title}
                   className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
                 >
-                  <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50">
-                    <Icon className="h-5 w-5 text-emerald-600" aria-hidden="true" />
+                  <div className={`mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl ${feature.iconBg}`}>
+                    <Icon className={`h-5 w-5 ${feature.iconColor}`} aria-hidden="true" />
                   </div>
-                  <h3 className="mb-2 text-base font-bold text-gray-900">
-                    {feature.title}
-                  </h3>
-                  <p className="text-sm leading-relaxed text-gray-500">
-                    {feature.description}
-                  </p>
+                  <h3 className="mb-2 text-base font-bold text-gray-900">{feature.title}</h3>
+                  <p className="text-sm leading-relaxed text-gray-500">{feature.description}</p>
                 </div>
               );
             })}
@@ -202,17 +346,12 @@ export default function HomePage() {
               <ul className="space-y-3">
                 {FOR_WHO.map((item) => (
                   <li key={item} className="flex items-start gap-3">
-                    <CheckCircle2
-                      className="mt-0.5 h-5 w-5 shrink-0 text-emerald-500"
-                      aria-hidden="true"
-                    />
+                    <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-500" aria-hidden="true" />
                     <span className="text-sm text-gray-600">{item}</span>
                   </li>
                 ))}
               </ul>
             </div>
-
-            {/* Grafik-Placeholder */}
             <div className="flex items-center justify-center">
               <div className="flex h-64 w-64 items-center justify-center rounded-3xl bg-emerald-50">
                 <Building2 className="h-32 w-32 text-emerald-200" aria-hidden="true" />
@@ -247,9 +386,7 @@ export default function HomePage() {
               Bereits registriert? Anmelden
             </Link>
           </div>
-          <p className="mt-6 text-sm text-emerald-200">
-            kontakt@moschee.app
-          </p>
+          <p className="mt-6 text-sm text-emerald-200">kontakt@moschee.app</p>
         </div>
       </section>
 

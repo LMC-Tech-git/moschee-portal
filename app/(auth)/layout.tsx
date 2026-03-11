@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
+import { DemoBanner } from "@/components/shared/DemoBanner";
 
 export default function AuthLayout({
   children,
@@ -33,5 +34,10 @@ export default function AuthLayout({
     return null;
   }
 
-  return <>{children}</>;
+  return (
+    <>
+      <DemoBanner />
+      {children}
+    </>
+  );
 }
