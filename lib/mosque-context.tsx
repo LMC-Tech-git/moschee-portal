@@ -101,8 +101,16 @@ export function MosqueProvider({ children, initialMosque }: MosqueProviderProps)
             const m = await getMosqueBySlug(slugFromPath);
             setMosque(m);
           } else {
-            // Keine Moschee für Landing Page, Login etc.
-            setMosque(null);
+            // Kein Slug in URL — prüfen ob Demo-Subdomain (für /login, /register etc.)
+            const demoSlug = process.env.NEXT_PUBLIC_DEMO_SLUG || "demo";
+            const demoDomain = `demo.${process.env.NEXT_PUBLIC_ROOT_DOMAIN || "moschee.app"}`;
+            if (typeof window !== "undefined" && window.location.hostname === demoDomain) {
+              const m = await getMosqueBySlug(demoSlug);
+              setMosque(m);
+            } else {
+              // Keine Moschee für Landing Page, Login etc.
+              setMosque(null);
+            }
           }
         }
       } catch (error) {

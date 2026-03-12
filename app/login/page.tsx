@@ -15,7 +15,7 @@ export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect") || "/";
-  const { login } = useAuth();
+  const { login, pb } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -31,7 +31,17 @@ export default function LoginPage() {
     try {
       await login(email, password);
       toast.success("Erfolgreich eingeloggt!");
-      router.push(redirect);
+      if (redirect === "/") {
+        // Rollen-basierter Redirect: kein explizites Ziel → passendes Dashboard
+        const role = pb.authStore.record?.role || "member";
+        if (role === "admin" || role === "teacher" || role === "imam" || role === "editor") {
+          router.push("/admin");
+        } else {
+          router.push("/member/profile");
+        }
+      } else {
+        router.push(redirect);
+      }
     } catch (err: unknown) {
       const pbErr = err as { response?: { message?: string }; message?: string };
       const message =
