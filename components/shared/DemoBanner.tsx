@@ -1,11 +1,13 @@
 "use client";
 
 import { AlertTriangle } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useAuth } from "@/lib/auth-context";
 import { isDemoMosque } from "@/lib/demo";
 import { DemoReturnButton } from "@/components/shared/DemoReturnButton";
 
 export function DemoBanner() {
+  const t = useTranslations();
   const { user } = useAuth();
 
   if (!user || !isDemoMosque(user.mosque_id)) return null;
@@ -15,8 +17,7 @@ export function DemoBanner() {
       <div className="flex items-center gap-2">
         <AlertTriangle className="h-4 w-4 shrink-0" />
         <span>
-          <strong>Demo-Modus</strong> — Alle Daten können jederzeit zurückgesetzt werden.
-          Nutze die Zugangsdaten auf der Anmeldeseite zum Testen.
+          <strong>{t("demo.banner.title")}</strong> — {t("demo.banner.message")}
         </span>
       </div>
       <DemoReturnButton />

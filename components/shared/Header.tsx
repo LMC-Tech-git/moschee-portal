@@ -25,8 +25,10 @@ import {
   Crown,
   Edit3,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useAuth } from "@/lib/auth-context";
 import { useMosque } from "@/lib/mosque-context";
+import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
 
 const PB_URL = process.env.NEXT_PUBLIC_POCKETBASE_URL || "";
 
@@ -54,6 +56,7 @@ const AVATAR_GRADIENTS = [
 ];
 
 export default function Header() {
+  const t = useTranslations();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { user, isAuthenticated, logout } = useAuth();
   const { mosque } = useMosque();
@@ -115,7 +118,7 @@ export default function Header() {
               {mosque?.name || "moschee.app"}
             </span>
             <span className="hidden text-xs text-gray-500 sm:block">
-              {mosque ? mosque.city || "Ihre digitale Gemeinde" : "Die Plattform für Moscheegemeinden"}
+              {mosque ? mosque.city || t("nav.digitalCommunity") : t("nav.platformSubtitle")}
             </span>
           </div>
         </Link>
@@ -129,7 +132,7 @@ export default function Header() {
               className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-emerald-50 hover:text-emerald-600"
             >
               <Home className="h-4 w-4" aria-hidden="true" />
-              Startseite
+              {t("nav.home")}
             </Link>
           )}
 
@@ -141,14 +144,14 @@ export default function Header() {
                 className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-emerald-50 hover:text-emerald-600"
               >
                 <CalendarDays className="h-4 w-4" aria-hidden="true" />
-                Veranstaltungen
+                {t("nav.events")}
               </Link>
               <Link
                 href={`/${slug}/donate`}
                 className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-emerald-50 hover:text-emerald-600"
               >
                 <Heart className="h-4 w-4" aria-hidden="true" />
-                Spenden
+                {t("nav.donate")}
               </Link>
             </>
           )}
@@ -160,13 +163,14 @@ export default function Header() {
               className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-emerald-50 hover:text-emerald-600"
             >
               <Home className="h-4 w-4" aria-hidden="true" />
-              Startseite
+              {t("nav.home")}
             </Link>
           )}
         </div>
 
         {/* Auth & CTA */}
         <div className="hidden items-center gap-3 lg:flex">
+          <LanguageSwitcher />
           {isAuthenticated ? (
             <>
               <Link
@@ -182,7 +186,7 @@ export default function Header() {
                   className="flex items-center gap-1.5 rounded-lg bg-purple-50 px-3 py-2 text-sm font-medium text-purple-700 hover:bg-purple-100"
                 >
                   <Crown className="h-4 w-4" aria-hidden="true" />
-                  Plattform
+                  {t("nav.platform")}
                 </Link>
               )}
               {user?.role === "admin" && (
@@ -191,7 +195,7 @@ export default function Header() {
                   className="flex items-center gap-1.5 rounded-lg bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-600 hover:bg-emerald-100"
                 >
                   <Shield className="h-4 w-4" aria-hidden="true" />
-                  Admin
+                  {t("nav.admin")}
                 </Link>
               )}
               {isEditor && (
@@ -200,7 +204,7 @@ export default function Header() {
                   className="flex items-center gap-1.5 rounded-lg bg-blue-50 px-3 py-2 text-sm font-medium text-blue-600 hover:bg-blue-100"
                 >
                   <Edit3 className="h-4 w-4" aria-hidden="true" />
-                  Editor
+                  {t("header.editorSection")}
                 </Link>
               )}
               {isTeacher && (
@@ -209,7 +213,7 @@ export default function Header() {
                   className="flex items-center gap-1.5 rounded-lg bg-blue-50 px-3 py-2 text-sm font-medium text-blue-600 hover:bg-blue-100"
                 >
                   <GraduationCap className="h-4 w-4" aria-hidden="true" />
-                  Lehrer
+                  {t("nav.teacher")}
                 </Link>
               )}
               {isImam && (
@@ -218,7 +222,7 @@ export default function Header() {
                   className="flex items-center gap-1.5 rounded-lg bg-violet-50 px-3 py-2 text-sm font-medium text-violet-600 hover:bg-violet-100"
                 >
                   <Megaphone className="h-4 w-4" aria-hidden="true" />
-                  Imam
+                  {t("nav.imam")}
                 </Link>
               )}
               <button
@@ -226,7 +230,7 @@ export default function Header() {
                 className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100"
               >
                 <LogOut className="h-4 w-4" aria-hidden="true" />
-                Abmelden
+                {t("nav.logout")}
               </button>
             </>
           ) : (
@@ -236,13 +240,13 @@ export default function Header() {
                 className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100"
               >
                 <LogIn className="h-4 w-4" aria-hidden="true" />
-                Anmelden
+                {t("nav.login")}
               </Link>
               <Link
                 href="/register"
                 className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-700"
               >
-                Registrieren
+                {t("nav.register")}
               </Link>
             </>
           )}
@@ -253,7 +257,7 @@ export default function Header() {
           type="button"
           className="rounded-lg p-2 text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring lg:hidden"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          aria-label={mobileMenuOpen ? "Menü schließen" : "Menü öffnen"}
+          aria-label={mobileMenuOpen ? t("nav.menuClose") : t("nav.menuOpen")}
           aria-expanded={mobileMenuOpen}
         >
           {mobileMenuOpen ? (
@@ -276,7 +280,7 @@ export default function Header() {
                 onClick={closeMobileMenu}
               >
                 <Home className="h-4 w-4" />
-                Startseite
+                {t("nav.home")}
               </Link>
               <Link
                 href={`/${slug}/events`}
@@ -284,7 +288,7 @@ export default function Header() {
                 onClick={closeMobileMenu}
               >
                 <CalendarDays className="h-4 w-4" />
-                Veranstaltungen
+                {t("nav.events")}
               </Link>
               <Link
                 href={`/${slug}/donate`}
@@ -292,7 +296,7 @@ export default function Header() {
                 onClick={closeMobileMenu}
               >
                 <Heart className="h-4 w-4" />
-                Spenden
+                {t("nav.donate")}
               </Link>
             </>
           ) : (
@@ -302,7 +306,7 @@ export default function Header() {
               onClick={closeMobileMenu}
             >
               <Home className="h-4 w-4" />
-              Startseite
+              {t("nav.home")}
             </Link>
           )}
 
@@ -310,7 +314,7 @@ export default function Header() {
           {isAdmin && (
             <div className="mt-2 border-t border-gray-100 pt-2">
               <p className="px-4 py-1 text-xs font-semibold uppercase tracking-wider text-gray-400">
-                {isSuperAdmin ? "Plattform" : isEditor ? "Editor" : "Admin"}
+                {isSuperAdmin ? t("header.adminSection") : isEditor ? t("header.editorSection") : t("header.adminSection")}
               </p>
               <Link
                 href={isEditor ? "/admin/posts" : "/admin"}
@@ -318,7 +322,7 @@ export default function Header() {
                 onClick={closeMobileMenu}
               >
                 {isSuperAdmin ? <Crown className="h-4 w-4" /> : isEditor ? <Edit3 className="h-4 w-4" /> : <Shield className="h-4 w-4" />}
-                {isSuperAdmin ? "Plattform-Dashboard" : isEditor ? "Editor-Bereich" : "Admin-Panel"}
+                {isSuperAdmin ? t("header.platformDashboard") : isEditor ? t("header.editorArea") : t("header.adminPanel")}
               </Link>
             </div>
           )}
@@ -327,7 +331,7 @@ export default function Header() {
           {isTeacher && (
             <div className="mt-2 border-t border-gray-100 pt-2">
               <p className="px-4 py-1 text-xs font-semibold uppercase tracking-wider text-gray-400">
-                Lehrer
+                {t("header.teacherSection")}
               </p>
               <Link
                 href="/lehrer"
@@ -335,7 +339,7 @@ export default function Header() {
                 onClick={closeMobileMenu}
               >
                 <GraduationCap className="h-4 w-4" />
-                Meine Kurse
+                {t("nav.myCourses")}
               </Link>
             </div>
           )}
@@ -344,7 +348,7 @@ export default function Header() {
           {isImam && (
             <div className="mt-2 border-t border-gray-100 pt-2">
               <p className="px-4 py-1 text-xs font-semibold uppercase tracking-wider text-gray-400">
-                Imam
+                {t("header.imamSection")}
               </p>
               <Link
                 href="/imam"
@@ -352,10 +356,15 @@ export default function Header() {
                 onClick={closeMobileMenu}
               >
                 <Megaphone className="h-4 w-4" />
-                Beiträge
+                {t("nav.imam")}
               </Link>
             </div>
           )}
+
+          {/* Sprache */}
+          <div className="mt-2 border-t border-gray-100 pt-2 px-4 py-2">
+            <LanguageSwitcher />
+          </div>
 
           {/* Konto */}
           <div className="mt-2 border-t border-gray-100 pt-2">
@@ -367,7 +376,7 @@ export default function Header() {
                   onClick={closeMobileMenu}
                 >
                   <User className="h-4 w-4" />
-                  Mein Profil
+                  {t("nav.myProfile")}
                 </Link>
                 <button
                   onClick={() => {
@@ -377,7 +386,7 @@ export default function Header() {
                   className="flex w-full items-center gap-2 rounded-lg px-4 py-3 text-left text-sm font-medium text-gray-700 hover:bg-gray-100"
                 >
                   <LogOut className="h-4 w-4" />
-                  Abmelden
+                  {t("nav.logout")}
                 </button>
               </>
             ) : (
@@ -388,14 +397,14 @@ export default function Header() {
                   onClick={closeMobileMenu}
                 >
                   <LogIn className="h-4 w-4" />
-                  Anmelden
+                  {t("nav.login")}
                 </Link>
                 <Link
                   href="/register"
                   className="flex items-center gap-2 rounded-lg px-4 py-3 text-sm font-medium text-emerald-600 hover:bg-emerald-50"
                   onClick={closeMobileMenu}
                 >
-                  Registrieren
+                  {t("nav.register")}
                 </Link>
               </>
             )}

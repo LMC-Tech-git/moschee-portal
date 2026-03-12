@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { useAuth } from "@/lib/auth-context";
 import { useMosque } from "@/lib/mosque-context";
 import {
@@ -15,6 +16,7 @@ import {
   type FeeOverviewRow,
 } from "@/lib/actions/student-fees";
 import { getMadrasaFeeSettings } from "@/lib/actions/settings";
+import { DemoHint } from "@/components/demo/DemoHint";
 import {
   User,
   Mail,
@@ -62,6 +64,7 @@ function nextMonthKey(key: string): string {
 }
 
 export default function MemberProfilePage() {
+  const t = useTranslations();
   const { user } = useAuth();
   const { mosqueId, mosque } = useMosque();
   const [activeTab, setActiveTab] = useState<Tab>("profile");
@@ -88,25 +91,31 @@ export default function MemberProfilePage() {
   if (!user) return null;
 
   const tabs: { key: Tab; label: string; icon: React.ReactNode }[] = [
-    { key: "profile", label: "Profil", icon: <User className="h-4 w-4" /> },
+    { key: "profile", label: t("member.profile.tab.profile"), icon: <User className="h-4 w-4" /> },
     {
       key: "donations",
-      label: "Spenden",
+      label: t("member.profile.tab.donations"),
       icon: <Banknote className="h-4 w-4" />,
     },
     {
       key: "events",
-      label: "Veranstaltungen",
+      label: t("member.profile.tab.events"),
       icon: <CalendarDays className="h-4 w-4" />,
     },
     ...(feesEnabled
-      ? [{ key: "madrasa" as Tab, label: "Madrasa", icon: <GraduationCap className="h-4 w-4" /> }]
+      ? [{ key: "madrasa" as Tab, label: t("member.profile.tab.madrasa"), icon: <GraduationCap className="h-4 w-4" /> }]
       : []),
   ];
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6">
-      <h1 className="mb-6 text-2xl font-bold text-gray-900">Mein Profil</h1>
+      <DemoHint
+        id="member-profile"
+        title={t("member.profile.hint.title")}
+        description={t("member.profile.hint.desc")}
+        className="mb-6"
+      />
+      <h1 className="mb-6 text-2xl font-bold text-gray-900">{t("member.profile.title")}</h1>
 
       {/* Info-Karte */}
       <div className="mb-6 rounded-xl border border-gray-200 bg-white p-6">
@@ -141,13 +150,13 @@ export default function MemberProfilePage() {
                 }`}
               >
                 {user.status === "active"
-                  ? "Aktiv"
+                  ? t("member.profile.status.active")
                   : user.status === "blocked"
-                    ? "Gesperrt"
-                    : "Ausstehend"}
+                    ? t("member.profile.status.blocked")
+                    : t("member.profile.status.pending")}
               </span>
               <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
-                {user.role === "admin" ? "Administrator" : "Mitglied"}
+                {user.role === "admin" ? t("member.profile.role.admin") : t("member.profile.role.member")}
               </span>
             </div>
           </div>
@@ -191,6 +200,7 @@ export default function MemberProfilePage() {
 // --- Profil bearbeiten ---
 
 function ProfileEditForm({ user }: { user: NonNullable<ReturnType<typeof useAuth>["user"]> }) {
+  const t = useTranslations();
   const { refreshUser } = useAuth();
   const [firstName, setFirstName] = useState(user.first_name || "");
   const [lastName, setLastName] = useState(user.last_name || "");
@@ -233,7 +243,7 @@ function ProfileEditForm({ user }: { user: NonNullable<ReturnType<typeof useAuth
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-6">
       <h2 className="mb-4 text-lg font-bold text-gray-900">
-        Profil bearbeiten
+        {t("member.profile.editTitle")}
       </h2>
 
       {error && (
@@ -245,7 +255,7 @@ function ProfileEditForm({ user }: { user: NonNullable<ReturnType<typeof useAuth
       {success && (
         <div className="mb-4 flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-700">
           <CheckCircle className="h-4 w-4" />
-          Profil erfolgreich aktualisiert
+          {t("member.profile.savedSuccess")}
         </div>
       )}
 
@@ -256,7 +266,7 @@ function ProfileEditForm({ user }: { user: NonNullable<ReturnType<typeof useAuth
               htmlFor="firstName"
               className="mb-1.5 block text-sm font-medium text-gray-700"
             >
-              Vorname
+              {t("member.profile.firstName")}
             </label>
             <input
               id="firstName"
@@ -271,7 +281,7 @@ function ProfileEditForm({ user }: { user: NonNullable<ReturnType<typeof useAuth
               htmlFor="lastName"
               className="mb-1.5 block text-sm font-medium text-gray-700"
             >
-              Nachname
+              {t("member.profile.lastName")}
             </label>
             <input
               id="lastName"
@@ -289,7 +299,7 @@ function ProfileEditForm({ user }: { user: NonNullable<ReturnType<typeof useAuth
             className="mb-1.5 block text-sm font-medium text-gray-700"
           >
             <Phone className="mr-1 inline h-3.5 w-3.5" />
-            Telefon
+            {t("member.profile.phone")}
           </label>
           <input
             id="phone"
@@ -307,7 +317,7 @@ function ProfileEditForm({ user }: { user: NonNullable<ReturnType<typeof useAuth
             disabled={isSubmitting}
             className="rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {isSubmitting ? "Wird gespeichert..." : "Profil speichern"}
+            {isSubmitting ? t("member.profile.saving") : t("member.profile.saveProfile")}
           </button>
         </div>
       </form>
@@ -324,6 +334,7 @@ function DonationHistory({
   userId: string;
   mosqueId: string;
 }) {
+  const t = useTranslations();
   const [donations, setDonations] = useState<Donation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -357,7 +368,7 @@ function DonationHistory({
       {/* Gesamtsumme */}
       {paidDonations.length > 0 && (
         <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-center">
-          <p className="text-sm text-emerald-700">Gesamtspenden</p>
+          <p className="text-sm text-emerald-700">{t("member.donations.totalLabel")}</p>
           <p className="text-2xl font-bold text-emerald-800">
             {formatCurrencyCents(totalPaid)}
           </p>
@@ -366,7 +377,7 @@ function DonationHistory({
             className="mt-3 inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
           >
             <FileText className="h-4 w-4" />
-            Spendenbescheinigung
+            {t("member.donations.certificate")}
           </Link>
         </div>
       )}
@@ -376,7 +387,7 @@ function DonationHistory({
         {donations.length === 0 ? (
           <div className="py-12 text-center">
             <Banknote className="mx-auto mb-2 h-8 w-8 text-gray-300" />
-            <p className="text-sm text-gray-500">Noch keine Spenden</p>
+            <p className="text-sm text-gray-500">{t("member.donations.noDonations")}</p>
           </div>
         ) : (
           <div className="divide-y divide-gray-100">
@@ -397,7 +408,7 @@ function DonationHistory({
                     </span>
                     {d.is_recurring && (
                       <span className="rounded-full bg-blue-50 px-1.5 py-0.5 text-xs text-blue-700">
-                        Monatlich
+                        {t("member.donations.monthly")}
                       </span>
                     )}
                   </div>
@@ -414,16 +425,16 @@ function DonationHistory({
                   }`}
                 >
                   {d.status === "paid"
-                    ? "Bezahlt"
+                    ? t("member.donations.status.paid")
                     : d.status === "pending"
-                      ? "Ausstehend"
+                      ? t("member.donations.status.pending")
                       : d.status === "failed"
-                        ? "Fehlgeschlagen"
+                        ? t("member.donations.status.failed")
                         : d.status === "cancelled"
-                          ? "Storniert"
+                          ? t("member.donations.status.cancelled")
                           : d.status === "refunded"
-                            ? "Erstattet"
-                            : "Erstellt"}
+                            ? t("member.donations.status.refunded")
+                            : t("member.donations.status.created")}
                 </span>
               </div>
             ))}
@@ -443,6 +454,7 @@ function EventHistory({
   userId: string;
   mosqueId: string;
 }) {
+  const t = useTranslations();
   const [events, setEvents] = useState<
     (EventRegistration & { event_title?: string; event_start_at?: string })[]
   >([]);
@@ -473,7 +485,7 @@ function EventHistory({
         <div className="py-12 text-center">
           <CalendarDays className="mx-auto mb-2 h-8 w-8 text-gray-300" />
           <p className="text-sm text-gray-500">
-            Noch keine Event-Teilnahmen
+            {t("member.events.noEvents")}
           </p>
         </div>
       ) : (
@@ -519,20 +531,20 @@ function EventHistory({
                 {reg.status === "registered" ? (
                   <>
                     <CheckCircle className="h-3 w-3" />
-                    Angemeldet
+                    {t("member.events.status.registered")}
                   </>
                 ) : reg.status === "attended" ? (
                   <>
                     <CheckCircle className="h-3 w-3" />
-                    Teilgenommen
+                    {t("member.events.status.attended")}
                   </>
                 ) : reg.status === "cancelled" ? (
                   <>
                     <XCircle className="h-3 w-3" />
-                    Abgemeldet
+                    {t("member.events.status.cancelled")}
                   </>
                 ) : (
-                  "Nicht erschienen"
+                  t("member.events.status.noShow")
                 )}
               </span>
             </div>
@@ -554,6 +566,7 @@ function MadrasaFeeOverview({
   mosqueId: string;
   stripeEnabled: boolean;
 }) {
+  const t = useTranslations();
   const [monthKey, setMonthKey] = useState(getCurrentMonthKey());
   const [rows, setRows] = useState<FeeOverviewRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -596,7 +609,7 @@ function MadrasaFeeOverview({
           type="button"
           onClick={() => setMonthKey(prevMonthKey(monthKey))}
           className="rounded-lg border border-gray-300 p-2 hover:bg-gray-50"
-          aria-label="Vorheriger Monat"
+          aria-label={t("member.madrasa.prevMonth")}
         >
           <ChevronLeft className="h-4 w-4" />
         </button>
@@ -605,7 +618,7 @@ function MadrasaFeeOverview({
           type="button"
           onClick={() => setMonthKey(nextMonthKey(monthKey))}
           className="rounded-lg border border-gray-300 p-2 hover:bg-gray-50"
-          aria-label="Nächster Monat"
+          aria-label={t("member.madrasa.nextMonth")}
         >
           <ChevronRight className="h-4 w-4" />
         </button>
@@ -626,9 +639,9 @@ function MadrasaFeeOverview({
         ) : rows.length === 0 ? (
           <div className="py-10 text-center">
             <GraduationCap className="mx-auto mb-2 h-8 w-8 text-gray-300" />
-            <p className="text-sm text-gray-500">Keine Kinder hinterlegt</p>
+            <p className="text-sm text-gray-500">{t("member.madrasa.noChildren")}</p>
             <p className="mt-1 text-xs text-gray-400">
-              Wende dich an den Administrator, um deine Kinder im System zu verknüpfen.
+              {t("member.madrasa.noChildrenHint")}
             </p>
           </div>
         ) : (
@@ -642,30 +655,30 @@ function MadrasaFeeOverview({
                   {row.fee && (
                     <p className="mt-0.5 text-sm text-gray-500">
                       {formatCurrencyCents(row.fee.amount_cents)}
-                      {row.fee.payment_method === "cash" && " · Bar bezahlt"}
-                      {row.fee.payment_method === "transfer" && " · Überweisung"}
-                      {row.fee.payment_method === "stripe" && " · Online bezahlt"}
+                      {row.fee.payment_method === "cash" && ` · ${t("member.madrasa.fee.cash")}`}
+                      {row.fee.payment_method === "transfer" && ` · ${t("member.madrasa.fee.transfer")}`}
+                      {row.fee.payment_method === "stripe" && ` · ${t("member.madrasa.fee.online")}`}
                     </p>
                   )}
                 </div>
                 <div className="flex items-center gap-2">
                   {!row.fee ? (
                     <span className="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-500">
-                      Kein Eintrag
+                      {t("member.madrasa.fee.noEntry")}
                     </span>
                   ) : row.fee.status === "paid" ? (
                     <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-700">
                       <CheckCircle className="h-3 w-3" />
-                      Bezahlt
+                      {t("member.madrasa.fee.paid")}
                     </span>
                   ) : row.fee.status === "waived" ? (
                     <span className="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-500">
-                      Erlassen
+                      {t("member.madrasa.fee.waived")}
                     </span>
                   ) : (
                     <>
                       <span className="rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-700">
-                        Offen
+                        {t("member.madrasa.fee.open")}
                       </span>
                       {stripeEnabled && row.fee && (
                         <button
@@ -674,7 +687,7 @@ function MadrasaFeeOverview({
                           disabled={payingFeeId === row.fee!.id}
                           className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-700 disabled:opacity-60"
                         >
-                          {payingFeeId === row.fee!.id ? "Weiterleiten..." : "Online bezahlen"}
+                          {payingFeeId === row.fee!.id ? "Weiterleiten..." : t("member.madrasa.fee.payOnline")}
                         </button>
                       )}
                     </>

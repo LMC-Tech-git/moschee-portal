@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { Heart } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 
-export default function Footer() {
+export default async function Footer() {
+  const t = await getTranslations();
   const currentYear = new Date().getFullYear();
 
   return (
@@ -11,24 +13,23 @@ export default function Footer() {
           {/* Über uns */}
           <div>
             <h3 className="mb-4 text-lg font-bold text-emerald-400">
-              Moschee-Portal
+              {t("footer.mosquePortal")}
             </h3>
             <p className="text-sm leading-relaxed text-gray-300">
-              Die digitale Plattform für Ihre muslimische Gemeinde. Verwalten
-              Sie Spenden, Mitglieder und vieles mehr an einem zentralen Ort.
+              {t("footer.tagline")}
             </p>
           </div>
 
           {/* Schnelllinks */}
-          <nav aria-label="Schnelllinks">
+          <nav aria-label={t("footer.quickLinks")}>
             <h3 className="mb-4 text-lg font-bold text-emerald-400">
-              Schnelllinks
+              {t("footer.quickLinks")}
             </h3>
             <ul className="space-y-2">
               {[
-                { label: "Startseite", href: "/" },
-                { label: "Anmelden", href: "/login" },
-                { label: "Registrieren", href: "/register" },
+                { label: t("nav.home"), href: "/" },
+                { label: t("nav.login"), href: "/login" },
+                { label: t("nav.register"), href: "/register" },
               ].map((link) => (
                 <li key={link.href}>
                   <Link
@@ -43,15 +44,15 @@ export default function Footer() {
           </nav>
 
           {/* Rechtliches */}
-          <nav aria-label="Rechtliches">
+          <nav aria-label={t("footer.legal")}>
             <h3 className="mb-4 text-lg font-bold text-emerald-400">
-              Rechtliches
+              {t("footer.legal")}
             </h3>
             <ul className="space-y-2">
               {[
-                { label: "Impressum", href: "/impressum" },
-                { label: "Datenschutz", href: "/datenschutz" },
-                { label: "AGB", href: "/agb" },
+                { label: t("footer.imprint"), href: "/impressum" },
+                { label: t("footer.privacy"), href: "/datenschutz" },
+                { label: t("footer.terms"), href: "/agb" },
               ].map((link) => (
                 <li key={link.href}>
                   <Link
@@ -69,7 +70,7 @@ export default function Footer() {
         {/* Copyright */}
         <div className="mt-8 border-t border-gray-800 pt-8 text-center">
           <p className="flex flex-wrap items-center justify-center gap-x-1 text-sm text-gray-400">
-            <span className="whitespace-nowrap">&copy; {currentYear} Moschee-Portal.</span>
+            <span className="whitespace-nowrap">&copy; {currentYear} {t("footer.copyright")}</span>
             <span className="inline-flex items-center gap-1 whitespace-nowrap">
               Mit <Heart className="h-3 w-3 text-red-400" aria-hidden="true" /> gebaut für die Gemeinde.
             </span>

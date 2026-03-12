@@ -12,13 +12,22 @@ import {
   FileText,
   CalendarDays,
   ArrowRight,
+  Banknote,
+  BookOpen,
+  Mail,
+  Link2,
+  ClipboardList,
+  Settings,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useMosque } from "@/lib/mosque-context";
 import { useAuth } from "@/lib/auth-context";
 import { formatCurrencyCents } from "@/lib/utils";
 import { getDashboardStats, type DashboardStats } from "@/lib/actions/dashboard";
+import { DemoHint } from "@/components/demo/DemoHint";
 
 export default function AdminDashboard() {
+  const t = useTranslations();
   const { mosqueId, isLoading: mosqueLoading } = useMosque();
   const { user } = useAuth();
   const router = useRouter();
@@ -54,23 +63,31 @@ export default function AdminDashboard() {
   }, [mosqueId]);
 
   const statCards = [
-    { title: "Mitglieder", value: stats.totalMembers, icon: Users, color: "text-blue-600", bg: "bg-blue-100" },
-    { title: "Aktiv", value: stats.activeMembers, icon: UserCheck, color: "text-emerald-600", bg: "bg-emerald-100" },
-    { title: "Ausstehend", value: stats.pendingMembers, icon: Clock, color: "text-amber-600", bg: "bg-amber-100" },
-    { title: "Beiträge", value: stats.publishedPosts, icon: FileText, color: "text-indigo-600", bg: "bg-indigo-100" },
-    { title: "Events", value: stats.totalEvents, icon: CalendarDays, color: "text-cyan-600", bg: "bg-cyan-100" },
-    { title: "Kampagnen", value: stats.activeCampaigns, icon: Target, color: "text-purple-600", bg: "bg-purple-100" },
-    { title: "Spenden", value: formatCurrencyCents(stats.totalDonationsCents), icon: Heart, color: "text-rose-600", bg: "bg-rose-100" },
+    { title: t("admin.stat.members"), value: stats.totalMembers, icon: Users, color: "text-blue-600", bg: "bg-blue-100" },
+    { title: t("admin.stat.active"), value: stats.activeMembers, icon: UserCheck, color: "text-emerald-600", bg: "bg-emerald-100" },
+    { title: t("admin.stat.pending"), value: stats.pendingMembers, icon: Clock, color: "text-amber-600", bg: "bg-amber-100" },
+    { title: t("admin.stat.posts"), value: stats.publishedPosts, icon: FileText, color: "text-indigo-600", bg: "bg-indigo-100" },
+    { title: t("admin.stat.events"), value: stats.totalEvents, icon: CalendarDays, color: "text-cyan-600", bg: "bg-cyan-100" },
+    { title: t("admin.stat.campaigns"), value: stats.activeCampaigns, icon: Target, color: "text-purple-600", bg: "bg-purple-100" },
+    { title: t("admin.stat.donations"), value: formatCurrencyCents(stats.totalDonationsCents), icon: Heart, color: "text-rose-600", bg: "bg-rose-100" },
   ];
 
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{t("admin.dashboard.title")}</h1>
         <p className="mt-1 text-sm text-gray-500">
-          Übersicht über Ihre Gemeinde
+          {t("admin.dashboard.subtitle")}
         </p>
       </div>
+
+      {/* Demo-Hinweise */}
+      <DemoHint
+        id="admin-dashboard"
+        title={t("admin.dashboard.welcome.title")}
+        description={t("admin.dashboard.welcome.desc")}
+        className="mb-4"
+      />
 
       {/* Statistik-Karten */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -95,37 +112,85 @@ export default function AdminDashboard() {
         })}
       </div>
 
+      <DemoHint
+        id="admin-stats"
+        title={t("admin.dashboard.liveStats.title")}
+        description={t("admin.dashboard.liveStats.desc")}
+      />
+
       {/* Schnellzugriff */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {[
           {
-            title: "Beiträge",
-            desc: "Neuigkeiten für die Gemeinde veröffentlichen.",
+            title: t("admin.quickAccess.posts.title"),
+            desc: t("admin.quickAccess.posts.desc"),
             href: "/admin/posts",
             icon: FileText,
             color: "text-indigo-600",
           },
           {
-            title: "Veranstaltungen",
-            desc: "Events erstellen und Anmeldungen verwalten.",
+            title: t("admin.quickAccess.events.title"),
+            desc: t("admin.quickAccess.events.desc"),
             href: "/admin/events",
             icon: CalendarDays,
             color: "text-cyan-600",
           },
           {
-            title: "Mitglieder",
-            desc: "Mitglieder verwalten und Anträge freischalten.",
+            title: t("admin.quickAccess.members.title"),
+            desc: t("admin.quickAccess.members.desc"),
             href: "/admin/mitglieder",
             icon: Users,
             color: "text-blue-600",
-            badge: stats.pendingMembers > 0 ? `${stats.pendingMembers} ausstehend` : undefined,
+            badge: stats.pendingMembers > 0 ? t("admin.quickAccess.members.pending", { count: stats.pendingMembers }) : undefined,
           },
           {
-            title: "Kampagnen",
-            desc: "Spendenkampagnen erstellen und verfolgen.",
+            title: t("admin.quickAccess.campaigns.title"),
+            desc: t("admin.quickAccess.campaigns.desc"),
             href: "/admin/kampagnen",
             icon: Target,
             color: "text-purple-600",
+          },
+          {
+            title: t("admin.quickAccess.donations.title"),
+            desc: t("admin.quickAccess.donations.desc"),
+            href: "/admin/spenden",
+            icon: Banknote,
+            color: "text-rose-600",
+          },
+          {
+            title: t("admin.quickAccess.madrasa.title"),
+            desc: t("admin.quickAccess.madrasa.desc"),
+            href: "/admin/madrasa",
+            icon: BookOpen,
+            color: "text-amber-600",
+          },
+          {
+            title: t("admin.quickAccess.newsletter.title"),
+            desc: t("admin.quickAccess.newsletter.desc"),
+            href: "/admin/newsletter",
+            icon: Mail,
+            color: "text-violet-600",
+          },
+          {
+            title: t("admin.quickAccess.invites.title"),
+            desc: t("admin.quickAccess.invites.desc"),
+            href: "/admin/invites",
+            icon: Link2,
+            color: "text-teal-600",
+          },
+          {
+            title: t("admin.quickAccess.audit.title"),
+            desc: t("admin.quickAccess.audit.desc"),
+            href: "/admin/audit",
+            icon: ClipboardList,
+            color: "text-slate-600",
+          },
+          {
+            title: t("admin.quickAccess.settings.title"),
+            desc: t("admin.quickAccess.settings.desc"),
+            href: "/admin/settings",
+            icon: Settings,
+            color: "text-gray-600",
           },
         ].map((item) => {
           const Icon = item.icon;

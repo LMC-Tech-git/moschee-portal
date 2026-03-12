@@ -239,7 +239,8 @@ export default function SchuljahrePage() {
               {years.map((year) => (
                 <div
                   key={year.id}
-                  className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 transition-colors"
+                  className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer"
+                  onClick={() => openEditForm(year)}
                 >
                   <div className="flex items-center gap-4">
                     <Calendar className="h-5 w-5 text-gray-400 flex-shrink-0" />
@@ -259,7 +260,7 @@ export default function SchuljahrePage() {
                       {academicYearStatusLabels[year.status]}
                     </span>
                   </div>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
                     <button
                       type="button"
                       onClick={() => openEditForm(year)}

@@ -9,6 +9,7 @@ import { useAuth } from "@/lib/auth-context";
 import { getCourseById, updateCourse } from "@/lib/actions/courses";
 import { CourseForm } from "@/components/madrasa/CourseForm";
 import { EnrollmentList } from "@/components/madrasa/EnrollmentList";
+import { DemoHint } from "@/components/demo/DemoHint";
 import type { Course } from "@/types";
 import type { CourseInput } from "@/lib/validations";
 
@@ -66,6 +67,11 @@ export default function EditCoursePage() {
 
   return (
     <div className="space-y-8">
+      <DemoHint
+        id="madrasa-enrollment"
+        title="Schüler einschreiben"
+        description="Fügen Sie Schüler direkt über das Formular hinzu oder importieren Sie mehrere per CSV-Datei (Excel-kompatibel)."
+      />
       <div>
         <Link
           href="/admin/madrasa"

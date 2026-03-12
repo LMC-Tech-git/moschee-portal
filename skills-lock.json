@@ -5,6 +5,11 @@
       "source": "mager/frontend-design",
       "sourceType": "github",
       "computedHash": "648ac1168dcfb6c8d6952abb381a879982c4e1f4789a377de29efc5d2274f7a6"
+    },
+    "next-intl-add-language": {
+      "source": "github/awesome-copilot",
+      "sourceType": "github",
+      "computedHash": "6b30075c5f43a4498782729f129c513ca28db37d93032a81a07e444d4db575c5"
     }
   }
 }

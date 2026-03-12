@@ -1,4 +1,9 @@
 import { NextResponse, type NextRequest } from "next/server";
+import createIntlMiddleware from "next-intl/middleware";
+import { routing } from "./i18n/routing";
+
+// next-intl Middleware für Locale-Detection (Cookie + Accept-Language)
+const intlMiddleware = createIntlMiddleware(routing);
 
 /**
  * Middleware: Schützt Admin- und Member-Routen.
@@ -9,6 +14,7 @@ import { NextResponse, type NextRequest } from "next/server";
  * /[slug]/* ist öffentlich (Slug-basierte Public-Seiten).
  *
  * Subdomain-Routing: demo.moschee.app/* → /demo/*
+ * i18n: Cookie `NEXT_LOCALE` oder Accept-Language-Header → de/tr
  */
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -30,7 +36,18 @@ export async function middleware(request: NextRequest) {
     if (needsRewrite) {
       const url = request.nextUrl.clone();
       url.pathname = `/${demoSlug}${pathname === "/" ? "" : pathname}`;
-      return NextResponse.rewrite(url);
+      const rewriteResponse = NextResponse.rewrite(url);
+      // next-intl Locale-Detection trotzdem ausführen (setzt NEXT_LOCALE Cookie)
+      const intlResponse = intlMiddleware(request);
+      const localeCookie = intlResponse.cookies.get("NEXT_LOCALE");
+      if (localeCookie) {
+        rewriteResponse.cookies.set(localeCookie.name, localeCookie.value, {
+          path: "/",
+          maxAge: 60 * 60 * 24 * 365,
+          sameSite: "lax",
+        });
+      }
+      return rewriteResponse;
     }
   }
 
@@ -61,7 +78,8 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  return NextResponse.next();
+  // next-intl Locale-Detection (setzt NEXT_LOCALE Cookie basierend auf Accept-Language)
+  return intlMiddleware(request);
 }
 
 export const config = {

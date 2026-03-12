@@ -321,7 +321,17 @@ async function seedCampaign(mosqueId, userId) {
     }
   );
   console.log(created ? "  ✅ Erstellt" : "  ⏭️  Existiert");
-  if (created) {
+
+  // Spenden idempotent anlegen: prüfen ob bereits Spenden für diese Kampagne existieren
+  const existingDonations = await pbFetch(
+    "collections/donations/records?filter=" +
+      encodeURIComponent("campaign_id = \"" + record.id + "\"") +
+      "&perPage=1",
+    { throwOnError: false }
+  );
+  const hasDonations = existingDonations?.items?.length > 0;
+
+  if (!hasDonations) {
     for (const amount of [500, 250, 1000]) {
       await pbFetch("collections/donations/records", {
         method: "POST",
@@ -339,6 +349,8 @@ async function seedCampaign(mosqueId, userId) {
       }).catch((e) => console.warn("  ⚠️  Spende übersprungen:", e.message));
     }
     console.log("  ✅ 3 Beispiel-Spenden (1.750 EUR)");
+  } else {
+    console.log("  ⏭️  Spenden bereits vorhanden");
   }
 }
 

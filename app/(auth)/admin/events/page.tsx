@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   Plus,
@@ -30,6 +31,7 @@ import {
 import type { Event } from "@/types";
 
 export default function AdminEventsPage() {
+  const router = useRouter();
   const { mosqueId } = useMosque();
   const { user } = useAuth();
   const [events, setEvents] = useState<Event[]>([]);
@@ -196,7 +198,8 @@ export default function AdminEventsPage() {
                   {events.map((event) => (
                     <tr
                       key={event.id}
-                      className="hover:bg-gray-50 transition-colors"
+                      className="hover:bg-gray-50 transition-colors cursor-pointer"
+                      onClick={() => router.push(`/admin/events/${event.id}`)}
                     >
                       <td className="px-4 py-3 font-medium text-gray-900">
                         <span className="truncate max-w-[200px] lg:max-w-[300px] block">
@@ -269,14 +272,13 @@ export default function AdminEventsPage() {
                             className="rounded p-1.5 text-gray-600 hover:bg-gray-100"
                             title="Bearbeiten"
                             aria-label={`Veranstaltung "${event.title}" bearbeiten`}
+                            onClick={(e) => e.stopPropagation()}
                           >
                             <Pencil className="h-4 w-4" />
                           </Link>
                           <button
                             type="button"
-                            onClick={() =>
-                              handleDelete(event.id, event.title)
-                            }
+                            onClick={(e) => { e.stopPropagation(); handleDelete(event.id, event.title); }}
                             className="rounded p-1.5 text-red-600 hover:bg-red-50"
                             title="Löschen"
                             aria-label={`Veranstaltung "${event.title}" löschen`}

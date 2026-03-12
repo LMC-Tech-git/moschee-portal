@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   Plus,
@@ -17,6 +18,7 @@ import {
   deleteCampaign,
 } from "@/lib/actions/campaigns";
 import { Button } from "@/components/ui/button";
+import { DemoHint } from "@/components/demo/DemoHint";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn, formatCurrencyCents } from "@/lib/utils";
@@ -29,6 +31,7 @@ import {
 import type { CampaignWithProgress } from "@/types";
 
 export default function AdminCampaignsPage() {
+  const router = useRouter();
   const { mosqueId } = useMosque();
   const { user } = useAuth();
   const [campaigns, setCampaigns] = useState<CampaignWithProgress[]>([]);
@@ -84,6 +87,11 @@ export default function AdminCampaignsPage() {
 
   return (
     <div className="space-y-6">
+      <DemoHint
+        id="campaigns-list"
+        title="Spendenkampagnen"
+        description="Erstellen Sie Kampagnen mit einem Spendenziel. Unterstützer können direkt über die öffentliche Kampagnen-Seite spenden."
+      />
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -187,7 +195,8 @@ export default function AdminCampaignsPage() {
                     return (
                       <tr
                         key={campaign.id}
-                        className="hover:bg-gray-50 transition-colors"
+                        className="hover:bg-gray-50 transition-colors cursor-pointer"
+                        onClick={() => router.push(`/admin/kampagnen/${campaign.id}`)}
                       >
                         <td className="px-4 py-3 font-medium text-gray-900">
                           <span className="truncate max-w-[200px] lg:max-w-[300px] block">
@@ -250,14 +259,13 @@ export default function AdminCampaignsPage() {
                               className="rounded p-1.5 text-gray-600 hover:bg-gray-100"
                               title="Bearbeiten"
                               aria-label={`Kampagne "${campaign.title}" bearbeiten`}
+                              onClick={(e) => e.stopPropagation()}
                             >
                               <Pencil className="h-4 w-4" />
                             </Link>
                             <button
                               type="button"
-                              onClick={() =>
-                                handleDelete(campaign.id, campaign.title)
-                              }
+                              onClick={(e) => { e.stopPropagation(); handleDelete(campaign.id, campaign.title); }}
                               className="rounded p-1.5 text-red-600 hover:bg-red-50"
                               title="Löschen"
                               aria-label={`Kampagne "${campaign.title}" löschen`}

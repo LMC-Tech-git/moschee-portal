@@ -29,6 +29,7 @@ import {
 } from "@/lib/constants";
 import type { Course, CourseEnrollment, Attendance } from "@/types";
 import AttendanceStats from "@/components/madrasa/AttendanceStats";
+import { DemoHint } from "@/components/demo/DemoHint";
 
 type AttendanceStatus = "present" | "absent" | "late" | "excused";
 
@@ -228,6 +229,11 @@ export default function AttendancePage() {
 
   return (
     <div className="space-y-6">
+      <DemoHint
+        id="madrasa-attendance"
+        title="Anwesenheit erfassen"
+        description="Wählen Sie ein Datum, markieren Sie für jeden Schüler den Status (Anwesend / Entschuldigt / Unentschuldigt) und klicken Sie auf ‚Speichern'."
+      />
       {/* Header */}
       <div>
         <Link

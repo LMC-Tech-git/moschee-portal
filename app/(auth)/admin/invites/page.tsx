@@ -209,7 +209,9 @@ export default function AdminInvitesPage() {
                     return (
                       <tr
                         key={invite.id}
-                        className="hover:bg-gray-50 transition-colors"
+                        className="hover:bg-gray-50 transition-colors cursor-pointer"
+                        onClick={() => !isInactive && copyInviteLink(invite)}
+                        title={isInactive ? undefined : "Link kopieren"}
                       >
                         {/* Typ / Bezeichnung */}
                         <td className="px-4 py-3">
@@ -264,7 +266,7 @@ export default function AdminInvitesPage() {
 
                         {/* Aktionen */}
                         <td className="px-4 py-3">
-                          <div className="flex items-center justify-end gap-1">
+                          <div className="flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
                             {/* Link kopieren */}
                             <button
                               type="button"

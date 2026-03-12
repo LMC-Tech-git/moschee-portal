@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { LogIn, Mail, Lock, Eye, EyeOff, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function LoginPage() {
+  const t = useTranslations();
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect") || "/";
@@ -30,7 +32,7 @@ export default function LoginPage() {
 
     try {
       await login(email, password);
-      toast.success("Erfolgreich eingeloggt!");
+      toast.success(t("login.success"));
       if (redirect === "/") {
         // Rollen-basierter Redirect: kein explizites Ziel → passendes Dashboard
         const role = pb.authStore.record?.role || "member";
@@ -47,9 +49,9 @@ export default function LoginPage() {
       const message =
         pbErr?.response?.message || pbErr?.message || "Login fehlgeschlagen";
       if (message.includes("Failed to authenticate")) {
-        setError("E-Mail oder Passwort ist falsch.");
+        setError(t("login.error.wrongCredentials"));
       } else {
-        setError("Anmeldung fehlgeschlagen. Bitte versuchen Sie es erneut.");
+        setError(t("login.error.generic"));
       }
     } finally {
       setIsLoading(false);
@@ -63,9 +65,9 @@ export default function LoginPage() {
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary-100">
             <LogIn className="h-7 w-7 text-primary-600" />
           </div>
-          <CardTitle className="text-2xl">Willkommen zurück</CardTitle>
+          <CardTitle className="text-2xl">{t("login.title")}</CardTitle>
           <CardDescription>
-            Melden Sie sich mit Ihren Zugangsdaten an
+            {t("login.subtitle")}
           </CardDescription>
         </CardHeader>
 
@@ -79,13 +81,13 @@ export default function LoginPage() {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="email">E-Mail-Adresse</Label>
+              <Label htmlFor="email">{t("login.emailLabel")}</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                 <Input
                   id="email"
                   type="email"
-                  placeholder="ihre@email.de"
+                  placeholder={t("login.emailPlaceholder")}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="pl-10"
@@ -98,12 +100,12 @@ export default function LoginPage() {
 
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="password">Passwort</Label>
+                <Label htmlFor="password">{t("login.passwordLabel")}</Label>
                 <Link
                   href="/passwort-vergessen"
                   className="text-xs text-primary-600 hover:text-primary-700"
                 >
-                  Passwort vergessen?
+                  {t("login.forgotPassword")}
                 </Link>
               </div>
               <div className="relative">
@@ -111,7 +113,7 @@ export default function LoginPage() {
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="Ihr Passwort"
+                  placeholder={t("login.passwordPlaceholder")}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="pl-10 pr-10"
@@ -125,7 +127,7 @@ export default function LoginPage() {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                   tabIndex={-1}
-                  aria-label={showPassword ? "Passwort verbergen" : "Passwort anzeigen"}
+                  aria-label={showPassword ? t("login.hidePassword") : t("login.showPassword")}
                 >
                   {showPassword ? (
                     <EyeOff className="h-4 w-4" />
@@ -147,23 +149,23 @@ export default function LoginPage() {
               {isLoading ? (
                 <span className="flex items-center gap-2">
                   <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent motion-reduce:animate-none" />
-                  Anmeldung…
+                  {t("login.submitting")}
                 </span>
               ) : (
                 <span className="flex items-center gap-2">
                   <LogIn className="h-4 w-4" />
-                  Anmelden
+                  {t("login.submit")}
                 </span>
               )}
             </Button>
 
             <p className="text-center text-sm text-gray-600">
-              Noch kein Konto?{" "}
+              {t("login.noAccount")}{" "}
               <Link
                 href="/register"
                 className="font-medium text-primary-600 hover:text-primary-700"
               >
-                Jetzt registrieren
+                {t("login.registerNow")}
               </Link>
             </p>
           </CardFooter>

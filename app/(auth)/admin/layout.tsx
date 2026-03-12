@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import {
@@ -13,7 +13,6 @@ import {
   BookOpen,
   Link2,
   ChevronLeft,
-  Menu,
   Shield,
   Banknote,
   Settings,
@@ -25,6 +24,7 @@ import {
 import { useAuth } from "@/lib/auth-context";
 import { useMosque } from "@/lib/mosque-context";
 import { MoscheeSelektor } from "@/components/admin/MoscheeSelektor";
+import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
 import { cn } from "@/lib/utils";
 
 // Editor darf nur diese Routen besuchen
@@ -112,7 +112,6 @@ export default function AdminLayout({
   const { mosque } = useMosque();
   const router = useRouter();
   const pathname = usePathname();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const role = user?.role;
   const canAccess =
@@ -162,31 +161,8 @@ export default function AdminLayout({
 
   return (
     <div className="flex min-h-[calc(100vh-73px)]">
-      {/* Mobile Sidebar Toggle */}
-      <button
-        type="button"
-        onClick={() => setSidebarOpen(!sidebarOpen)}
-        className="fixed bottom-4 right-4 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-600 text-white shadow-lg lg:hidden"
-        aria-label="Admin-Menü"
-      >
-        <Menu className="h-5 w-5" />
-      </button>
-
-      {/* Sidebar Overlay (Mobile) */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
-      {/* Sidebar */}
-      <aside
-        className={cn(
-          "fixed inset-y-0 left-0 z-40 w-64 transform border-r border-gray-200 bg-white pt-[73px] transition-transform duration-200 lg:static lg:translate-x-0 lg:pt-0",
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        )}
-      >
+      {/* Sidebar — nur auf Desktop sichtbar */}
+      <aside className="hidden lg:flex w-64 shrink-0 flex-col border-r border-gray-200 bg-white">
         <div className="flex h-full flex-col">
           {/* Sidebar Header */}
           <div className="border-b border-gray-100 px-4 py-4 space-y-3">
@@ -219,7 +195,6 @@ export default function AdminLayout({
             {isSuperAdmin && (
               <Link
                 href="/admin/platform"
-                onClick={() => setSidebarOpen(false)}
                 className="flex items-center gap-2 rounded-lg border border-purple-200 bg-purple-50 px-3 py-2 text-xs font-medium text-purple-700 hover:bg-purple-100 transition-colors"
               >
                 <Globe className="h-3.5 w-3.5" />
@@ -248,7 +223,6 @@ export default function AdminLayout({
                 <Link
                   key={item.href}
                   href={item.href}
-                  onClick={() => setSidebarOpen(false)}
                   className={cn(
                     "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
                     isActive
@@ -263,8 +237,11 @@ export default function AdminLayout({
             })}
           </nav>
 
-          {/* Back to Portal */}
-          <div className="border-t border-gray-100 px-3 py-4">
+          {/* Back to Portal + Language Switcher */}
+          <div className="border-t border-gray-100 px-3 py-4 space-y-2">
+            <div className="px-3">
+              <LanguageSwitcher />
+            </div>
             <Link
               href="/"
               className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-500 hover:bg-gray-50 hover:text-gray-700"
@@ -277,7 +254,7 @@ export default function AdminLayout({
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto bg-gray-50 p-4 pb-20 sm:p-6 lg:p-8">
+      <main className="flex-1 overflow-y-auto bg-gray-50 p-4 sm:p-6 lg:p-8">
         {children}
       </main>
     </div>

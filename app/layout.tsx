@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import { Toaster } from "sonner";
+import { NextIntlClientProvider } from "next-intl";
+import { getLocale, getMessages } from "next-intl/server";
 import { AuthProvider } from "@/lib/auth-context";
 import { MosqueProvider } from "@/lib/mosque-context";
 import { ServiceWorkerRegistration } from "@/components/shared/ServiceWorkerRegistration";
@@ -71,13 +73,16 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getLocale();
+  const messages = await getMessages();
+
   return (
-    <html lang="de">
+    <html lang={locale}>
       <head>
         <meta name="mobile-web-app-capable" content="yes" />
       </head>
@@ -88,16 +93,18 @@ export default function RootLayout({
         >
           Zum Inhalt springen
         </a>
-        <AuthProvider>
-          <MosqueProvider>
-            <div className="flex min-h-screen flex-col">
-              <Header />
-              <main id="main-content" className="flex-1">{children}</main>
-              <Footer />
-            </div>
-            <Toaster position="top-right" richColors />
-          </MosqueProvider>
-        </AuthProvider>
+        <NextIntlClientProvider locale={locale} messages={messages}>
+          <AuthProvider>
+            <MosqueProvider>
+              <div className="flex min-h-screen flex-col">
+                <Header />
+                <main id="main-content" className="flex-1">{children}</main>
+                <Footer />
+              </div>
+              <Toaster position="top-right" richColors />
+            </MosqueProvider>
+          </AuthProvider>
+        </NextIntlClientProvider>
         <ServiceWorkerRegistration />
       </body>
     </html>

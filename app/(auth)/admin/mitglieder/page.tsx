@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   Users,
@@ -74,6 +75,7 @@ const ROLE_BADGES: Record<string, { label: string; className: string }> = {
 };
 
 export default function MitgliederListePage() {
+  const router = useRouter();
   const { user } = useAuth();
   const { mosqueId, mosque } = useMosque();
   const [members, setMembers] = useState<User[]>([]);
@@ -235,7 +237,8 @@ export default function MitgliederListePage() {
                   {members.map((member) => (
                     <tr
                       key={member.id}
-                      className="hover:bg-gray-50 transition-colors"
+                      className="hover:bg-gray-50 transition-colors cursor-pointer"
+                      onClick={() => router.push(`/admin/mitglieder/${member.id}`)}
                     >
                       <td className="px-4 py-3 font-medium text-gray-900">
                         {member.full_name || "—"}
@@ -273,9 +276,7 @@ export default function MitgliederListePage() {
                           {member.status === "pending" && (
                             <button
                               type="button"
-                              onClick={() =>
-                                handleStatusChange(member.id, "active")
-                              }
+                              onClick={(e) => { e.stopPropagation(); handleStatusChange(member.id, "active"); }}
                               className="rounded p-1.5 text-emerald-600 hover:bg-emerald-50"
                               title="Freischalten"
                               aria-label={`${member.full_name} freischalten`}
@@ -286,9 +287,7 @@ export default function MitgliederListePage() {
                           {member.status === "active" && (
                             <button
                               type="button"
-                              onClick={() =>
-                                handleStatusChange(member.id, "inactive")
-                              }
+                              onClick={(e) => { e.stopPropagation(); handleStatusChange(member.id, "inactive"); }}
                               className="rounded p-1.5 text-red-600 hover:bg-red-50"
                               title="Deaktivieren"
                               aria-label={`${member.full_name} deaktivieren`}
@@ -299,9 +298,7 @@ export default function MitgliederListePage() {
                           {member.status === "inactive" && (
                             <button
                               type="button"
-                              onClick={() =>
-                                handleStatusChange(member.id, "active")
-                              }
+                              onClick={(e) => { e.stopPropagation(); handleStatusChange(member.id, "active"); }}
                               className="rounded p-1.5 text-emerald-600 hover:bg-emerald-50"
                               title="Reaktivieren"
                               aria-label={`${member.full_name} reaktivieren`}
@@ -314,6 +311,7 @@ export default function MitgliederListePage() {
                             className="rounded p-1.5 text-gray-600 hover:bg-gray-100"
                             title="Bearbeiten"
                             aria-label={`${member.full_name} bearbeiten`}
+                            onClick={(e) => e.stopPropagation()}
                           >
                             <Pencil className="h-4 w-4" />
                           </Link>

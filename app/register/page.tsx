@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
   UserPlus,
   Mail,
@@ -29,6 +30,7 @@ import {
 } from "@/components/ui/card";
 
 export default function RegisterPage() {
+  const t = useTranslations();
   const router = useRouter();
   const { register } = useAuth();
   const { mosqueId, isLoading: mosqueLoading } = useMosque();
@@ -56,22 +58,22 @@ export default function RegisterPage() {
     setError("");
 
     if (formData.password !== formData.passwordConfirm) {
-      setError("Die Passwörter stimmen nicht überein.");
+      setError(t("register.error.passwordMismatch"));
       return;
     }
 
     if (formData.password.length < 8) {
-      setError("Das Passwort muss mindestens 8 Zeichen lang sein.");
+      setError(t("register.error.passwordTooShort"));
       return;
     }
 
     if (!agbAccepted) {
-      setError("Bitte akzeptieren Sie die AGB und Datenschutzerklärung.");
+      setError(t("register.error.agbRequired"));
       return;
     }
 
     if (!mosqueId) {
-      setError("Keine Gemeinde gefunden. Bitte laden Sie die Seite neu.");
+      setError(t("register.error.noMosque"));
       return;
     }
 
@@ -87,18 +89,18 @@ export default function RegisterPage() {
         member_no: formData.member_no || undefined,
         mosque_id: mosqueId || "",
       });
-      toast.success("Registrierung erfolgreich! Willkommen im Moschee-Portal.");
+      toast.success(t("register.success"));
       router.push("/member/profile");
     } catch (err: unknown) {
       const msg = (err as { message?: string })?.message || "";
       if (msg === "EMAIL_EXISTS") {
-        setError("Diese E-Mail-Adresse ist bereits registriert.");
+        setError(t("register.error.emailExists"));
       } else if (msg === "PASSWORD_MISMATCH") {
-        setError("Die Passwörter stimmen nicht überein.");
+        setError(t("register.error.passwordMismatch"));
       } else if (msg.startsWith("PASSWORD_INVALID:")) {
         setError("Passwort: " + msg.replace("PASSWORD_INVALID: ", ""));
       } else {
-        setError(msg || "Registrierung fehlgeschlagen. Bitte versuchen Sie es erneut.");
+        setError(msg || t("register.error.generic"));
       }
     } finally {
       setIsLoading(false);
@@ -112,9 +114,9 @@ export default function RegisterPage() {
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100">
             <UserPlus className="h-7 w-7 text-emerald-600" />
           </div>
-          <CardTitle className="text-2xl">Konto erstellen</CardTitle>
+          <CardTitle className="text-2xl">{t("register.title")}</CardTitle>
           <CardDescription>
-            Registrieren Sie sich als Gemeindemitglied
+            {t("register.subtitle")}
           </CardDescription>
         </CardHeader>
 
@@ -130,13 +132,13 @@ export default function RegisterPage() {
             {/* Name */}
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="first_name">Vorname</Label>
+                <Label htmlFor="first_name">{t("register.firstNameLabel")}</Label>
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                   <Input
                     id="first_name"
                     type="text"
-                    placeholder="Vorname"
+                    placeholder={t("register.firstNamePlaceholder")}
                     value={formData.first_name}
                     onChange={(e) => updateField("first_name", e.target.value)}
                     className="pl-10"
@@ -147,11 +149,11 @@ export default function RegisterPage() {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="last_name">Nachname</Label>
+                <Label htmlFor="last_name">{t("register.lastNameLabel")}</Label>
                 <Input
                   id="last_name"
                   type="text"
-                  placeholder="Nachname"
+                  placeholder={t("register.lastNamePlaceholder")}
                   value={formData.last_name}
                   onChange={(e) => updateField("last_name", e.target.value)}
                   required
@@ -163,13 +165,13 @@ export default function RegisterPage() {
 
             {/* Mitgliedsnummer (optional) */}
             <div className="space-y-2">
-              <Label htmlFor="member_no">Mitgliedsnummer (optional)</Label>
+              <Label htmlFor="member_no">{t("register.memberNoLabel")}</Label>
               <div className="relative">
                 <Hash className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                 <Input
                   id="member_no"
                   type="text"
-                  placeholder="z.B. M-001"
+                  placeholder={t("register.memberNoPlaceholder")}
                   value={formData.member_no}
                   onChange={(e) => updateField("member_no", e.target.value)}
                   className="pl-10"
@@ -177,19 +179,19 @@ export default function RegisterPage() {
                 />
               </div>
               <p className="text-xs text-gray-500">
-                Falls vorhanden, erhalten Sie diese von der Moschee-Verwaltung.
+                {t("register.memberNoHint")}
               </p>
             </div>
 
             {/* E-Mail */}
             <div className="space-y-2">
-              <Label htmlFor="email">E-Mail-Adresse</Label>
+              <Label htmlFor="email">{t("register.emailLabel")}</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                 <Input
                   id="email"
                   type="email"
-                  placeholder="ihre@email.de"
+                  placeholder={t("register.emailPlaceholder")}
                   value={formData.email}
                   onChange={(e) => updateField("email", e.target.value)}
                   className="pl-10"
@@ -202,13 +204,13 @@ export default function RegisterPage() {
 
             {/* Passwort */}
             <div className="space-y-2">
-              <Label htmlFor="password">Passwort</Label>
+              <Label htmlFor="password">{t("register.passwordLabel")}</Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="Mindestens 8 Zeichen"
+                  placeholder={t("register.passwordPlaceholder")}
                   value={formData.password}
                   onChange={(e) => updateField("password", e.target.value)}
                   className="pl-10 pr-10"
@@ -222,7 +224,7 @@ export default function RegisterPage() {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                   tabIndex={-1}
-                  aria-label={showPassword ? "Passwort verbergen" : "Passwort anzeigen"}
+                  aria-label={showPassword ? t("login.hidePassword") : t("login.showPassword")}
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -231,13 +233,13 @@ export default function RegisterPage() {
 
             {/* Passwort bestätigen */}
             <div className="space-y-2">
-              <Label htmlFor="passwordConfirm">Passwort bestätigen</Label>
+              <Label htmlFor="passwordConfirm">{t("register.passwordConfirmLabel")}</Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                 <Input
                   id="passwordConfirm"
                   type={showPassword ? "text" : "password"}
-                  placeholder="Passwort wiederholen"
+                  placeholder={t("register.passwordConfirmPlaceholder")}
                   value={formData.passwordConfirm}
                   onChange={(e) => updateField("passwordConfirm", e.target.value)}
                   className="pl-10"
@@ -250,7 +252,7 @@ export default function RegisterPage() {
               {formData.passwordConfirm &&
                 formData.password !== formData.passwordConfirm && (
                   <p className="text-xs text-red-500">
-                    Die Passwörter stimmen nicht überein.
+                    {t("register.passwordMismatch")}
                   </p>
                 )}
             </div>
@@ -269,11 +271,11 @@ export default function RegisterPage() {
               <label htmlFor="agb" className="text-sm text-gray-600">
                 Ich akzeptiere die{" "}
                 <Link href="/agb" className="text-emerald-600 hover:text-emerald-700" target="_blank">
-                  AGB
+                  {t("register.agbLink")}
                 </Link>{" "}
                 und{" "}
                 <Link href="/datenschutz" className="text-emerald-600 hover:text-emerald-700" target="_blank">
-                  Datenschutzerklärung
+                  {t("register.privacyLink")}
                 </Link>.
               </label>
             </div>
@@ -283,27 +285,27 @@ export default function RegisterPage() {
             {!mosqueLoading && !mosqueId && (
               <div className="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-700 w-full">
                 <AlertCircle className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
-                Registrierung ist nur über einen Einladungslink möglich.
+                {t("register.inviteOnly")}
               </div>
             )}
             <Button type="submit" className="w-full" size="lg" disabled={isLoading || mosqueLoading || !mosqueId}>
               {isLoading ? (
                 <span className="flex items-center gap-2">
                   <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent motion-reduce:animate-none" />
-                  Registrierung…
+                  {t("register.submitting")}
                 </span>
               ) : (
                 <span className="flex items-center gap-2">
                   <UserPlus className="h-4 w-4" />
-                  Registrieren
+                  {t("register.submit")}
                 </span>
               )}
             </Button>
 
             <p className="text-center text-sm text-gray-600">
-              Bereits registriert?{" "}
+              {t("register.alreadyRegistered")}{" "}
               <Link href="/login" className="font-medium text-emerald-600 hover:text-emerald-700">
-                Jetzt anmelden
+                {t("register.loginNow")}
               </Link>
             </p>
           </CardFooter>

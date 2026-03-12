@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   Plus,
@@ -22,6 +23,7 @@ import { getAcademicYearsByMosque } from "@/lib/actions/academic-years";
 import { getMadrasaFeeSettings } from "@/lib/actions/settings";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { DemoHint } from "@/components/demo/DemoHint";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import {
@@ -36,6 +38,7 @@ import {
 import type { CourseWithStats, AcademicYear } from "@/types";
 
 export default function AdminMadrasaPage() {
+  const router = useRouter();
   const { mosqueId } = useMosque();
   const { user } = useAuth();
   const [courses, setCourses] = useState<CourseWithStats[]>([]);
@@ -112,6 +115,11 @@ export default function AdminMadrasaPage() {
 
   return (
     <div className="space-y-6">
+      <DemoHint
+        id="madrasa-overview"
+        title="Madrasa-Verwaltung"
+        description="Hier verwalten Sie den Islamunterricht: Kurse anlegen, Schüler einschreiben, Anwesenheit führen und Gebühren verwalten."
+      />
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -237,7 +245,7 @@ export default function AdminMadrasaPage() {
                 </thead>
                 <tbody className="divide-y">
                   {courses.map((course) => (
-                    <tr key={course.id} className="hover:bg-gray-50 transition-colors">
+                    <tr key={course.id} className="hover:bg-gray-50 transition-colors cursor-pointer" onClick={() => router.push(`/admin/madrasa/${course.id}`)}>
                       <td className="px-4 py-3 font-medium text-gray-900">
                         <span className="truncate max-w-[200px] lg:max-w-[300px] block">
                           {course.title}
@@ -294,7 +302,7 @@ export default function AdminMadrasaPage() {
                         </span>
                       </td>
                       <td className="px-4 py-3">
-                        <div className="flex items-center justify-end gap-1">
+                        <div className="flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
                           {deletingCourseId === course.id ? (
                             <span className="inline-flex items-center gap-1 rounded-full border border-red-300 bg-red-50 px-2 py-1 text-xs">
                               <span className="text-red-700">Löschen?</span>

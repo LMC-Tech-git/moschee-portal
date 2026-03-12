@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   Plus,
@@ -28,6 +29,7 @@ import {
 import type { Post } from "@/types";
 
 export default function AdminPostsPage() {
+  const router = useRouter();
   const { mosqueId } = useMosque();
   const { user } = useAuth();
   const [posts, setPosts] = useState<Post[]>([]);
@@ -171,7 +173,8 @@ export default function AdminPostsPage() {
                   {posts.map((post) => (
                     <tr
                       key={post.id}
-                      className="hover:bg-gray-50 transition-colors"
+                      className="hover:bg-gray-50 transition-colors cursor-pointer"
+                      onClick={() => router.push(`/admin/posts/${post.id}`)}
                     >
                       <td className="px-4 py-3 font-medium text-gray-900">
                         <div className="flex items-center gap-2">
@@ -235,12 +238,13 @@ export default function AdminPostsPage() {
                             className="rounded p-1.5 text-gray-600 hover:bg-gray-100"
                             title="Bearbeiten"
                             aria-label={`Beitrag "${post.title}" bearbeiten`}
+                            onClick={(e) => e.stopPropagation()}
                           >
                             <Pencil className="h-4 w-4" />
                           </Link>
                           <button
                             type="button"
-                            onClick={() => handleDelete(post.id, post.title)}
+                            onClick={(e) => { e.stopPropagation(); handleDelete(post.id, post.title); }}
                             className="rounded p-1.5 text-red-600 hover:bg-red-50"
                             title="Löschen"
                             aria-label={`Beitrag "${post.title}" löschen`}
