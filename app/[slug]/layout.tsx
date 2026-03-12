@@ -1,8 +1,10 @@
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { resolveMosqueWithSettings } from "@/lib/resolve-mosque";
 import { getBrandColor } from "@/lib/constants";
 import type { Mosque, Settings } from "@/types";
 import { DemoReturnButton } from "@/components/shared/DemoReturnButton";
+import { TokenReceiver } from "@/components/shared/TokenReceiver";
 
 /**
  * Server-seitiges Layout für Slug-basierte öffentliche Seiten.
@@ -71,6 +73,9 @@ export default async function SlugLayout({
         } as React.CSSProperties
       }
     >
+      <Suspense fallback={null}>
+        <TokenReceiver />
+      </Suspense>
       {isDemoBanner && (
         <div className="flex items-center justify-between gap-2 border-b border-amber-200 bg-amber-50 px-4 py-2.5 text-sm text-amber-800">
           <div className="flex items-center gap-2">

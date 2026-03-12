@@ -153,9 +153,12 @@ export default function HomePage() {
       });
       const data = await res.json();
       if (data.token) {
-        getClientPB().authStore.save(data.token, data.record);
+        // Token via URL-Param übergeben, da localStorage zwischen Subdomains isoliert ist.
+        // TokenReceiver auf demo.moschee.app liest die Params und speichert den Token lokal.
         const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "moschee.app";
-        window.location.href = `https://demo.${rootDomain}`;
+        const encodedToken = encodeURIComponent(data.token);
+        const encodedModel = encodeURIComponent(JSON.stringify(data.record));
+        window.location.href = `https://demo.${rootDomain}?_token=${encodedToken}&_model=${encodedModel}`;
       }
     } finally {
       setLoadingRole(null);

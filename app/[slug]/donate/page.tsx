@@ -54,6 +54,10 @@ export default async function DonatePage({
     .filter((n) => !isNaN(n) && n > 0)
     .map((n) => Math.round(n * 100));
 
+  const isDemoMosque =
+    !!process.env.NEXT_PUBLIC_DEMO_MOSQUE_ID &&
+    mosque.id === process.env.NEXT_PUBLIC_DEMO_MOSQUE_ID;
+
   // Kampagnen laden
   const campaignsResult = await getPublicCampaigns(mosque.id, 50);
   const campaigns = campaignsResult.success ? campaignsResult.data || [] : [];
@@ -92,6 +96,27 @@ export default async function DonatePage({
                 dankbar für Ihre Unterstützung.
               </p>
             </div>
+          </div>
+        )}
+
+        {/* Demo: Stripe Test-Card Info */}
+        {isDemoMosque && (
+          <div className="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800">
+            <p className="mb-1.5 font-semibold">🧪 Demo-Modus — Testzahlung</p>
+            <p className="mb-0.5">
+              Kartennummer:{" "}
+              <code className="rounded bg-blue-100 px-1 font-mono font-bold tracking-wider">
+                4242 4242 4242 4242
+              </code>
+            </p>
+            <p>
+              Ablaufdatum:{" "}
+              <code className="rounded bg-blue-100 px-1 font-mono">12/34</code>
+              {"  "}CVC:{" "}
+              <code className="rounded bg-blue-100 px-1 font-mono">123</code>
+              {"  "}PLZ:{" "}
+              <code className="rounded bg-blue-100 px-1 font-mono">12345</code>
+            </p>
           </div>
         )}
 
