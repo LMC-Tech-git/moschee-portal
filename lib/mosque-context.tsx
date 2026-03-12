@@ -10,10 +10,9 @@ import {
   type ReactNode,
 } from "react";
 import { usePathname } from "next/navigation";
-import { getClientPB } from "@/lib/pocketbase";
 import { useAuth } from "@/lib/auth-context";
+import { getMosqueById, getMosqueBySlug } from "@/lib/actions/mosques";
 import type { Mosque } from "@/types";
-import type { RecordModel } from "pocketbase";
 
 interface MosqueContextType {
   mosque: Mosque | null;
@@ -28,33 +27,6 @@ interface MosqueContextType {
 
 const MosqueContext = createContext<MosqueContextType | null>(null);
 
-function mapRecordToMosque(record: RecordModel): Mosque {
-  return {
-    id: record.id,
-    name: record.name || "",
-    slug: record.slug || "",
-    city: record.city || "",
-    address: record.address || "",
-    latitude: record.latitude || 0,
-    longitude: record.longitude || 0,
-    timezone: record.timezone || "Europe/Berlin",
-    phone: record.phone || "",
-    email: record.email || "",
-    public_enabled: record.public_enabled ?? true,
-    donation_provider: record.donation_provider || "none",
-    paypal_donate_url: record.paypal_donate_url || "",
-    external_donation_url: record.external_donation_url || "",
-    external_donation_label: record.external_donation_label || "",
-    zip_code: record.zip_code || "",
-    website: record.website || "",
-    brand_logo: record.brand_logo || "",
-    brand_primary_color: record.brand_primary_color || "",
-    brand_accent_color: record.brand_accent_color || "",
-    brand_theme: record.brand_theme || "default",
-    created: record.created || "",
-    updated: record.updated || "",
-  };
-}
 
 interface MosqueProviderProps {
   children: ReactNode;
@@ -106,17 +78,17 @@ export function MosqueProvider({ children, initialMosque }: MosqueProviderProps)
     async function loadMosque() {
       setIsLoading(true);
       try {
-        const pb = getClientPB();
+        // Server Actions verwenden getAdminPB() → umgeht PB viewRule-Beschränkungen
         if (user?.role === "super_admin") {
           if (overrideMosqueId) {
-            const record = await pb.collection("mosques").getOne(overrideMosqueId);
-            setMosque(mapRecordToMosque(record));
+            const m = await getMosqueById(overrideMosqueId);
+            setMosque(m);
           } else {
             setMosque(null);
           }
         } else if (isAuthenticated && user?.mosque_id) {
-          const record = await pb.collection("mosques").getOne(user.mosque_id);
-          setMosque(mapRecordToMosque(record));
+          const m = await getMosqueById(user.mosque_id);
+          setMosque(m);
         } else {
           // Nicht eingeloggt: Moschee aus URL-Slug laden (für öffentliche Seiten)
           const parts = pathname.split("/").filter(Boolean);
@@ -126,18 +98,8 @@ export function MosqueProvider({ children, initialMosque }: MosqueProviderProps)
               : null;
 
           if (slugFromPath) {
-            try {
-              const result = await pb.collection("mosques").getList(1, 1, {
-                filter: `slug="${slugFromPath}"`,
-              });
-              setMosque(
-                result.items.length > 0
-                  ? mapRecordToMosque(result.items[0])
-                  : null
-              );
-            } catch {
-              setMosque(null);
-            }
+            const m = await getMosqueBySlug(slugFromPath);
+            setMosque(m);
           } else {
             // Keine Moschee für Landing Page, Login etc.
             setMosque(null);
@@ -153,7 +115,7 @@ export function MosqueProvider({ children, initialMosque }: MosqueProviderProps)
   }, [initialMosque, authLoading, isAuthenticated, user?.mosque_id, user?.role, overrideMosqueId, refreshKey, pathname]);
 
   return (
-    <MosqueContext.Provider value={{ mosque, mosqueId: mosque?.id || "", isLoading, setMosqueOverride, overrideMosqueId, refreshMosque, setMosqueData }}>
+    <MosqueContext.Provider value={{ mosque, mosqueId: mosque?.id || user?.mosque_id || "", isLoading, setMosqueOverride, overrideMosqueId, refreshMosque, setMosqueData }}>
       {children}
     </MosqueContext.Provider>
   );
