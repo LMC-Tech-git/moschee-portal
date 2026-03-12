@@ -20,6 +20,7 @@ import {
   PlayCircle,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
+import { getClientPB } from "@/lib/pocketbase";
 
 const FEATURES = [
   {
@@ -84,6 +85,7 @@ const DEMO_MOSQUE_ID = process.env.NEXT_PUBLIC_DEMO_MOSQUE_ID ?? "";
 const DEMO_ACCOUNTS = [
   {
     role: "Admin",
+    loginRole: "admin",
     roleDesc: "Vollzugriff auf alle Funktionen",
     email: "demo-admin@moschee.app",
     icon: Shield,
@@ -91,6 +93,7 @@ const DEMO_ACCOUNTS = [
   },
   {
     role: "Lehrer",
+    loginRole: "teacher",
     roleDesc: "Madrasa & Anwesenheit verwalten",
     email: "demo-teacher@moschee.app",
     icon: BookOpen,
@@ -98,6 +101,7 @@ const DEMO_ACCOUNTS = [
   },
   {
     role: "Mitglied",
+    loginRole: "member",
     roleDesc: "Portal & Mitgliederbereich",
     email: "demo-member@moschee.app",
     icon: User,
@@ -110,6 +114,7 @@ export default function HomePage() {
   const router = useRouter();
   const [loadingSlug, setLoadingSlug] = useState(false);
   const [copiedEmail, setCopiedEmail] = useState<string | null>(null);
+  const [loadingRole, setLoadingRole] = useState<string | null>(null);
 
   // Eingeloggte User → automatisch zum Moschee-Dashboard
   // Ausnahme: ?noredirect=1 (z.B. vom Demo-Banner "← Zur Startseite")
@@ -136,6 +141,24 @@ export default function HomePage() {
     navigator.clipboard.writeText(email).catch(() => {});
     setCopiedEmail(email);
     setTimeout(() => setCopiedEmail(null), 2000);
+  }
+
+  async function loginAsDemo(loginRole: string) {
+    setLoadingRole(loginRole);
+    try {
+      const res = await fetch("/api/demo/auto-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role: loginRole }),
+      });
+      const data = await res.json();
+      if (data.token) {
+        getClientPB().authStore.save(data.token, data.record);
+        window.location.href = "/demo";
+      }
+    } finally {
+      setLoadingRole(null);
+    }
   }
 
   if (isLoading || loadingSlug) {
@@ -267,6 +290,14 @@ export default function HomePage() {
                         <Copy className="h-3.5 w-3.5 shrink-0 text-gray-400" aria-hidden="true" />
                       )}
                     </button>
+                    <button
+                      type="button"
+                      onClick={() => loginAsDemo(account.loginRole)}
+                      disabled={loadingRole !== null}
+                      className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-emerald-700 disabled:opacity-50"
+                    >
+                      {loadingRole === account.loginRole ? "Wird angemeldet…" : `Als ${account.role} anmelden →`}
+                    </button>
                   </div>
                 );
               })}
@@ -280,13 +311,6 @@ export default function HomePage() {
               >
                 <PlayCircle className="h-4 w-4" aria-hidden="true" />
                 Demo-Portal öffnen
-              </Link>
-              <Link
-                href="/login"
-                className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-6 py-3 text-sm font-semibold text-gray-700 shadow-sm transition-colors hover:bg-gray-50"
-              >
-                <LogIn className="h-4 w-4" aria-hidden="true" />
-                Als Admin anmelden
               </Link>
             </div>
             <p className="mt-4 text-center text-xs text-gray-400">
