@@ -3,6 +3,7 @@
 import { getAdminPB } from "@/lib/pocketbase-admin";
 import { postSchema } from "@/lib/validations";
 import { logAudit } from "@/lib/audit";
+import { checkDemoLimit } from "@/lib/demo";
 import type { Post } from "@/types";
 import type { RecordModel } from "pocketbase";
 
