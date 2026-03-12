@@ -13,7 +13,6 @@ import {
   ArrowRight,
   CheckCircle2,
   LogIn,
-  Building2,
   Shield,
   User,
   Copy,
@@ -354,7 +353,14 @@ export default function HomePage() {
             </div>
             <div className="flex items-center justify-center">
               <div className="flex h-64 w-64 items-center justify-center rounded-3xl bg-emerald-50">
-                <Building2 className="h-32 w-32 text-emerald-200" aria-hidden="true" />
+                <svg viewBox="0 0 24 24" fill="currentColor" className="h-32 w-32 text-emerald-200" aria-hidden="true">
+                  {/* Linkes Minarett */}
+                  <path d="M2 22V11l1.5-4L5 11V22H2Z" />
+                  {/* Rechtes Minarett */}
+                  <path d="M19 22V11l1.5-4L22 11V22H19Z" />
+                  {/* Zentraler Körper mit Kuppel */}
+                  <path d="M6 22V13C6 8.5 9 5 12 5C15 5 18 8.5 18 13V22H6Z" />
+                </svg>
               </div>
             </div>
           </div>

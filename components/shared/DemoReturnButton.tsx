@@ -6,7 +6,8 @@ import { getClientPB } from "@/lib/pocketbase";
 export function DemoReturnButton() {
   function handleReturn() {
     getClientPB().authStore.clear();
-    window.location.href = "/";
+    const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN;
+    window.location.href = rootDomain ? `https://${rootDomain}` : "/";
   }
   return (
     <button
