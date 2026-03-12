@@ -31,7 +31,7 @@ import {
 export default function RegisterPage() {
   const router = useRouter();
   const { register } = useAuth();
-  const { mosqueId } = useMosque();
+  const { mosqueId, isLoading: mosqueLoading } = useMosque();
 
   const [formData, setFormData] = useState({
     first_name: "",
@@ -70,6 +70,11 @@ export default function RegisterPage() {
       return;
     }
 
+    if (!mosqueId) {
+      setError("Keine Gemeinde gefunden. Bitte laden Sie die Seite neu.");
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -83,7 +88,7 @@ export default function RegisterPage() {
         mosque_id: mosqueId || "",
       });
       toast.success("Registrierung erfolgreich! Willkommen im Moschee-Portal.");
-      router.push("/");
+      router.push("/member/profile");
     } catch (err: unknown) {
       const pbErr = err as { response?: { data?: Record<string, { message?: string }>; message?: string }; message?: string };
       const data = pbErr?.response?.data;
@@ -276,7 +281,7 @@ export default function RegisterPage() {
           </CardContent>
 
           <CardFooter className="flex flex-col gap-4">
-            <Button type="submit" className="w-full" size="lg" disabled={isLoading}>
+            <Button type="submit" className="w-full" size="lg" disabled={isLoading || mosqueLoading || !mosqueId}>
               {isLoading ? (
                 <span className="flex items-center gap-2">
                   <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent motion-reduce:animate-none" />

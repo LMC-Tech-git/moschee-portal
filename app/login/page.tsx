@@ -34,7 +34,7 @@ export default function LoginPage() {
       if (redirect === "/") {
         // Rollen-basierter Redirect: kein explizites Ziel → passendes Dashboard
         const role = pb.authStore.record?.role || "member";
-        if (role === "admin" || role === "teacher" || role === "imam" || role === "editor") {
+        if (role === "admin" || role === "super_admin" || role === "teacher" || role === "imam" || role === "editor") {
           router.push("/admin");
         } else {
           router.push("/member/profile");
