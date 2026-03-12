@@ -105,7 +105,7 @@ export default function MemberProfilePage() {
   ];
 
   return (
-    <div className="mx-auto max-w-2xl py-8">
+    <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6">
       <h1 className="mb-6 text-2xl font-bold text-gray-900">Mein Profil</h1>
 
       {/* Info-Karte */}
@@ -118,10 +118,10 @@ export default function MemberProfilePage() {
             <p className="text-lg font-bold text-gray-900">
               {user.full_name}
             </p>
-            <div className="flex items-center gap-4 text-sm text-gray-500">
-              <span className="flex items-center gap-1">
-                <Mail className="h-3.5 w-3.5" />
-                {user.email}
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-gray-500">
+              <span className="flex min-w-0 items-center gap-1">
+                <Mail className="h-3.5 w-3.5 shrink-0" />
+                <span className="max-w-[180px] truncate sm:max-w-none">{user.email}</span>
               </span>
               {user.member_no && (
                 <span className="flex items-center gap-1">
@@ -161,14 +161,14 @@ export default function MemberProfilePage() {
             key={tab.key}
             type="button"
             onClick={() => setActiveTab(tab.key)}
-            className={`flex flex-1 items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+            className={`flex flex-1 items-center justify-center gap-1 rounded-md px-1 py-2 text-xs font-medium transition-colors sm:gap-2 sm:px-3 sm:text-sm ${
               activeTab === tab.key
                 ? "bg-white text-emerald-700 shadow-sm"
                 : "text-gray-500 hover:text-gray-700"
             }`}
           >
             {tab.icon}
-            {tab.label}
+            <span className="hidden sm:inline">{tab.label}</span>
           </button>
         ))}
       </div>

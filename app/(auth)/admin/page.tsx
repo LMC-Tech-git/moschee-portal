@@ -73,21 +73,21 @@ export default function AdminDashboard() {
       </div>
 
       {/* Statistik-Karten */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {statCards.map((card) => {
           const Icon = card.icon;
           return (
             <div
               key={card.title}
-              className="flex items-center gap-4 rounded-xl border border-gray-200 bg-white p-5"
+              className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white p-3 sm:gap-4 sm:p-5"
             >
-              <div className={`flex h-11 w-11 items-center justify-center rounded-lg ${card.bg}`}>
-                <Icon className={`h-5 w-5 ${card.color}`} />
+              <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg sm:h-11 sm:w-11 ${card.bg}`}>
+                <Icon className={`h-4 w-4 sm:h-5 sm:w-5 ${card.color}`} />
               </div>
-              <div>
-                <p className="text-xs font-medium text-gray-500">{card.title}</p>
-                <p className="text-xl font-bold text-gray-900">
-                  {isLoading ? "..." : card.value}
+              <div className="min-w-0">
+                <p className="truncate text-xs font-medium text-gray-500">{card.title}</p>
+                <p className="text-base font-bold text-gray-900 sm:text-xl">
+                  {isLoading ? "…" : card.value}
                 </p>
               </div>
             </div>

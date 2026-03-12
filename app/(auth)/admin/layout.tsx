@@ -237,7 +237,7 @@ export default function AdminLayout({
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 space-y-1 px-3 py-4">
+          <nav className="flex-1 overflow-y-auto space-y-1 px-3 py-4">
             {visibleNav.map((item) => {
               const isActive =
                 pathname === item.href ||
@@ -277,7 +277,7 @@ export default function AdminLayout({
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto bg-gray-50 p-4 sm:p-6 lg:p-8">
+      <main className="flex-1 overflow-y-auto bg-gray-50 p-4 pb-20 sm:p-6 lg:p-8">
         {children}
       </main>
     </div>

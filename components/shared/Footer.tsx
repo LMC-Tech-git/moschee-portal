@@ -68,10 +68,11 @@ export default function Footer() {
 
         {/* Copyright */}
         <div className="mt-8 border-t border-gray-800 pt-8 text-center">
-          <p className="flex items-center justify-center gap-1 text-sm text-gray-400">
-            &copy; {currentYear} Moschee-Portal. Mit{" "}
-            <Heart className="h-3 w-3 text-red-400" aria-hidden="true" /> gebaut für die
-            Gemeinde.
+          <p className="flex flex-wrap items-center justify-center gap-x-1 text-sm text-gray-400">
+            <span className="whitespace-nowrap">&copy; {currentYear} Moschee-Portal.</span>
+            <span className="inline-flex items-center gap-1 whitespace-nowrap">
+              Mit <Heart className="h-3 w-3 text-red-400" aria-hidden="true" /> gebaut für die Gemeinde.
+            </span>
           </p>
         </div>
       </div>
