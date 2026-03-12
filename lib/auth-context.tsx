@@ -10,6 +10,11 @@ import {
 } from "react";
 import PocketBase, { type RecordModel } from "pocketbase";
 import { getClientPB } from "@/lib/pocketbase";
+import {
+  loginAction,
+  registerAction,
+  refreshTokenAction,
+} from "@/lib/actions/auth";
 
 interface AuthUser {
   id: string;
@@ -96,10 +101,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = useCallback(
     async (email: string, password: string) => {
-      const authData = await pb
-        .collection("users")
-        .authWithPassword(email, password);
-      setUser(mapRecordToUser(authData.record));
+      // Server Action: PB-Auth läuft server-seitig (kein Mixed-Content/CORS)
+      const { token, record } = await loginAction(email, password);
+      // Token client-seitig speichern → triggert onChange → Cookie + setUser
+      pb.authStore.save(token, record as unknown as RecordModel);
     },
     [pb]
   );
@@ -113,8 +118,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refreshUser = useCallback(async () => {
     try {
-      const authData = await pb.collection("users").authRefresh();
-      setUser(mapRecordToUser(authData.record));
+      const { token, record } = await refreshTokenAction(pb.authStore.token);
+      pb.authStore.save(token, record as unknown as RecordModel);
     } catch {
       // Token abgelaufen o.ä. → ausloggen
       pb.authStore.clear();
@@ -124,23 +129,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const register = useCallback(
     async (data: RegisterData) => {
-      await pb.collection("users").create({
-        email: data.email,
-        password: data.password,
-        passwordConfirm: data.passwordConfirm,
-        first_name: data.first_name,
-        last_name: data.last_name,
-        full_name: `${data.first_name} ${data.last_name}`.trim(),
-        member_no: data.member_no || "",
-        membership_number: data.member_no || "-",
-        mosque_id: data.mosque_id,
-        status: "pending",
-        role: "member",
-      });
-      // Direkt einloggen
-      await login(data.email, data.password);
+      // Server Action: Registrierung + Auto-Login server-seitig
+      const { token, record } = await registerAction(data);
+      pb.authStore.save(token, record as unknown as RecordModel);
     },
-    [pb, login]
+    [pb]
   );
 
   return (
