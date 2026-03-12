@@ -145,7 +145,14 @@ export async function POST(
     });
 
     // 5. Stripe Checkout Session erstellen
-    const origin = request.nextUrl.origin;
+    // Caddy leitet HTTPS-Anfragen intern an localhost:3000 weiter.
+    // request.nextUrl.origin wäre "http://localhost:3000" → falsch für Stripe.
+    // Stattdessen X-Forwarded-Host/-Proto aus den Caddy-Headers nutzen.
+    const forwardedHost = request.headers.get("x-forwarded-host");
+    const forwardedProto = request.headers.get("x-forwarded-proto") ?? "https";
+    const origin = forwardedHost
+      ? `${forwardedProto}://${forwardedHost}`
+      : request.nextUrl.origin;
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card", "sepa_debit"],

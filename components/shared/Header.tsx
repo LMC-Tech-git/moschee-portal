@@ -67,7 +67,10 @@ export default function Header() {
   const HEADER_RESERVED = ['admin','member','lehrer','imam','login','register','api','invite'];
   const pathParts = pathname.split('/').filter(Boolean);
   const urlSlug = pathParts.length > 0 && !HEADER_RESERVED.includes(pathParts[0]) ? pathParts[0] : null;
-  const slug = urlSlug ?? mosque?.slug;
+  // mosque?.slug hat Vorrang: Kommt vom MosqueProvider (initialMosque = sofort verfügbar),
+  // während urlSlug auf Subdomains (z.B. demo.moschee.app) initial null ist,
+  // da usePathname() die Browser-URL zurückgibt, nicht den Middleware-Rewrite-Pfad.
+  const slug = mosque?.slug ?? urlSlug;
 
   const closeMobileMenu = useCallback(() => setMobileMenuOpen(false), []);
 

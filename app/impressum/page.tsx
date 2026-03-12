@@ -23,9 +23,9 @@ export default function ImpressumPage() {
             <h2 className="text-xl font-bold text-gray-900">Angaben gemäß § 5 TMG</h2>
             <p className="mt-2 text-gray-600">
               LMC Tech<br />
-              Inhaber: [Vorname Nachname]<br />
-              [Straße und Hausnummer]<br />
-              [PLZ] [Stadt]<br />
+              Inhaber: Neslihan Elmaci<br />
+              Schillerstr. 20<br />
+              89231 Neu-Ulm<br />
               Deutschland
             </p>
           </div>
@@ -33,7 +33,7 @@ export default function ImpressumPage() {
           <div>
             <h2 className="text-xl font-bold text-gray-900">Kontakt</h2>
             <p className="mt-2 text-gray-600">
-              E-Mail: kontakt@moschee.app
+              E-Mail: kontakt@lmctech.de
             </p>
           </div>
 
