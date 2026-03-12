@@ -90,16 +90,15 @@ export default function RegisterPage() {
       toast.success("Registrierung erfolgreich! Willkommen im Moschee-Portal.");
       router.push("/member/profile");
     } catch (err: unknown) {
-      const pbErr = err as { response?: { data?: Record<string, { message?: string }>; message?: string }; message?: string };
-      const data = pbErr?.response?.data;
-      const message = pbErr?.response?.message || pbErr?.message || "";
-
-      if (data?.email) {
+      const msg = (err as { message?: string })?.message || "";
+      if (msg === "EMAIL_EXISTS") {
         setError("Diese E-Mail-Adresse ist bereits registriert.");
-      } else if (data?.password) {
-        setError("Passwort: " + (data.password.message || "ungültig"));
+      } else if (msg === "PASSWORD_MISMATCH") {
+        setError("Die Passwörter stimmen nicht überein.");
+      } else if (msg.startsWith("PASSWORD_INVALID:")) {
+        setError("Passwort: " + msg.replace("PASSWORD_INVALID: ", ""));
       } else {
-        setError("Registrierung fehlgeschlagen: " + (message || "Unbekannter Fehler"));
+        setError(msg || "Registrierung fehlgeschlagen. Bitte versuchen Sie es erneut.");
       }
     } finally {
       setIsLoading(false);
@@ -281,6 +280,12 @@ export default function RegisterPage() {
           </CardContent>
 
           <CardFooter className="flex flex-col gap-4">
+            {!mosqueLoading && !mosqueId && (
+              <div className="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-700 w-full">
+                <AlertCircle className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
+                Registrierung ist nur über einen Einladungslink möglich.
+              </div>
+            )}
             <Button type="submit" className="w-full" size="lg" disabled={isLoading || mosqueLoading || !mosqueId}>
               {isLoading ? (
                 <span className="flex items-center gap-2">

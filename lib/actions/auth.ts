@@ -58,19 +58,38 @@ export async function registerAction(data: {
   mosque_id: string;
 }): Promise<AuthActionResult> {
   const pb = getPB();
-  await pb.collection("users").create({
-    email: data.email,
-    password: data.password,
-    passwordConfirm: data.passwordConfirm,
-    first_name: data.first_name,
-    last_name: data.last_name,
-    full_name: `${data.first_name} ${data.last_name}`.trim(),
-    member_no: data.member_no || "",
-    membership_number: data.member_no || "-",
-    mosque_id: data.mosque_id,
-    status: "pending",
-    role: "member",
-  });
+  try {
+    await pb.collection("users").create({
+      email: data.email,
+      password: data.password,
+      passwordConfirm: data.passwordConfirm,
+      first_name: data.first_name,
+      last_name: data.last_name,
+      full_name: `${data.first_name} ${data.last_name}`.trim(),
+      member_no: data.member_no || "",
+      membership_number: data.member_no || "-",
+      mosque_id: data.mosque_id,
+      status: "pending",
+      role: "member",
+    });
+  } catch (e: unknown) {
+    // PocketBase Fehler-Struktur serialisieren, bevor sie die Server→Client-Grenze überquert
+    const pbErr = e as {
+      response?: { data?: Record<string, unknown>; message?: string };
+      message?: string;
+    };
+    const data = pbErr?.response?.data as Record<string, { message?: string }> | undefined;
+    if (data?.email) {
+      throw new Error("EMAIL_EXISTS");
+    }
+    if (data?.password) {
+      throw new Error("PASSWORD_INVALID: " + (data.password.message || "ungültig"));
+    }
+    if (data?.passwordConfirm) {
+      throw new Error("PASSWORD_MISMATCH");
+    }
+    throw new Error(pbErr?.response?.message || pbErr?.message || "Registrierung fehlgeschlagen");
+  }
   return loginAction(data.email, data.password);
 }
 
