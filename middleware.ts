@@ -7,9 +7,32 @@ import { NextResponse, type NextRequest } from "next/server";
  *
  * V1: /admin/* und /member/* sind geschützt.
  * /[slug]/* ist öffentlich (Slug-basierte Public-Seiten).
+ *
+ * Subdomain-Routing: demo.moschee.app/* → /demo/*
  */
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const hostname = request.headers.get("host") || "";
+
+  // ── Demo-Subdomain: demo.moschee.app → /demo/* ─────────────────────────────
+  const demoSlug = process.env.NEXT_PUBLIC_DEMO_SLUG || "demo";
+  const demoDomain = `demo.${process.env.NEXT_PUBLIC_ROOT_DOMAIN || "moschee.app"}`;
+
+  if (hostname === demoDomain) {
+    // Routen die NICHT umgeschrieben werden sollen
+    const PASS_THROUGH = [
+      "/admin", "/member", "/lehrer", "/imam",
+      "/login", "/register", "/api", "/invite",
+      `/${demoSlug}`, // bereits umgeschrieben (verhindert Doppel-Rewrite)
+    ];
+    const needsRewrite = !PASS_THROUGH.some((p) => pathname.startsWith(p));
+
+    if (needsRewrite) {
+      const url = request.nextUrl.clone();
+      url.pathname = `/${demoSlug}${pathname === "/" ? "" : pathname}`;
+      return NextResponse.rewrite(url);
+    }
+  }
 
   // PocketBase speichert Auth-Token im Cookie "pb_auth"
   const authCookie = request.cookies.get("pb_auth");
