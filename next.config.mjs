@@ -24,6 +24,11 @@ const nextConfig = {
         port: '8090',
         pathname: '/api/files/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'moschee.app',
+        pathname: '/pb/api/files/**',
+      },
     ],
   },
 

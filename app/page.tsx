@@ -154,7 +154,8 @@ export default function HomePage() {
       const data = await res.json();
       if (data.token) {
         getClientPB().authStore.save(data.token, data.record);
-        window.location.href = "/demo";
+        const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "moschee.app";
+        window.location.href = `https://demo.${rootDomain}`;
       }
     } finally {
       setLoadingRole(null);

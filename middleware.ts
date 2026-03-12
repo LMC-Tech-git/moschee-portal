@@ -34,6 +34,16 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  // ── moschee.app/demo → demo.moschee.app ────────────────────────────────────
+  const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "moschee.app";
+  if (
+    (hostname === rootDomain || hostname === `www.${rootDomain}`) &&
+    (pathname === `/${demoSlug}` || pathname.startsWith(`/${demoSlug}/`))
+  ) {
+    const subpath = pathname.slice(`/${demoSlug}`.length) || "/";
+    return NextResponse.redirect(`https://${demoDomain}${subpath}`);
+  }
+
   // PocketBase speichert Auth-Token im Cookie "pb_auth"
   const authCookie = request.cookies.get("pb_auth");
 
