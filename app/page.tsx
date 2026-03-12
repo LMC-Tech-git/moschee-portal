@@ -212,13 +212,13 @@ export default function HomePage() {
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </a>
             {DEMO_MOSQUE_ID ? (
-              <Link
-                href="/demo"
+              <a
+                href={`https://demo.${process.env.NEXT_PUBLIC_ROOT_DOMAIN || "moschee.app"}`}
                 className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-7 py-3.5 text-base font-semibold text-gray-700 shadow-sm transition-all duration-200 hover:bg-gray-50 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0"
               >
                 <PlayCircle className="h-4 w-4 text-emerald-500" aria-hidden="true" />
                 Demo ansehen
-              </Link>
+              </a>
             ) : (
               <Link
                 href="/login"
@@ -309,13 +309,13 @@ export default function HomePage() {
 
             {/* CTAs */}
             <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <Link
-                href="/demo"
+              <a
+                href={`https://demo.${process.env.NEXT_PUBLIC_ROOT_DOMAIN || "moschee.app"}`}
                 className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-6 py-3 text-sm font-bold text-white shadow-sm transition-colors hover:bg-emerald-700"
               >
                 <PlayCircle className="h-4 w-4" aria-hidden="true" />
                 Demo-Portal öffnen
-              </Link>
+              </a>
             </div>
             <p className="mt-4 text-center text-xs text-gray-400">
               Demo-Daten können jederzeit zurückgesetzt werden.

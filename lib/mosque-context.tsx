@@ -22,6 +22,8 @@ interface MosqueContextType {
   setMosqueOverride: (mosqueId: string | null) => void;
   overrideMosqueId: string | null;
   refreshMosque: () => void;
+  /** Setzt Moschee-Daten direkt (z.B. von server-seitig aufgelöster Moschee in Slug-Layout) */
+  setMosqueData: (mosque: Mosque | null) => void;
 }
 
 const MosqueContext = createContext<MosqueContextType | null>(null);
@@ -91,6 +93,12 @@ export function MosqueProvider({ children, initialMosque }: MosqueProviderProps)
     }
   }, []);
 
+  // Direktes Setzen der Moschee (z.B. vom MosqueInitializer in Slug-Layouts)
+  const setMosqueData = useCallback((m: Mosque | null) => {
+    setMosque(m);
+    if (m) setIsLoading(false);
+  }, []);
+
   useEffect(() => {
     if (initialMosque) return;
     if (authLoading) return;
@@ -145,7 +153,7 @@ export function MosqueProvider({ children, initialMosque }: MosqueProviderProps)
   }, [initialMosque, authLoading, isAuthenticated, user?.mosque_id, user?.role, overrideMosqueId, refreshKey, pathname]);
 
   return (
-    <MosqueContext.Provider value={{ mosque, mosqueId: mosque?.id || "", isLoading, setMosqueOverride, overrideMosqueId, refreshMosque }}>
+    <MosqueContext.Provider value={{ mosque, mosqueId: mosque?.id || "", isLoading, setMosqueOverride, overrideMosqueId, refreshMosque, setMosqueData }}>
       {children}
     </MosqueContext.Provider>
   );

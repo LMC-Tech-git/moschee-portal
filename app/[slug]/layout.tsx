@@ -5,6 +5,7 @@ import { getBrandColor } from "@/lib/constants";
 import type { Mosque, Settings } from "@/types";
 import { DemoReturnButton } from "@/components/shared/DemoReturnButton";
 import { TokenReceiver } from "@/components/shared/TokenReceiver";
+import { MosqueInitializer } from "@/components/shared/MosqueInitializer";
 
 /**
  * Server-seitiges Layout für Slug-basierte öffentliche Seiten.
@@ -76,6 +77,7 @@ export default async function SlugLayout({
       <Suspense fallback={null}>
         <TokenReceiver />
       </Suspense>
+      <MosqueInitializer mosque={mosque} />
       {isDemoBanner && (
         <div className="flex items-center justify-between gap-2 border-b border-amber-200 bg-amber-50 px-4 py-2.5 text-sm text-amber-800">
           <div className="flex items-center gap-2">
