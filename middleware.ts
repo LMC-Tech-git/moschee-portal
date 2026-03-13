@@ -78,6 +78,17 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
+  // ── Locale-Prefix entfernen ──────────────────────────────────────────────────
+  // next-intl kann trotz localePrefix: 'never' manchmal auf /de/* umleiten.
+  // Solche Pfade sofort auf den Pfad ohne Locale-Präfix umleiten.
+  const localeMatch = pathname.match(/^\/(de|tr)(\/.*)?$/);
+  if (localeMatch) {
+    const strippedPath = localeMatch[2] || "/";
+    const url = request.nextUrl.clone();
+    url.pathname = strippedPath;
+    return NextResponse.redirect(url);
+  }
+
   // next-intl Locale-Detection (setzt NEXT_LOCALE Cookie basierend auf Accept-Language)
   return intlMiddleware(request);
 }

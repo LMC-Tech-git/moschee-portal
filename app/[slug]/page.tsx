@@ -45,6 +45,9 @@ export default async function MosqueDashboard({
 }: {
   params: { slug: string };
 }) {
+  // Locale-Codes niemals als Moschee-Slugs behandeln
+  if (["de", "tr"].includes(params.slug)) notFound();
+
   const result = await resolveMosqueWithSettings(params.slug);
   if (!result) notFound();
   const { mosque, settings } = result;
