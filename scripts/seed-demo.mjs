@@ -183,7 +183,7 @@ async function seedEnrollments(mosqueId, courseId) {
         mosque_id: mosqueId,
         course_id: courseId,
         student_id: student.id,
-        status: "active",
+        status: "enrolled",
         enrolled_at: new Date().toISOString(),
       }
     );
