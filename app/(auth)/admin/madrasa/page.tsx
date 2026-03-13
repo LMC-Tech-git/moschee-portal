@@ -36,11 +36,14 @@ import {
   dayOfWeekLabels,
 } from "@/lib/constants";
 import type { CourseWithStats, AcademicYear } from "@/types";
+import { useTranslations } from "next-intl";
 
 export default function AdminMadrasaPage() {
   const router = useRouter();
   const { mosqueId } = useMosque();
   const { user } = useAuth();
+  const t = useTranslations("madrasa");
+  const tCommon = useTranslations("common");
   const [courses, setCourses] = useState<CourseWithStats[]>([]);
   const [academicYears, setAcademicYears] = useState<AcademicYear[]>([]);
   const [selectedYearId, setSelectedYearId] = useState<string>("");
@@ -107,25 +110,25 @@ export default function AdminMadrasaPage() {
   }
 
   const filterLabels = {
-    all: "Alle",
-    active: "Aktiv",
-    paused: "Pausiert",
-    archived: "Archiviert",
+    all: t("filterAll"),
+    active: t("filterActive"),
+    paused: t("filterPaused"),
+    archived: t("filterArchived"),
   } as const;
 
   return (
     <div className="space-y-6">
       <DemoHint
         id="madrasa-overview"
-        title="Madrasa-Verwaltung"
-        description="Hier verwalten Sie den Islamunterricht: Kurse anlegen, Schüler einschreiben, Anwesenheit führen und Gebühren verwalten."
+        title={t("hint.title")}
+        description={t("hint.desc")}
       />
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Madrasa</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t("title")}</h1>
           <p className="text-sm text-gray-500">
-            Verwalten Sie die Unterrichtskurse Ihrer Moschee.
+            {t("subtitle")}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -135,7 +138,7 @@ export default function AdminMadrasaPage() {
               className="inline-flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
             >
               <Banknote className="h-4 w-4" />
-              Gebühren
+              {t("fees")}
             </Link>
           )}
           <Link
@@ -143,14 +146,14 @@ export default function AdminMadrasaPage() {
             className="inline-flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
           >
             <Calendar className="h-4 w-4" />
-            Schuljahre
+            {t("academicYears")}
           </Link>
           <Link
             href="/admin/madrasa/new"
             className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-emerald-700"
           >
             <Plus className="h-4 w-4" />
-            Neuer Kurs
+            {t("newCourse")}
           </Link>
         </div>
       </div>
@@ -159,7 +162,7 @@ export default function AdminMadrasaPage() {
       {academicYears.length > 0 && (
         <div className="flex items-center gap-3">
           <label htmlFor="year_filter" className="text-sm font-medium text-gray-700">
-            Schuljahr:
+            {t("academicYearLabel")}:
           </label>
           <select
             id="year_filter"
@@ -167,10 +170,10 @@ export default function AdminMadrasaPage() {
             onChange={(e) => { setSelectedYearId(e.target.value); setPage(1); }}
             className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
           >
-            <option value="">Alle Schuljahre</option>
+            <option value="">{t("allAcademicYears")}</option>
             {academicYears.map((y) => (
               <option key={y.id} value={y.id}>
-                {y.name} {y.status === "active" ? "(aktiv)" : ""}
+                {y.name} {y.status === "active" ? `(${t("active")})` : ""}
               </option>
             ))}
           </select>
@@ -215,17 +218,17 @@ export default function AdminMadrasaPage() {
             <div className="flex flex-col items-center justify-center py-12">
               <BookOpen className="mb-3 h-10 w-10 text-gray-300" aria-hidden="true" />
               <p className="mb-1 text-sm font-medium text-gray-600">
-                Noch keine Kurse
+                {t("noCoursesYet")}
               </p>
               <p className="mb-4 text-xs text-gray-400">
-                Erstellen Sie Ihren ersten Madrasa-Kurs.
+                {t("noCoursesHint")}
               </p>
               <Link
                 href="/admin/madrasa/new"
                 className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
               >
                 <Plus className="h-4 w-4" />
-                Neuer Kurs
+                {t("newCourse")}
               </Link>
             </div>
           ) : (
@@ -233,14 +236,14 @@ export default function AdminMadrasaPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b bg-gray-50 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                    <th className="px-4 py-3">Kurs</th>
-                    <th className="px-4 py-3 hidden sm:table-cell">Kategorie</th>
-                    <th className="px-4 py-3 hidden md:table-cell">Level</th>
-                    <th className="px-4 py-3">Status</th>
-                    <th className="px-4 py-3 hidden lg:table-cell">Lehrer</th>
-                    <th className="px-4 py-3 hidden lg:table-cell">Zeitplan</th>
-                    <th className="px-4 py-3 hidden md:table-cell">Schüler</th>
-                    <th className="px-4 py-3 text-right">Aktionen</th>
+                    <th className="px-4 py-3">{t("colCourse")}</th>
+                    <th className="px-4 py-3 hidden sm:table-cell">{t("colCategory")}</th>
+                    <th className="px-4 py-3 hidden md:table-cell">{t("colLevel")}</th>
+                    <th className="px-4 py-3">{t("colStatus")}</th>
+                    <th className="px-4 py-3 hidden lg:table-cell">{t("colTeacher")}</th>
+                    <th className="px-4 py-3 hidden lg:table-cell">{t("colSchedule")}</th>
+                    <th className="px-4 py-3 hidden md:table-cell">{t("colStudents")}</th>
+                    <th className="px-4 py-3 text-right">{t("colActions")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
@@ -305,14 +308,14 @@ export default function AdminMadrasaPage() {
                         <div className="flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
                           {deletingCourseId === course.id ? (
                             <span className="inline-flex items-center gap-1 rounded-full border border-red-300 bg-red-50 px-2 py-1 text-xs">
-                              <span className="text-red-700">Löschen?</span>
+                              <span className="text-red-700">{t("deleteConfirm")}</span>
                               <button
                                 type="button"
                                 onClick={() => handleDelete(course.id)}
                                 className="font-semibold text-red-600 hover:text-red-800"
-                                aria-label={`Kurs "${course.title}" endgültig löschen`}
+                                aria-label={`${t("deleteYes")} "${course.title}"`}
                               >
-                                Ja
+                                {t("deleteYes")}
                               </button>
                               <span className="text-red-300">|</span>
                               <button
@@ -320,7 +323,7 @@ export default function AdminMadrasaPage() {
                                 onClick={() => setDeletingCourseId(null)}
                                 className="text-gray-500 hover:text-gray-700"
                               >
-                                Nein
+                                {t("deleteNo")}
                               </button>
                             </span>
                           ) : (
@@ -328,16 +331,16 @@ export default function AdminMadrasaPage() {
                               <Link
                                 href={`/admin/madrasa/${course.id}/attendance`}
                                 className="rounded p-1.5 text-gray-600 hover:bg-gray-100"
-                                title="Anwesenheit"
-                                aria-label={`Anwesenheit für "${course.title}"`}
+                                title={t("attendance")}
+                                aria-label={`${t("attendance")} "${course.title}"`}
                               >
                                 <ClipboardList className="h-4 w-4" />
                               </Link>
                               <Link
                                 href={`/admin/madrasa/${course.id}`}
                                 className="rounded p-1.5 text-gray-600 hover:bg-gray-100"
-                                title="Bearbeiten"
-                                aria-label={`Kurs "${course.title}" bearbeiten`}
+                                title={tCommon("edit" as Parameters<typeof tCommon>[0])}
+                                aria-label={`${tCommon("edit" as Parameters<typeof tCommon>[0])} "${course.title}"`}
                               >
                                 <Pencil className="h-4 w-4" />
                               </Link>
@@ -345,8 +348,8 @@ export default function AdminMadrasaPage() {
                                 type="button"
                                 onClick={() => setDeletingCourseId(course.id)}
                                 className="rounded p-1.5 text-red-600 hover:bg-red-50"
-                                title="Löschen"
-                                aria-label={`Kurs "${course.title}" löschen`}
+                                title={tCommon("delete" as Parameters<typeof tCommon>[0])}
+                                aria-label={`${tCommon("delete" as Parameters<typeof tCommon>[0])} "${course.title}"`}
                               >
                                 <Trash2 className="h-4 w-4" />
                               </button>
@@ -365,7 +368,7 @@ export default function AdminMadrasaPage() {
           {totalPages > 1 && (
             <div className="flex items-center justify-between border-t px-4 py-3">
               <p className="text-sm text-gray-500">
-                Seite {page} von {totalPages}
+                {tCommon("pageOf", { page, total: totalPages })}
               </p>
               <div className="flex gap-2">
                 <Button
@@ -373,7 +376,7 @@ export default function AdminMadrasaPage() {
                   size="sm"
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page <= 1}
-                  aria-label="Vorherige Seite"
+                  aria-label={tCommon("prevPage")}
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
@@ -382,7 +385,7 @@ export default function AdminMadrasaPage() {
                   size="sm"
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   disabled={page >= totalPages}
-                  aria-label="Nächste Seite"
+                  aria-label={tCommon("nextPage")}
                 >
                   <ChevronRight className="h-4 w-4" />
                 </Button>

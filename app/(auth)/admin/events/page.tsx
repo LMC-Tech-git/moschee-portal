@@ -21,11 +21,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn, formatDateTime } from "@/lib/utils";
 import {
-  eventCategoryLabels,
   eventCategoryColors,
-  eventStatusLabels,
   eventStatusColors,
-  visibilityLabels,
   visibilityColors,
 } from "@/lib/constants";
 import type { Event } from "@/types";
@@ -34,6 +31,7 @@ import { useTranslations } from "next-intl";
 export default function AdminEventsPage() {
   const t = useTranslations("events");
   const tCommon = useTranslations("common");
+  const tL = useTranslations("labels");
   const router = useRouter();
   const { mosqueId } = useMosque();
   const { user } = useAuth();
@@ -217,8 +215,7 @@ export default function AdminEventsPage() {
                               "bg-gray-100 text-gray-600"
                           )}
                         >
-                          {eventCategoryLabels[event.category] ||
-                            event.category}
+                          {tL(`event.category.${event.category}` as Parameters<typeof tL>[0]) || event.category}
                         </span>
                       </td>
                       <td className="px-4 py-3 hidden md:table-cell">
@@ -229,8 +226,7 @@ export default function AdminEventsPage() {
                               "bg-gray-100 text-gray-600"
                           )}
                         >
-                          {visibilityLabels[event.visibility] ||
-                            event.visibility}
+                          {tL(`visibility.${event.visibility}` as Parameters<typeof tL>[0]) || event.visibility}
                         </span>
                       </td>
                       <td className="px-4 py-3">
@@ -241,7 +237,7 @@ export default function AdminEventsPage() {
                               "bg-gray-100 text-gray-600"
                           )}
                         >
-                          {eventStatusLabels[event.status] || event.status}
+                          {tL(`event.status.${event.status}` as Parameters<typeof tL>[0]) || event.status}
                         </span>
                       </td>
                       <td className="px-4 py-3 hidden lg:table-cell text-gray-500 text-xs whitespace-nowrap">

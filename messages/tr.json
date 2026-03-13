@@ -20,7 +20,9 @@
     "noData": "Veri bulunamadı",
     "pageOf": "Sayfa {page} / {total}",
     "prevPage": "Önceki Sayfa",
-    "nextPage": "Sonraki Sayfa"
+    "nextPage": "Sonraki Sayfa",
+    "notLoggedIn": "Giriş yapılmamış",
+    "redirecting": "Yönlendiriliyor..."
   },
   "nav": {
     "home": "Ana Sayfa",
@@ -327,6 +329,10 @@
     "title": "Haberler",
     "subtitle": "Caminizin haberlerini yönetin.",
     "newPost": "Yeni Haber",
+    "new": {
+      "title": "Yeni Haber",
+      "back": "Haberlere Dön"
+    },
     "filterAll": "Tümü",
     "filterPublished": "Yayımlandı",
     "filterDraft": "Taslak",
@@ -345,6 +351,10 @@
     "title": "Etkinlikler",
     "subtitle": "Caminizin etkinliklerini yönetin.",
     "newEvent": "Yeni Etkinlik",
+    "new": {
+      "title": "Yeni Etkinlik",
+      "back": "Etkinliklere Dön"
+    },
     "filterAll": "Tümü",
     "filterPublished": "Yayımlandı",
     "filterDraft": "Taslak",
@@ -366,6 +376,10 @@
     "title": "Kampanyalar",
     "subtitle": "Caminizin bağış kampanyalarını yönetin.",
     "newCampaign": "Yeni Kampanya",
+    "new": {
+      "title": "Yeni Kampanya",
+      "back": "Kampanyalara Dön"
+    },
     "hint": {
       "title": "Bağış Kampanyaları",
       "desc": "Bağış hedefiyle kampanyalar oluşturun."
@@ -455,7 +469,9 @@
       "stripe": "Stripe",
       "paypal": "PayPal",
       "external": "Harici",
-      "manual": "Manuel"
+      "manual": "Manuel",
+      "cash": "Nakit",
+      "transfer": "Havale"
     },
     "noFound": "Bağış bulunamadı",
     "noFoundHint": "Filtreleri ayarlayın veya manuel bağış kaydedin.",
@@ -476,54 +492,6 @@
       "amountError": "Lütfen geçerli bir tutar girin (en az 0,01 €)",
       "nameRequired": "Bağışçı adı zorunludur"
     }
-  },
-  "settings": {
-    "title": "Ayarlar",
-    "tab": {
-      "branding": "Marka",
-      "prayer": "Namaz Vakitleri",
-      "defaults": "Varsayılanlar",
-      "madrasa": "Medrese",
-      "email": "E-posta"
-    },
-    "loadError": "Ayarlar yüklenemedi.",
-    "branding": {
-      "communityInfo": "Cemaat Bilgileri",
-      "communityInfoDesc": "Cemaatin adı, adresi ve iletişim bilgileri.",
-      "communityName": "Cemaat Adı",
-      "street": "Sokak ve Numara",
-      "zipCode": "Posta Kodu",
-      "city": "Şehir",
-      "phone": "Telefon",
-      "email": "E-posta",
-      "website": "Web Sitesi",
-      "logo": "Logo",
-      "logoDesc": "Cemaat logosu (PNG, JPG, WebP veya SVG, maks. 2 MB).",
-      "uploadLogo": "Logo Yükle",
-      "removeLogo": "Kaldır",
-      "logoHint": "Önerilen: kare, en az 200×200 piksel",
-      "colorScheme": "Renk Şeması",
-      "colorSchemeDesc": "Bir renk şeması seçin veya özel renkler tanımlayın.",
-      "primaryColor": "Ana Renk",
-      "accentColor": "Vurgu Rengi",
-      "invalidColor": "Geçersiz renk. Lütfen #RRGGBB biçimini kullanın.",
-      "saved": "Marka ayarları kaydedildi.",
-      "saveError": "Kaydedilirken hata oluştu."
-    },
-    "prayer": {
-      "provider": "Namaz Vakti Sağlayıcısı",
-      "providerDesc": "Namaz vakti hesaplaması için sağlayıcıyı seçin.",
-      "coordinates": "Konum Koordinatları",
-      "coordinatesDesc": "Doğru hesaplama için caminin enlem ve boylamı.",
-      "latitude": "Enlem (Latitude)",
-      "longitude": "Boylam (Longitude)",
-      "method": "Hesaplama Yöntemi",
-      "tuning": "İnce Ayar",
-      "tuningDesc": "Her namaz vakti için dakika farkı (+/-)",
-      "saved": "Namaz vakti ayarları kaydedildi."
-    },
-    "save": "Kaydet",
-    "reset": "Sıfırla"
   },
   "member": {
     "profile": {
@@ -592,7 +560,8 @@
         "payOnline": "Online Öde"
       },
       "prevMonth": "Önceki Ay",
-      "nextMonth": "Sonraki Ay"
+      "nextMonth": "Sonraki Ay",
+      "monthYear": "{month} {year}"
     }
   },
   "newsletter": {
@@ -613,6 +582,13 @@
     "confirmQueue": "Bülten kuyruğa eklensin mi?",
     "confirmSend": "{count} e-posta şimdi gönderilsin mi?",
     "queueSuccess": "{count} e-posta kuyruğa eklendi.",
+    "sendSuccess": "Gönderim tamamlandı: {sent} gönderildi.",
+    "queueSection": "Kuyruk",
+    "createSection": "Yeni Bülten Oluştur",
+    "sendNow": "E-postaları şimdi gönder",
+    "noQueue": "Kuyrukta e-posta yok",
+    "refresh": "Yenile",
+    "pending": "Beklemede",
     "stats": {
       "queued": "Kuyrukta",
       "sent": "Gönderildi",
@@ -623,19 +599,20 @@
     "title": "Davetler",
     "subtitle": "Davet bağlantıları oluşturun ve yönetin",
     "create": "Yeni Davet",
-    "colLink": "Bağlantı",
+    "colLink": "Tür / Etiket",
     "colRole": "Rol",
     "colType": "Tür",
     "colUsage": "Kullanım",
-    "colExpiry": "Son Kullanım",
+    "colExpiry": "Geçerlilik",
     "colStatus": "Durum",
     "colActions": "İşlemler",
     "noInvitesYet": "Henüz davet yok",
-    "noInvitesHint": "İlk davet bağlantınızı oluşturun.",
+    "noInvitesHint": "Üyeleri davet etmek için ilk davet bağlantınızı oluşturun.",
+    "createFirst": "İlk Daveti Oluştur",
     "copy": "Bağlantıyı kopyala",
     "copied": "Kopyalandı!",
     "revoke": "İptal Et",
-    "confirmRevoke": "Davet gerçekten iptal edilsin mi?",
+    "confirmRevoke": "\"{label}\" daveti gerçekten iptal edilsin mi?",
     "confirmDelete": "Davet gerçekten silinsin mi?",
     "status": {
       "active": "Aktif",
@@ -647,10 +624,68 @@
       "personal": "Kişisel",
       "group": "Grup"
     },
+    "typeDesc": {
+      "personal": "Kişisel · Tek kullanım",
+      "group": "Grup · Çok kullanım"
+    },
     "role": {
       "member": "Üye",
       "teacher": "Öğretmen",
-      "admin": "Yönetici"
+      "admin": "Yönetici",
+      "editor": "Editör",
+      "imam": "İmam"
+    },
+    "toast": {
+      "linkCopied": "Bağlantı panoya kopyalandı!",
+      "copyFailed": "Kopyalama başarısız.",
+      "revokeSuccess": "Davet iptal edildi.",
+      "revokeFailed": "İptal edilirken hata oluştu.",
+      "deleteSuccess": "Davet silindi.",
+      "deleteFailed": "Silinirken hata oluştu."
+    },
+    "dialog": {
+      "title": "Yeni Davet Oluştur",
+      "desc": "Cemaatiniz için bir davet bağlantısı oluşturun.",
+      "typeLabel": "Davet Türü",
+      "personal": "Kişisel",
+      "personalHint": "Tek kullanımlık",
+      "group": "Grup",
+      "groupHint": "Çok kullanımlık",
+      "nameLabel": "Ad / Etiket",
+      "namePlaceholder": "örn. WhatsApp Hanımlar Grubu",
+      "emailLabel": "E-posta (isteğe bağlı)",
+      "emailPlaceholder": "davet-edilen@kisi.com",
+      "emailHint": "Kayıt formunda önceden doldurulur.",
+      "roleLabel": "Kayıt Sonrası Rol",
+      "statusLabel": "Kayıt Sonrası Durum",
+      "statusPending": "Beklemede (onaylanması gerekir)",
+      "statusActive": "Hemen aktif",
+      "groupWarning": "Not: Grup davetleri için 'Beklemede' seçeneği önerilir.",
+      "maxUsesLabel": "Maks. Kullanım",
+      "maxUsesPlaceholder": "örn. 50",
+      "maxUsesHint": "Boş = sınırsız",
+      "expiryLabel": "Geçerlilik Tarihi",
+      "submit": "Bağlantı Oluştur",
+      "submitting": "Oluşturuluyor…",
+      "successTitle": "Davet Bağlantısı Oluşturuldu",
+      "successDescPersonal": "Bağlantıyı kopyalayıp davet edilen kişiyle paylaşın.",
+      "successDescGroup": "Bağlantıyı kopyalayıp birden fazla kişiyle paylaşın.",
+      "linkLabel": "Davet Bağlantısı",
+      "copyLink": "Bağlantıyı kopyala",
+      "warningOnce": "Bu bağlantı yalnızca bir kez gösterilir. Lütfen şimdi kopyalayıp güvenli bir yerde saklayın.",
+      "typePersonal": "Kişisel (1×)",
+      "typeGroup": "Grup (çok kullanım)",
+      "statusDisplayActive": "Hemen aktif",
+      "statusDisplayPending": "Beklemede",
+      "typeRow": "Tür:",
+      "roleRow": "Rol:",
+      "statusRow": "Durum:"
+    },
+    "errors": {
+      "nameRequired": "Lütfen grup daveti için bir ad girin.",
+      "createFailed": "Davet oluşturulamadı.",
+      "unexpected": "Beklenmeyen bir hata oluştu.",
+      "copyFailed": "Kopyalama başarısız. Lütfen manuel olarak kopyalayın."
     }
   },
   "audit": {
@@ -663,6 +698,317 @@
     "colEntity": "Nesne",
     "colUser": "Kullanıcı",
     "colDate": "Tarih",
-    "colDetails": "Detaylar"
+    "colDetails": "Detaylar",
+    "colChanges": "Değişiklikler",
+    "record": "Kayıt",
+    "unknown": "Bilinmiyor",
+    "system": "Sistem",
+    "yes": "evet",
+    "no": "hayır",
+    "entityFilter": {
+      "post": "Haberler",
+      "event": "Etkinlikler",
+      "event_registration": "Kayıtlar",
+      "campaign": "Kampanyalar",
+      "donation": "Bağışlar",
+      "member": "Üyeler",
+      "invite": "Davetler",
+      "madrasa": "Medrese",
+      "student_fees": "Ücretler",
+      "newsletter": "Bülten",
+      "settings": "Ayarlar"
+    },
+    "entity": {
+      "post": "Haber",
+      "event": "Etkinlik",
+      "event_registration": "Kayıt",
+      "campaign": "Kampanya",
+      "donation": "Bağış",
+      "member": "Üye",
+      "users": "Kullanıcı",
+      "invite": "Davet",
+      "course": "Ders",
+      "student": "Öğrenci",
+      "course_enrollment": "Kayıt",
+      "attendance": "Yoklama",
+      "academic_year": "Öğretim Yılı",
+      "student_fees": "Ücretler",
+      "student_fee": "Ücret",
+      "newsletter": "Bülten",
+      "settings": "Ayarlar",
+      "mosques": "Cami"
+    },
+    "action": {
+      "post.created": "Haber oluşturuldu",
+      "post.updated": "Haber düzenlendi",
+      "post.deleted": "Haber silindi",
+      "event.created": "Etkinlik oluşturuldu",
+      "event.updated": "Etkinlik düzenlendi",
+      "event.deleted": "Etkinlik silindi",
+      "event_registration.guest_created": "Misafir kaydı",
+      "event_registration.member_created": "Üye kaydı",
+      "event_registration.cancelled": "Kayıt iptal edildi",
+      "campaign.created": "Kampanya oluşturuldu",
+      "campaign.updated": "Kampanya düzenlendi",
+      "campaign.deleted": "Kampanya silindi",
+      "donation.created": "Bağış oluşturuldu",
+      "donation.status_changed": "Bağış durumu değiştirildi",
+      "donation.paid": "Bağış ödendi",
+      "donation.failed": "Bağış başarısız",
+      "donation.refunded": "Bağış iade edildi",
+      "member.status_changed": "Durum değiştirildi",
+      "member.role_changed": "Rol değiştirildi",
+      "member.updated": "Üye düzenlendi",
+      "invite.created": "Davet oluşturuldu",
+      "invite.revoked": "Davet iptal edildi",
+      "invite.deleted": "Davet silindi",
+      "invite.consumed": "Davet kabul edildi",
+      "course.created": "Ders oluşturuldu",
+      "course.updated": "Ders düzenlendi",
+      "course.deleted": "Ders silindi",
+      "student.created": "Öğrenci oluşturuldu",
+      "student.updated": "Öğrenci düzenlendi",
+      "student.imported": "Öğrenci içe aktarıldı",
+      "enrollment.created": "Kayıt oluşturuldu",
+      "attendance.saved": "Yoklama kaydedildi",
+      "attendance.session_deleted": "Yoklama oturumu silindi",
+      "academic_year.created": "Öğretim yılı oluşturuldu",
+      "academic_year.updated": "Öğretim yılı düzenlendi",
+      "academic_year.archived": "Öğretim yılı arşivlendi",
+      "student_fees.bulk_created": "Ücretler oluşturuldu",
+      "student_fee.marked_paid": "Ücret ödendi (Nakit/Havale)",
+      "student_fee.paid_stripe": "Ücret ödendi (Stripe)",
+      "student_fee.waived": "Ücret muaf tutuldu",
+      "newsletter.queued": "Bülten kuyruğa eklendi",
+      "newsletter.sent": "Bülten gönderildi",
+      "fee_reminder.sent": "Ücret hatırlatması gönderildi",
+      "update_branding": "Marka güncellendi",
+      "update_prayer_settings": "Namaz vakti ayarları güncellendi",
+      "update_default_settings": "Varsayılan ayarlar güncellendi",
+      "update_madrasa_fee_settings": "Medrese ayarları güncellendi"
+    },
+    "field": {
+      "title": "Başlık",
+      "description": "Açıklama",
+      "status": "Durum",
+      "category": "Kategori",
+      "goal_amount_cents": "Hedef Tutar (Kr)",
+      "amount_cents": "Tutar (Kr)",
+      "start_at": "Başlangıç",
+      "end_at": "Bitiş",
+      "role": "Rol",
+      "name": "Ad",
+      "email": "E-posta",
+      "provider": "Sağlayıcı",
+      "donor_type": "Bağış Türü",
+      "visibility": "Görünürlük",
+      "payment_method": "Ödeme Yöntemi",
+      "month_key": "Ay"
+    }
+  },
+  "settings": {
+    "title": "Ayarlar",
+    "tab": {
+      "branding": "Marka",
+      "prayer": "Namaz Vakitleri",
+      "defaults": "Varsayılanlar",
+      "madrasa": "Medrese",
+      "email": "E-posta"
+    },
+    "loadError": "Ayarlar yüklenemedi.",
+    "branding": {
+      "communityInfo": "Cemaat Bilgileri",
+      "communityInfoDesc": "Cemaatin adı, adresi ve iletişim bilgileri.",
+      "communityName": "Cemaat Adı",
+      "street": "Sokak ve Numara",
+      "zipCode": "Posta Kodu",
+      "city": "Şehir",
+      "phone": "Telefon",
+      "email": "E-posta",
+      "website": "Web Sitesi",
+      "logo": "Logo",
+      "logoDesc": "Cemaat logosu (PNG, JPG, WebP veya SVG, maks. 2 MB).",
+      "uploadLogo": "Logo Yükle",
+      "removeLogo": "Kaldır",
+      "logoHint": "Önerilen: kare, en az 200×200 piksel",
+      "colorScheme": "Renk Şeması",
+      "colorSchemeDesc": "Bir renk şeması seçin veya özel renkler tanımlayın.",
+      "primaryColor": "Ana Renk",
+      "accentColor": "Vurgu Rengi",
+      "invalidColor": "Geçersiz renk. Lütfen #RRGGBB biçimini kullanın.",
+      "saved": "Marka ayarları kaydedildi.",
+      "saveError": "Kaydedilirken hata oluştu."
+    },
+    "prayer": {
+      "provider": "Namaz Vakti Sağlayıcısı",
+      "providerDesc": "Namaz vakti hesaplaması için sağlayıcıyı seçin.",
+      "coordinates": "Konum Koordinatları",
+      "coordinatesDesc": "Doğru hesaplama için caminin enlem ve boylamı.",
+      "latitude": "Enlem (Latitude)",
+      "longitude": "Boylam (Longitude)",
+      "method": "Hesaplama Yöntemi",
+      "methodDesc": "Namaz vakitleri hesaplama yöntemi.",
+      "tuning": "İnce Ayar",
+      "tuningDesc": "Her namaz vakti için dakika farkı (+/-)",
+      "tuningShow": "Ofsetleri göster / düzenle",
+      "tuningHide": "Ofsetleri gizle",
+      "tuningMin": "dk",
+      "providerDisabled": "Namaz vakitleri widget'ı devre dışı. Bir sağlayıcı seçin ve koordinatları girin.",
+      "saved": "Namaz vakti ayarları kaydedildi."
+    },
+    "defaults": {
+      "title": "Varsayılan Ayarlar",
+      "visibilityTitle": "Varsayılan Görünürlük",
+      "visibilityDesc": "Yeni haberler ve etkinlikler için varsayılan değer.",
+      "postsLabel": "Haberler",
+      "eventsLabel": "Etkinlikler",
+      "public": "Herkese Açık",
+      "members": "Yalnızca Üyeler",
+      "donationAmounts": "Bağış Hızlı Tutarları",
+      "donationAmountsDesc": "Bağış sayfasında önceden doldurulmuş tutarlar (virgülle ayrılmış, € cinsinden).",
+      "donationAmountsPlaceholder": "örn. 10,25,50,100",
+      "saved": "Varsayılan ayarlar kaydedildi.",
+      "saveError": "Kaydedilirken hata oluştu."
+    },
+    "madrasaFee": {
+      "title": "Aylık Ücretler",
+      "desc": "Medrese aylık ücret ayarları.",
+      "enabled": "Ücretleri Etkinleştir",
+      "enabledDesc": "Medrese öğrencileri için aylık ücretleri etkinleştirin.",
+      "defaultAmount": "Varsayılan Tutar",
+      "defaultAmountDesc": "Öğrenci başına aylık ücret (sent cinsinden, 100 = 1 €).",
+      "cents": "Sent",
+      "onlineTitle": "Online Ödeme",
+      "onlineDesc": "Üyeler ücretleri online ödeyebilir (Stripe aracılığıyla).",
+      "stripeActive": "Stripe aktif — Online ödeme mevcut.",
+      "noStripe": "Stripe ödeme sağlayıcısı yapılandırılmamış.",
+      "saved": "Medrese ayarları kaydedildi.",
+      "saveError": "Kaydedilirken hata oluştu."
+    },
+    "email": {
+      "resendTitle": "Resend API (Uygulama E-postaları)",
+      "resendDesc": "Davet ve sistem e-postaları için kullanılır.",
+      "resendKeyLabel": "Resend API Anahtarı",
+      "resendKeyPlaceholder": "re_...",
+      "smtpTitle": "PocketBase SMTP (Şifre Sıfırlama & Kimlik Doğrulama E-postaları)",
+      "smtpDesc": "PocketBase kimlik doğrulama e-postaları için SMTP sunucusunu yapılandırır.",
+      "host": "SMTP Sunucusu",
+      "port": "Port",
+      "username": "Kullanıcı Adı",
+      "password": "Şifre",
+      "senderName": "Gönderici Adı",
+      "senderAddress": "Gönderici Adresi",
+      "tls": "TLS/SSL Kullan",
+      "save": "SMTP'yi Kaydet",
+      "saving": "Kaydediliyor...",
+      "saved": "SMTP ayarları kaydedildi.",
+      "saveError": "Kaydedilirken hata oluştu."
+    },
+    "language": {
+      "title": "Dil / Sprache",
+      "desc": "Yönetici alanı ve portal dili.",
+      "de": "Deutsch 🇩🇪",
+      "tr": "Türkçe 🇹🇷"
+    },
+    "save": "Kaydet",
+    "reset": "Sıfırla"
+  },
+  "labels": {
+    "post": {
+      "category": {
+        "announcement": "Duyuru",
+        "youth": "Gençlik",
+        "campaign": "Kampanya",
+        "event": "Etkinlik",
+        "general": "Genel"
+      },
+      "status": {
+        "published": "Yayımlandı",
+        "draft": "Taslak"
+      }
+    },
+    "event": {
+      "category": {
+        "youth": "Gençlik",
+        "lecture": "Ders / Vaaz",
+        "quran": "Kuran",
+        "community": "Cemaat",
+        "ramadan": "Ramazan",
+        "other": "Diğer"
+      },
+      "status": {
+        "published": "Yayımlandı",
+        "cancelled": "İptal Edildi",
+        "draft": "Taslak"
+      }
+    },
+    "campaign": {
+      "category": {
+        "ramadan": "Ramazan",
+        "construction": "İnşaat",
+        "aid": "Yardım",
+        "maintenance": "Bakım",
+        "general": "Genel"
+      },
+      "status": {
+        "active": "Aktif",
+        "paused": "Duraklatıldı",
+        "completed": "Tamamlandı"
+      }
+    },
+    "course": {
+      "category": {
+        "quran": "Kuran",
+        "tajweed": "Tecvid",
+        "fiqh": "Fıkıh",
+        "arabic": "Arapça",
+        "sira": "Sire",
+        "islamic_studies": "İslam Bilgisi",
+        "other": "Diğer"
+      },
+      "level": {
+        "beginner": "Başlangıç",
+        "intermediate": "Orta",
+        "advanced": "İleri",
+        "mixed": "Karma"
+      },
+      "status": {
+        "active": "Aktif",
+        "paused": "Duraklatıldı",
+        "archived": "Arşivlendi"
+      }
+    },
+    "visibility": {
+      "public": "Herkese Açık",
+      "members": "Yalnızca Üyeler"
+    },
+    "day": {
+      "monday": "Pazartesi",
+      "tuesday": "Salı",
+      "wednesday": "Çarşamba",
+      "thursday": "Perşembe",
+      "friday": "Cuma",
+      "saturday": "Cumartesi",
+      "sunday": "Pazar"
+    },
+    "prayer": {
+      "fajr": "Sabah",
+      "dhuhr": "Öğle",
+      "asr": "İkindi",
+      "maghrib": "Akşam",
+      "isha": "Yatsı"
+    },
+    "role": {
+      "member": "Üye",
+      "admin": "Yönetici",
+      "editor": "Editör (Haberler, Etkinlikler, Kampanyalar)",
+      "teacher": "Öğretmen (Medrese)",
+      "imam": "İmam (Haber paylaşımı)"
+    },
+    "recurrence": {
+      "daily": "Günlük",
+      "weekly": "Haftalık",
+      "monthly": "Aylık"
+    }
   }
 }

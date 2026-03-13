@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { useAuth } from "@/lib/auth-context";
 import { useMosque } from "@/lib/mosque-context";
 import {
@@ -43,9 +43,10 @@ function getCurrentMonthKey(): string {
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
 }
 
-function formatMonthKey(monthKey: string): string {
+function formatMonthKey(monthKey: string, locale?: string): string {
   const [y, m] = monthKey.split("-");
-  return new Date(Number(y), Number(m) - 1, 1).toLocaleDateString("de-DE", {
+  const intlLocale = locale === "tr" ? "tr-TR" : "de-DE";
+  return new Date(Number(y), Number(m) - 1, 1).toLocaleDateString(intlLocale, {
     month: "long",
     year: "numeric",
   });
@@ -567,6 +568,7 @@ function MadrasaFeeOverview({
   stripeEnabled: boolean;
 }) {
   const t = useTranslations();
+  const locale = useLocale();
   const [monthKey, setMonthKey] = useState(getCurrentMonthKey());
   const [rows, setRows] = useState<FeeOverviewRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -613,7 +615,7 @@ function MadrasaFeeOverview({
         >
           <ChevronLeft className="h-4 w-4" />
         </button>
-        <span className="text-base font-semibold text-gray-900">{formatMonthKey(monthKey)}</span>
+        <span className="text-base font-semibold text-gray-900">{formatMonthKey(monthKey, locale)}</span>
         <button
           type="button"
           onClick={() => setMonthKey(nextMonthKey(monthKey))}

@@ -8,11 +8,14 @@ import { useAuth } from "@/lib/auth-context";
 import { createEvent } from "@/lib/actions/events";
 import { getPortalSettings } from "@/lib/actions/settings";
 import { EventForm } from "@/components/events/EventForm";
+import { useTranslations } from "next-intl";
 import type { EventInput } from "@/lib/validations";
 
 export default function NewEventPage() {
   const { mosqueId } = useMosque();
   const { user } = useAuth();
+  const t = useTranslations("events");
+  const tCommon = useTranslations("common");
   const [defaultVisibility, setDefaultVisibility] = useState<string>("public");
 
   useEffect(() => {
@@ -25,7 +28,7 @@ export default function NewEventPage() {
   }, [mosqueId]);
 
   async function handleCreate(data: EventInput) {
-    if (!user) return { success: false, error: "Nicht eingeloggt" };
+    if (!user) return { success: false, error: tCommon("notLoggedIn") };
     return createEvent(mosqueId, user.id, data);
   }
 
@@ -37,10 +40,10 @@ export default function NewEventPage() {
           className="mb-2 inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
         >
           <ChevronLeft className="h-4 w-4" />
-          Zurück zu Veranstaltungen
+          {t("new.back")}
         </Link>
         <h1 className="text-2xl font-bold text-gray-900">
-          Neue Veranstaltung
+          {t("new.title")}
         </h1>
       </div>
 

@@ -7,114 +7,8 @@ import { getAuditLogs } from "@/lib/actions/audit";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useTranslations } from "next-intl";
 import type { AuditLog } from "@/types";
-
-const ENTITY_TYPE_FILTERS = [
-  { value: "", label: "Alle" },
-  { value: "post", label: "Posts" },
-  { value: "event", label: "Events" },
-  { value: "event_registration", label: "Registrierungen" },
-  { value: "campaign", label: "Kampagnen" },
-  { value: "donation", label: "Spenden" },
-  { value: "member", label: "Mitglieder" },
-  { value: "invite", label: "Einladungen" },
-  { value: "madrasa", label: "Madrasa" },
-  { value: "student_fees", label: "Gebühren" },
-  { value: "newsletter", label: "Newsletter" },
-  { value: "settings", label: "Einstellungen" },
-];
-
-/** Lesbare Bezeichnung für entity_type */
-const ENTITY_TYPE_LABELS: Record<string, string> = {
-  post: "Post",
-  event: "Event",
-  event_registration: "Registrierung",
-  campaign: "Kampagne",
-  donation: "Spende",
-  member: "Mitglied",
-  users: "Nutzer",
-  invite: "Einladung",
-  course: "Kurs",
-  student: "Schüler",
-  course_enrollment: "Einschreibung",
-  attendance: "Anwesenheit",
-  academic_year: "Schuljahr",
-  student_fees: "Gebühren",
-  student_fee: "Gebühr",
-  newsletter: "Newsletter",
-  settings: "Einstellungen",
-  mosques: "Moschee",
-};
-
-const ACTION_LABELS: Record<string, string> = {
-  "post.created": "Post erstellt",
-  "post.updated": "Post bearbeitet",
-  "post.deleted": "Post gelöscht",
-  "event.created": "Event erstellt",
-  "event.updated": "Event bearbeitet",
-  "event.deleted": "Event gelöscht",
-  "event_registration.guest_created": "Gast-Anmeldung",
-  "event_registration.member_created": "Mitglieder-Anmeldung",
-  "event_registration.cancelled": "Abmeldung",
-  "campaign.created": "Kampagne erstellt",
-  "campaign.updated": "Kampagne bearbeitet",
-  "campaign.deleted": "Kampagne gelöscht",
-  "donation.created": "Spende erstellt",
-  "donation.status_changed": "Spenden-Status geändert",
-  "donation.paid": "Spende bezahlt",
-  "donation.failed": "Spende fehlgeschlagen",
-  "donation.refunded": "Spende erstattet",
-  "member.status_changed": "Status geändert",
-  "member.role_changed": "Rolle geändert",
-  "member.updated": "Mitglied bearbeitet",
-  "invite.created": "Einladung erstellt",
-  "invite.revoked": "Einladung widerrufen",
-  "invite.deleted": "Einladung gelöscht",
-  "invite.consumed": "Einladung angenommen",
-  "course.created": "Kurs erstellt",
-  "course.updated": "Kurs bearbeitet",
-  "course.deleted": "Kurs gelöscht",
-  "student.created": "Schüler erstellt",
-  "student.updated": "Schüler bearbeitet",
-  "student.imported": "Schüler importiert",
-  "enrollment.created": "Einschreibung erstellt",
-  "attendance.saved": "Anwesenheit gespeichert",
-  "attendance.session_deleted": "Anwesenheits-Session gelöscht",
-  "academic_year.created": "Schuljahr erstellt",
-  "academic_year.updated": "Schuljahr bearbeitet",
-  "academic_year.archived": "Schuljahr archiviert",
-  "student_fees.bulk_created": "Gebühren erstellt",
-  "student_fee.marked_paid": "Gebühr bezahlt (Bar/Überweisung)",
-  "student_fee.paid_stripe": "Gebühr bezahlt (Stripe)",
-  "student_fee.waived": "Gebühr erlassen",
-  "newsletter.queued": "Newsletter eingereiht",
-  "newsletter.sent": "Newsletter gesendet",
-  "fee_reminder.sent": "Gebühren-Erinnerung gesendet",
-  "update_branding": "Branding aktualisiert",
-  "update_prayer_settings": "Gebetszeiten aktualisiert",
-  "update_default_settings": "Standardeinstellungen aktualisiert",
-  "update_madrasa_fee_settings": "Madrasa-Einstellungen aktualisiert",
-};
-
-/** Lesbare Bezeichnungen für Felder in before/after/diff */
-const FIELD_LABELS: Record<string, string> = {
-  title: "Titel",
-  description: "Beschreibung",
-  status: "Status",
-  category: "Kategorie",
-  goal_amount_cents: "Zielbetrag (Ct)",
-  amount_cents: "Betrag (Ct)",
-  start_at: "Start",
-  end_at: "Ende",
-  role: "Rolle",
-  name: "Name",
-  email: "E-Mail",
-  provider: "Anbieter",
-  donor_type: "Spendentyp",
-  visibility: "Sichtbarkeit",
-  payment_method: "Zahlungsart",
-  month_key: "Monat",
-};
 
 const ACTION_COLORS: Record<string, string> = {
   created: "bg-emerald-100 text-emerald-700",
@@ -151,18 +45,13 @@ function formatAuditDate(dateStr: string): string {
   }).format(new Date(dateStr));
 }
 
-function fieldLabel(key: string): string {
-  return FIELD_LABELS[key] || key;
-}
-
 function formatValue(v: unknown): string {
   if (v === null || v === undefined || v === "") return "—";
   if (typeof v === "boolean") return v ? "ja" : "nein";
   return String(v);
 }
 
-/** Ändert sich ein Wert? Dann zeige alt → neu, sonst nichts */
-function AuditChanges({ log }: { log: AuditLog }) {
+function AuditChanges({ log, fieldLabel }: { log: AuditLog; fieldLabel: (key: string) => string }) {
   let before: Record<string, unknown> | null = null;
   let after: Record<string, unknown> | null = null;
   let details: Record<string, unknown> | null = null;
@@ -246,12 +135,37 @@ function AuditChanges({ log }: { log: AuditLog }) {
 
 export default function AuditLogPage() {
   const { mosqueId } = useMosque();
+  const t = useTranslations("audit");
+  const tCommon = useTranslations("common");
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [actorNames, setActorNames] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [entityFilter, setEntityFilter] = useState("");
+
+  const entityFilters = [
+    { value: "", label: t("filterAll") },
+    { value: "post", label: t("entityFilter.post") },
+    { value: "event", label: t("entityFilter.event") },
+    { value: "event_registration", label: t("entityFilter.event_registration") },
+    { value: "campaign", label: t("entityFilter.campaign") },
+    { value: "donation", label: t("entityFilter.donation") },
+    { value: "member", label: t("entityFilter.member") },
+    { value: "invite", label: t("entityFilter.invite") },
+    { value: "madrasa", label: t("entityFilter.madrasa") },
+    { value: "student_fees", label: t("entityFilter.student_fees") },
+    { value: "newsletter", label: t("entityFilter.newsletter") },
+    { value: "settings", label: t("entityFilter.settings") },
+  ];
+
+  function fieldLabel(key: string): string {
+    try {
+      return t(`field.${key}` as Parameters<typeof t>[0]) || key;
+    } catch {
+      return key;
+    }
+  }
 
   useEffect(() => {
     if (!mosqueId) return;
@@ -281,12 +195,12 @@ export default function AuditLogPage() {
     <div className="mx-auto max-w-6xl space-y-6 p-4 md:p-6">
       <div className="flex items-center gap-3">
         <Shield className="h-7 w-7 text-emerald-600" aria-hidden="true" />
-        <h1 className="text-2xl font-bold text-gray-900">Audit-Log</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{t("title")}</h1>
       </div>
 
       {/* Filter */}
-      <div className="flex flex-wrap gap-2" role="tablist" aria-label="Audit-Log filtern">
-        {ENTITY_TYPE_FILTERS.map((type) => (
+      <div className="flex flex-wrap gap-2" role="tablist" aria-label={t("title")}>
+        {entityFilters.map((type) => (
           <button
             key={type.value}
             role="tab"
@@ -307,7 +221,7 @@ export default function AuditLogPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg">
             <FileText className="h-5 w-5" aria-hidden="true" />
-            Protokoll
+            {t("record")}
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
@@ -320,18 +234,19 @@ export default function AuditLogPage() {
           ) : logs.length === 0 ? (
             <div className="py-12 text-center">
               <Shield className="mx-auto mb-3 h-12 w-12 text-gray-300" aria-hidden="true" />
-              <p className="text-gray-500">Keine Audit-Einträge gefunden.</p>
+              <p className="text-gray-500">{t("noLogsYet")}</p>
+              <p className="text-sm text-gray-400">{t("noLogsHint")}</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b bg-gray-50 text-left text-xs font-medium uppercase tracking-wide text-gray-500">
-                    <th className="px-4 py-3 whitespace-nowrap">Datum</th>
-                    <th className="px-4 py-3 whitespace-nowrap">Bereich</th>
-                    <th className="px-4 py-3 whitespace-nowrap">Aktion</th>
-                    <th className="px-4 py-3 whitespace-nowrap">Von</th>
-                    <th className="px-4 py-3">Änderungen</th>
+                    <th className="px-4 py-3 whitespace-nowrap">{t("colDate")}</th>
+                    <th className="px-4 py-3 whitespace-nowrap">{t("colEntity")}</th>
+                    <th className="px-4 py-3 whitespace-nowrap">{t("colAction")}</th>
+                    <th className="px-4 py-3 whitespace-nowrap">{t("colUser")}</th>
+                    <th className="px-4 py-3">{t("colChanges")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
@@ -347,7 +262,7 @@ export default function AuditLogPage() {
                       {/* Bereich (entity_type) */}
                       <td className="px-4 py-3 align-top">
                         <span className="whitespace-nowrap text-xs text-gray-600">
-                          {ENTITY_TYPE_LABELS[log.entity_type] || log.entity_type}
+                          {(t(`entity.${log.entity_type}` as Parameters<typeof t>[0]) || log.entity_type)}
                         </span>
                       </td>
 
@@ -356,7 +271,7 @@ export default function AuditLogPage() {
                         <span
                           className={`inline-flex whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-medium ${getActionColor(log.action)}`}
                         >
-                          {ACTION_LABELS[log.action] || log.action}
+                          {(t(`action.${log.action}` as Parameters<typeof t>[0]) || log.action)}
                         </span>
                       </td>
 
@@ -364,15 +279,15 @@ export default function AuditLogPage() {
                       <td className="px-4 py-3 align-top">
                         <span className="whitespace-nowrap text-xs text-gray-600">
                           {log.actor_user_id
-                            ? (actorNames[log.actor_user_id] || "Unbekannt")
-                            : <span className="text-gray-400">System</span>
+                            ? (actorNames[log.actor_user_id] || t("unknown"))
+                            : <span className="text-gray-400">{t("system")}</span>
                           }
                         </span>
                       </td>
 
                       {/* Änderungen */}
                       <td className="px-4 py-3 align-top">
-                        <AuditChanges log={log} />
+                        <AuditChanges log={log} fieldLabel={fieldLabel} />
                       </td>
                     </tr>
                   ))}
@@ -385,7 +300,7 @@ export default function AuditLogPage() {
           {totalPages > 1 && (
             <div className="flex items-center justify-between border-t px-4 py-3">
               <p className="text-sm text-gray-500">
-                Seite {page} von {totalPages}
+                {tCommon("pageOf", { page, total: totalPages })}
               </p>
               <div className="flex gap-2">
                 <Button
@@ -393,7 +308,7 @@ export default function AuditLogPage() {
                   size="sm"
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page <= 1}
-                  aria-label="Vorherige Seite"
+                  aria-label={tCommon("prevPage")}
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
@@ -402,7 +317,7 @@ export default function AuditLogPage() {
                   size="sm"
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   disabled={page >= totalPages}
-                  aria-label="Nächste Seite"
+                  aria-label={tCommon("nextPage")}
                 >
                   <ChevronRight className="h-4 w-4" />
                 </Button>

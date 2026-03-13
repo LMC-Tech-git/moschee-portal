@@ -32,15 +32,6 @@ import {
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 
-// ── Hilfskonstanten ───────────────────────────────────────────────────────
-
-const PROVIDER_LABELS: Record<string, string> = {
-  stripe: "Stripe",
-  cash: "Bar",
-  transfer: "Überweisung",
-  paypal: "PayPal",
-};
-
 // ── Status-Hilfsfunktionen ─────────────────────────────────────────────────
 
 const STATUS_COLORS: Record<string, string> = {
@@ -444,9 +435,9 @@ export default function AdminSpendenPage() {
           onChange={(e) => setProviderFilter(e.target.value as GetDonationsOptions["provider"])}
           className="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none"
         >
-          <option value="all">Alle Quellen</option>
+          <option value="all">{t("filterAllSources" as Parameters<typeof t>[0])}</option>
           <option value="stripe">Stripe</option>
-          <option value="manual">Manuell</option>
+          <option value="manual">{t("source.manual" as Parameters<typeof t>[0])}</option>
           <option value="paypal_link">PayPal</option>
         </select>
 
@@ -473,9 +464,9 @@ export default function AdminSpendenPage() {
         {!isLoading && donations.length > 0 && (
           <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
             <p className="text-sm text-gray-500">
-              {totalItems} Einträge
+              {t("entries" as Parameters<typeof t>[0], { count: totalItems })}
               {statusFilter === "all" || statusFilter === "paid"
-                ? ` · Bezahlt: ${formatCurrencyCents(totalPaidCents)}`
+                ? ` · ${t("paid" as Parameters<typeof t>[0])}: ${formatCurrencyCents(totalPaidCents)}`
                 : ""}
             </p>
           </div>
@@ -488,9 +479,9 @@ export default function AdminSpendenPage() {
         ) : donations.length === 0 ? (
           <div className="py-16 text-center">
             <Banknote className="mx-auto mb-3 h-10 w-10 text-gray-200" />
-            <p className="font-medium text-gray-500">Keine Spenden gefunden</p>
+            <p className="font-medium text-gray-500">{t("noData" as Parameters<typeof t>[0])}</p>
             <p className="mt-1 text-sm text-gray-400">
-              Passe die Filter an oder erfasse eine manuelle Spende.
+              {t("noDataHint" as Parameters<typeof t>[0])}
             </p>
           </div>
         ) : (
@@ -498,13 +489,13 @@ export default function AdminSpendenPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-100 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                  <th className="px-4 py-3">Datum</th>
-                  <th className="px-4 py-3">Spender</th>
-                  <th className="px-4 py-3">Kampagne</th>
-                  <th className="px-4 py-3 text-right">Betrag</th>
-                  <th className="px-4 py-3">Quelle</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3">Aktion</th>
+                  <th className="px-4 py-3">{t("colDate" as Parameters<typeof t>[0])}</th>
+                  <th className="px-4 py-3">{t("colDonor" as Parameters<typeof t>[0])}</th>
+                  <th className="px-4 py-3">{t("colCampaign" as Parameters<typeof t>[0])}</th>
+                  <th className="px-4 py-3 text-right">{t("colAmount" as Parameters<typeof t>[0])}</th>
+                  <th className="px-4 py-3">{t("colSource" as Parameters<typeof t>[0])}</th>
+                  <th className="px-4 py-3">{t("colStatus" as Parameters<typeof t>[0])}</th>
+                  <th className="px-4 py-3">{t("colAction" as Parameters<typeof t>[0])}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
@@ -538,7 +529,7 @@ export default function AdminSpendenPage() {
                           {d.campaign_title}
                         </span>
                       ) : (
-                        <span className="text-xs text-gray-400">Allgemein</span>
+                        <span className="text-xs text-gray-400">{t("general" as Parameters<typeof t>[0])}</span>
                       )}
                     </td>
                     <td className="whitespace-nowrap px-4 py-3 text-right font-semibold text-gray-900">
@@ -547,7 +538,7 @@ export default function AdminSpendenPage() {
                     <td className="px-4 py-3">
                       <span className="flex items-center gap-1 text-xs text-gray-500">
                         <CreditCard className="h-3 w-3" />
-                        {PROVIDER_LABELS[d.provider] || d.provider}
+                        {t(`source.${d.provider}` as Parameters<typeof t>[0]) || d.provider}
                       </span>
                     </td>
                     <td className="px-4 py-3">
@@ -560,14 +551,14 @@ export default function AdminSpendenPage() {
                           onClick={() => handleStatusChange(d.id, "paid")}
                           disabled={updatingId === d.id}
                           className="flex items-center gap-1 rounded-lg bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700 hover:bg-emerald-100 disabled:opacity-50"
-                          title="Als bezahlt markieren"
+                          title={t("markPaid" as Parameters<typeof t>[0])}
                         >
                           {updatingId === d.id ? (
                             <RefreshCw className="h-3 w-3 animate-spin" />
                           ) : (
                             <CheckCircle className="h-3 w-3" />
                           )}
-                          Bezahlt
+                          {t("status.paid")}
                         </button>
                       )}
                       {d.status === "paid" && (
@@ -576,10 +567,10 @@ export default function AdminSpendenPage() {
                           onClick={() => handleStatusChange(d.id, "refunded")}
                           disabled={updatingId === d.id}
                           className="flex items-center gap-1 rounded-lg bg-purple-50 px-2.5 py-1 text-xs font-medium text-purple-700 hover:bg-purple-100 disabled:opacity-50"
-                          title="Als erstattet markieren"
+                          title={t("markRefunded" as Parameters<typeof t>[0])}
                         >
                           <RefreshCw className="h-3 w-3" />
-                          Erstatten
+                          {t("status.refunded")}
                         </button>
                       )}
                     </td>
@@ -594,7 +585,7 @@ export default function AdminSpendenPage() {
         {totalPages > 1 && (
           <div className="flex items-center justify-between border-t border-gray-100 px-4 py-3">
             <p className="text-xs text-gray-500">
-              Seite {currentPage} von {totalPages}
+              {tCommon("pageOf", { page: currentPage, total: totalPages })}
             </p>
             <div className="flex gap-2">
               <button

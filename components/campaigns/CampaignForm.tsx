@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import type { Campaign } from "@/types";
 import type { CampaignInput } from "@/lib/validations";
-import { campaignCategoryOptions } from "@/lib/constants";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -18,6 +18,15 @@ interface CampaignFormProps {
 
 export function CampaignForm({ initialData, onSubmit, isEdit }: CampaignFormProps) {
   const router = useRouter();
+  const tL = useTranslations("labels");
+
+  const categoryOptions = [
+    { value: "ramadan", label: tL("campaign.category.ramadan") },
+    { value: "construction", label: tL("campaign.category.construction") },
+    { value: "aid", label: tL("campaign.category.aid") },
+    { value: "maintenance", label: tL("campaign.category.maintenance") },
+    { value: "general", label: tL("campaign.category.general") },
+  ];
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
 
@@ -108,7 +117,7 @@ export function CampaignForm({ initialData, onSubmit, isEdit }: CampaignFormProp
             onChange={(e) => setCategory(e.target.value as CampaignInput["category"])}
             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           >
-            {campaignCategoryOptions.map((opt) => (
+            {categoryOptions.map((opt) => (
               <option key={opt.value} value={opt.value}>{opt.label}</option>
             ))}
           </select>

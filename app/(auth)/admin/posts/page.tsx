@@ -19,11 +19,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn, formatDate } from "@/lib/utils";
 import {
-  postCategoryLabels,
   postCategoryColors,
-  postStatusLabels,
   postStatusColors,
-  visibilityLabels,
   visibilityColors,
 } from "@/lib/constants";
 import type { Post } from "@/types";
@@ -32,6 +29,7 @@ import { useTranslations } from "next-intl";
 export default function AdminPostsPage() {
   const t = useTranslations("posts");
   const tCommon = useTranslations("common");
+  const tL = useTranslations("labels");
   const router = useRouter();
   const { mosqueId } = useMosque();
   const { user } = useAuth();
@@ -203,7 +201,7 @@ export default function AdminPostsPage() {
                               "bg-gray-100 text-gray-600"
                           )}
                         >
-                          {postCategoryLabels[post.category] || post.category}
+                          {tL(`post.category.${post.category}` as Parameters<typeof tL>[0]) || post.category}
                         </span>
                       </td>
                       <td className="px-4 py-3 hidden md:table-cell">
@@ -214,8 +212,7 @@ export default function AdminPostsPage() {
                               "bg-gray-100 text-gray-600"
                           )}
                         >
-                          {visibilityLabels[post.visibility] ||
-                            post.visibility}
+                          {tL(`visibility.${post.visibility}` as Parameters<typeof tL>[0]) || post.visibility}
                         </span>
                       </td>
                       <td className="px-4 py-3">
@@ -226,7 +223,7 @@ export default function AdminPostsPage() {
                               "bg-gray-100 text-gray-600"
                           )}
                         >
-                          {postStatusLabels[post.status] || post.status}
+                          {tL(`post.status.${post.status}` as Parameters<typeof tL>[0]) || post.status}
                         </span>
                       </td>
                       <td className="px-4 py-3 hidden lg:table-cell text-gray-500 text-xs">

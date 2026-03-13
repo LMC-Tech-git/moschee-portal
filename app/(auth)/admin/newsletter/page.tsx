@@ -6,13 +6,8 @@ import { useMosque } from "@/lib/mosque-context";
 import { useAuth } from "@/lib/auth-context";
 import { sendNewsletter } from "@/lib/actions/newsletter";
 import { processNewsletterQueue, getEmailQueueStats } from "@/lib/actions/email";
+import { useTranslations } from "next-intl";
 import type { NewsletterInput } from "@/lib/validations";
-
-const segmentOptions = [
-  { value: "all", label: "Alle Mitglieder" },
-  { value: "active", label: "Nur aktive Mitglieder" },
-  { value: "admins", label: "Nur Admins" },
-] as const;
 
 interface QueueStats {
   queued: number;
@@ -23,6 +18,7 @@ interface QueueStats {
 export default function AdminNewsletterPage() {
   const { mosqueId } = useMosque();
   const { user } = useAuth();
+  const t = useTranslations("newsletter");
   const [subject, setSubject] = useState("");
   const [bodyHtml, setBodyHtml] = useState("");
   const [toSegment, setToSegment] = useState<NewsletterInput["to_segment"]>("all");
@@ -32,6 +28,12 @@ export default function AdminNewsletterPage() {
   const [successMsg, setSuccessMsg] = useState("");
   const [queueStats, setQueueStats] = useState<QueueStats>({ queued: 0, sent: 0, failed: 0 });
   const [statsLoading, setStatsLoading] = useState(true);
+
+  const segmentOptions = [
+    { value: "all", label: t("segmentAll") },
+    { value: "active", label: t("segmentActive") },
+    { value: "admins", label: t("segmentAdmins") },
+  ] as const;
 
   const loadStats = useCallback(async () => {
     if (!mosqueId) return;
@@ -47,7 +49,7 @@ export default function AdminNewsletterPage() {
 
   async function handleQueue() {
     if (!user) return;
-    if (!confirm("Newsletter in die Warteschlange stellen?")) return;
+    if (!confirm(t("confirmQueue"))) return;
 
     setError("");
     setSuccessMsg("");
@@ -60,14 +62,12 @@ export default function AdminNewsletterPage() {
     });
 
     if (result.success && result.data) {
-      setSuccessMsg(
-        `${result.data.queued} E-Mail(s) in Warteschlange gestellt. Klicke "Jetzt senden" um sie zu versenden.`
-      );
+      setSuccessMsg(t("queueSuccess", { count: result.data.queued }));
       setSubject("");
       setBodyHtml("");
       await loadStats();
     } else {
-      setError(result.error || "Ein Fehler ist aufgetreten");
+      setError(result.error || t("confirmQueue"));
     }
 
     setIsSubmitting(false);
@@ -76,7 +76,7 @@ export default function AdminNewsletterPage() {
   async function handleSendQueue() {
     if (!user) return;
     if (queueStats.queued === 0) return;
-    if (!confirm(`${queueStats.queued} E-Mail(s) jetzt versenden?`)) return;
+    if (!confirm(t("confirmSend", { count: queueStats.queued }))) return;
 
     setError("");
     setSuccessMsg("");
@@ -85,12 +85,10 @@ export default function AdminNewsletterPage() {
     const result = await processNewsletterQueue(mosqueId, user.id);
 
     if (result.success) {
-      setSuccessMsg(
-        `Versand abgeschlossen: ${result.sent} gesendet${result.failed ? `, ${result.failed} fehlgeschlagen` : ""}.`
-      );
+      setSuccessMsg(t("sendSuccess", { sent: result.sent ?? 0 }));
       await loadStats();
     } else {
-      setError(result.error || "Fehler beim Senden");
+      setError(result.error || t("sendSuccess", { sent: 0 }));
     }
 
     setIsSending(false);
@@ -99,9 +97,9 @@ export default function AdminNewsletterPage() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Newsletter</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{t("title")}</h1>
         <p className="text-sm text-gray-500">
-          Senden Sie eine Nachricht an Ihre Mitglieder.
+          {t("subtitle")}
         </p>
       </div>
 
@@ -110,7 +108,7 @@ export default function AdminNewsletterPage() {
         <div className="mb-4 flex items-center justify-between">
           <h2 className="flex items-center gap-2 text-base font-semibold text-gray-900">
             <Inbox className="h-4 w-4 text-gray-500" />
-            Warteschlange
+            {t("queueSection")}
           </h2>
           <button
             type="button"
@@ -119,22 +117,22 @@ export default function AdminNewsletterPage() {
             className="flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-gray-500 hover:bg-gray-50"
           >
             <RefreshCw className={`h-3.5 w-3.5 ${statsLoading ? "animate-spin" : ""}`} />
-            Aktualisieren
+            {t("refresh")}
           </button>
         </div>
 
         <div className="mb-4 grid grid-cols-3 gap-3">
           <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 text-center">
             <p className="text-2xl font-bold text-amber-700">{queueStats.queued}</p>
-            <p className="text-xs text-amber-600 mt-0.5">Ausstehend</p>
+            <p className="text-xs text-amber-600 mt-0.5">{t("stats.queued")}</p>
           </div>
           <div className="rounded-lg bg-green-50 border border-green-200 p-3 text-center">
             <p className="text-2xl font-bold text-green-700">{queueStats.sent}</p>
-            <p className="text-xs text-green-600 mt-0.5">Gesendet</p>
+            <p className="text-xs text-green-600 mt-0.5">{t("stats.sent")}</p>
           </div>
           <div className="rounded-lg bg-red-50 border border-red-200 p-3 text-center">
             <p className="text-2xl font-bold text-red-700">{queueStats.failed}</p>
-            <p className="text-xs text-red-600 mt-0.5">Fehlgeschlagen</p>
+            <p className="text-xs text-red-600 mt-0.5">{t("stats.failed")}</p>
           </div>
         </div>
 
@@ -148,12 +146,12 @@ export default function AdminNewsletterPage() {
             {isSending ? (
               <>
                 <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                E-Mails werden versendet…
+                {t("sending")}
               </>
             ) : (
               <>
                 <Send className="h-4 w-4" />
-                {queueStats.queued} E-Mail(s) jetzt senden
+                {t("sendButton", { count: queueStats.queued })}
               </>
             )}
           </button>
@@ -162,7 +160,7 @@ export default function AdminNewsletterPage() {
         {queueStats.queued === 0 && (
           <p className="text-center text-sm text-gray-400">
             <Clock className="mr-1 inline h-4 w-4" />
-            Keine E-Mails in der Warteschlange
+            {t("noQueue")}
           </p>
         )}
       </div>
@@ -184,13 +182,13 @@ export default function AdminNewsletterPage() {
 
       {/* Neuer Newsletter */}
       <div className="rounded-xl border border-gray-200 bg-white p-6">
-        <h2 className="mb-5 text-base font-semibold text-gray-900">Neuen Newsletter erstellen</h2>
+        <h2 className="mb-5 text-base font-semibold text-gray-900">{t("createSection")}</h2>
         <div className="space-y-6">
           {/* Empfänger */}
           <div>
             <label htmlFor="segment" className="mb-1.5 block text-sm font-medium text-gray-700">
               <Mail className="mr-1 inline h-3.5 w-3.5" />
-              Empfänger
+              {t("segmentLabel")}
             </label>
             <select
               id="segment"
@@ -207,14 +205,14 @@ export default function AdminNewsletterPage() {
           {/* Betreff */}
           <div>
             <label htmlFor="subject" className="mb-1.5 block text-sm font-medium text-gray-700">
-              Betreff *
+              {t("subjectLabel")} *
             </label>
             <input
               id="subject"
               type="text"
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
-              placeholder="Betreff der E-Mail"
+              placeholder={t("subjectPlaceholder")}
               className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
               required
             />
@@ -223,13 +221,13 @@ export default function AdminNewsletterPage() {
           {/* Inhalt */}
           <div>
             <label htmlFor="body" className="mb-1.5 block text-sm font-medium text-gray-700">
-              Inhalt (HTML) *
+              {t("bodyLabel")} *
             </label>
             <textarea
               id="body"
               value={bodyHtml}
               onChange={(e) => setBodyHtml(e.target.value)}
-              placeholder="<p>Liebe Gemeinde,</p><p>...</p>"
+              placeholder={t("bodyPlaceholder")}
               rows={12}
               className="w-full rounded-lg border border-gray-300 px-4 py-2.5 font-mono text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
               required
@@ -245,7 +243,7 @@ export default function AdminNewsletterPage() {
               className="inline-flex items-center gap-2 rounded-lg bg-gray-800 px-5 py-2.5 text-sm font-medium text-white hover:bg-gray-900 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Clock className="h-4 w-4" />
-              {isSubmitting ? "Wird eingereiht…" : "In Warteschlange stellen"}
+              {isSubmitting ? t("queueing") : t("queueButton")}
             </button>
           </div>
         </div>

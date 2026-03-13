@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Copy, Check, Link2, Users, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { createInvite } from "@/lib/actions/invites";
@@ -35,14 +36,6 @@ interface Props {
 type InviteType = "personal" | "group";
 type Step = "form" | "success";
 
-const ROLE_OPTIONS = [
-  { value: "member", label: "Mitglied" },
-  { value: "imam", label: "Imam" },
-  { value: "teacher", label: "Lehrer/in" },
-  { value: "editor", label: "Editor (Beiträge, Events, Kampagnen)" },
-  { value: "admin", label: "Administrator" },
-] as const;
-
 export function CreateInviteDialog({
   open,
   onClose,
@@ -51,6 +44,18 @@ export function CreateInviteDialog({
   adminUserId,
   onSuccess,
 }: Props) {
+  const tI = useTranslations("invites");
+  const tL = useTranslations("labels");
+  const tCommon = useTranslations("common");
+
+  const roleOptions = [
+    { value: "member", label: tL("role.member") },
+    { value: "imam", label: tL("role.imam") },
+    { value: "teacher", label: tL("role.teacher") },
+    { value: "editor", label: tL("role.editor") },
+    { value: "admin", label: tL("role.admin") },
+  ];
+
   const [step, setStep] = useState<Step>("form");
   const [inviteType, setInviteType] = useState<InviteType>("personal");
   const [role, setRole] = useState<"member" | "teacher" | "imam" | "editor" | "admin">("member");
@@ -87,7 +92,7 @@ export function CreateInviteDialog({
     setError("");
 
     if (inviteType === "group" && !label.trim()) {
-      setError("Bitte gib einen Namen für die Gruppeneinladung ein.");
+      setError(tI("errors.nameRequired"));
       return;
     }
 
@@ -104,7 +109,7 @@ export function CreateInviteDialog({
       });
 
       if (!result.success || !result.data) {
-        setError(result.error || "Einladung konnte nicht erstellt werden.");
+        setError(result.error || tI("errors.createFailed"));
         return;
       }
 
@@ -115,7 +120,7 @@ export function CreateInviteDialog({
       setStep("success");
       onSuccess();
     } catch {
-      setError("Ein unerwarteter Fehler ist aufgetreten.");
+      setError(tI("errors.unexpected"));
     } finally {
       setIsLoading(false);
     }
@@ -125,10 +130,10 @@ export function CreateInviteDialog({
     try {
       await navigator.clipboard.writeText(createdLink);
       setCopied(true);
-      toast.success("Link in die Zwischenablage kopiert!");
+      toast.success(tI("toast.linkCopied"));
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      toast.error("Kopieren fehlgeschlagen. Bitte manuell kopieren.");
+      toast.error(tI("toast.copyFailed"));
     }
   }
 
@@ -138,9 +143,9 @@ export function CreateInviteDialog({
         {step === "form" ? (
           <>
             <DialogHeader>
-              <DialogTitle>Neue Einladung erstellen</DialogTitle>
+              <DialogTitle>{tI("dialog.title")}</DialogTitle>
               <DialogDescription>
-                Erstelle einen Einladungslink für deine Gemeinde.
+                {tI("dialog.desc")}
               </DialogDescription>
             </DialogHeader>
 
@@ -153,7 +158,7 @@ export function CreateInviteDialog({
 
               {/* Einladungstyp */}
               <div className="space-y-2">
-                <Label>Einladungstyp</Label>
+                <Label>{tI("dialog.typeLabel")}</Label>
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
@@ -165,8 +170,8 @@ export function CreateInviteDialog({
                     }`}
                   >
                     <UserPlus className="h-5 w-5" />
-                    <span className="font-medium">Persönlich</span>
-                    <span className="text-xs text-gray-500">Einmalig nutzbar</span>
+                    <span className="font-medium">{tI("dialog.personal")}</span>
+                    <span className="text-xs text-gray-500">{tI("dialog.personalHint")}</span>
                   </button>
                   <button
                     type="button"
@@ -178,8 +183,8 @@ export function CreateInviteDialog({
                     }`}
                   >
                     <Users className="h-5 w-5" />
-                    <span className="font-medium">Gruppe</span>
-                    <span className="text-xs text-gray-500">Mehrfach nutzbar</span>
+                    <span className="font-medium">{tI("dialog.group")}</span>
+                    <span className="text-xs text-gray-500">{tI("dialog.groupHint")}</span>
                   </button>
                 </div>
               </div>
@@ -188,11 +193,11 @@ export function CreateInviteDialog({
               {inviteType === "group" && (
                 <div className="space-y-2">
                   <Label htmlFor="label">
-                    Name / Bezeichnung <span className="text-red-500">*</span>
+                    {tI("dialog.nameLabel")} <span className="text-red-500">*</span>
                   </Label>
                   <Input
                     id="label"
-                    placeholder="z.B. WhatsApp Gruppe Schwesternkreis"
+                    placeholder={tI("dialog.namePlaceholder")}
                     value={label}
                     onChange={(e) => setLabel(e.target.value)}
                     maxLength={100}
@@ -203,29 +208,29 @@ export function CreateInviteDialog({
               {/* Persönlich: E-Mail optional */}
               {inviteType === "personal" && (
                 <div className="space-y-2">
-                  <Label htmlFor="email">E-Mail (optional)</Label>
+                  <Label htmlFor="email">{tI("dialog.emailLabel")}</Label>
                   <Input
                     id="email"
                     type="email"
-                    placeholder="eingeladene@person.de"
+                    placeholder={tI("dialog.emailPlaceholder")}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                   />
                   <p className="text-xs text-gray-500">
-                    Wird im Registrierungsformular vorausgefüllt.
+                    {tI("dialog.emailHint")}
                   </p>
                 </div>
               )}
 
               {/* Rolle */}
               <div className="space-y-2">
-                <Label>Rolle nach Registrierung</Label>
+                <Label>{tI("dialog.roleLabel")}</Label>
                 <Select value={role} onValueChange={(v) => setRole(v as typeof role)}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {ROLE_OPTIONS.map((opt) => (
+                    {roleOptions.map((opt) => (
                       <SelectItem key={opt.value} value={opt.value}>
                         {opt.label}
                       </SelectItem>
@@ -236,7 +241,7 @@ export function CreateInviteDialog({
 
               {/* Initialer Status */}
               <div className="space-y-2">
-                <Label>Status nach Registrierung</Label>
+                <Label>{tI("dialog.statusLabel")}</Label>
                 <Select
                   value={initialStatus}
                   onValueChange={(v) => setInitialStatus(v as typeof initialStatus)}
@@ -245,13 +250,13 @@ export function CreateInviteDialog({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="pending">Ausstehend (muss aktiviert werden)</SelectItem>
-                    <SelectItem value="active">Direkt aktiv</SelectItem>
+                    <SelectItem value="pending">{tI("dialog.statusPending")}</SelectItem>
+                    <SelectItem value="active">{tI("dialog.statusActive")}</SelectItem>
                   </SelectContent>
                 </Select>
                 {inviteType === "group" && initialStatus === "active" && (
                   <p className="text-xs text-amber-600">
-                    Hinweis: Gruppeneinladungen empfehlen &quot;Ausstehend&quot; für mehr Kontrolle.
+                    {tI("dialog.groupWarning")}
                   </p>
                 )}
               </div>
@@ -260,19 +265,19 @@ export function CreateInviteDialog({
               {inviteType === "group" && (
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-2">
-                    <Label htmlFor="max_uses">Max. Nutzungen</Label>
+                    <Label htmlFor="max_uses">{tI("dialog.maxUsesLabel")}</Label>
                     <Input
                       id="max_uses"
                       type="number"
                       min={1}
-                      placeholder="z.B. 50"
+                      placeholder={tI("dialog.maxUsesPlaceholder")}
                       value={maxUses}
                       onChange={(e) => setMaxUses(e.target.value)}
                     />
-                    <p className="text-xs text-gray-500">Leer = unbegrenzt</p>
+                    <p className="text-xs text-gray-500">{tI("dialog.maxUsesHint")}</p>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="expires_at">Gültig bis</Label>
+                    <Label htmlFor="expires_at">{tI("dialog.expiryLabel")}</Label>
                     <Input
                       id="expires_at"
                       type="date"
@@ -287,18 +292,18 @@ export function CreateInviteDialog({
 
             <DialogFooter>
               <Button variant="outline" onClick={handleClose} disabled={isLoading}>
-                Abbrechen
+                {tCommon("cancel")}
               </Button>
               <Button onClick={handleCreate} disabled={isLoading}>
                 {isLoading ? (
                   <span className="flex items-center gap-2">
                     <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent motion-reduce:animate-none" />
-                    Erstelle…
+                    {tI("dialog.submitting")}
                   </span>
                 ) : (
                   <span className="flex items-center gap-2">
                     <Link2 className="h-4 w-4" />
-                    Link erstellen
+                    {tI("dialog.submit")}
                   </span>
                 )}
               </Button>
@@ -309,17 +314,16 @@ export function CreateInviteDialog({
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <Check className="h-5 w-5 text-emerald-600" />
-                Einladungslink erstellt
+                {tI("dialog.successTitle")}
               </DialogTitle>
               <DialogDescription>
-                Kopiere den Link und teile ihn mit der eingeladenen Person
-                {inviteType === "group" ? "en" : ""}.
+                {inviteType === "group" ? tI("dialog.successDescGroup") : tI("dialog.successDescPersonal")}
               </DialogDescription>
             </DialogHeader>
 
             <div className="space-y-4 py-2">
               <div className="space-y-2">
-                <Label>Einladungslink</Label>
+                <Label>{tI("dialog.linkLabel")}</Label>
                 <div className="flex gap-2">
                   <Input
                     readOnly
@@ -331,7 +335,7 @@ export function CreateInviteDialog({
                     variant={copied ? "outline" : "default"}
                     size="icon"
                     onClick={copyLink}
-                    aria-label="Link kopieren"
+                    aria-label={tI("dialog.copyLink")}
                     className="flex-shrink-0"
                   >
                     {copied ? (
@@ -342,23 +346,22 @@ export function CreateInviteDialog({
                   </Button>
                 </div>
                 <p className="text-xs text-amber-600">
-                  Dieser Link wird nur einmalig angezeigt. Bitte jetzt kopieren und sicher
-                  aufbewahren.
+                  {tI("dialog.warningOnce")}
                 </p>
               </div>
 
               <div className="rounded-lg border border-gray-100 bg-gray-50 p-3 text-xs text-gray-600 space-y-1">
                 <p>
-                  <span className="font-medium">Typ:</span>{" "}
-                  {inviteType === "personal" ? "Persönlich (1×)" : "Gruppe (mehrfach)"}
+                  <span className="font-medium">{tI("dialog.typeRow")}</span>{" "}
+                  {inviteType === "personal" ? tI("dialog.typePersonal") : tI("dialog.typeGroup")}
                 </p>
                 <p>
-                  <span className="font-medium">Rolle:</span>{" "}
-                  {{ member: "Mitglied", imam: "Imam", teacher: "Lehrer/in", editor: "Editor", admin: "Administrator" }[role]}
+                  <span className="font-medium">{tI("dialog.roleRow")}</span>{" "}
+                  {roleOptions.find((o) => o.value === role)?.label ?? role}
                 </p>
                 <p>
-                  <span className="font-medium">Status:</span>{" "}
-                  {initialStatus === "active" ? "Direkt aktiv" : "Ausstehend"}
+                  <span className="font-medium">{tI("dialog.statusRow")}</span>{" "}
+                  {initialStatus === "active" ? tI("dialog.statusDisplayActive") : tI("dialog.statusDisplayPending")}
                 </p>
               </div>
             </div>
@@ -368,17 +371,17 @@ export function CreateInviteDialog({
                 {copied ? (
                   <span className="flex items-center gap-2">
                     <Check className="h-4 w-4" />
-                    Kopiert!
+                    {tI("dialog.copyLink")}
                   </span>
                 ) : (
                   <span className="flex items-center gap-2">
                     <Copy className="h-4 w-4" />
-                    Link kopieren
+                    {tI("dialog.copyLink")}
                   </span>
                 )}
               </Button>
               <Button variant="outline" onClick={handleClose}>
-                Schließen
+                {tCommon("cancel")}
               </Button>
             </DialogFooter>
           </>

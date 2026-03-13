@@ -2,32 +2,14 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { RefreshCw } from "lucide-react";
 import type { Event } from "@/types";
 import type { EventInput } from "@/lib/validations";
-import { eventCategoryOptions, visibilityOptions } from "@/lib/constants";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-
-const PRAYER_OPTIONS = [
-  { value: "fajr",    label: "Fajr (Morgengebet)" },
-  { value: "dhuhr",   label: "Dhuhr (Mittagsgebet)" },
-  { value: "asr",     label: "Asr (Nachmittagsgebet)" },
-  { value: "maghrib", label: "Maghrib (Abendgebet)" },
-  { value: "isha",    label: "Isha (Nachtgebet)" },
-] as const;
-
-const DAY_OPTIONS = [
-  { value: "monday",    label: "Montag" },
-  { value: "tuesday",   label: "Dienstag" },
-  { value: "wednesday", label: "Mittwoch" },
-  { value: "thursday",  label: "Donnerstag" },
-  { value: "friday",    label: "Freitag" },
-  { value: "saturday",  label: "Samstag" },
-  { value: "sunday",    label: "Sonntag" },
-] as const;
 
 const SELECT_CLASS =
   "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2";
@@ -46,6 +28,39 @@ interface EventFormProps {
 
 export function EventForm({ initialData, onSubmit, isEdit, defaultVisibility }: EventFormProps) {
   const router = useRouter();
+  const tL = useTranslations("labels");
+
+  const categoryOptions = [
+    { value: "youth", label: tL("event.category.youth") },
+    { value: "lecture", label: tL("event.category.lecture") },
+    { value: "quran", label: tL("event.category.quran") },
+    { value: "community", label: tL("event.category.community") },
+    { value: "ramadan", label: tL("event.category.ramadan") },
+    { value: "other", label: tL("event.category.other") },
+  ];
+
+  const visibilityOpts = [
+    { value: "public", label: tL("visibility.public") },
+    { value: "members", label: tL("visibility.members") },
+  ];
+
+  const prayerOptions = [
+    { value: "fajr",    label: tL("prayer.fajr") },
+    { value: "dhuhr",   label: tL("prayer.dhuhr") },
+    { value: "asr",     label: tL("prayer.asr") },
+    { value: "maghrib", label: tL("prayer.maghrib") },
+    { value: "isha",    label: tL("prayer.isha") },
+  ];
+
+  const dayOptions = [
+    { value: "monday",    label: tL("day.monday") },
+    { value: "tuesday",   label: tL("day.tuesday") },
+    { value: "wednesday", label: tL("day.wednesday") },
+    { value: "thursday",  label: tL("day.thursday") },
+    { value: "friday",    label: tL("day.friday") },
+    { value: "saturday",  label: tL("day.saturday") },
+    { value: "sunday",    label: tL("day.sunday") },
+  ];
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
 
@@ -219,7 +234,7 @@ export function EventForm({ initialData, onSubmit, isEdit, defaultVisibility }: 
         <div className="space-y-2">
           <Label htmlFor="category">Kategorie</Label>
           <select id="category" value={category} onChange={(e) => setCategory(e.target.value as EventInput["category"])} className={SELECT_CLASS}>
-            {eventCategoryOptions.map((opt) => (
+            {categoryOptions.map((opt) => (
               <option key={opt.value} value={opt.value}>{opt.label}</option>
             ))}
           </select>
@@ -227,7 +242,7 @@ export function EventForm({ initialData, onSubmit, isEdit, defaultVisibility }: 
         <div className="space-y-2">
           <Label htmlFor="visibility">Sichtbarkeit</Label>
           <select id="visibility" value={visibility} onChange={(e) => setVisibility(e.target.value as EventInput["visibility"])} className={SELECT_CLASS}>
-            {visibilityOptions.map((opt) => (
+            {visibilityOpts.map((opt) => (
               <option key={opt.value} value={opt.value}>{opt.label}</option>
             ))}
           </select>
@@ -287,7 +302,7 @@ export function EventForm({ initialData, onSubmit, isEdit, defaultVisibility }: 
               onChange={(e) => setStartPrayer(e.target.value)}
               className={`${SELECT_CLASS} max-w-xs`}
             >
-              {PRAYER_OPTIONS.map((p) => (
+              {prayerOptions.map((p) => (
                 <option key={p.value} value={p.value}>{p.label}</option>
               ))}
             </select>
@@ -415,9 +430,9 @@ export function EventForm({ initialData, onSubmit, isEdit, defaultVisibility }: 
                 onChange={(e) => setRecurrenceType(e.target.value as "daily" | "weekly" | "monthly")}
                 className={SELECT_CLASS}
               >
-                <option value="daily">Täglich</option>
-                <option value="weekly">Wöchentlich</option>
-                <option value="monthly">Monatlich</option>
+                <option value="daily">{tL("recurrence.daily")}</option>
+                <option value="weekly">{tL("recurrence.weekly")}</option>
+                <option value="monthly">{tL("recurrence.monthly")}</option>
               </select>
             </div>
 
@@ -430,7 +445,7 @@ export function EventForm({ initialData, onSubmit, isEdit, defaultVisibility }: 
                   onChange={(e) => setRecurrenceDayOfWeek(e.target.value)}
                   className={SELECT_CLASS}
                 >
-                  {DAY_OPTIONS.map((d) => (
+                  {dayOptions.map((d) => (
                     <option key={d.value} value={d.value}>{d.label}</option>
                   ))}
                 </select>

@@ -21,15 +21,16 @@ import { THEME_PRESETS, PRAYER_METHODS, PRAYER_PROVIDERS } from "@/lib/constants
 import type { TuneOffsets } from "@/lib/prayer";
 import { DEFAULT_TUNE } from "@/lib/prayer";
 import type { Mosque, Settings as SettingsType } from "@/types";
+import { useTranslations } from "next-intl";
 
 const PB_URL = process.env.NEXT_PUBLIC_POCKETBASE_URL || "";
 
 const TABS = [
-  { id: "branding", label: "Branding", icon: Palette },
-  { id: "prayer", label: "Gebetszeiten", icon: Clock },
-  { id: "defaults", label: "Defaults", icon: Sliders },
-  { id: "madrasa", label: "Madrasa", icon: GraduationCap },
-  { id: "email", label: "E-Mail", icon: Mail },
+  { id: "branding", icon: Palette },
+  { id: "prayer", icon: Clock },
+  { id: "defaults", icon: Sliders },
+  { id: "madrasa", icon: GraduationCap },
+  { id: "email", icon: Mail },
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];
@@ -91,6 +92,7 @@ function SectionCard({
 export default function AdminSettingsPage() {
   const { mosqueId } = useMosque();
   const { user } = useAuth();
+  const t = useTranslations("settings");
   const [activeTab, setActiveTab] = useState<TabId>("branding");
   const [mosque, setMosque] = useState<Mosque | null>(null);
   const [settings, setSettings] = useState<SettingsType | null>(null);
@@ -130,7 +132,7 @@ export default function AdminSettingsPage() {
   if (!mosque || !settings) {
     return (
       <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-center text-sm text-red-700">
-        Einstellungen konnten nicht geladen werden.
+        {t("loadError")}
       </div>
     );
   }
@@ -143,14 +145,14 @@ export default function AdminSettingsPage() {
           <Settings className="h-5 w-5 text-emerald-600" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Einstellungen</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t("title")}</h1>
           <p className="text-sm text-gray-500">{mosque.name}</p>
         </div>
       </div>
 
       {/* Tabs */}
       <div className="mb-6 flex gap-1 rounded-xl border border-gray-200 bg-gray-100 p-1">
-        {TABS.map(({ id, label, icon: Icon }) => (
+        {TABS.map(({ id, icon: Icon }) => (
           <button
             key={id}
             type="button"
@@ -162,7 +164,7 @@ export default function AdminSettingsPage() {
             }`}
           >
             <Icon className="h-4 w-4" />
-            {label}
+            {t(`tab.${id}` as Parameters<typeof t>[0])}
           </button>
         ))}
       </div>
@@ -237,6 +239,7 @@ function BrandingTab({
   userId: string;
   onSaved: (updated: Partial<Mosque>) => void;
 }) {
+  const t = useTranslations("settings");
   const { refreshMosque } = useMosque();
   const router = useRouter();
   const [form, setForm] = useState({
@@ -282,11 +285,11 @@ function BrandingTab({
     const file = e.target.files?.[0];
     if (!file) return;
     if (!["image/png", "image/jpeg", "image/webp", "image/svg+xml"].includes(file.type)) {
-      setStatus({ type: "error", message: "Nur PNG, JPG, WebP oder SVG erlaubt." });
+      setStatus({ type: "error", message: t("branding.logoHint") });
       return;
     }
     if (file.size > 2 * 1024 * 1024) {
-      setStatus({ type: "error", message: "Logo darf maximal 2 MB groß sein." });
+      setStatus({ type: "error", message: t("branding.logoHint") });
       return;
     }
     setLogoFile(file);
@@ -305,10 +308,10 @@ function BrandingTab({
   async function handleSave() {
     const errors: { primary?: string; accent?: string } = {};
     if (isCustomTheme && !validateHex(form.brand_primary_color)) {
-      errors.primary = "Ungültige Farbe. Bitte #RRGGBB-Format verwenden.";
+      errors.primary = t("branding.invalidColor");
     }
     if (isCustomTheme && !validateHex(form.brand_accent_color)) {
-      errors.accent = "Ungültige Farbe. Bitte #RRGGBB-Format verwenden.";
+      errors.accent = t("branding.invalidColor");
     }
     if (errors.primary || errors.accent) {
       setHexError(errors);
@@ -326,7 +329,7 @@ function BrandingTab({
     const result = await updateBrandingSettings(mosqueId, userId, fd);
     setIsSaving(false);
     if (result.success) {
-      setStatus({ type: "success", message: "Branding gespeichert." });
+      setStatus({ type: "success", message: t("branding.saved") });
       setLogoFile(null);
       setRemoveLogo(false);
       onSaved({ ...form, ...(removeLogo ? { brand_logo: "" } : {}) });
@@ -336,7 +339,7 @@ function BrandingTab({
         router.refresh();
       }
     } else {
-      setStatus({ type: "error", message: result.error || "Fehler beim Speichern." });
+      setStatus({ type: "error", message: result.error || t("branding.saveError") });
     }
   }
 
@@ -363,11 +366,11 @@ function BrandingTab({
   return (
     <div className="space-y-6">
       {/* Gemeinde-Informationen */}
-      <SectionCard title="Gemeinde-Informationen" description="Name, Adresse und Kontaktdaten der Gemeinde.">
+      <SectionCard title={t("branding.communityInfo")} description={t("branding.communityInfoDesc")}>
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="sm:col-span-2">
             <label className="mb-1.5 block text-sm font-medium text-gray-700">
-              Gemeindename <span className="text-red-500">*</span>
+              {t("branding.communityName")} <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -378,7 +381,7 @@ function BrandingTab({
             />
           </div>
           <div className="sm:col-span-2">
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">Straße & Hausnummer</label>
+            <label className="mb-1.5 block text-sm font-medium text-gray-700">{t("branding.street")}</label>
             <input
               type="text"
               value={form.address}
@@ -388,7 +391,7 @@ function BrandingTab({
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">PLZ</label>
+            <label className="mb-1.5 block text-sm font-medium text-gray-700">{t("branding.zipCode")}</label>
             <input
               type="text"
               value={form.zip_code}
@@ -399,7 +402,7 @@ function BrandingTab({
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">Stadt</label>
+            <label className="mb-1.5 block text-sm font-medium text-gray-700">{t("branding.city")}</label>
             <input
               type="text"
               value={form.city}
@@ -409,7 +412,7 @@ function BrandingTab({
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">Telefon</label>
+            <label className="mb-1.5 block text-sm font-medium text-gray-700">{t("branding.phone")}</label>
             <input
               type="tel"
               value={form.phone}
@@ -419,7 +422,7 @@ function BrandingTab({
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">E-Mail</label>
+            <label className="mb-1.5 block text-sm font-medium text-gray-700">{t("branding.email")}</label>
             <input
               type="email"
               value={form.email}
@@ -429,7 +432,7 @@ function BrandingTab({
             />
           </div>
           <div className="sm:col-span-2">
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">Website</label>
+            <label className="mb-1.5 block text-sm font-medium text-gray-700">{t("branding.website")}</label>
             <input
               type="url"
               value={form.website}
@@ -442,7 +445,7 @@ function BrandingTab({
       </SectionCard>
 
       {/* Logo */}
-      <SectionCard title="Logo" description="Logo der Gemeinde (PNG, JPG, WebP oder SVG, max. 2 MB).">
+      <SectionCard title={t("branding.logo")} description={t("branding.logoDesc")}>
         <div className="flex items-start gap-4">
           <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-gray-200 bg-gray-50">
             {logoPreview ? (
@@ -462,7 +465,7 @@ function BrandingTab({
                 className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
               >
                 <Upload className="h-4 w-4" />
-                Logo hochladen
+                {t("branding.uploadLogo")}
               </button>
               {logoPreview && (
                 <button
@@ -471,12 +474,12 @@ function BrandingTab({
                   className="inline-flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-100"
                 >
                   <X className="h-4 w-4" />
-                  Entfernen
+                  {t("branding.removeLogo")}
                 </button>
               )}
             </div>
             <p className="text-xs text-gray-400">
-              Empfohlen: quadratisch, mindestens 200×200 px
+              {t("branding.logoHint")}
             </p>
             <input
               ref={fileInputRef}
@@ -490,7 +493,7 @@ function BrandingTab({
       </SectionCard>
 
       {/* Theme */}
-      <SectionCard title="Farbschema" description="Wähle ein Farbschema oder definiere eigene Farben.">
+      <SectionCard title={t("branding.colorScheme")} description={t("branding.colorSchemeDesc")}>
         {/* Preset Grid */}
         <div className="mb-5 grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5">
           {THEME_PRESETS.map((preset) => (
@@ -537,7 +540,7 @@ function BrandingTab({
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
             <div>
               <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                Primärfarbe <span className="text-gray-400 font-normal">(#RRGGBB)</span>
+                {t("branding.primaryColor")} <span className="text-gray-400 font-normal">(#RRGGBB)</span>
               </label>
               <div className="flex gap-2">
                 <input
@@ -565,7 +568,7 @@ function BrandingTab({
             </div>
             <div>
               <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                Akzentfarbe <span className="text-gray-400 font-normal">(#RRGGBB)</span>
+                {t("branding.accentColor")} <span className="text-gray-400 font-normal">(#RRGGBB)</span>
               </label>
               <div className="flex gap-2">
                 <input
@@ -605,7 +608,7 @@ function BrandingTab({
             className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
           >
             <RotateCcw className="h-4 w-4" />
-            Zurücksetzen
+            {t("reset")}
           </button>
           <button
             type="button"
@@ -614,7 +617,7 @@ function BrandingTab({
             className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-60"
           >
             <Save className="h-4 w-4" />
-            {isSaving ? "Speichern..." : "Speichern"}
+            {isSaving ? t("save") : t("save")}
           </button>
         </div>
       </div>
@@ -662,6 +665,7 @@ function PrayerTab({
     lon: number | null;
   }) => void;
 }) {
+  const t = useTranslations("settings");
   const [prayerProvider, setPrayerProvider] = useState<"aladhan" | "off">(
     (settings.prayer_provider as "aladhan" | "off") || "aladhan"
   );
@@ -723,10 +727,10 @@ function PrayerTab({
 
     setIsSaving(false);
     if (result.success) {
-      setStatus({ type: "success", message: "Gebetszeiten-Einstellungen gespeichert." });
+      setStatus({ type: "success", message: t("prayer.saved") });
       onSaved({ prayer_method: prayerMethod, prayer_provider: prayerProvider, tune: tuneJson, lat, lon });
     } else {
-      setStatus({ type: "error", message: result.error || "Fehler beim Speichern." });
+      setStatus({ type: "error", message: result.error || t("prayer.saved") });
     }
   }
 
@@ -734,8 +738,8 @@ function PrayerTab({
     <div className="space-y-6">
       {/* Provider-Auswahl */}
       <SectionCard
-        title="Gebetszeiten-Provider"
-        description="Wähle den Anbieter für die Gebetszeiten-Berechnung."
+        title={t("prayer.provider")}
+        description={t("prayer.providerDesc")}
       >
         <div className="flex flex-wrap gap-3">
           {PRAYER_PROVIDERS.map(({ value, label }) => (
@@ -765,13 +769,13 @@ function PrayerTab({
         <>
           {/* Koordinaten */}
           <SectionCard
-            title="Standort-Koordinaten"
-            description="Breitengrad und Längengrad der Moschee für die genaue Berechnung."
+            title={t("prayer.coordinates")}
+            description={t("prayer.coordinatesDesc")}
           >
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                  Breitengrad (Latitude)
+                  {t("prayer.latitude")}
                 </label>
                 <input
                   type="text"
@@ -794,7 +798,7 @@ function PrayerTab({
               </div>
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                  Längengrad (Longitude)
+                  {t("prayer.longitude")}
                 </label>
                 <input
                   type="text"
@@ -825,8 +829,8 @@ function PrayerTab({
 
           {/* Berechnungsmethode */}
           <SectionCard
-            title="Berechnungsmethode"
-            description="Methode 13 (Diyanet) ist für türkische Gemeinden in Deutschland empfohlen."
+            title={t("prayer.method")}
+            description={t("prayer.methodDesc")}
           >
             <div className="space-y-2">
               {PRAYER_METHODS.map(({ method, name }) => (
@@ -864,8 +868,8 @@ function PrayerTab({
 
           {/* Feinabstimmung (Tune) */}
           <SectionCard
-            title="Feinabstimmung (Offsets)"
-            description="Minuten-Korrekturen je Gebet. Positiv = später, negativ = früher."
+            title={t("prayer.tuning")}
+            description={t("prayer.tuningDesc")}
           >
             <button
               type="button"
@@ -877,7 +881,7 @@ function PrayerTab({
               ) : (
                 <ChevronDown className="h-4 w-4" />
               )}
-              {showTune ? "Offsets ausblenden" : "Offsets anzeigen / bearbeiten"}
+              {showTune ? t("prayer.tuningHide") : t("prayer.tuningShow")}
             </button>
 
             {showTune && (
@@ -897,11 +901,12 @@ function PrayerTab({
                           setTune((prev) => ({
                             ...prev,
                             [key]: parseInt(e.target.value) || 0,
+
                           }))
                         }
                         className="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm font-mono text-center focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                       />
-                      <span className="text-xs text-gray-400">min</span>
+                      <span className="text-xs text-gray-400">{t("prayer.tuningMin")}</span>
                     </div>
                   </div>
                 ))}
@@ -921,7 +926,7 @@ function PrayerTab({
 
       {prayerProvider === "off" && (
         <div className="rounded-xl border border-gray-200 bg-gray-50 p-5 text-sm text-gray-500">
-          Gebetszeiten-Widget ist deaktiviert. Es wird auf der öffentlichen Seite nicht angezeigt.
+          {t("prayer.providerDisabled")}
         </div>
       )}
 
@@ -935,7 +940,7 @@ function PrayerTab({
             className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-60"
           >
             <Save className="h-4 w-4" />
-            {isSaving ? "Speichern..." : "Speichern"}
+            {isSaving ? t("save") : t("save")}
           </button>
         </div>
       </div>
@@ -958,6 +963,7 @@ function DefaultsTab({
   userId: string;
   onSaved: (updated: Partial<SettingsType>) => void;
 }) {
+  const t = useTranslations("settings");
   const [form, setForm] = useState({
     locale: settings.locale || "de",
     default_post_visibility: settings.default_post_visibility || "public",
@@ -976,7 +982,7 @@ function DefaultsTab({
 
   async function handleSave() {
     if (!validateAmounts(form.donation_quick_amounts)) {
-      setAmountsError("Bitte kommagetrennte Beträge eingeben, z.B. 10,25,50,100");
+      setAmountsError(t("defaults.donationAmountsPlaceholder"));
       return;
     }
     setAmountsError("");
@@ -985,10 +991,10 @@ function DefaultsTab({
     const result = await updateDefaultSettings(mosqueId, userId, form);
     setIsSaving(false);
     if (result.success) {
-      setStatus({ type: "success", message: "Standard-Einstellungen gespeichert." });
+      setStatus({ type: "success", message: t("defaults.saved") });
       onSaved(form);
     } else {
-      setStatus({ type: "error", message: result.error || "Fehler beim Speichern." });
+      setStatus({ type: "error", message: result.error || t("defaults.saveError") });
     }
   }
 
@@ -1011,11 +1017,11 @@ function DefaultsTab({
   return (
     <div className="space-y-6">
       {/* Sprache */}
-      <SectionCard title="Sprache" description="Standardsprache der Oberfläche.">
+      <SectionCard title={t("language.title")} description={t("language.desc")}>
         <div className="flex gap-3">
           {[
-            { value: "de", label: "Deutsch 🇩🇪" },
-            { value: "tr", label: "Türkçe 🇹🇷" },
+            { value: "de", label: t("language.de") },
+            { value: "tr", label: t("language.tr") },
           ].map(({ value, label }) => (
             <label
               key={value}
@@ -1041,16 +1047,16 @@ function DefaultsTab({
 
       {/* Standard-Sichtbarkeit */}
       <SectionCard
-        title="Standard-Sichtbarkeit"
-        description="Vorauswahl beim Erstellen neuer Beiträge und Veranstaltungen."
+        title={t("defaults.visibilityTitle")}
+        description={t("defaults.visibilityDesc")}
       >
         <div className="space-y-4">
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">Beiträge</label>
+            <label className="mb-2 block text-sm font-medium text-gray-700">{t("defaults.postsLabel")}</label>
             <div className="flex gap-3">
               {[
-                { value: "public", label: "Öffentlich" },
-                { value: "members", label: "Nur Mitglieder" },
+                { value: "public", label: t("defaults.public") },
+                { value: "members", label: t("defaults.members") },
               ].map(({ value, label }) => (
                 <label
                   key={value}
@@ -1074,11 +1080,11 @@ function DefaultsTab({
             </div>
           </div>
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">Veranstaltungen</label>
+            <label className="mb-2 block text-sm font-medium text-gray-700">{t("defaults.eventsLabel")}</label>
             <div className="flex gap-3">
               {[
-                { value: "public", label: "Öffentlich" },
-                { value: "members", label: "Nur Mitglieder" },
+                { value: "public", label: t("defaults.public") },
+                { value: "members", label: t("defaults.members") },
               ].map(({ value, label }) => (
                 <label
                   key={value}
@@ -1106,8 +1112,8 @@ function DefaultsTab({
 
       {/* Spenden Schnellbeträge */}
       <SectionCard
-        title="Spenden-Schnellbeträge"
-        description="Kommagetrennte Beträge in EUR, die auf der Spendenseite als Schnellauswahl angezeigt werden."
+        title={t("defaults.donationAmounts")}
+        description={t("defaults.donationAmountsDesc")}
       >
         <div>
           <input
@@ -1153,7 +1159,7 @@ function DefaultsTab({
             className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
           >
             <RotateCcw className="h-4 w-4" />
-            Zurücksetzen
+            {t("reset")}
           </button>
           <button
             type="button"
@@ -1162,7 +1168,7 @@ function DefaultsTab({
             className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-60"
           >
             <Save className="h-4 w-4" />
-            {isSaving ? "Speichern..." : "Speichern"}
+            {isSaving ? t("save") : t("save")}
           </button>
         </div>
       </div>
@@ -1187,6 +1193,7 @@ function MadrasaTab({
   donationProvider: string;
   onSaved: (updated: { madrasa_fees_enabled: boolean; madrasa_default_fee_cents: number }) => void;
 }) {
+  const t = useTranslations("settings");
   const [feesEnabled, setFeesEnabled] = useState(feeSettings.madrasa_fees_enabled);
   const [defaultFeeCents, setDefaultFeeCents] = useState(feeSettings.madrasa_default_fee_cents);
   const [isSaving, setIsSaving] = useState(false);
@@ -1204,10 +1211,10 @@ function MadrasaTab({
     });
     setIsSaving(false);
     if (result.success) {
-      setStatus({ type: "success", message: "Madrasa-Einstellungen gespeichert." });
+      setStatus({ type: "success", message: t("madrasaFee.saved") });
       onSaved({ madrasa_fees_enabled: feesEnabled, madrasa_default_fee_cents: defaultFeeCents });
     } else {
-      setStatus({ type: "error", message: result.error || "Fehler beim Speichern." });
+      setStatus({ type: "error", message: result.error || t("madrasaFee.saveError") });
     }
   }
 
@@ -1220,14 +1227,14 @@ function MadrasaTab({
   return (
     <div className="space-y-6">
       <SectionCard
-        title="Monatliche Gebühren"
-        description="Aktiviert die Gebührenverwaltung für Madrasa-Schüler. Pro Schüler wird ein monatlicher Beitrag erfasst."
+        title={t("madrasaFee.title")}
+        description={t("madrasaFee.desc")}
       >
         <label className="flex cursor-pointer items-center justify-between gap-4 rounded-xl border border-gray-200 p-4 hover:bg-gray-50">
           <div>
-            <p className="font-medium text-gray-900">Gebühren aktivieren</p>
+            <p className="font-medium text-gray-900">{t("madrasaFee.enabled")}</p>
             <p className="mt-0.5 text-sm text-gray-500">
-              Ermöglicht die Erfassung und Verwaltung von Monatsgebühren je Schüler.
+              {t("madrasaFee.enabledDesc")}
             </p>
           </div>
           <button
@@ -1251,8 +1258,8 @@ function MadrasaTab({
       {feesEnabled && (
         <>
           <SectionCard
-            title="Standard-Betrag"
-            description="Wird beim Erstellen der monatlichen Gebühren vorausgefüllt. Kann je Monat angepasst werden."
+            title={t("madrasaFee.defaultAmount")}
+            description={t("madrasaFee.defaultAmountDesc")}
           >
             <div className="flex items-center gap-3">
               <div className="relative w-40">
@@ -1269,21 +1276,21 @@ function MadrasaTab({
                 />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">€</span>
               </div>
-              <span className="text-sm text-gray-500">{defaultFeeCents} Cent</span>
+              <span className="text-sm text-gray-500">{defaultFeeCents} {t("madrasaFee.cents")}</span>
             </div>
           </SectionCard>
 
           <SectionCard
-            title="Online-Zahlung"
-            description="Eltern mit Portal-Account können Gebühren online bezahlen."
+            title={t("madrasaFee.onlineTitle")}
+            description={t("madrasaFee.onlineDesc")}
           >
             {stripeEnabled ? (
               <div className="flex items-start gap-3 rounded-lg border border-emerald-200 bg-emerald-50 p-4">
                 <Check className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
                 <div className="text-sm text-emerald-800">
-                  <p className="font-medium">Stripe ist aktiv</p>
+                  <p className="font-medium">{t("madrasaFee.stripeActive")}</p>
                   <p className="mt-0.5 text-emerald-700">
-                    Eltern mit Portal-Account können Gebühren per Stripe-Checkout online bezahlen.
+                    {t("madrasaFee.onlineDesc")}
                   </p>
                 </div>
               </div>
@@ -1291,9 +1298,9 @@ function MadrasaTab({
               <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4">
                 <X className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
                 <div className="text-sm text-amber-800">
-                  <p className="font-medium">Kein Stripe-Zahlungsanbieter konfiguriert</p>
+                  <p className="font-medium">{t("madrasaFee.noStripe")}</p>
                   <p className="mt-0.5 text-amber-700">
-                    Wähle Stripe als Zahlungsanbieter im Branding-Tab um Online-Zahlungen für Gebühren zu aktivieren.
+                    {t("madrasaFee.noStripe")}
                   </p>
                 </div>
               </div>
@@ -1311,7 +1318,7 @@ function MadrasaTab({
             className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
           >
             <RotateCcw className="h-4 w-4" />
-            Zurücksetzen
+            {t("reset")}
           </button>
           <button
             type="button"
@@ -1320,7 +1327,7 @@ function MadrasaTab({
             className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-60"
           >
             <Save className="h-4 w-4" />
-            {isSaving ? "Speichern..." : "Speichern"}
+            {isSaving ? t("save") : t("save")}
           </button>
         </div>
       </div>
@@ -1352,6 +1359,7 @@ const DEFAULT_SMTP: PbSmtpSettings = {
 };
 
 function EmailTab({ mosqueId: _mosqueId, adminEmail }: { mosqueId: string; adminEmail: string }) {
+  const t = useTranslations("settings");
   const [smtpData, setSmtpData] = useState<PbSmtpSettings>(DEFAULT_SMTP);
   const [isLoadingSmtp, setIsLoadingSmtp] = useState(true);
   const [testEmail, setTestEmail] = useState(adminEmail);
@@ -1374,8 +1382,8 @@ function EmailTab({ mosqueId: _mosqueId, adminEmail }: { mosqueId: string; admin
     const r = await sendTestEmailAction(testEmail.trim());
     setTestStatus(
       r.success
-        ? { type: "success", message: "Test-E-Mail erfolgreich gesendet!" }
-        : { type: "error", message: r.error || "Fehler beim Senden der Test-E-Mail." }
+        ? { type: "success", message: t("email.saved") }
+        : { type: "error", message: r.error || t("email.saveError") }
     );
     setIsTesting(false);
   }
@@ -1386,8 +1394,8 @@ function EmailTab({ mosqueId: _mosqueId, adminEmail }: { mosqueId: string; admin
     const r = await updatePbSmtpSettings(smtpData);
     setSmtpStatus(
       r.success
-        ? { type: "success", message: "SMTP-Einstellungen gespeichert!" }
-        : { type: "error", message: r.error || "Fehler beim Speichern." }
+        ? { type: "success", message: t("email.saved") }
+        : { type: "error", message: r.error || t("email.saveError") }
     );
     setIsSavingSmtp(false);
   }
@@ -1407,8 +1415,8 @@ function EmailTab({ mosqueId: _mosqueId, adminEmail }: { mosqueId: string; admin
     <div className="space-y-6">
       {/* Resend API Status */}
       <SectionCard
-        title="Resend API (App-E-Mails)"
-        description="Versendet Newsletter, Event-Bestätigungen, Spendenquittungen und Madrasa-Mahnungen."
+        title={t("email.resendTitle")}
+        description={t("email.resendDesc")}
       >
         <div className="space-y-4">
           <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800">
@@ -1428,13 +1436,13 @@ RESEND_FROM_EMAIL=Moschee Portal <noreply@deine-domain.de>`}
           </div>
 
           <div className="space-y-2">
-            <label className={labelCls}>Test-E-Mail senden</label>
+            <label className={labelCls}>{t("email.resendKeyLabel")}</label>
             <div className="flex gap-2">
               <input
                 type="email"
                 value={testEmail}
                 onChange={(e) => setTestEmail(e.target.value)}
-                placeholder="empfaenger@beispiel.de"
+                placeholder={t("email.resendKeyPlaceholder")}
                 className={`${inputCls} flex-1`}
               />
               <button
@@ -1448,7 +1456,7 @@ RESEND_FROM_EMAIL=Moschee Portal <noreply@deine-domain.de>`}
                 ) : (
                   <Send className="h-4 w-4" />
                 )}
-                {isTesting ? "Sende..." : "Senden"}
+                {isTesting ? t("email.saving") : t("email.save")}
               </button>
             </div>
             {testStatus && (
@@ -1473,8 +1481,8 @@ RESEND_FROM_EMAIL=Moschee Portal <noreply@deine-domain.de>`}
 
       {/* PocketBase SMTP */}
       <SectionCard
-        title="PocketBase SMTP (Passwort-Reset & Auth-E-Mails)"
-        description="PocketBase versendet Passwort-Reset-Links über diesen SMTP-Server. Verwende Resend als SMTP-Relay für eine einheitliche E-Mail-Infrastruktur."
+        title={t("email.smtpTitle")}
+        description={t("email.smtpDesc")}
       >
         {isLoadingSmtp ? (
           <div className="flex items-center justify-center py-8">
@@ -1500,7 +1508,7 @@ RESEND_FROM_EMAIL=Moschee Portal <noreply@deine-domain.de>`}
             {/* SMTP Felder */}
             <div className="grid grid-cols-2 gap-4">
               <div className="col-span-2 sm:col-span-1">
-                <label className={labelCls}>SMTP Host</label>
+                <label className={labelCls}>{t("email.host")}</label>
                 <input
                   type="text"
                   value={smtpData.smtp.host}
@@ -1510,7 +1518,7 @@ RESEND_FROM_EMAIL=Moschee Portal <noreply@deine-domain.de>`}
                 />
               </div>
               <div>
-                <label className={labelCls}>Port</label>
+                <label className={labelCls}>{t("email.port")}</label>
                 <input
                   type="number"
                   value={smtpData.smtp.port}
@@ -1520,7 +1528,7 @@ RESEND_FROM_EMAIL=Moschee Portal <noreply@deine-domain.de>`}
                 />
               </div>
               <div>
-                <label className={labelCls}>Benutzername</label>
+                <label className={labelCls}>{t("email.username")}</label>
                 <input
                   type="text"
                   value={smtpData.smtp.username}
@@ -1530,7 +1538,7 @@ RESEND_FROM_EMAIL=Moschee Portal <noreply@deine-domain.de>`}
                 />
               </div>
               <div>
-                <label className={labelCls}>Passwort (API-Key)</label>
+                <label className={labelCls}>{t("email.password")}</label>
                 <input
                   type="password"
                   value={smtpData.smtp.password}
@@ -1540,7 +1548,7 @@ RESEND_FROM_EMAIL=Moschee Portal <noreply@deine-domain.de>`}
                 />
               </div>
               <div className="col-span-2 sm:col-span-1">
-                <label className={labelCls}>Absender-Name</label>
+                <label className={labelCls}>{t("email.senderName")}</label>
                 <input
                   type="text"
                   value={smtpData.meta.senderName}
@@ -1550,7 +1558,7 @@ RESEND_FROM_EMAIL=Moschee Portal <noreply@deine-domain.de>`}
                 />
               </div>
               <div className="col-span-2 sm:col-span-1">
-                <label className={labelCls}>Absender-Adresse</label>
+                <label className={labelCls}>{t("email.senderAddress")}</label>
                 <input
                   type="email"
                   value={smtpData.meta.senderAddress}
@@ -1570,7 +1578,7 @@ RESEND_FROM_EMAIL=Moschee Portal <noreply@deine-domain.de>`}
                 className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
               />
               <label htmlFor="smtp-tls" className="text-sm text-gray-700">
-                TLS / SSL verwenden
+                {t("email.tls")}
               </label>
             </div>
 
@@ -1583,7 +1591,7 @@ RESEND_FROM_EMAIL=Moschee Portal <noreply@deine-domain.de>`}
                 className="ml-auto inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-60"
               >
                 <Save className="h-4 w-4" />
-                {isSavingSmtp ? "Speichern..." : "SMTP speichern"}
+                {isSavingSmtp ? t("email.saving") : t("email.save")}
               </button>
             </div>
           </div>

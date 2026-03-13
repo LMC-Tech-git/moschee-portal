@@ -21,34 +21,12 @@ import { useMosque } from "@/lib/mosque-context";
 import { getInvites, revokeInvite, deleteInvite } from "@/lib/actions/invites";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CreateInviteDialog } from "@/components/invites/CreateInviteDialog";
+import { useTranslations } from "next-intl";
 import type { Invite } from "@/types";
 
 // --- Helpers ---
-
-function getInviteStatus(invite: Invite): {
-  label: string;
-  className: string;
-} {
-  if (!invite.is_active) {
-    return { label: "Widerrufen", className: "bg-red-100 text-red-700" };
-  }
-  if (invite.expires_at && new Date(invite.expires_at) < new Date()) {
-    return { label: "Abgelaufen", className: "bg-gray-100 text-gray-600" };
-  }
-  if (invite.max_uses > 0 && invite.uses_count >= invite.max_uses) {
-    return { label: "Ausgeschöpft", className: "bg-amber-100 text-amber-700" };
-  }
-  return { label: "Aktiv", className: "bg-emerald-100 text-emerald-700" };
-}
-
-const ROLE_LABELS: Record<string, string> = {
-  member: "Mitglied",
-  teacher: "Lehrer/in",
-  admin: "Admin",
-};
 
 const ROLE_ICONS: Record<string, React.ElementType> = {
   member: Users,
@@ -71,6 +49,8 @@ function formatUsage(invite: Invite): string {
 export default function AdminInvitesPage() {
   const { user } = useAuth();
   const { mosqueId, mosque } = useMosque();
+  const t = useTranslations("invites");
+  const tCommon = useTranslations("common");
 
   const [invites, setInvites] = useState<Invite[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -81,6 +61,19 @@ export default function AdminInvitesPage() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const mosqueSlug = mosque?.slug || "";
+
+  function getInviteStatus(invite: Invite): { label: string; className: string } {
+    if (!invite.is_active) {
+      return { label: t("status.revoked"), className: "bg-red-100 text-red-700" };
+    }
+    if (invite.expires_at && new Date(invite.expires_at) < new Date()) {
+      return { label: t("status.expired"), className: "bg-gray-100 text-gray-600" };
+    }
+    if (invite.max_uses > 0 && invite.uses_count >= invite.max_uses) {
+      return { label: t("status.exhausted"), className: "bg-amber-100 text-amber-700" };
+    }
+    return { label: t("status.active"), className: "bg-emerald-100 text-emerald-700" };
+  }
 
   const loadInvites = useCallback(async () => {
     if (!mosqueId) return;
@@ -106,36 +99,37 @@ export default function AdminInvitesPage() {
     try {
       await navigator.clipboard.writeText(link);
       setCopiedId(invite.id);
-      toast.success("Link kopiert!");
+      toast.success(t("toast.linkCopied"));
       setTimeout(() => setCopiedId(null), 2000);
     } catch {
-      toast.error("Kopieren fehlgeschlagen.");
+      toast.error(t("toast.copyFailed"));
     }
   }
 
   async function handleRevoke(invite: Invite) {
     if (!mosqueId || !user?.id) return;
-    if (!confirm(`Einladung "${invite.label || invite.token.slice(0, 12) + "…"}" widerrufen?`)) return;
+    const label = invite.label || invite.token.slice(0, 12) + "…";
+    if (!confirm(t("confirmRevoke", { label }))) return;
 
     const result = await revokeInvite(invite.id, mosqueId, user.id);
     if (result.success) {
-      toast.success("Einladung widerrufen.");
+      toast.success(t("toast.revokeSuccess"));
       loadInvites();
     } else {
-      toast.error(result.error || "Fehler beim Widerrufen.");
+      toast.error(result.error || t("toast.revokeFailed"));
     }
   }
 
   async function handleDelete(invite: Invite) {
     if (!mosqueId || !user?.id) return;
-    if (!confirm("Einladung endgültig löschen?")) return;
+    if (!confirm(t("confirmDelete"))) return;
 
     const result = await deleteInvite(invite.id, mosqueId, user.id);
     if (result.success) {
-      toast.success("Einladung gelöscht.");
+      toast.success(t("toast.deleteSuccess"));
       loadInvites();
     } else {
-      toast.error(result.error || "Fehler beim Löschen.");
+      toast.error(result.error || t("toast.deleteFailed"));
     }
   }
 
@@ -144,14 +138,14 @@ export default function AdminInvitesPage() {
       {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Einladungen</h1>
+          <h1 className="text-2xl font-bold text-gray-800">{t("title")}</h1>
           <p className="mt-1 text-sm text-gray-500">
-            {isLoading ? "Laden…" : `${totalItems} Einladung${totalItems !== 1 ? "en" : ""}`}
+            {isLoading ? tCommon("loading") : `${totalItems} ${t("title").toLowerCase()}`}
           </p>
         </div>
         <Button onClick={() => setCreateOpen(true)} className="sm:self-start">
           <Plus className="mr-2 h-4 w-4" />
-          Neue Einladung
+          {t("create")}
         </Button>
       </div>
 
@@ -175,14 +169,14 @@ export default function AdminInvitesPage() {
                 <Link2 className="h-6 w-6 text-gray-400" />
               </div>
               <div>
-                <p className="font-medium text-gray-700">Noch keine Einladungen</p>
+                <p className="font-medium text-gray-700">{t("noInvitesYet")}</p>
                 <p className="mt-1 text-sm text-gray-500">
-                  Erstelle deinen ersten Einladungslink, um Mitglieder einzuladen.
+                  {t("noInvitesHint")}
                 </p>
               </div>
               <Button variant="outline" onClick={() => setCreateOpen(true)}>
                 <Plus className="mr-2 h-4 w-4" />
-                Erste Einladung erstellen
+                {t("createFirst")}
               </Button>
             </div>
           ) : (
@@ -190,12 +184,12 @@ export default function AdminInvitesPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b bg-gray-50 text-left text-xs font-medium uppercase tracking-wide text-gray-500">
-                    <th className="px-4 py-3">Typ / Bezeichnung</th>
-                    <th className="px-4 py-3">Rolle</th>
-                    <th className="px-4 py-3 text-center">Nutzungen</th>
-                    <th className="px-4 py-3">Gültig bis</th>
-                    <th className="px-4 py-3">Status</th>
-                    <th className="px-4 py-3 text-right">Aktionen</th>
+                    <th className="px-4 py-3">{t("colType")}</th>
+                    <th className="px-4 py-3">{t("colRole")}</th>
+                    <th className="px-4 py-3 text-center">{t("colUsage")}</th>
+                    <th className="px-4 py-3">{t("colExpiry")}</th>
+                    <th className="px-4 py-3">{t("colStatus")}</th>
+                    <th className="px-4 py-3 text-right">{t("colActions")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
@@ -211,7 +205,7 @@ export default function AdminInvitesPage() {
                         key={invite.id}
                         className="hover:bg-gray-50 transition-colors cursor-pointer"
                         onClick={() => !isInactive && copyInviteLink(invite)}
-                        title={isInactive ? undefined : "Link kopieren"}
+                        title={isInactive ? undefined : t("copy")}
                       >
                         {/* Typ / Bezeichnung */}
                         <td className="px-4 py-3">
@@ -225,10 +219,12 @@ export default function AdminInvitesPage() {
                             </div>
                             <div>
                               <p className="font-medium text-gray-800">
-                                {invite.label || (invite.type === "personal" ? "Persönlich" : "Gruppeneinladung")}
+                                {invite.label || (invite.type === "personal" ? t("type.personal") : t("type.group"))}
                               </p>
                               <p className="text-xs text-gray-400">
-                                {invite.type === "personal" ? "Persönlich · Einmalig" : "Gruppe · Mehrfach"}
+                                {invite.type === "personal"
+                                  ? t("typeDesc.personal")
+                                  : t("typeDesc.group")}
                                 {invite.email && ` · ${invite.email}`}
                               </p>
                             </div>
@@ -239,7 +235,7 @@ export default function AdminInvitesPage() {
                         <td className="px-4 py-3">
                           <span className="inline-flex items-center gap-1 text-xs text-gray-600">
                             <RoleIcon className="h-3.5 w-3.5" />
-                            {ROLE_LABELS[invite.role] || invite.role}
+                            {t(`role.${invite.role}` as Parameters<typeof t>[0]) || invite.role}
                           </span>
                         </td>
 
@@ -273,7 +269,7 @@ export default function AdminInvitesPage() {
                               onClick={() => copyInviteLink(invite)}
                               disabled={isInactive}
                               className="rounded p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700 disabled:cursor-not-allowed disabled:opacity-40"
-                              title="Link kopieren"
+                              title={t("copy")}
                             >
                               {copiedId === invite.id ? (
                                 <Check className="h-4 w-4 text-emerald-600" />
@@ -288,7 +284,7 @@ export default function AdminInvitesPage() {
                                 type="button"
                                 onClick={() => handleRevoke(invite)}
                                 className="rounded p-1.5 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600"
-                                title="Einladung widerrufen"
+                                title={t("revoke")}
                               >
                                 <XCircle className="h-4 w-4" />
                               </button>
@@ -300,7 +296,7 @@ export default function AdminInvitesPage() {
                                 type="button"
                                 onClick={() => handleDelete(invite)}
                                 className="rounded p-1.5 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600"
-                                title="Einladung löschen"
+                                title={tCommon("delete" as Parameters<typeof tCommon>[0])}
                               >
                                 <Trash2 className="h-4 w-4" />
                               </button>
@@ -321,7 +317,7 @@ export default function AdminInvitesPage() {
       {totalPages > 1 && (
         <div className="flex items-center justify-between">
           <p className="text-sm text-gray-500">
-            Seite {page} von {totalPages}
+            {tCommon("pageOf", { page, total: totalPages })}
           </p>
           <div className="flex gap-2">
             <Button
@@ -331,7 +327,7 @@ export default function AdminInvitesPage() {
               disabled={page <= 1 || isLoading}
             >
               <ChevronLeft className="h-4 w-4" />
-              Zurück
+              {tCommon("prevPage")}
             </Button>
             <Button
               variant="outline"
@@ -339,7 +335,7 @@ export default function AdminInvitesPage() {
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={page >= totalPages || isLoading}
             >
-              Weiter
+              {tCommon("nextPage")}
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>

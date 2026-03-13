@@ -2,13 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import type { Course, User, AcademicYear } from "@/types";
 import type { CourseInput } from "@/lib/validations";
-import {
-  courseCategoryOptions,
-  courseLevelOptions,
-  dayOfWeekOptions,
-} from "@/lib/constants";
 import { getTeachersByMosque } from "@/lib/actions/courses";
 import { getAcademicYearsByMosque } from "@/lib/actions/academic-years";
 import { Input } from "@/components/ui/input";
@@ -25,6 +21,34 @@ interface CourseFormProps {
 
 export function CourseForm({ mosqueId, initialData, onSubmit, isEdit }: CourseFormProps) {
   const router = useRouter();
+  const tL = useTranslations("labels");
+
+  const courseCategoryOptions = [
+    { value: "quran", label: tL("course.category.quran") },
+    { value: "tajweed", label: tL("course.category.tajweed") },
+    { value: "fiqh", label: tL("course.category.fiqh") },
+    { value: "arabic", label: tL("course.category.arabic") },
+    { value: "sira", label: tL("course.category.sira") },
+    { value: "islamic_studies", label: tL("course.category.islamic_studies") },
+    { value: "other", label: tL("course.category.other") },
+  ];
+
+  const courseLevelOptions = [
+    { value: "beginner", label: tL("course.level.beginner") },
+    { value: "intermediate", label: tL("course.level.intermediate") },
+    { value: "advanced", label: tL("course.level.advanced") },
+    { value: "mixed", label: tL("course.level.mixed") },
+  ];
+
+  const dayOfWeekOptions = [
+    { value: "monday",    label: tL("day.monday") },
+    { value: "tuesday",   label: tL("day.tuesday") },
+    { value: "wednesday", label: tL("day.wednesday") },
+    { value: "thursday",  label: tL("day.thursday") },
+    { value: "friday",    label: tL("day.friday") },
+    { value: "saturday",  label: tL("day.saturday") },
+    { value: "sunday",    label: tL("day.sunday") },
+  ];
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [teachers, setTeachers] = useState<User[]>([]);

@@ -2,10 +2,10 @@
 
 import { useRef, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { ImagePlus, X } from "lucide-react";
 import type { Post } from "@/types";
 import type { PostInput } from "@/lib/validations";
-import { postCategoryOptions, visibilityOptions } from "@/lib/constants";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -21,7 +21,21 @@ interface PostFormProps {
 
 export function PostForm({ initialData, onSubmit, isEdit, backPath = "/admin/posts", defaultVisibility }: PostFormProps) {
   const router = useRouter();
+  const tL = useTranslations("labels");
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const categoryOptions = [
+    { value: "announcement", label: tL("post.category.announcement") },
+    { value: "youth", label: tL("post.category.youth") },
+    { value: "campaign", label: tL("post.category.campaign") },
+    { value: "event", label: tL("post.category.event") },
+    { value: "general", label: tL("post.category.general") },
+  ];
+
+  const visibilityOpts = [
+    { value: "public", label: tL("visibility.public") },
+    { value: "members", label: tL("visibility.members") },
+  ];
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
 
@@ -160,7 +174,7 @@ export function PostForm({ initialData, onSubmit, isEdit, backPath = "/admin/pos
             onChange={(e) => setCategory(e.target.value as PostInput["category"])}
             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           >
-            {postCategoryOptions.map((opt) => (
+            {categoryOptions.map((opt) => (
               <option key={opt.value} value={opt.value}>
                 {opt.label}
               </option>
@@ -176,7 +190,7 @@ export function PostForm({ initialData, onSubmit, isEdit, backPath = "/admin/pos
             onChange={(e) => setVisibility(e.target.value as PostInput["visibility"])}
             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           >
-            {visibilityOptions.map((opt) => (
+            {visibilityOpts.map((opt) => (
               <option key={opt.value} value={opt.value}>
                 {opt.label}
               </option>

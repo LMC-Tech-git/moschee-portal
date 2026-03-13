@@ -20,7 +20,9 @@
     "noData": "Keine Daten vorhanden",
     "pageOf": "Seite {page} von {total}",
     "prevPage": "Vorherige Seite",
-    "nextPage": "Nächste Seite"
+    "nextPage": "Nächste Seite",
+    "notLoggedIn": "Nicht eingeloggt",
+    "redirecting": "Weiterleiten..."
   },
   "nav": {
     "home": "Startseite",
@@ -327,6 +329,10 @@
     "title": "Beiträge",
     "subtitle": "Verwalten Sie die Beiträge Ihrer Moschee.",
     "newPost": "Neuer Beitrag",
+    "new": {
+      "title": "Neuer Beitrag",
+      "back": "Zurück zu Beiträge"
+    },
     "filterAll": "Alle",
     "filterPublished": "Veröffentlicht",
     "filterDraft": "Entwürfe",
@@ -345,6 +351,10 @@
     "title": "Veranstaltungen",
     "subtitle": "Verwalten Sie die Veranstaltungen Ihrer Moschee.",
     "newEvent": "Neue Veranstaltung",
+    "new": {
+      "title": "Neue Veranstaltung",
+      "back": "Zurück zu Veranstaltungen"
+    },
     "filterAll": "Alle",
     "filterPublished": "Veröffentlicht",
     "filterDraft": "Entwürfe",
@@ -366,6 +376,10 @@
     "title": "Kampagnen",
     "subtitle": "Verwalten Sie die Spendenkampagnen Ihrer Moschee.",
     "newCampaign": "Neue Kampagne",
+    "new": {
+      "title": "Neue Kampagne",
+      "back": "Zurück zu Kampagnen"
+    },
     "hint": {
       "title": "Spendenkampagnen",
       "desc": "Erstellen Sie Kampagnen mit einem Spendenziel."
@@ -455,7 +469,9 @@
       "stripe": "Stripe",
       "paypal": "PayPal",
       "external": "Extern",
-      "manual": "Manuell"
+      "manual": "Manuell",
+      "cash": "Bar",
+      "transfer": "Überweisung"
     },
     "noFound": "Keine Spenden gefunden",
     "noFoundHint": "Passe die Filter an oder erfasse eine manuelle Spende.",
@@ -476,54 +492,6 @@
       "amountError": "Bitte einen gültigen Betrag eingeben (mind. 0,01 €)",
       "nameRequired": "Name des Spenders ist erforderlich"
     }
-  },
-  "settings": {
-    "title": "Einstellungen",
-    "tab": {
-      "branding": "Branding",
-      "prayer": "Gebetszeiten",
-      "defaults": "Defaults",
-      "madrasa": "Madrasa",
-      "email": "E-Mail"
-    },
-    "loadError": "Einstellungen konnten nicht geladen werden.",
-    "branding": {
-      "communityInfo": "Gemeinde-Informationen",
-      "communityInfoDesc": "Name, Adresse und Kontaktdaten der Gemeinde.",
-      "communityName": "Gemeindename",
-      "street": "Straße & Hausnummer",
-      "zipCode": "PLZ",
-      "city": "Stadt",
-      "phone": "Telefon",
-      "email": "E-Mail",
-      "website": "Website",
-      "logo": "Logo",
-      "logoDesc": "Logo der Gemeinde (PNG, JPG, WebP oder SVG, max. 2 MB).",
-      "uploadLogo": "Logo hochladen",
-      "removeLogo": "Entfernen",
-      "logoHint": "Empfohlen: quadratisch, mindestens 200×200 px",
-      "colorScheme": "Farbschema",
-      "colorSchemeDesc": "Wähle ein Farbschema oder definiere eigene Farben.",
-      "primaryColor": "Primärfarbe",
-      "accentColor": "Akzentfarbe",
-      "invalidColor": "Ungültige Farbe. Bitte #RRGGBB-Format verwenden.",
-      "saved": "Branding gespeichert.",
-      "saveError": "Fehler beim Speichern."
-    },
-    "prayer": {
-      "provider": "Gebetszeiten-Provider",
-      "providerDesc": "Wähle den Anbieter für die Gebetszeiten-Berechnung.",
-      "coordinates": "Standort-Koordinaten",
-      "coordinatesDesc": "Breitengrad und Längengrad der Moschee für die genaue Berechnung.",
-      "latitude": "Breitengrad (Latitude)",
-      "longitude": "Längengrad (Longitude)",
-      "method": "Berechnungsmethode",
-      "tuning": "Feinabstimmung",
-      "tuningDesc": "Minutenversatz je Gebetszeit (+/-)",
-      "saved": "Gebetszeiten-Einstellungen gespeichert."
-    },
-    "save": "Speichern",
-    "reset": "Zurücksetzen"
   },
   "member": {
     "profile": {
@@ -592,7 +560,8 @@
         "payOnline": "Online bezahlen"
       },
       "prevMonth": "Vorheriger Monat",
-      "nextMonth": "Nächster Monat"
+      "nextMonth": "Nächster Monat",
+      "monthYear": "{month} {year}"
     }
   },
   "newsletter": {
@@ -613,6 +582,13 @@
     "confirmQueue": "Newsletter in die Warteschlange stellen?",
     "confirmSend": "{count} E-Mail(s) jetzt versenden?",
     "queueSuccess": "{count} E-Mail(s) in Warteschlange gestellt.",
+    "sendSuccess": "Versand abgeschlossen: {sent} gesendet.",
+    "queueSection": "Warteschlange",
+    "createSection": "Neuen Newsletter erstellen",
+    "sendNow": "E-Mail(s) jetzt senden",
+    "noQueue": "Keine E-Mails in der Warteschlange",
+    "refresh": "Aktualisieren",
+    "pending": "Ausstehend",
     "stats": {
       "queued": "In Warteschlange",
       "sent": "Gesendet",
@@ -623,19 +599,20 @@
     "title": "Einladungen",
     "subtitle": "Einladungslinks erstellen und verwalten",
     "create": "Neue Einladung",
-    "colLink": "Link",
+    "colLink": "Typ / Bezeichnung",
     "colRole": "Rolle",
     "colType": "Typ",
-    "colUsage": "Nutzung",
-    "colExpiry": "Ablauf",
+    "colUsage": "Nutzungen",
+    "colExpiry": "Gültig bis",
     "colStatus": "Status",
     "colActions": "Aktionen",
     "noInvitesYet": "Noch keine Einladungen",
-    "noInvitesHint": "Erstellen Sie Ihren ersten Einladungslink.",
+    "noInvitesHint": "Erstelle deinen ersten Einladungslink, um Mitglieder einzuladen.",
+    "createFirst": "Erste Einladung erstellen",
     "copy": "Link kopieren",
     "copied": "Kopiert!",
     "revoke": "Widerrufen",
-    "confirmRevoke": "Einladung wirklich widerrufen?",
+    "confirmRevoke": "Einladung \"{label}\" wirklich widerrufen?",
     "confirmDelete": "Einladung wirklich löschen?",
     "status": {
       "active": "Aktiv",
@@ -647,10 +624,68 @@
       "personal": "Persönlich",
       "group": "Gruppe"
     },
+    "typeDesc": {
+      "personal": "Persönlich · Einmalig",
+      "group": "Gruppe · Mehrfach"
+    },
     "role": {
       "member": "Mitglied",
       "teacher": "Lehrer/in",
-      "admin": "Admin"
+      "admin": "Admin",
+      "editor": "Editor",
+      "imam": "Imam"
+    },
+    "toast": {
+      "linkCopied": "Link in die Zwischenablage kopiert!",
+      "copyFailed": "Kopieren fehlgeschlagen.",
+      "revokeSuccess": "Einladung widerrufen.",
+      "revokeFailed": "Fehler beim Widerrufen.",
+      "deleteSuccess": "Einladung gelöscht.",
+      "deleteFailed": "Fehler beim Löschen."
+    },
+    "dialog": {
+      "title": "Neue Einladung erstellen",
+      "desc": "Erstelle einen Einladungslink für deine Gemeinde.",
+      "typeLabel": "Einladungstyp",
+      "personal": "Persönlich",
+      "personalHint": "Einmalig nutzbar",
+      "group": "Gruppe",
+      "groupHint": "Mehrfach nutzbar",
+      "nameLabel": "Name / Bezeichnung",
+      "namePlaceholder": "z.B. WhatsApp Gruppe Schwesternkreis",
+      "emailLabel": "E-Mail (optional)",
+      "emailPlaceholder": "eingeladene@person.de",
+      "emailHint": "Wird im Registrierungsformular vorausgefüllt.",
+      "roleLabel": "Rolle nach Registrierung",
+      "statusLabel": "Status nach Registrierung",
+      "statusPending": "Ausstehend (muss aktiviert werden)",
+      "statusActive": "Direkt aktiv",
+      "groupWarning": "Hinweis: Gruppeneinladungen empfehlen 'Ausstehend' für mehr Kontrolle.",
+      "maxUsesLabel": "Max. Nutzungen",
+      "maxUsesPlaceholder": "z.B. 50",
+      "maxUsesHint": "Leer = unbegrenzt",
+      "expiryLabel": "Gültig bis",
+      "submit": "Link erstellen",
+      "submitting": "Erstelle…",
+      "successTitle": "Einladungslink erstellt",
+      "successDescPersonal": "Kopiere den Link und teile ihn mit der eingeladenen Person.",
+      "successDescGroup": "Kopiere den Link und teile ihn mit mehreren Personen.",
+      "linkLabel": "Einladungslink",
+      "copyLink": "Link kopieren",
+      "warningOnce": "Dieser Link wird nur einmalig angezeigt. Bitte jetzt kopieren und sicher aufbewahren.",
+      "typePersonal": "Persönlich (1×)",
+      "typeGroup": "Gruppe (mehrfach)",
+      "statusDisplayActive": "Direkt aktiv",
+      "statusDisplayPending": "Ausstehend",
+      "typeRow": "Typ:",
+      "roleRow": "Rolle:",
+      "statusRow": "Status:"
+    },
+    "errors": {
+      "nameRequired": "Bitte gib einen Namen für die Gruppeneinladung ein.",
+      "createFailed": "Einladung konnte nicht erstellt werden.",
+      "unexpected": "Ein unerwarteter Fehler ist aufgetreten.",
+      "copyFailed": "Kopieren fehlgeschlagen. Bitte manuell kopieren."
     }
   },
   "audit": {
@@ -663,6 +698,317 @@
     "colEntity": "Objekt",
     "colUser": "Benutzer",
     "colDate": "Datum",
-    "colDetails": "Details"
+    "colDetails": "Details",
+    "colChanges": "Änderungen",
+    "record": "Protokoll",
+    "unknown": "Unbekannt",
+    "system": "System",
+    "yes": "ja",
+    "no": "nein",
+    "entityFilter": {
+      "post": "Posts",
+      "event": "Events",
+      "event_registration": "Registrierungen",
+      "campaign": "Kampagnen",
+      "donation": "Spenden",
+      "member": "Mitglieder",
+      "invite": "Einladungen",
+      "madrasa": "Madrasa",
+      "student_fees": "Gebühren",
+      "newsletter": "Newsletter",
+      "settings": "Einstellungen"
+    },
+    "entity": {
+      "post": "Post",
+      "event": "Event",
+      "event_registration": "Registrierung",
+      "campaign": "Kampagne",
+      "donation": "Spende",
+      "member": "Mitglied",
+      "users": "Nutzer",
+      "invite": "Einladung",
+      "course": "Kurs",
+      "student": "Schüler",
+      "course_enrollment": "Einschreibung",
+      "attendance": "Anwesenheit",
+      "academic_year": "Schuljahr",
+      "student_fees": "Gebühren",
+      "student_fee": "Gebühr",
+      "newsletter": "Newsletter",
+      "settings": "Einstellungen",
+      "mosques": "Moschee"
+    },
+    "action": {
+      "post.created": "Post erstellt",
+      "post.updated": "Post bearbeitet",
+      "post.deleted": "Post gelöscht",
+      "event.created": "Event erstellt",
+      "event.updated": "Event bearbeitet",
+      "event.deleted": "Event gelöscht",
+      "event_registration.guest_created": "Gast-Anmeldung",
+      "event_registration.member_created": "Mitglieder-Anmeldung",
+      "event_registration.cancelled": "Abmeldung",
+      "campaign.created": "Kampagne erstellt",
+      "campaign.updated": "Kampagne bearbeitet",
+      "campaign.deleted": "Kampagne gelöscht",
+      "donation.created": "Spende erstellt",
+      "donation.status_changed": "Spenden-Status geändert",
+      "donation.paid": "Spende bezahlt",
+      "donation.failed": "Spende fehlgeschlagen",
+      "donation.refunded": "Spende erstattet",
+      "member.status_changed": "Status geändert",
+      "member.role_changed": "Rolle geändert",
+      "member.updated": "Mitglied bearbeitet",
+      "invite.created": "Einladung erstellt",
+      "invite.revoked": "Einladung widerrufen",
+      "invite.deleted": "Einladung gelöscht",
+      "invite.consumed": "Einladung angenommen",
+      "course.created": "Kurs erstellt",
+      "course.updated": "Kurs bearbeitet",
+      "course.deleted": "Kurs gelöscht",
+      "student.created": "Schüler erstellt",
+      "student.updated": "Schüler bearbeitet",
+      "student.imported": "Schüler importiert",
+      "enrollment.created": "Einschreibung erstellt",
+      "attendance.saved": "Anwesenheit gespeichert",
+      "attendance.session_deleted": "Anwesenheits-Session gelöscht",
+      "academic_year.created": "Schuljahr erstellt",
+      "academic_year.updated": "Schuljahr bearbeitet",
+      "academic_year.archived": "Schuljahr archiviert",
+      "student_fees.bulk_created": "Gebühren erstellt",
+      "student_fee.marked_paid": "Gebühr bezahlt (Bar/Überweisung)",
+      "student_fee.paid_stripe": "Gebühr bezahlt (Stripe)",
+      "student_fee.waived": "Gebühr erlassen",
+      "newsletter.queued": "Newsletter eingereiht",
+      "newsletter.sent": "Newsletter gesendet",
+      "fee_reminder.sent": "Gebühren-Erinnerung gesendet",
+      "update_branding": "Branding aktualisiert",
+      "update_prayer_settings": "Gebetszeiten aktualisiert",
+      "update_default_settings": "Standardeinstellungen aktualisiert",
+      "update_madrasa_fee_settings": "Madrasa-Einstellungen aktualisiert"
+    },
+    "field": {
+      "title": "Titel",
+      "description": "Beschreibung",
+      "status": "Status",
+      "category": "Kategorie",
+      "goal_amount_cents": "Zielbetrag (Ct)",
+      "amount_cents": "Betrag (Ct)",
+      "start_at": "Start",
+      "end_at": "Ende",
+      "role": "Rolle",
+      "name": "Name",
+      "email": "E-Mail",
+      "provider": "Anbieter",
+      "donor_type": "Spendentyp",
+      "visibility": "Sichtbarkeit",
+      "payment_method": "Zahlungsart",
+      "month_key": "Monat"
+    }
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "tab": {
+      "branding": "Branding",
+      "prayer": "Gebetszeiten",
+      "defaults": "Defaults",
+      "madrasa": "Madrasa",
+      "email": "E-Mail"
+    },
+    "loadError": "Einstellungen konnten nicht geladen werden.",
+    "branding": {
+      "communityInfo": "Gemeinde-Informationen",
+      "communityInfoDesc": "Name, Adresse und Kontaktdaten der Gemeinde.",
+      "communityName": "Gemeindename",
+      "street": "Straße & Hausnummer",
+      "zipCode": "PLZ",
+      "city": "Stadt",
+      "phone": "Telefon",
+      "email": "E-Mail",
+      "website": "Website",
+      "logo": "Logo",
+      "logoDesc": "Logo der Gemeinde (PNG, JPG, WebP oder SVG, max. 2 MB).",
+      "uploadLogo": "Logo hochladen",
+      "removeLogo": "Entfernen",
+      "logoHint": "Empfohlen: quadratisch, mindestens 200×200 px",
+      "colorScheme": "Farbschema",
+      "colorSchemeDesc": "Wähle ein Farbschema oder definiere eigene Farben.",
+      "primaryColor": "Primärfarbe",
+      "accentColor": "Akzentfarbe",
+      "invalidColor": "Ungültige Farbe. Bitte #RRGGBB-Format verwenden.",
+      "saved": "Branding gespeichert.",
+      "saveError": "Fehler beim Speichern."
+    },
+    "prayer": {
+      "provider": "Gebetszeiten-Provider",
+      "providerDesc": "Wähle den Anbieter für die Gebetszeiten-Berechnung.",
+      "coordinates": "Standort-Koordinaten",
+      "coordinatesDesc": "Breitengrad und Längengrad der Moschee für die genaue Berechnung.",
+      "latitude": "Breitengrad (Latitude)",
+      "longitude": "Längengrad (Longitude)",
+      "method": "Berechnungsmethode",
+      "methodDesc": "Berechnung der Gebetszeiten nach Berechnungsmethode.",
+      "tuning": "Feinabstimmung",
+      "tuningDesc": "Minutenversatz je Gebetszeit (+/-)",
+      "tuningShow": "Offsets anzeigen / bearbeiten",
+      "tuningHide": "Offsets ausblenden",
+      "tuningMin": "min",
+      "providerDisabled": "Gebetszeiten-Widget ist deaktiviert. Wähle einen Provider und gib Koordinaten ein.",
+      "saved": "Gebetszeiten-Einstellungen gespeichert."
+    },
+    "defaults": {
+      "title": "Standard-Einstellungen",
+      "visibilityTitle": "Standard-Sichtbarkeit",
+      "visibilityDesc": "Standardwert für neue Beiträge und Veranstaltungen.",
+      "postsLabel": "Beiträge",
+      "eventsLabel": "Veranstaltungen",
+      "public": "Öffentlich",
+      "members": "Nur Mitglieder",
+      "donationAmounts": "Spenden-Schnellbeträge",
+      "donationAmountsDesc": "Vorausgefüllte Beträge auf der Spendenseite (Komma-getrennt, in €).",
+      "donationAmountsPlaceholder": "z.B. 10,25,50,100",
+      "saved": "Standardeinstellungen gespeichert.",
+      "saveError": "Fehler beim Speichern."
+    },
+    "madrasaFee": {
+      "title": "Monatliche Gebühren",
+      "desc": "Einstellungen für die Madrasa-Monatsgebühren.",
+      "enabled": "Gebühren aktivieren",
+      "enabledDesc": "Monatliche Gebühren für Madrasa-Schüler aktivieren.",
+      "defaultAmount": "Standard-Betrag",
+      "defaultAmountDesc": "Monatliche Gebühr je Schüler in Cent (100 = 1 €).",
+      "cents": "Cent",
+      "onlineTitle": "Online-Zahlung",
+      "onlineDesc": "Mitglieder können Gebühren online bezahlen (via Stripe).",
+      "stripeActive": "Stripe ist aktiv — Online-Zahlung verfügbar.",
+      "noStripe": "Kein Stripe-Zahlungsanbieter konfiguriert. Bitte Stripe in den Einstellungen einrichten.",
+      "saved": "Madrasa-Einstellungen gespeichert.",
+      "saveError": "Fehler beim Speichern."
+    },
+    "email": {
+      "resendTitle": "Resend API (App-E-Mails)",
+      "resendDesc": "Wird für Einladungs- und System-E-Mails verwendet.",
+      "resendKeyLabel": "Resend API-Key",
+      "resendKeyPlaceholder": "re_...",
+      "smtpTitle": "PocketBase SMTP (Passwort-Reset & Auth-E-Mails)",
+      "smtpDesc": "Konfiguriert den SMTP-Server für PocketBase-Auth-E-Mails.",
+      "host": "SMTP-Host",
+      "port": "Port",
+      "username": "Benutzername",
+      "password": "Passwort",
+      "senderName": "Absender-Name",
+      "senderAddress": "Absender-Adresse",
+      "tls": "TLS/SSL verwenden",
+      "save": "SMTP speichern",
+      "saving": "Wird gespeichert...",
+      "saved": "SMTP-Einstellungen gespeichert.",
+      "saveError": "Fehler beim Speichern."
+    },
+    "language": {
+      "title": "Sprache / Dil",
+      "desc": "Sprache des Admin-Bereichs und Portals.",
+      "de": "Deutsch 🇩🇪",
+      "tr": "Türkçe 🇹🇷"
+    },
+    "save": "Speichern",
+    "reset": "Zurücksetzen"
+  },
+  "labels": {
+    "post": {
+      "category": {
+        "announcement": "Ankündigung",
+        "youth": "Jugend",
+        "campaign": "Kampagne",
+        "event": "Veranstaltung",
+        "general": "Allgemein"
+      },
+      "status": {
+        "published": "Veröffentlicht",
+        "draft": "Entwurf"
+      }
+    },
+    "event": {
+      "category": {
+        "youth": "Jugend",
+        "lecture": "Vortrag",
+        "quran": "Quran",
+        "community": "Gemeinde",
+        "ramadan": "Ramadan",
+        "other": "Sonstiges"
+      },
+      "status": {
+        "published": "Veröffentlicht",
+        "cancelled": "Abgesagt",
+        "draft": "Entwurf"
+      }
+    },
+    "campaign": {
+      "category": {
+        "ramadan": "Ramadan",
+        "construction": "Bau",
+        "aid": "Hilfe",
+        "maintenance": "Instandhaltung",
+        "general": "Allgemein"
+      },
+      "status": {
+        "active": "Aktiv",
+        "paused": "Pausiert",
+        "completed": "Abgeschlossen"
+      }
+    },
+    "course": {
+      "category": {
+        "quran": "Quran",
+        "tajweed": "Tajweed",
+        "fiqh": "Fiqh",
+        "arabic": "Arabisch",
+        "sira": "Sira",
+        "islamic_studies": "Islamkunde",
+        "other": "Sonstiges"
+      },
+      "level": {
+        "beginner": "Anfänger",
+        "intermediate": "Fortgeschritten",
+        "advanced": "Experte",
+        "mixed": "Gemischt"
+      },
+      "status": {
+        "active": "Aktiv",
+        "paused": "Pausiert",
+        "archived": "Archiviert"
+      }
+    },
+    "visibility": {
+      "public": "Öffentlich",
+      "members": "Nur Mitglieder"
+    },
+    "day": {
+      "monday": "Montag",
+      "tuesday": "Dienstag",
+      "wednesday": "Mittwoch",
+      "thursday": "Donnerstag",
+      "friday": "Freitag",
+      "saturday": "Samstag",
+      "sunday": "Sonntag"
+    },
+    "prayer": {
+      "fajr": "Fajr",
+      "dhuhr": "Dhuhr",
+      "asr": "Asr",
+      "maghrib": "Maghrib",
+      "isha": "Isha"
+    },
+    "role": {
+      "member": "Mitglied",
+      "admin": "Administrator",
+      "editor": "Editor (Beiträge, Events, Kampagnen)",
+      "teacher": "Lehrer (Madrasa)",
+      "imam": "Imam (Beiträge posten)"
+    },
+    "recurrence": {
+      "daily": "Täglich",
+      "weekly": "Wöchentlich",
+      "monthly": "Monatlich"
+    }
   }
 }

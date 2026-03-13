@@ -23,9 +23,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn, formatCurrencyCents } from "@/lib/utils";
 import {
-  campaignCategoryLabels,
   campaignCategoryColors,
-  campaignStatusLabels,
   campaignStatusColors,
 } from "@/lib/constants";
 import type { CampaignWithProgress } from "@/types";
@@ -34,6 +32,7 @@ import { useTranslations } from "next-intl";
 export default function AdminCampaignsPage() {
   const t = useTranslations("campaigns");
   const tCommon = useTranslations("common");
+  const tL = useTranslations("labels");
   const router = useRouter();
   const { mosqueId } = useMosque();
   const { user } = useAuth();
@@ -214,8 +213,7 @@ export default function AdminCampaignsPage() {
                                 "bg-gray-100 text-gray-600"
                             )}
                           >
-                            {campaignCategoryLabels[campaign.category] ||
-                              campaign.category}
+                            {tL(`campaign.category.${campaign.category}` as Parameters<typeof tL>[0]) || campaign.category}
                           </span>
                         </td>
                         <td className="px-4 py-3">
@@ -226,8 +224,7 @@ export default function AdminCampaignsPage() {
                                 "bg-gray-100 text-gray-600"
                             )}
                           >
-                            {campaignStatusLabels[campaign.status] ||
-                              campaign.status}
+                            {tL(`campaign.status.${campaign.status}` as Parameters<typeof tL>[0]) || campaign.status}
                           </span>
                         </td>
                         <td className="px-4 py-3 hidden md:table-cell text-gray-600 text-xs whitespace-nowrap">
