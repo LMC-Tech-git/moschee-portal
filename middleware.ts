@@ -1,9 +1,42 @@
 import { NextResponse, type NextRequest } from "next/server";
-import createIntlMiddleware from "next-intl/middleware";
-import { routing } from "./i18n/routing";
 
-// next-intl Middleware für Locale-Detection (Cookie + Accept-Language)
-const intlMiddleware = createIntlMiddleware(routing);
+const LOCALES = ["de", "tr"] as const;
+type Locale = (typeof LOCALES)[number];
+const DEFAULT_LOCALE: Locale = "de";
+
+/**
+ * Locale aus Cookie oder Accept-Language-Header ermitteln.
+ * Kein Redirect, kein createIntlMiddleware — nur Cookie lesen + Header setzen.
+ */
+function detectLocale(request: NextRequest): Locale {
+  const cookie = request.cookies.get("NEXT_LOCALE")?.value;
+  if (cookie && (LOCALES as readonly string[]).includes(cookie)) {
+    return cookie as Locale;
+  }
+  const acceptLang = request.headers.get("accept-language") || "";
+  if (acceptLang.toLowerCase().startsWith("tr")) {
+    return "tr";
+  }
+  return DEFAULT_LOCALE;
+}
+
+/**
+ * Locale-Cookie und x-next-intl-locale-Header auf eine Response setzen.
+ * x-next-intl-locale wird von next-intl getRequestConfig() als requestLocale gelesen.
+ */
+function applyLocale(response: NextResponse, request: NextRequest): NextResponse {
+  const locale = detectLocale(request);
+  response.headers.set("x-next-intl-locale", locale);
+  // Cookie nur setzen wenn noch nicht vorhanden (nicht bei jeder Anfrage überschreiben)
+  if (!request.cookies.get("NEXT_LOCALE")) {
+    response.cookies.set("NEXT_LOCALE", locale, {
+      path: "/",
+      maxAge: 60 * 60 * 24 * 365,
+      sameSite: "lax",
+    });
+  }
+  return response;
+}
 
 /**
  * Middleware: Schützt Admin- und Member-Routen.
@@ -15,6 +48,7 @@ const intlMiddleware = createIntlMiddleware(routing);
  *
  * Subdomain-Routing: demo.moschee.app/* → /demo/*
  * i18n: Cookie `NEXT_LOCALE` oder Accept-Language-Header → de/tr
+ *        (manuell, ohne createIntlMiddleware um Locale-Prefix-Redirects zu vermeiden)
  */
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -37,17 +71,7 @@ export async function middleware(request: NextRequest) {
       const url = request.nextUrl.clone();
       url.pathname = `/${demoSlug}${pathname === "/" ? "" : pathname}`;
       const rewriteResponse = NextResponse.rewrite(url);
-      // next-intl Locale-Detection trotzdem ausführen (setzt NEXT_LOCALE Cookie)
-      const intlResponse = intlMiddleware(request);
-      const localeCookie = intlResponse.cookies.get("NEXT_LOCALE");
-      if (localeCookie) {
-        rewriteResponse.cookies.set(localeCookie.name, localeCookie.value, {
-          path: "/",
-          maxAge: 60 * 60 * 24 * 365,
-          sameSite: "lax",
-        });
-      }
-      return rewriteResponse;
+      return applyLocale(rewriteResponse, request);
     }
   }
 
@@ -78,9 +102,9 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // ── Locale-Prefix entfernen ──────────────────────────────────────────────────
-  // next-intl kann trotz localePrefix: 'never' manchmal auf /de/* umleiten.
-  // Solche Pfade sofort auf den Pfad ohne Locale-Präfix umleiten.
+  // ── Locale-Prefix-Schutz ─────────────────────────────────────────────────
+  // Sicherheitsnetz: Falls irgendwo /de/* oder /tr/* aufgerufen wird,
+  // sofort auf den Pfad ohne Locale-Präfix umleiten.
   const localeMatch = pathname.match(/^\/(de|tr)(\/.*)?$/);
   if (localeMatch) {
     const strippedPath = localeMatch[2] || "/";
@@ -89,8 +113,10 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // next-intl Locale-Detection (setzt NEXT_LOCALE Cookie basierend auf Accept-Language)
-  return intlMiddleware(request);
+  // ── Locale-Detection ohne Redirect ──────────────────────────────────────
+  // Locale aus Cookie/Accept-Language ermitteln und als Header + Cookie setzen.
+  // next-intl liest x-next-intl-locale in getRequestConfig() als requestLocale.
+  return applyLocale(NextResponse.next(), request);
 }
 
 export const config = {
