@@ -281,7 +281,14 @@
         "title": "Ayarlar",
         "desc": "Marka, namaz vakitleri ve diğer yapılandırma."
       }
-    }
+    },
+    "loading": "Yönetici alanı yükleniyor...",
+    "platformAdmin": "Platform Yöneticisi",
+    "panel": "Yönetici Paneli",
+    "editorAccess": "Editör Erişimi",
+    "editorBadge": "Editör Erişimi (Haberler · Etkinlikler · Kampanyalar)",
+    "platformOverview": "Platform Genel Bakış",
+    "backToPortal": "Portale Dön"
   },
   "members": {
     "title": "Üye Yönetimi",
@@ -587,5 +594,75 @@
       "prevMonth": "Önceki Ay",
       "nextMonth": "Sonraki Ay"
     }
+  },
+  "newsletter": {
+    "title": "Bülten",
+    "subtitle": "Üyelerinize e-posta kampanyaları gönderin",
+    "subjectLabel": "Konu",
+    "subjectPlaceholder": "Bülten konusu...",
+    "bodyLabel": "İçerik (HTML)",
+    "bodyPlaceholder": "<p>Değerli cemaat...</p>",
+    "segmentLabel": "Alıcılar",
+    "segmentAll": "Tüm üyeler",
+    "segmentActive": "Yalnızca aktif üyeler",
+    "segmentAdmins": "Yalnızca yöneticiler",
+    "queueButton": "Kuyruğa ekle",
+    "sendButton": "Şimdi gönder",
+    "sending": "Gönderiliyor...",
+    "queueing": "Kuyruğa ekleniyor...",
+    "confirmQueue": "Bülten kuyruğa eklensin mi?",
+    "confirmSend": "{count} e-posta şimdi gönderilsin mi?",
+    "queueSuccess": "{count} e-posta kuyruğa eklendi.",
+    "stats": {
+      "queued": "Kuyrukta",
+      "sent": "Gönderildi",
+      "failed": "Başarısız"
+    }
+  },
+  "invites": {
+    "title": "Davetler",
+    "subtitle": "Davet bağlantıları oluşturun ve yönetin",
+    "create": "Yeni Davet",
+    "colLink": "Bağlantı",
+    "colRole": "Rol",
+    "colType": "Tür",
+    "colUsage": "Kullanım",
+    "colExpiry": "Son Kullanım",
+    "colStatus": "Durum",
+    "colActions": "İşlemler",
+    "noInvitesYet": "Henüz davet yok",
+    "noInvitesHint": "İlk davet bağlantınızı oluşturun.",
+    "copy": "Bağlantıyı kopyala",
+    "copied": "Kopyalandı!",
+    "revoke": "İptal Et",
+    "confirmRevoke": "Davet gerçekten iptal edilsin mi?",
+    "confirmDelete": "Davet gerçekten silinsin mi?",
+    "status": {
+      "active": "Aktif",
+      "revoked": "İptal Edildi",
+      "expired": "Süresi Doldu",
+      "exhausted": "Tükendi"
+    },
+    "type": {
+      "personal": "Kişisel",
+      "group": "Grup"
+    },
+    "role": {
+      "member": "Üye",
+      "teacher": "Öğretmen",
+      "admin": "Yönetici"
+    }
+  },
+  "audit": {
+    "title": "Denetim Günlüğü",
+    "subtitle": "Sistemdeki tüm işlemler",
+    "filterAll": "Tümü",
+    "noLogsYet": "Kayıt bulunamadı",
+    "noLogsHint": "Filtreleri ayarlayın.",
+    "colAction": "İşlem",
+    "colEntity": "Nesne",
+    "colUser": "Kullanıcı",
+    "colDate": "Tarih",
+    "colDetails": "Detaylar"
   }
 }

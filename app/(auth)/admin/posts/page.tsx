@@ -27,8 +27,11 @@ import {
   visibilityColors,
 } from "@/lib/constants";
 import type { Post } from "@/types";
+import { useTranslations } from "next-intl";
 
 export default function AdminPostsPage() {
+  const t = useTranslations("posts");
+  const tCommon = useTranslations("common");
   const router = useRouter();
   const { mosqueId } = useMosque();
   const { user } = useAuth();
@@ -63,7 +66,7 @@ export default function AdminPostsPage() {
   }
 
   async function handleDelete(postId: string, title: string) {
-    if (!confirm(`Beitrag "${title}" wirklich löschen?`)) return;
+    if (!confirm(t("deleteConfirm", { title }))) return;
     if (!user) return;
 
     const result = await deletePost(postId, mosqueId, user.id);
@@ -73,9 +76,9 @@ export default function AdminPostsPage() {
   }
 
   const filterLabels = {
-    all: "Alle",
-    published: "Veröffentlicht",
-    draft: "Entwürfe",
+    all: t("filterAll"),
+    published: t("filterPublished"),
+    draft: t("filterDraft"),
   } as const;
 
   return (
@@ -83,9 +86,9 @@ export default function AdminPostsPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Beiträge</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t("title")}</h1>
           <p className="text-sm text-gray-500">
-            Verwalten Sie die Beiträge Ihrer Moschee.
+            {t("subtitle")}
           </p>
         </div>
         <Link
@@ -93,7 +96,7 @@ export default function AdminPostsPage() {
           className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-emerald-700"
         >
           <Plus className="h-4 w-4" />
-          Neuer Beitrag
+          {t("newPost")}
         </Link>
       </div>
 
@@ -139,17 +142,17 @@ export default function AdminPostsPage() {
                 aria-hidden="true"
               />
               <p className="mb-1 text-sm font-medium text-gray-600">
-                Noch keine Beiträge
+                {t("noPostsYet")}
               </p>
               <p className="mb-4 text-xs text-gray-400">
-                Erstellen Sie Ihren ersten Beitrag für die Gemeinde.
+                {t("noPostsHint")}
               </p>
               <Link
                 href="/admin/posts/new"
                 className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
               >
                 <Plus className="h-4 w-4" />
-                Neuer Beitrag
+                {t("newPost")}
               </Link>
             </div>
           ) : (
@@ -157,16 +160,16 @@ export default function AdminPostsPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b bg-gray-50 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                    <th className="px-4 py-3">Titel</th>
+                    <th className="px-4 py-3">{t("colTitle")}</th>
                     <th className="px-4 py-3 hidden sm:table-cell">
-                      Kategorie
+                      {t("colCategory")}
                     </th>
                     <th className="px-4 py-3 hidden md:table-cell">
-                      Sichtbarkeit
+                      {t("colVisibility")}
                     </th>
-                    <th className="px-4 py-3">Status</th>
-                    <th className="px-4 py-3 hidden lg:table-cell">Datum</th>
-                    <th className="px-4 py-3 text-right">Aktionen</th>
+                    <th className="px-4 py-3">{t("colStatus")}</th>
+                    <th className="px-4 py-3 hidden lg:table-cell">{t("colDate")}</th>
+                    <th className="px-4 py-3 text-right">{t("colActions")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
@@ -181,8 +184,8 @@ export default function AdminPostsPage() {
                           {post.pinned && (
                             <span
                               className="text-amber-500"
-                              title="Angepinnt"
-                              aria-label="Angepinnt"
+                              title={t("pinned")}
+                              aria-label={t("pinned")}
                             >
                               📌
                             </span>
@@ -236,7 +239,7 @@ export default function AdminPostsPage() {
                           <Link
                             href={`/admin/posts/${post.id}`}
                             className="rounded p-1.5 text-gray-600 hover:bg-gray-100"
-                            title="Bearbeiten"
+                            title={tCommon("edit")}
                             aria-label={`Beitrag "${post.title}" bearbeiten`}
                             onClick={(e) => e.stopPropagation()}
                           >
@@ -246,7 +249,7 @@ export default function AdminPostsPage() {
                             type="button"
                             onClick={(e) => { e.stopPropagation(); handleDelete(post.id, post.title); }}
                             className="rounded p-1.5 text-red-600 hover:bg-red-50"
-                            title="Löschen"
+                            title={tCommon("delete")}
                             aria-label={`Beitrag "${post.title}" löschen`}
                           >
                             <Trash2 className="h-4 w-4" />
@@ -264,7 +267,7 @@ export default function AdminPostsPage() {
           {totalPages > 1 && (
             <div className="flex items-center justify-between border-t px-4 py-3">
               <p className="text-sm text-gray-500">
-                Seite {page} von {totalPages}
+                {tCommon("pageOf", { page, total: totalPages })}
               </p>
               <div className="flex gap-2">
                 <Button
@@ -272,7 +275,7 @@ export default function AdminPostsPage() {
                   size="sm"
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page <= 1}
-                  aria-label="Vorherige Seite"
+                  aria-label={tCommon("prevPage")}
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
@@ -281,7 +284,7 @@ export default function AdminPostsPage() {
                   size="sm"
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   disabled={page >= totalPages}
-                  aria-label="Nächste Seite"
+                  aria-label={tCommon("nextPage")}
                 >
                   <ChevronRight className="h-4 w-4" />
                 </Button>

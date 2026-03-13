@@ -281,7 +281,14 @@
         "title": "Einstellungen",
         "desc": "Branding, Gebetszeiten und weitere Konfiguration."
       }
-    }
+    },
+    "loading": "Admin-Bereich wird geladen...",
+    "platformAdmin": "Plattform-Admin",
+    "panel": "Admin-Panel",
+    "editorAccess": "Editor-Zugang",
+    "editorBadge": "Editor-Zugang (Posts · Events · Kampagnen)",
+    "platformOverview": "Plattform-Übersicht",
+    "backToPortal": "Zurück zum Portal"
   },
   "members": {
     "title": "Mitgliederverwaltung",
@@ -587,5 +594,75 @@
       "prevMonth": "Vorheriger Monat",
       "nextMonth": "Nächster Monat"
     }
+  },
+  "newsletter": {
+    "title": "Newsletter",
+    "subtitle": "E-Mail-Kampagnen an Ihre Mitglieder versenden",
+    "subjectLabel": "Betreff",
+    "subjectPlaceholder": "Betreff des Newsletters...",
+    "bodyLabel": "Inhalt (HTML)",
+    "bodyPlaceholder": "<p>Sehr geehrte Gemeinde...</p>",
+    "segmentLabel": "Empfänger",
+    "segmentAll": "Alle Mitglieder",
+    "segmentActive": "Nur aktive Mitglieder",
+    "segmentAdmins": "Nur Admins",
+    "queueButton": "In Warteschlange stellen",
+    "sendButton": "Jetzt senden",
+    "sending": "Wird gesendet...",
+    "queueing": "Wird in Warteschlange gestellt...",
+    "confirmQueue": "Newsletter in die Warteschlange stellen?",
+    "confirmSend": "{count} E-Mail(s) jetzt versenden?",
+    "queueSuccess": "{count} E-Mail(s) in Warteschlange gestellt.",
+    "stats": {
+      "queued": "In Warteschlange",
+      "sent": "Gesendet",
+      "failed": "Fehlgeschlagen"
+    }
+  },
+  "invites": {
+    "title": "Einladungen",
+    "subtitle": "Einladungslinks erstellen und verwalten",
+    "create": "Neue Einladung",
+    "colLink": "Link",
+    "colRole": "Rolle",
+    "colType": "Typ",
+    "colUsage": "Nutzung",
+    "colExpiry": "Ablauf",
+    "colStatus": "Status",
+    "colActions": "Aktionen",
+    "noInvitesYet": "Noch keine Einladungen",
+    "noInvitesHint": "Erstellen Sie Ihren ersten Einladungslink.",
+    "copy": "Link kopieren",
+    "copied": "Kopiert!",
+    "revoke": "Widerrufen",
+    "confirmRevoke": "Einladung wirklich widerrufen?",
+    "confirmDelete": "Einladung wirklich löschen?",
+    "status": {
+      "active": "Aktiv",
+      "revoked": "Widerrufen",
+      "expired": "Abgelaufen",
+      "exhausted": "Ausgeschöpft"
+    },
+    "type": {
+      "personal": "Persönlich",
+      "group": "Gruppe"
+    },
+    "role": {
+      "member": "Mitglied",
+      "teacher": "Lehrer/in",
+      "admin": "Admin"
+    }
+  },
+  "audit": {
+    "title": "Audit-Log",
+    "subtitle": "Alle Aktionen im System",
+    "filterAll": "Alle",
+    "noLogsYet": "Keine Einträge gefunden",
+    "noLogsHint": "Passen Sie die Filter an.",
+    "colAction": "Aktion",
+    "colEntity": "Objekt",
+    "colUser": "Benutzer",
+    "colDate": "Datum",
+    "colDetails": "Details"
   }
 }

@@ -24,57 +24,40 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { CreateInviteDialog } from "@/components/invites/CreateInviteDialog";
 import { cn } from "@/lib/utils";
 import type { User } from "@/types";
-
-const ROLES = [
-  { value: "", label: "Alle Rollen" },
-  { value: "member", label: "Mitglied" },
-  { value: "imam", label: "Imam" },
-  { value: "teacher", label: "Lehrer" },
-  { value: "admin", label: "Admin" },
-];
-
-const STATUSES = [
-  { value: "", label: "Alle Status" },
-  { value: "pending", label: "Ausstehend" },
-  { value: "active", label: "Aktiv" },
-  { value: "inactive", label: "Inaktiv" },
-];
-
-const STATUS_BADGES: Record<string, { label: string; className: string }> = {
-  pending: {
-    label: "Ausstehend",
-    className: "bg-amber-100 text-amber-700",
-  },
-  active: {
-    label: "Aktiv",
-    className: "bg-emerald-100 text-emerald-700",
-  },
-  inactive: {
-    label: "Inaktiv",
-    className: "bg-gray-100 text-gray-600",
-  },
-};
-
-const ROLE_BADGES: Record<string, { label: string; className: string }> = {
-  member: {
-    label: "Mitglied",
-    className: "bg-blue-100 text-blue-700",
-  },
-  admin: {
-    label: "Admin",
-    className: "bg-purple-100 text-purple-700",
-  },
-  teacher: {
-    label: "Lehrer",
-    className: "bg-teal-100 text-teal-700",
-  },
-  imam: {
-    label: "Imam",
-    className: "bg-violet-100 text-violet-700",
-  },
-};
+import { useTranslations } from "next-intl";
 
 export default function MitgliederListePage() {
+  const t = useTranslations("members");
+  const tCommon = useTranslations("common");
+
+  const ROLES = [
+    { value: "", label: t("filterAllRoles") },
+    { value: "member", label: t("role.member") },
+    { value: "imam", label: t("role.imam") },
+    { value: "teacher", label: t("role.teacher") },
+    { value: "admin", label: t("role.admin") },
+  ];
+
+  const STATUSES = [
+    { value: "", label: t("filterAllStatus") },
+    { value: "pending", label: t("status.pending") },
+    { value: "active", label: t("status.active") },
+    { value: "inactive", label: t("status.inactive") },
+  ];
+
+  const STATUS_BADGES: Record<string, { label: string; className: string }> = {
+    pending: { label: t("status.pending"), className: "bg-amber-100 text-amber-700" },
+    active: { label: t("status.active"), className: "bg-emerald-100 text-emerald-700" },
+    inactive: { label: t("status.inactive"), className: "bg-gray-100 text-gray-600" },
+  };
+
+  const ROLE_BADGES: Record<string, { label: string; className: string }> = {
+    member: { label: t("role.member"), className: "bg-blue-100 text-blue-700" },
+    admin: { label: t("role.admin"), className: "bg-purple-100 text-purple-700" },
+    teacher: { label: t("role.teacher"), className: "bg-teal-100 text-teal-700" },
+    imam: { label: t("role.imam"), className: "bg-violet-100 text-violet-700" },
+  };
+
   const router = useRouter();
   const { user } = useAuth();
   const { mosqueId, mosque } = useMosque();
@@ -106,11 +89,11 @@ export default function MitgliederListePage() {
         setTotalPages(result.totalPages || 1);
         setTotalItems(result.totalItems || 0);
       } else {
-        toast.error(result.error || "Fehler beim Laden der Mitglieder");
+        toast.error(result.error || t("loadError"));
       }
     } catch (error) {
       console.error("Mitglieder laden Fehler:", error);
-      toast.error("Fehler beim Laden der Mitglieder");
+      toast.error(t("loadError"));
     } finally {
       setIsLoading(false);
     }
@@ -130,14 +113,14 @@ export default function MitgliederListePage() {
     try {
       const result = await updateMemberStatus(memberId, mosqueId, user.id, newStatus as "pending" | "active" | "blocked");
       if (result.success) {
-        toast.success(`Status auf "${STATUS_BADGES[newStatus]?.label}" geändert`);
+        toast.success(t("statusChanged", { status: STATUS_BADGES[newStatus]?.label }));
         loadMembers();
       } else {
-        toast.error(result.error || "Fehler beim Ändern des Status");
+        toast.error(result.error || t("statusError"));
       }
     } catch (error) {
       console.error("Status-Änderung Fehler:", error);
-      toast.error("Fehler beim Ändern des Status");
+      toast.error(t("statusError"));
     }
   }
 
@@ -147,15 +130,15 @@ export default function MitgliederListePage() {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
-            Mitgliederverwaltung
+            {t("title")}
           </h1>
           <p className="mt-1 text-sm text-gray-500">
-            {totalItems} Mitglieder insgesamt
+            {t("subtitle", { count: totalItems })}
           </p>
         </div>
         <Button onClick={() => setInviteOpen(true)} className="sm:self-start">
           <UserPlus className="mr-2 h-4 w-4" />
-          Mitglied einladen
+          {t("invite")}
         </Button>
       </div>
 
@@ -166,7 +149,7 @@ export default function MitgliederListePage() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
               <Input
-                placeholder="Name, E-Mail oder Mitgliedsnr. suchen..."
+                placeholder={t("searchPlaceholder")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"
@@ -215,9 +198,9 @@ export default function MitgliederListePage() {
           ) : members.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12">
               <Users className="mb-3 h-10 w-10 text-gray-300" aria-hidden="true" />
-              <p className="text-sm font-medium text-gray-600">Keine Mitglieder gefunden.</p>
+              <p className="text-sm font-medium text-gray-600">{t("noFound")}</p>
               {(searchQuery || roleFilter || statusFilter) && (
-                <p className="mt-1 text-xs text-gray-400">Versuchen Sie andere Filterkriterien.</p>
+                <p className="mt-1 text-xs text-gray-400">{t("noFoundHint")}</p>
               )}
             </div>
           ) : (
@@ -225,12 +208,12 @@ export default function MitgliederListePage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b bg-gray-50 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                    <th className="px-4 py-3">Name</th>
-                    <th className="px-4 py-3 hidden sm:table-cell">E-Mail</th>
-                    <th className="px-4 py-3 hidden md:table-cell">Nr.</th>
-                    <th className="px-4 py-3">Rolle</th>
-                    <th className="px-4 py-3">Status</th>
-                    <th className="px-4 py-3 text-right">Aktionen</th>
+                    <th className="px-4 py-3">{t("colName")}</th>
+                    <th className="px-4 py-3 hidden sm:table-cell">{t("colEmail")}</th>
+                    <th className="px-4 py-3 hidden md:table-cell">{t("colNumber")}</th>
+                    <th className="px-4 py-3">{t("colRole")}</th>
+                    <th className="px-4 py-3">{t("colStatus")}</th>
+                    <th className="px-4 py-3 text-right">{t("colActions")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
@@ -278,7 +261,7 @@ export default function MitgliederListePage() {
                               type="button"
                               onClick={(e) => { e.stopPropagation(); handleStatusChange(member.id, "active"); }}
                               className="rounded p-1.5 text-emerald-600 hover:bg-emerald-50"
-                              title="Freischalten"
+                              title={t("activate")}
                               aria-label={`${member.full_name} freischalten`}
                             >
                               <UserCheck className="h-4 w-4" />
@@ -289,7 +272,7 @@ export default function MitgliederListePage() {
                               type="button"
                               onClick={(e) => { e.stopPropagation(); handleStatusChange(member.id, "inactive"); }}
                               className="rounded p-1.5 text-red-600 hover:bg-red-50"
-                              title="Deaktivieren"
+                              title={t("deactivate")}
                               aria-label={`${member.full_name} deaktivieren`}
                             >
                               <UserX className="h-4 w-4" />
@@ -300,7 +283,7 @@ export default function MitgliederListePage() {
                               type="button"
                               onClick={(e) => { e.stopPropagation(); handleStatusChange(member.id, "active"); }}
                               className="rounded p-1.5 text-emerald-600 hover:bg-emerald-50"
-                              title="Reaktivieren"
+                              title={t("reactivate")}
                               aria-label={`${member.full_name} reaktivieren`}
                             >
                               <UserCheck className="h-4 w-4" />
@@ -309,7 +292,7 @@ export default function MitgliederListePage() {
                           <Link
                             href={`/admin/mitglieder/${member.id}`}
                             className="rounded p-1.5 text-gray-600 hover:bg-gray-100"
-                            title="Bearbeiten"
+                            title={tCommon("edit")}
                             aria-label={`${member.full_name} bearbeiten`}
                             onClick={(e) => e.stopPropagation()}
                           >
@@ -328,7 +311,7 @@ export default function MitgliederListePage() {
           {totalPages > 1 && (
             <div className="flex items-center justify-between border-t px-4 py-3">
               <p className="text-sm text-gray-500">
-                Seite {page} von {totalPages}
+                {tCommon("pageOf", { page, total: totalPages })}
               </p>
               <div className="flex gap-2">
                 <Button
@@ -336,7 +319,7 @@ export default function MitgliederListePage() {
                   size="sm"
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page <= 1}
-                  aria-label="Vorherige Seite"
+                  aria-label={tCommon("prevPage")}
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
@@ -345,7 +328,7 @@ export default function MitgliederListePage() {
                   size="sm"
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   disabled={page >= totalPages}
-                  aria-label="Nächste Seite"
+                  aria-label={tCommon("nextPage")}
                 >
                   <ChevronRight className="h-4 w-4" />
                 </Button>

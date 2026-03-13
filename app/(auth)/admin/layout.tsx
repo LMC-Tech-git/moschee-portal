@@ -26,6 +26,7 @@ import { useMosque } from "@/lib/mosque-context";
 import { MoscheeSelektor } from "@/components/admin/MoscheeSelektor";
 import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 // Editor darf nur diese Routen besuchen
 const EDITOR_ALLOWED_PREFIXES = [
@@ -34,80 +35,12 @@ const EDITOR_ALLOWED_PREFIXES = [
   "/admin/kampagnen",
 ];
 
-const adminNav = [
-  {
-    label: "Dashboard",
-    href: "/admin",
-    icon: LayoutDashboard,
-    roles: ["admin", "super_admin"],
-  },
-  {
-    label: "Beiträge",
-    href: "/admin/posts",
-    icon: FileText,
-    roles: ["admin", "super_admin", "editor"],
-  },
-  {
-    label: "Veranstaltungen",
-    href: "/admin/events",
-    icon: CalendarDays,
-    roles: ["admin", "super_admin", "editor"],
-  },
-  {
-    label: "Mitglieder",
-    href: "/admin/mitglieder",
-    icon: Users,
-    roles: ["admin", "super_admin"],
-  },
-  {
-    label: "Kampagnen",
-    href: "/admin/kampagnen",
-    icon: Target,
-    roles: ["admin", "super_admin", "editor"],
-  },
-  {
-    label: "Spenden",
-    href: "/admin/spenden",
-    icon: Banknote,
-    roles: ["admin", "super_admin"],
-  },
-  {
-    label: "Madrasa",
-    href: "/admin/madrasa",
-    icon: BookOpen,
-    roles: ["admin", "super_admin"],
-  },
-  {
-    label: "Newsletter",
-    href: "/admin/newsletter",
-    icon: Mail,
-    roles: ["admin", "super_admin"],
-  },
-  {
-    label: "Einladungen",
-    href: "/admin/invites",
-    icon: Link2,
-    roles: ["admin", "super_admin"],
-  },
-  {
-    label: "Audit-Log",
-    href: "/admin/audit",
-    icon: ClipboardList,
-    roles: ["admin", "super_admin"],
-  },
-  {
-    label: "Einstellungen",
-    href: "/admin/settings",
-    icon: Settings,
-    roles: ["admin", "super_admin"],
-  },
-];
-
 export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const t = useTranslations("admin");
   const { user, isAuthenticated, isLoading } = useAuth();
   const { mosque } = useMosque();
   const router = useRouter();
@@ -118,6 +51,75 @@ export default function AdminLayout({
     role === "admin" || role === "super_admin" || role === "editor";
   const isSuperAdmin = role === "super_admin";
   const isEditor = role === "editor";
+
+  const adminNav = [
+    {
+      label: "Dashboard",
+      href: "/admin",
+      icon: LayoutDashboard,
+      roles: ["admin", "super_admin"],
+    },
+    {
+      label: t("quickAccess.posts.title"),
+      href: "/admin/posts",
+      icon: FileText,
+      roles: ["admin", "super_admin", "editor"],
+    },
+    {
+      label: t("quickAccess.events.title"),
+      href: "/admin/events",
+      icon: CalendarDays,
+      roles: ["admin", "super_admin", "editor"],
+    },
+    {
+      label: t("quickAccess.members.title"),
+      href: "/admin/mitglieder",
+      icon: Users,
+      roles: ["admin", "super_admin"],
+    },
+    {
+      label: t("quickAccess.campaigns.title"),
+      href: "/admin/kampagnen",
+      icon: Target,
+      roles: ["admin", "super_admin", "editor"],
+    },
+    {
+      label: t("quickAccess.donations.title"),
+      href: "/admin/spenden",
+      icon: Banknote,
+      roles: ["admin", "super_admin"],
+    },
+    {
+      label: t("quickAccess.madrasa.title"),
+      href: "/admin/madrasa",
+      icon: BookOpen,
+      roles: ["admin", "super_admin"],
+    },
+    {
+      label: t("quickAccess.newsletter.title"),
+      href: "/admin/newsletter",
+      icon: Mail,
+      roles: ["admin", "super_admin"],
+    },
+    {
+      label: t("quickAccess.invites.title"),
+      href: "/admin/invites",
+      icon: Link2,
+      roles: ["admin", "super_admin"],
+    },
+    {
+      label: t("quickAccess.audit.title"),
+      href: "/admin/audit",
+      icon: ClipboardList,
+      roles: ["admin", "super_admin"],
+    },
+    {
+      label: t("quickAccess.settings.title"),
+      href: "/admin/settings",
+      icon: Settings,
+      roles: ["admin", "super_admin"],
+    },
+  ];
 
   // Zugangsschutz
   useEffect(() => {
@@ -144,7 +146,7 @@ export default function AdminLayout({
       <div className="flex min-h-[60vh] items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="h-10 w-10 animate-spin rounded-full border-4 border-emerald-200 border-t-emerald-600 motion-reduce:animate-none" />
-          <p className="text-sm text-gray-500">Admin-Bereich wird geladen...</p>
+          <p className="text-sm text-gray-500">{t("loading")}</p>
         </div>
       </div>
     );
@@ -179,11 +181,11 @@ export default function AdminLayout({
               <div>
                 <p className="text-sm font-semibold text-gray-800">
                   {isSuperAdmin
-                    ? "Plattform-Admin"
-                    : mosque?.name || "Admin-Panel"}
+                    ? t("platformAdmin")
+                    : mosque?.name || t("panel")}
                 </p>
                 <p className="text-xs text-gray-500">
-                  {isEditor ? "Editor-Zugang" : user?.full_name}
+                  {isEditor ? t("editorAccess") : user?.full_name}
                 </p>
               </div>
             </div>
@@ -198,7 +200,7 @@ export default function AdminLayout({
                 className="flex items-center gap-2 rounded-lg border border-purple-200 bg-purple-50 px-3 py-2 text-xs font-medium text-purple-700 hover:bg-purple-100 transition-colors"
               >
                 <Globe className="h-3.5 w-3.5" />
-                Plattform-Übersicht
+                {t("platformOverview")}
               </Link>
             )}
 
@@ -206,7 +208,7 @@ export default function AdminLayout({
             {isEditor && (
               <div className="flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700">
                 <Edit3 className="h-3.5 w-3.5" />
-                Editor-Zugang (Posts · Events · Kampagnen)
+                {t("editorBadge")}
               </div>
             )}
           </div>
@@ -247,7 +249,7 @@ export default function AdminLayout({
               className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-500 hover:bg-gray-50 hover:text-gray-700"
             >
               <ChevronLeft className="h-4 w-4" />
-              Zurück zum Portal
+              {t("backToPortal")}
             </Link>
           </div>
         </div>

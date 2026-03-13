@@ -21,95 +21,95 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { getClientPB } from "@/lib/pocketbase";
-
-const FEATURES = [
-  {
-    icon: Clock,
-    title: "Gebetszeiten",
-    description:
-      "Automatische Gebetszeiten für Ihren Standort — täglich aktuell, mit individuellen Feinabstimmungen.",
-    iconBg: "bg-emerald-50",
-    iconColor: "text-emerald-600",
-  },
-  {
-    icon: Bell,
-    title: "Ankündigungen",
-    description:
-      "Neuigkeiten und Beiträge direkt für Mitglieder und die Öffentlichkeit veröffentlichen.",
-    iconBg: "bg-blue-50",
-    iconColor: "text-blue-600",
-  },
-  {
-    icon: Calendar,
-    title: "Veranstaltungen",
-    description:
-      "Events anlegen, Anmeldungen verwalten und Teilnehmerlisten exportieren.",
-    iconBg: "bg-violet-50",
-    iconColor: "text-violet-600",
-  },
-  {
-    icon: Heart,
-    title: "Spendenkampagnen",
-    description:
-      "Transparente Fundraising-Seiten mit Echtzeit-Fortschritt und Online-Zahlung via Stripe.",
-    iconBg: "bg-amber-50",
-    iconColor: "text-amber-600",
-  },
-  {
-    icon: Users,
-    title: "Mitgliederverwaltung",
-    description:
-      "Mitglieder einladen, Rollen vergeben und den Überblick behalten.",
-    iconBg: "bg-rose-50",
-    iconColor: "text-rose-600",
-  },
-  {
-    icon: BookOpen,
-    title: "Madrasa",
-    description:
-      "Kurse, Schüler, Anwesenheit und Gebühren — alles an einem Ort verwalten.",
-    iconBg: "bg-teal-50",
-    iconColor: "text-teal-600",
-  },
-];
-
-const FOR_WHO = [
-  "Moscheen jeder Größe in Deutschland, Österreich und der Schweiz",
-  "Islamische Vereine und Gemeinden ohne eigene IT-Abteilung",
-  "Gemeinden, die ihre Verwaltung modernisieren möchten",
-  "Madrasa-Betreiber, die Schüler und Kurse digital verwalten wollen",
-];
+import { useTranslations } from "next-intl";
 
 const DEMO_MOSQUE_ID = process.env.NEXT_PUBLIC_DEMO_MOSQUE_ID ?? "";
 
-const DEMO_ACCOUNTS = [
-  {
-    role: "Admin",
-    loginRole: "admin",
-    roleDesc: "Vollzugriff auf alle Funktionen",
-    email: "demo-admin@moschee.app",
-    icon: Shield,
-    badgeClass: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  },
-  {
-    role: "Lehrer",
-    loginRole: "teacher",
-    roleDesc: "Madrasa & Anwesenheit verwalten",
-    email: "demo-teacher@moschee.app",
-    icon: BookOpen,
-    badgeClass: "bg-blue-50 text-blue-700 border-blue-200",
-  },
-  {
-    role: "Mitglied",
-    loginRole: "member",
-    roleDesc: "Portal & Mitgliederbereich",
-    email: "demo-member@moschee.app",
-    icon: User,
-    badgeClass: "bg-violet-50 text-violet-700 border-violet-200",
-  },
-];
-
 export default function HomePage() {
+  const t = useTranslations("landing");
+  const tFeature = useTranslations("feature");
+  const tDemo = useTranslations("demo");
+  const tNav = useTranslations("nav");
+
+  const FEATURES = [
+    {
+      icon: Clock,
+      title: tFeature("prayer.title"),
+      description: tFeature("prayer.desc"),
+      iconBg: "bg-emerald-50",
+      iconColor: "text-emerald-600",
+    },
+    {
+      icon: Bell,
+      title: tFeature("announcements.title"),
+      description: tFeature("announcements.desc"),
+      iconBg: "bg-blue-50",
+      iconColor: "text-blue-600",
+    },
+    {
+      icon: Calendar,
+      title: tFeature("events.title"),
+      description: tFeature("events.desc"),
+      iconBg: "bg-violet-50",
+      iconColor: "text-violet-600",
+    },
+    {
+      icon: Heart,
+      title: tFeature("donations.title"),
+      description: tFeature("donations.desc"),
+      iconBg: "bg-amber-50",
+      iconColor: "text-amber-600",
+    },
+    {
+      icon: Users,
+      title: tFeature("members.title"),
+      description: tFeature("members.desc"),
+      iconBg: "bg-rose-50",
+      iconColor: "text-rose-600",
+    },
+    {
+      icon: BookOpen,
+      title: tFeature("madrasa.title"),
+      description: tFeature("madrasa.desc"),
+      iconBg: "bg-teal-50",
+      iconColor: "text-teal-600",
+    },
+  ];
+
+  const FOR_WHO = [
+    t("forWho.item1"),
+    t("forWho.item2"),
+    t("forWho.item3"),
+    t("forWho.item4"),
+  ];
+
+  const DEMO_ACCOUNTS = [
+    {
+      role: tDemo("role.admin"),
+      loginRole: "admin",
+      roleDesc: tDemo("roleDesc.admin"),
+      email: "demo-admin@moschee.app",
+      icon: Shield,
+      badgeClass: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    },
+    {
+      role: tDemo("role.teacher"),
+      loginRole: "teacher",
+      roleDesc: tDemo("roleDesc.teacher"),
+      email: "demo-teacher@moschee.app",
+      icon: BookOpen,
+      badgeClass: "bg-blue-50 text-blue-700 border-blue-200",
+    },
+    {
+      role: tDemo("role.member"),
+      loginRole: "member",
+      roleDesc: tDemo("roleDesc.member"),
+      email: "demo-member@moschee.app",
+      icon: User,
+      badgeClass: "bg-violet-50 text-violet-700 border-violet-200",
+    },
+  ];
+
   const { user, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
   const [loadingSlug, setLoadingSlug] = useState(false);
@@ -189,18 +189,15 @@ export default function HomePage() {
         <div className="relative z-10 mx-auto max-w-3xl text-center">
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-1.5 text-sm font-medium text-emerald-700">
             <span className="h-2 w-2 rounded-full bg-emerald-500" aria-hidden="true" />
-            Jetzt verfügbar
+            {t("badge")}
           </div>
 
           <h1 className="mb-5 text-4xl font-extrabold tracking-tight text-gray-900 sm:text-5xl lg:text-6xl">
-            Die digitale Plattform{" "}
-            <span className="text-emerald-600">für Ihre Moschee</span>
+            {t("heroTitle")}
           </h1>
 
           <p className="mx-auto mb-10 max-w-2xl text-lg leading-relaxed text-gray-600">
-            Gebetszeiten, Mitglieder, Spenden, Veranstaltungen und Madrasa —
-            alles in einer einfachen Plattform. Für muslimische Gemeinden
-            in Deutschland.
+            {t("heroSubtitle")}
           </p>
 
           <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
@@ -208,7 +205,7 @@ export default function HomePage() {
               href="mailto:kontakt@moschee.app?subject=Demo%20anfragen"
               className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-7 py-3.5 text-base font-bold text-white shadow-sm transition-all duration-200 hover:bg-emerald-700 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0"
             >
-              Kostenlos anfragen
+              {t("cta.request")}
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </a>
             {!DEMO_MOSQUE_ID && (
@@ -217,7 +214,7 @@ export default function HomePage() {
                 className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-7 py-3.5 text-base font-semibold text-gray-700 shadow-sm transition-all duration-200 hover:bg-gray-50 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0"
               >
                 <LogIn className="h-4 w-4" aria-hidden="true" />
-                Anmelden
+                {tNav("login")}
               </Link>
             )}
           </div>
@@ -234,15 +231,15 @@ export default function HomePage() {
             <div className="mb-10 text-center">
               <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-white px-4 py-1.5 text-sm font-medium text-emerald-700">
                 <PlayCircle className="h-4 w-4" aria-hidden="true" />
-                Live-Demo
+                {tDemo("badge")}
               </div>
               <h2 id="demo-heading" className="mb-3 text-3xl font-bold text-gray-900">
-                Jetzt selbst ausprobieren
+                {tDemo("title")}
               </h2>
               <p className="text-gray-600">
-                Keine Registrierung nötig — alle Funktionen live testen.{" "}
+                {tDemo("subtitle")}{" "}
                 <span className="font-semibold text-gray-800">
-                  Passwort für alle Accounts:{" "}
+                  {tDemo("password")}{" "}
                   <code className="rounded bg-gray-100 px-1.5 py-0.5 text-sm text-emerald-700">
                     Demo1234!
                   </code>
@@ -257,7 +254,7 @@ export default function HomePage() {
                 const isCopied = copiedEmail === account.email;
                 return (
                   <div
-                    key={account.role}
+                    key={account.loginRole}
                     className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm"
                   >
                     <div className="mb-3 flex items-center gap-3">
@@ -275,7 +272,7 @@ export default function HomePage() {
                       type="button"
                       onClick={() => copyEmail(account.email)}
                       className="flex w-full items-center justify-between gap-2 rounded-lg bg-gray-50 px-3 py-2 text-left transition-colors hover:bg-gray-100"
-                      title="E-Mail kopieren"
+                      title={tDemo("copyEmail")}
                     >
                       <span className="truncate font-mono text-xs text-gray-600">
                         {account.email}
@@ -292,7 +289,9 @@ export default function HomePage() {
                       disabled={loadingRole !== null}
                       className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-emerald-700 disabled:opacity-50"
                     >
-                      {loadingRole === account.loginRole ? "Wird angemeldet…" : `Als ${account.role} anmelden →`}
+                      {loadingRole === account.loginRole
+                        ? tDemo("loggingIn")
+                        : tDemo("loginAs", { role: account.role })}
                     </button>
                   </div>
                 );
@@ -306,11 +305,11 @@ export default function HomePage() {
                 className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-6 py-3 text-sm font-bold text-white shadow-sm transition-colors hover:bg-emerald-700"
               >
                 <PlayCircle className="h-4 w-4" aria-hidden="true" />
-                Demo-Portal öffnen
+                {tDemo("openPortal")}
               </a>
             </div>
             <p className="mt-4 text-center text-xs text-gray-400">
-              Demo-Daten können jederzeit zurückgesetzt werden.
+              {tDemo("resetNote")}
             </p>
           </div>
         </section>
@@ -321,10 +320,10 @@ export default function HomePage() {
         <div className="mx-auto max-w-6xl">
           <div className="mb-12 text-center">
             <h2 id="features-heading" className="text-3xl font-bold text-gray-900">
-              Alles, was Ihre Gemeinde braucht
+              {t("features.title")}
             </h2>
             <p className="mt-3 text-gray-500">
-              Ein vollständiges System — keine Einzellösungen, kein Flickenteppich.
+              {t("features.subtitle")}
             </p>
           </div>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -353,14 +352,10 @@ export default function HomePage() {
           <div className="grid items-center gap-12 lg:grid-cols-2">
             <div>
               <h2 id="for-who-heading" className="mb-4 text-3xl font-bold text-gray-900">
-                Für Moscheegemeinden —{" "}
-                <span className="text-emerald-600">nicht für Tech-Konzerne</span>
+                {t("forWho.title")}
               </h2>
               <p className="mb-6 text-gray-600 leading-relaxed">
-                moschee.app wurde gemeinsam mit Gemeinden entwickelt, die
-                genau wissen, welche Herausforderungen der Alltag mit sich
-                bringt. Kein unnötiger Schnickschnack — nur das, was wirklich
-                gebraucht wird.
+                {t("forWho.body")}
               </p>
               <ul className="space-y-3">
                 {FOR_WHO.map((item) => (
@@ -391,17 +386,17 @@ export default function HomePage() {
       <section className="bg-emerald-600 px-4 py-16" aria-labelledby="cta-heading">
         <div className="mx-auto max-w-3xl text-center">
           <h2 id="cta-heading" className="mb-4 text-3xl font-bold text-white">
-            Bereit, Ihre Gemeinde zu digitalisieren?
+            {t("cta.ready")}
           </h2>
           <p className="mb-8 text-emerald-100">
-            Starten Sie jetzt — kostenlos, ohne Vertragsbindung und ohne technisches Vorwissen.
+            {t("cta.readySubtitle")}
           </p>
           <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
             <a
               href="mailto:kontakt@moschee.app?subject=Demo%20anfragen"
               className="inline-flex items-center gap-2 rounded-xl bg-white px-7 py-3.5 text-base font-bold text-emerald-700 shadow-sm transition-colors hover:bg-emerald-50"
             >
-              Kostenlos anfragen
+              {t("cta.request")}
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </a>
             <Link
@@ -409,10 +404,10 @@ export default function HomePage() {
               className="inline-flex items-center gap-2 rounded-xl border border-emerald-400 px-7 py-3.5 text-base font-semibold text-white transition-colors hover:bg-emerald-700"
             >
               <LogIn className="h-4 w-4" aria-hidden="true" />
-              Bereits registriert? Anmelden
+              {t("cta.alreadyRegistered")}
             </Link>
           </div>
-          <p className="mt-6 text-sm text-emerald-200">kontakt@moschee.app</p>
+          <p className="mt-6 text-sm text-emerald-200">{t("contact")}</p>
         </div>
       </section>
 

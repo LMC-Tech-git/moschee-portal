@@ -29,8 +29,11 @@ import {
   campaignStatusColors,
 } from "@/lib/constants";
 import type { CampaignWithProgress } from "@/types";
+import { useTranslations } from "next-intl";
 
 export default function AdminCampaignsPage() {
+  const t = useTranslations("campaigns");
+  const tCommon = useTranslations("common");
   const router = useRouter();
   const { mosqueId } = useMosque();
   const { user } = useAuth();
@@ -69,7 +72,7 @@ export default function AdminCampaignsPage() {
   }
 
   async function handleDelete(campaignId: string, title: string) {
-    if (!confirm(`Kampagne "${title}" wirklich löschen?`)) return;
+    if (!confirm(t("deleteConfirm", { title }))) return;
     if (!user) return;
 
     const result = await deleteCampaign(campaignId, mosqueId, user.id);
@@ -79,25 +82,25 @@ export default function AdminCampaignsPage() {
   }
 
   const filterLabels = {
-    all: "Alle",
-    active: "Aktiv",
-    paused: "Pausiert",
-    completed: "Abgeschlossen",
+    all: t("filterAll"),
+    active: t("filterActive"),
+    paused: t("filterPaused"),
+    completed: t("filterCompleted"),
   } as const;
 
   return (
     <div className="space-y-6">
       <DemoHint
         id="campaigns-list"
-        title="Spendenkampagnen"
-        description="Erstellen Sie Kampagnen mit einem Spendenziel. Unterstützer können direkt über die öffentliche Kampagnen-Seite spenden."
+        title={t("hint.title")}
+        description={t("hint.desc")}
       />
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Kampagnen</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t("title")}</h1>
           <p className="text-sm text-gray-500">
-            Verwalten Sie die Spendenkampagnen Ihrer Moschee.
+            {t("subtitle")}
           </p>
         </div>
         <Link
@@ -105,7 +108,7 @@ export default function AdminCampaignsPage() {
           className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-emerald-700"
         >
           <Plus className="h-4 w-4" />
-          Neue Kampagne
+          {t("newCampaign")}
         </Link>
       </div>
 
@@ -155,17 +158,17 @@ export default function AdminCampaignsPage() {
                 aria-hidden="true"
               />
               <p className="mb-1 text-sm font-medium text-gray-600">
-                Noch keine Kampagnen
+                {t("noCampaignsYet")}
               </p>
               <p className="mb-4 text-xs text-gray-400">
-                Starten Sie Ihre erste Spendenkampagne.
+                {t("noCampaignsHint")}
               </p>
               <Link
                 href="/admin/kampagnen/new"
                 className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
               >
                 <Plus className="h-4 w-4" />
-                Neue Kampagne
+                {t("newCampaign")}
               </Link>
             </div>
           ) : (
@@ -173,16 +176,16 @@ export default function AdminCampaignsPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b bg-gray-50 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                    <th className="px-4 py-3">Titel</th>
+                    <th className="px-4 py-3">{t("colTitle")}</th>
                     <th className="px-4 py-3 hidden sm:table-cell">
-                      Kategorie
+                      {t("colCategory")}
                     </th>
-                    <th className="px-4 py-3">Status</th>
-                    <th className="px-4 py-3 hidden md:table-cell">Ziel</th>
+                    <th className="px-4 py-3">{t("colStatus")}</th>
+                    <th className="px-4 py-3 hidden md:table-cell">{t("colGoal")}</th>
                     <th className="px-4 py-3 hidden lg:table-cell">
-                      Fortschritt
+                      {t("colProgress")}
                     </th>
-                    <th className="px-4 py-3 text-right">Aktionen</th>
+                    <th className="px-4 py-3 text-right">{t("colActions")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
@@ -257,7 +260,7 @@ export default function AdminCampaignsPage() {
                             <Link
                               href={`/admin/kampagnen/${campaign.id}`}
                               className="rounded p-1.5 text-gray-600 hover:bg-gray-100"
-                              title="Bearbeiten"
+                              title={tCommon("edit")}
                               aria-label={`Kampagne "${campaign.title}" bearbeiten`}
                               onClick={(e) => e.stopPropagation()}
                             >
@@ -267,7 +270,7 @@ export default function AdminCampaignsPage() {
                               type="button"
                               onClick={(e) => { e.stopPropagation(); handleDelete(campaign.id, campaign.title); }}
                               className="rounded p-1.5 text-red-600 hover:bg-red-50"
-                              title="Löschen"
+                              title={tCommon("delete")}
                               aria-label={`Kampagne "${campaign.title}" löschen`}
                             >
                               <Trash2 className="h-4 w-4" />
@@ -286,7 +289,7 @@ export default function AdminCampaignsPage() {
           {totalPages > 1 && (
             <div className="flex items-center justify-between border-t px-4 py-3">
               <p className="text-sm text-gray-500">
-                Seite {page} von {totalPages}
+                {tCommon("pageOf", { page, total: totalPages })}
               </p>
               <div className="flex gap-2">
                 <Button
@@ -294,7 +297,7 @@ export default function AdminCampaignsPage() {
                   size="sm"
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page <= 1}
-                  aria-label="Vorherige Seite"
+                  aria-label={tCommon("prevPage")}
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
@@ -303,7 +306,7 @@ export default function AdminCampaignsPage() {
                   size="sm"
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   disabled={page >= totalPages}
-                  aria-label="Nächste Seite"
+                  aria-label={tCommon("nextPage")}
                 >
                   <ChevronRight className="h-4 w-4" />
                 </Button>

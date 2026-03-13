@@ -29,8 +29,11 @@ import {
   visibilityColors,
 } from "@/lib/constants";
 import type { Event } from "@/types";
+import { useTranslations } from "next-intl";
 
 export default function AdminEventsPage() {
+  const t = useTranslations("events");
+  const tCommon = useTranslations("common");
   const router = useRouter();
   const { mosqueId } = useMosque();
   const { user } = useAuth();
@@ -81,7 +84,7 @@ export default function AdminEventsPage() {
   }
 
   async function handleDelete(eventId: string, title: string) {
-    if (!confirm(`Veranstaltung "${title}" wirklich löschen?`)) return;
+    if (!confirm(t("deleteConfirm", { title }))) return;
     if (!user) return;
 
     const result = await deleteEvent(eventId, mosqueId, user.id);
@@ -91,10 +94,10 @@ export default function AdminEventsPage() {
   }
 
   const filterLabels = {
-    all: "Alle",
-    published: "Veröffentlicht",
-    draft: "Entwürfe",
-    cancelled: "Abgesagt",
+    all: t("filterAll"),
+    published: t("filterPublished"),
+    draft: t("filterDraft"),
+    cancelled: t("filterCancelled"),
   } as const;
 
   return (
@@ -102,9 +105,9 @@ export default function AdminEventsPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Veranstaltungen</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t("title")}</h1>
           <p className="text-sm text-gray-500">
-            Verwalten Sie die Veranstaltungen Ihrer Moschee.
+            {t("subtitle")}
           </p>
         </div>
         <Link
@@ -112,7 +115,7 @@ export default function AdminEventsPage() {
           className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-emerald-700"
         >
           <Plus className="h-4 w-4" />
-          Neue Veranstaltung
+          {t("newEvent")}
         </Link>
       </div>
 
@@ -162,17 +165,17 @@ export default function AdminEventsPage() {
                 aria-hidden="true"
               />
               <p className="mb-1 text-sm font-medium text-gray-600">
-                Noch keine Veranstaltungen
+                {t("noEventsYet")}
               </p>
               <p className="mb-4 text-xs text-gray-400">
-                Erstellen Sie Ihre erste Veranstaltung.
+                {t("noEventsHint")}
               </p>
               <Link
                 href="/admin/events/new"
                 className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
               >
                 <Plus className="h-4 w-4" />
-                Neue Veranstaltung
+                {t("newEvent")}
               </Link>
             </div>
           ) : (
@@ -180,18 +183,18 @@ export default function AdminEventsPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b bg-gray-50 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                    <th className="px-4 py-3">Titel</th>
+                    <th className="px-4 py-3">{t("colTitle")}</th>
                     <th className="px-4 py-3 hidden sm:table-cell">
-                      Kategorie
+                      {t("colCategory")}
                     </th>
                     <th className="px-4 py-3 hidden md:table-cell">
-                      Sichtbarkeit
+                      {t("colVisibility")}
                     </th>
-                    <th className="px-4 py-3">Status</th>
-                    <th className="px-4 py-3 hidden lg:table-cell">Datum</th>
-                    <th className="px-4 py-3 hidden xl:table-cell">Ort</th>
-                    <th className="px-4 py-3 hidden md:table-cell">Anmeldungen</th>
-                    <th className="px-4 py-3 text-right">Aktionen</th>
+                    <th className="px-4 py-3">{t("colStatus")}</th>
+                    <th className="px-4 py-3 hidden lg:table-cell">{t("colDate")}</th>
+                    <th className="px-4 py-3 hidden xl:table-cell">{t("colLocation")}</th>
+                    <th className="px-4 py-3 hidden md:table-cell">{t("colRegistrations")}</th>
+                    <th className="px-4 py-3 text-right">{t("colActions")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
@@ -270,7 +273,7 @@ export default function AdminEventsPage() {
                           <Link
                             href={`/admin/events/${event.id}`}
                             className="rounded p-1.5 text-gray-600 hover:bg-gray-100"
-                            title="Bearbeiten"
+                            title={tCommon("edit")}
                             aria-label={`Veranstaltung "${event.title}" bearbeiten`}
                             onClick={(e) => e.stopPropagation()}
                           >
@@ -280,7 +283,7 @@ export default function AdminEventsPage() {
                             type="button"
                             onClick={(e) => { e.stopPropagation(); handleDelete(event.id, event.title); }}
                             className="rounded p-1.5 text-red-600 hover:bg-red-50"
-                            title="Löschen"
+                            title={tCommon("delete")}
                             aria-label={`Veranstaltung "${event.title}" löschen`}
                           >
                             <Trash2 className="h-4 w-4" />
@@ -298,7 +301,7 @@ export default function AdminEventsPage() {
           {totalPages > 1 && (
             <div className="flex items-center justify-between border-t px-4 py-3">
               <p className="text-sm text-gray-500">
-                Seite {page} von {totalPages}
+                {tCommon("pageOf", { page, total: totalPages })}
               </p>
               <div className="flex gap-2">
                 <Button
@@ -306,7 +309,7 @@ export default function AdminEventsPage() {
                   size="sm"
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page <= 1}
-                  aria-label="Vorherige Seite"
+                  aria-label={tCommon("prevPage")}
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
@@ -315,7 +318,7 @@ export default function AdminEventsPage() {
                   size="sm"
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   disabled={page >= totalPages}
-                  aria-label="Nächste Seite"
+                  aria-label={tCommon("nextPage")}
                 >
                   <ChevronRight className="h-4 w-4" />
                 </Button>

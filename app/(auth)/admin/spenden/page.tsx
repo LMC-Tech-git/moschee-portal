@@ -30,17 +30,9 @@ import {
   User,
   CreditCard,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 // ── Status-Hilfsfunktionen ─────────────────────────────────────────────────
-
-const STATUS_LABELS: Record<string, string> = {
-  paid: "Bezahlt",
-  pending: "Ausstehend",
-  created: "Erstellt",
-  failed: "Fehlgeschlagen",
-  refunded: "Erstattet",
-  cancelled: "Storniert",
-};
 
 const STATUS_COLORS: Record<string, string> = {
   paid: "bg-green-100 text-green-700",
@@ -51,19 +43,13 @@ const STATUS_COLORS: Record<string, string> = {
   cancelled: "bg-gray-100 text-gray-600",
 };
 
-const PROVIDER_LABELS: Record<string, string> = {
-  stripe: "Stripe",
-  paypal_link: "PayPal",
-  external: "Extern",
-  manual: "Manuell",
-};
-
 function StatusBadge({ status }: { status: string }) {
+  const t = useTranslations("donations");
   return (
     <span
       className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_COLORS[status] || "bg-gray-100 text-gray-600"}`}
     >
-      {STATUS_LABELS[status] || status}
+      {t(`status.${status}` as Parameters<typeof t>[0]) || status}
     </span>
   );
 }
@@ -79,6 +65,8 @@ function ManualDonationDialog({
   onClose: () => void;
   onSave: () => void;
 }) {
+  const t = useTranslations("donations");
+  const tCommon = useTranslations("common");
   const { user } = useAuth();
   const { mosqueId } = useMosque();
   const [donorName, setDonorName] = useState("");
@@ -97,11 +85,11 @@ function ManualDonationDialog({
     setError("");
     const amount = parseFloat(amountEur);
     if (isNaN(amount) || amount < 0.01) {
-      setError("Bitte einen gültigen Betrag eingeben (mind. 0,01 €)");
+      setError(t("manual.amountError"));
       return;
     }
     if (!donorName.trim()) {
-      setError("Name des Spenders ist erforderlich");
+      setError(t("manual.nameRequired"));
       return;
     }
     setIsSubmitting(true);
@@ -117,7 +105,7 @@ function ManualDonationDialog({
     if (result.success) {
       onSave();
     } else {
-      setError(result.error || "Fehler beim Speichern");
+      setError(result.error || t("manual.saveError"));
     }
   }
 
@@ -125,7 +113,7 @@ function ManualDonationDialog({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <div className="w-full max-w-md rounded-xl bg-white shadow-xl">
         <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
-          <h2 className="font-bold text-gray-900">Manuelle Spende erfassen</h2>
+          <h2 className="font-bold text-gray-900">{t("manual.title")}</h2>
           <button
             type="button"
             onClick={onClose}
@@ -144,20 +132,20 @@ function ManualDonationDialog({
           <div className="grid grid-cols-2 gap-3">
             <div className="col-span-2">
               <label className="mb-1 block text-sm font-medium text-gray-700">
-                Name des Spenders *
+                {t("manual.donorName")}
               </label>
               <input
                 type="text"
                 value={donorName}
                 onChange={(e) => setDonorName(e.target.value)}
-                placeholder="Vorname Nachname"
+                placeholder={t("manual.donorNamePlaceholder")}
                 className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                 required
               />
             </div>
             <div className="col-span-2">
               <label className="mb-1 block text-sm font-medium text-gray-700">
-                E-Mail (optional)
+                {t("manual.donorEmail")}
               </label>
               <input
                 type="email"
@@ -169,7 +157,7 @@ function ManualDonationDialog({
             </div>
             <div>
               <label className="mb-1 block text-sm font-medium text-gray-700">
-                Betrag (€) *
+                {t("manual.amount")}
               </label>
               <input
                 type="number"
@@ -184,7 +172,7 @@ function ManualDonationDialog({
             </div>
             <div>
               <label className="mb-1 block text-sm font-medium text-gray-700">
-                Datum & Uhrzeit *
+                {t("manual.dateTime")}
               </label>
               <input
                 type="datetime-local"
@@ -196,14 +184,14 @@ function ManualDonationDialog({
             </div>
             <div className="col-span-2">
               <label className="mb-1 block text-sm font-medium text-gray-700">
-                Kampagne (optional)
+                {t("manual.campaign")}
               </label>
               <select
                 value={campaignId}
                 onChange={(e) => setCampaignId(e.target.value)}
                 className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
               >
-                <option value="">Allgemeine Spende</option>
+                <option value="">{t("manual.generalDonation")}</option>
                 {campaigns.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.title}
@@ -213,13 +201,13 @@ function ManualDonationDialog({
             </div>
             <div className="col-span-2">
               <label className="mb-1 block text-sm font-medium text-gray-700">
-                Notiz / Verwendungszweck (optional)
+                {t("manual.notes")}
               </label>
               <input
                 type="text"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="z.B. Barspende Freitagsgebet"
+                placeholder={t("manual.notesPlaceholder")}
                 className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
               />
             </div>
@@ -231,14 +219,14 @@ function ManualDonationDialog({
               onClick={onClose}
               className="flex-1 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
             >
-              Abbrechen
+              {tCommon("cancel")}
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
               className="flex-1 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-700 disabled:opacity-50"
             >
-              {isSubmitting ? "Wird gespeichert..." : "Spende erfassen"}
+              {isSubmitting ? t("manual.submitting") : t("manual.submit")}
             </button>
           </div>
         </form>
@@ -250,6 +238,8 @@ function ManualDonationDialog({
 // ── Hauptseite ────────────────────────────────────────────────────────────
 
 export default function AdminSpendenPage() {
+  const t = useTranslations("donations");
+  const tCommon = useTranslations("common");
   const { user } = useAuth();
   const { mosqueId } = useMosque();
 
@@ -324,7 +314,7 @@ export default function AdminSpendenPage() {
     if (result.success) {
       loadData(currentPage);
     } else {
-      setActionError(result.error || "Fehler beim Aktualisieren");
+      setActionError(result.error || t("updateError"));
     }
   }
 
@@ -335,9 +325,9 @@ export default function AdminSpendenPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Spenden</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t("title")}</h1>
           <p className="text-sm text-gray-500">
-            Übersicht aller Spenden und manueller Erfassung
+            {t("subtitle")}
           </p>
         </div>
         <button
@@ -346,7 +336,7 @@ export default function AdminSpendenPage() {
           className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-emerald-700"
         >
           <Plus className="h-4 w-4" />
-          Manuelle Spende
+          {t("addManual")}
         </button>
       </div>
 
@@ -356,7 +346,7 @@ export default function AdminSpendenPage() {
           <div className="rounded-xl border border-gray-200 bg-white p-4">
             <div className="flex items-center gap-2 text-xs text-gray-500">
               <Banknote className="h-4 w-4 text-emerald-600" />
-              Gesamt (bezahlt)
+              {t("kpi.total")}
             </div>
             <p className="mt-1 text-xl font-bold text-gray-900">
               {formatCurrencyCents(kpis.totalPaidCents)}
@@ -365,7 +355,7 @@ export default function AdminSpendenPage() {
           <div className="rounded-xl border border-gray-200 bg-white p-4">
             <div className="flex items-center gap-2 text-xs text-gray-500">
               <RefreshCw className="h-4 w-4 text-blue-500" />
-              Diesen Monat
+              {t("kpi.thisMonth")}
             </div>
             <p className="mt-1 text-xl font-bold text-gray-900">
               {formatCurrencyCents(kpis.thisMonthCents)}
@@ -374,7 +364,7 @@ export default function AdminSpendenPage() {
           <div className="rounded-xl border border-gray-200 bg-white p-4">
             <div className="flex items-center gap-2 text-xs text-gray-500">
               <User className="h-4 w-4 text-purple-500" />
-              Spender
+              {t("kpi.donors")}
             </div>
             <p className="mt-1 text-xl font-bold text-gray-900">
               {kpis.donorCount}
@@ -383,7 +373,7 @@ export default function AdminSpendenPage() {
           <div className="rounded-xl border border-gray-200 bg-white p-4">
             <div className="flex items-center gap-2 text-xs text-gray-500">
               <Clock className="h-4 w-4 text-amber-500" />
-              Offen
+              {t("kpi.open")}
             </div>
             <p className="mt-1 text-xl font-bold text-gray-900">
               {kpis.pendingCount > 0
@@ -403,7 +393,7 @@ export default function AdminSpendenPage() {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Name oder E-Mail..."
+            placeholder={t("searchPlaceholder")}
             className="w-full rounded-lg border border-gray-200 py-2 pl-9 pr-3 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
           />
         </div>
@@ -414,13 +404,13 @@ export default function AdminSpendenPage() {
           onChange={(e) => setStatusFilter(e.target.value as GetDonationsOptions["status"])}
           className="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none"
         >
-          <option value="all">Alle Status</option>
-          <option value="paid">Bezahlt</option>
-          <option value="pending">Ausstehend</option>
-          <option value="created">Erstellt</option>
-          <option value="failed">Fehlgeschlagen</option>
-          <option value="refunded">Erstattet</option>
-          <option value="cancelled">Storniert</option>
+          <option value="all">{t("filterAllStatus")}</option>
+          <option value="paid">{t("status.paid")}</option>
+          <option value="pending">{t("status.pending")}</option>
+          <option value="created">{t("status.created")}</option>
+          <option value="failed">{t("status.failed")}</option>
+          <option value="refunded">{t("status.refunded")}</option>
+          <option value="cancelled">{t("status.cancelled")}</option>
         </select>
 
         {/* Kampagnen-Filter */}
@@ -430,7 +420,7 @@ export default function AdminSpendenPage() {
             onChange={(e) => setCampaignFilter(e.target.value)}
             className="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none"
           >
-            <option value="">Alle Kampagnen</option>
+            <option value="">{t("filterAllCampaigns")}</option>
             {campaigns.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.title}
