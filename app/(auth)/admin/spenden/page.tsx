@@ -32,6 +32,15 @@ import {
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 
+// ── Hilfskonstanten ───────────────────────────────────────────────────────
+
+const PROVIDER_LABELS: Record<string, string> = {
+  stripe: "Stripe",
+  cash: "Bar",
+  transfer: "Überweisung",
+  paypal: "PayPal",
+};
+
 // ── Status-Hilfsfunktionen ─────────────────────────────────────────────────
 
 const STATUS_COLORS: Record<string, string> = {
