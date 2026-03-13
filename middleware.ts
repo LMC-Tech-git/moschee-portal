@@ -64,6 +64,7 @@ export async function middleware(request: NextRequest) {
       "/admin", "/member", "/lehrer", "/imam",
       "/login", "/register", "/api", "/invite",
       `/${demoSlug}`, // bereits umgeschrieben (verhindert Doppel-Rewrite)
+      "/impressum", "/datenschutz", "/agb",
     ];
     const needsRewrite = !PASS_THROUGH.some((p) => pathname.startsWith(p));
 
