@@ -141,7 +141,7 @@ async function seedAcademicYear(mosqueId) {
 
 async function seedCourse(mosqueId, academicYearId, teacherId) {
   console.log("\n📚 Kurs...");
-  const { created } = await findOrCreate(
+  const { record, created } = await findOrCreate(
     "courses",
     "mosque_id = " + JSON.stringify(mosqueId) + " && title = " + JSON.stringify("Quran-Grundkurs"),
     {
@@ -161,7 +161,34 @@ async function seedCourse(mosqueId, academicYearId, teacherId) {
       created_by: teacherId,
     }
   );
-  console.log(created ? "  ✅ Erstellt" : "  ⏭️  Existiert");
+  console.log(created ? "  ✅ Erstellt: " + record.id : "  ⏭️  Existiert: " + record.id);
+  return record;
+}
+
+async function seedEnrollments(mosqueId, courseId) {
+  console.log("\n📋 Kurseinschreibungen...");
+  const result = await pbFetch(
+    "collections/students/records?filter=" + encodeURIComponent("mosque_id = \"" + mosqueId + "\"") + "&perPage=50"
+  );
+  const students = result.items || [];
+  if (students.length === 0) {
+    console.log("  ⚠️  Keine Schüler gefunden");
+    return;
+  }
+  for (const student of students) {
+    const { created } = await findOrCreate(
+      "course_enrollments",
+      "student_id = \"" + student.id + "\" && course_id = \"" + courseId + "\"",
+      {
+        mosque_id: mosqueId,
+        course_id: courseId,
+        student_id: student.id,
+        status: "active",
+        enrolled_at: new Date().toISOString(),
+      }
+    );
+    console.log(created ? "  ✅ " + student.first_name + " " + student.last_name : "  ⏭️  " + student.first_name + " " + student.last_name);
+  }
 }
 
 async function seedStudents(mosqueId, parentId) {
@@ -369,8 +396,9 @@ async function main() {
   const teacher = await seedUser(mosqueId, "demo-teacher@moschee.app", "Lehrer", "Demo", "teacher", "DEMO-002");
   const member = await seedUser(mosqueId, "demo-member@moschee.app", "Mitglied", "Demo", "member", "DEMO-003");
   const year = await seedAcademicYear(mosqueId);
-  await seedCourse(mosqueId, year.id, teacher.id);
+  const course = await seedCourse(mosqueId, year.id, teacher.id);
   await seedStudents(mosqueId, member.id);
+  await seedEnrollments(mosqueId, course.id);
   await seedEvents(mosqueId, admin.id);
   await seedPosts(mosqueId, admin.id);
   await seedCampaign(mosqueId, admin.id);
