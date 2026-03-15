@@ -22,6 +22,8 @@ interface CourseFormProps {
 export function CourseForm({ mosqueId, initialData, onSubmit, isEdit }: CourseFormProps) {
   const router = useRouter();
   const tL = useTranslations("labels");
+  const tM = useTranslations("madrasa.courseForm");
+  const tCommon = useTranslations("common");
 
   const courseCategoryOptions = [
     { value: "quran", label: tL("course.category.quran") },
@@ -143,10 +145,10 @@ export function CourseForm({ mosqueId, initialData, onSubmit, isEdit }: CourseFo
 
       {/* Schuljahr */}
       <div className="space-y-2">
-        <Label htmlFor="academic_year">Schuljahr *</Label>
+        <Label htmlFor="academic_year">{tM("academicYearLabel")}</Label>
         {academicYears.length === 0 ? (
           <p className="text-sm text-amber-600">
-            Noch kein Schuljahr vorhanden. Bitte erstellen Sie zuerst ein Schuljahr unter Madrasa &rarr; Schuljahre.
+            {tM("noAcademicYear")}
           </p>
         ) : (
           <select
@@ -155,10 +157,10 @@ export function CourseForm({ mosqueId, initialData, onSubmit, isEdit }: CourseFo
             onChange={(e) => setAcademicYearId(e.target.value)}
             className={selectClass}
           >
-            <option value="">— Schuljahr auswählen —</option>
+            <option value="">{tM("selectAcademicYear")}</option>
             {academicYears.map((y) => (
               <option key={y.id} value={y.id}>
-                {y.name} {y.status === "active" ? "(aktiv)" : "(archiviert)"}
+                {y.name} {y.status === "active" ? tM("active") : tM("archived")}
               </option>
             ))}
           </select>
@@ -167,24 +169,24 @@ export function CourseForm({ mosqueId, initialData, onSubmit, isEdit }: CourseFo
 
       {/* Titel */}
       <div className="space-y-2">
-        <Label htmlFor="title">Kursname *</Label>
+        <Label htmlFor="title">{tM("courseTitleLabel")}</Label>
         <Input
           id="title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="z.B. Quran-Kurs für Anfänger"
+          placeholder={tM("courseTitlePlaceholder")}
           required
         />
       </div>
 
       {/* Beschreibung */}
       <div className="space-y-2">
-        <Label htmlFor="description">Beschreibung</Label>
+        <Label htmlFor="description">{tM("descriptionLabel")}</Label>
         <Textarea
           id="description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="Beschreiben Sie den Kurs..."
+          placeholder={tM("descriptionPlaceholder")}
           rows={4}
         />
       </div>
@@ -192,7 +194,7 @@ export function CourseForm({ mosqueId, initialData, onSubmit, isEdit }: CourseFo
       {/* Kategorie + Level */}
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="category">Kategorie *</Label>
+          <Label htmlFor="category">{tM("categoryLabel")}</Label>
           <select
             id="category"
             value={category}
@@ -205,7 +207,7 @@ export function CourseForm({ mosqueId, initialData, onSubmit, isEdit }: CourseFo
           </select>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="level">Niveau</Label>
+          <Label htmlFor="level">{tM("levelLabel")}</Label>
           <select
             id="level"
             value={level}
@@ -221,10 +223,10 @@ export function CourseForm({ mosqueId, initialData, onSubmit, isEdit }: CourseFo
 
       {/* Lehrer */}
       <div className="space-y-2">
-        <Label htmlFor="teacher">Lehrer *</Label>
+        <Label htmlFor="teacher">{tM("teacherLabel")}</Label>
         {teachers.length === 0 ? (
           <p className="text-sm text-amber-600">
-            Noch keine Lehrer vorhanden. Bitte weisen Sie einem Mitglied die Rolle &quot;Lehrer&quot; zu.
+            {tM("noTeacher")}
           </p>
         ) : (
           <select
@@ -233,7 +235,7 @@ export function CourseForm({ mosqueId, initialData, onSubmit, isEdit }: CourseFo
             onChange={(e) => setTeacherId(e.target.value)}
             className={selectClass}
           >
-            <option value="">— Lehrer auswählen —</option>
+            <option value="">{tM("selectTeacher")}</option>
             {teachers.map((t) => (
               <option key={t.id} value={t.id}>
                 {t.first_name} {t.last_name} ({t.email})
@@ -246,7 +248,7 @@ export function CourseForm({ mosqueId, initialData, onSubmit, isEdit }: CourseFo
       {/* Wochentag + Uhrzeit */}
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="space-y-2">
-          <Label htmlFor="day_of_week">Wochentag *</Label>
+          <Label htmlFor="day_of_week">{tM("dayLabel")}</Label>
           <select
             id="day_of_week"
             value={dayOfWeek}
@@ -259,7 +261,7 @@ export function CourseForm({ mosqueId, initialData, onSubmit, isEdit }: CourseFo
           </select>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="start_time">Beginn *</Label>
+          <Label htmlFor="start_time">{tM("startTimeLabel")}</Label>
           <Input
             id="start_time"
             type="time"
@@ -269,7 +271,7 @@ export function CourseForm({ mosqueId, initialData, onSubmit, isEdit }: CourseFo
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="end_time">Ende</Label>
+          <Label htmlFor="end_time">{tM("endTimeLabel")}</Label>
           <Input
             id="end_time"
             type="time"
@@ -282,21 +284,21 @@ export function CourseForm({ mosqueId, initialData, onSubmit, isEdit }: CourseFo
       {/* Ort + Max. Schüler */}
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="location">Ort</Label>
+          <Label htmlFor="location">{tM("locationLabel")}</Label>
           <Input
             id="location"
             value={locationName}
             onChange={(e) => setLocationName(e.target.value)}
-            placeholder="z.B. Raum 1, Untergeschoss"
+            placeholder={tM("locationPlaceholder")}
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="max_students">Max. Schüler (0 = unbegrenzt)</Label>
+          <Label htmlFor="max_students">{tM("maxStudentsLabel")}</Label>
           <Input
             id="max_students"
             type="number"
             min={0}
-            placeholder="0 = unbegrenzt"
+            placeholder={tM("maxStudentsPlaceholder")}
             value={maxStudents}
             onChange={(e) => {
               const val = e.target.value;
@@ -313,7 +315,7 @@ export function CourseForm({ mosqueId, initialData, onSubmit, isEdit }: CourseFo
           onClick={() => handleSubmit("active")}
           disabled={isSubmitting || !title || !teacherId || !startTime || !academicYearId}
         >
-          {isSubmitting ? "Wird gespeichert…" : isEdit ? "Aktualisieren" : "Kurs erstellen"}
+          {isSubmitting ? tCommon("saving") : isEdit ? tCommon("update") : tM("btnCreate")}
         </Button>
         {isEdit && (
           <>
@@ -323,7 +325,7 @@ export function CourseForm({ mosqueId, initialData, onSubmit, isEdit }: CourseFo
               onClick={() => handleSubmit("paused")}
               disabled={isSubmitting}
             >
-              Pausieren
+              {tCommon("pause")}
             </Button>
             <Button
               type="button"
@@ -331,7 +333,7 @@ export function CourseForm({ mosqueId, initialData, onSubmit, isEdit }: CourseFo
               onClick={() => handleSubmit("archived")}
               disabled={isSubmitting}
             >
-              Archivieren
+              {tCommon("archive")}
             </Button>
           </>
         )}
@@ -340,7 +342,7 @@ export function CourseForm({ mosqueId, initialData, onSubmit, isEdit }: CourseFo
           variant="ghost"
           onClick={() => router.push("/admin/madrasa")}
         >
-          Abbrechen
+          {tCommon("cancel")}
         </Button>
       </div>
     </form>

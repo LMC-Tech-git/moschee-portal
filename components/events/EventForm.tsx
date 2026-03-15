@@ -29,6 +29,8 @@ interface EventFormProps {
 export function EventForm({ initialData, onSubmit, isEdit, defaultVisibility }: EventFormProps) {
   const router = useRouter();
   const tL = useTranslations("labels");
+  const tE = useTranslations("events.form");
+  const tCommon = useTranslations("common");
 
   const categoryOptions = [
     { value: "youth", label: tL("event.category.youth") },
@@ -207,24 +209,24 @@ export function EventForm({ initialData, onSubmit, isEdit, defaultVisibility }: 
 
       {/* Titel */}
       <div className="space-y-2">
-        <Label htmlFor="title">Titel *</Label>
+        <Label htmlFor="title">{tE("titleLabel")}</Label>
         <Input
           id="title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="Titel der Veranstaltung"
+          placeholder={tE("titlePlaceholder")}
           required
         />
       </div>
 
       {/* Beschreibung */}
       <div className="space-y-2">
-        <Label htmlFor="description">Beschreibung</Label>
+        <Label htmlFor="description">{tE("descriptionLabel")}</Label>
         <Textarea
           id="description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="Beschreiben Sie die Veranstaltung..."
+          placeholder={tE("descriptionPlaceholder")}
           rows={5}
         />
       </div>
@@ -232,7 +234,7 @@ export function EventForm({ initialData, onSubmit, isEdit, defaultVisibility }: 
       {/* Kategorie + Sichtbarkeit */}
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="category">Kategorie</Label>
+          <Label htmlFor="category">{tE("categoryLabel")}</Label>
           <select id="category" value={category} onChange={(e) => setCategory(e.target.value as EventInput["category"])} className={SELECT_CLASS}>
             {categoryOptions.map((opt) => (
               <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -240,7 +242,7 @@ export function EventForm({ initialData, onSubmit, isEdit, defaultVisibility }: 
           </select>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="visibility">Sichtbarkeit</Label>
+          <Label htmlFor="visibility">{tE("visibilityLabel")}</Label>
           <select id="visibility" value={visibility} onChange={(e) => setVisibility(e.target.value as EventInput["visibility"])} className={SELECT_CLASS}>
             {visibilityOpts.map((opt) => (
               <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -251,33 +253,33 @@ export function EventForm({ initialData, onSubmit, isEdit, defaultVisibility }: 
 
       {/* Ort */}
       <div className="space-y-2">
-        <Label htmlFor="location">Veranstaltungsort</Label>
+        <Label htmlFor="location">{tE("locationLabel")}</Label>
         <Input
           id="location"
           value={locationName}
           onChange={(e) => setLocationName(e.target.value)}
-          placeholder="z.B. Gemeindesaal, Moschee Hauptgebäude"
+          placeholder={tE("locationPlaceholder")}
         />
       </div>
 
       {/* ── BEGINN ── */}
       <div className="space-y-3 rounded-lg border border-gray-200 bg-gray-50 p-4">
         <div className="flex items-center justify-between gap-4">
-          <Label className="text-sm font-semibold text-gray-700">Beginn *</Label>
+          <Label className="text-sm font-semibold text-gray-700">{tE("startLabel")}</Label>
           <div className="flex gap-1 rounded-lg bg-gray-200 p-1">
             <button
               type="button"
               onClick={() => setStartMode("time")}
               className={`${TOGGLE_BASE} ${startMode === "time" ? TOGGLE_ACTIVE : TOGGLE_INACTIVE}`}
             >
-              Uhrzeit
+              {tE("startModeTime")}
             </button>
             <button
               type="button"
               onClick={() => setStartMode("prayer")}
               className={`${TOGGLE_BASE} ${startMode === "prayer" ? TOGGLE_ACTIVE : TOGGLE_INACTIVE}`}
             >
-              Gebetszeit
+              {tE("startModePrayer")}
             </button>
           </div>
         </div>
@@ -296,7 +298,7 @@ export function EventForm({ initialData, onSubmit, isEdit, defaultVisibility }: 
               onChange={(e) => setStartDate(e.target.value)}
               className="w-44"
             />
-            <span className="shrink-0 text-sm text-gray-500">nach</span>
+            <span className="shrink-0 text-sm text-gray-500">{tE("afterPrayer")}</span>
             <select
               value={startPrayer}
               onChange={(e) => setStartPrayer(e.target.value)}
@@ -314,7 +316,7 @@ export function EventForm({ initialData, onSubmit, isEdit, defaultVisibility }: 
       <div className="space-y-3 rounded-lg border border-gray-200 bg-gray-50 p-4">
         <div className="flex items-center justify-between gap-4">
           <Label className="text-sm font-semibold text-gray-700">
-            Ende <span className="text-xs font-normal text-gray-400">(optional)</span>
+            {tE("endLabel")} <span className="text-xs font-normal text-gray-400">{tE("endOptional")}</span>
           </Label>
           <div className="flex gap-1 rounded-lg bg-gray-200 p-1">
             <button
@@ -322,14 +324,14 @@ export function EventForm({ initialData, onSubmit, isEdit, defaultVisibility }: 
               onClick={() => setEndMode("time")}
               className={`${TOGGLE_BASE} ${endMode === "time" ? TOGGLE_ACTIVE : TOGGLE_INACTIVE}`}
             >
-              Endzeit
+              {tE("endModeTime")}
             </button>
             <button
               type="button"
               onClick={() => setEndMode("duration")}
               className={`${TOGGLE_BASE} ${endMode === "duration" ? TOGGLE_ACTIVE : TOGGLE_INACTIVE}`}
             >
-              Dauer
+              {tE("endModeDuration")}
             </button>
           </div>
         </div>
@@ -353,7 +355,7 @@ export function EventForm({ initialData, onSubmit, isEdit, defaultVisibility }: 
                   placeholder="0"
                   className="w-20 text-center"
                 />
-                <span className="text-sm text-gray-500">Std</span>
+                <span className="text-sm text-gray-500">{tE("durationHours")}</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <Input
@@ -365,7 +367,7 @@ export function EventForm({ initialData, onSubmit, isEdit, defaultVisibility }: 
                   placeholder="0"
                   className="w-20 text-center"
                 />
-                <span className="text-sm text-gray-500">Min</span>
+                <span className="text-sm text-gray-500">{tE("durationMins")}</span>
               </div>
             </div>
             {computedEndPreview && (
@@ -381,7 +383,7 @@ export function EventForm({ initialData, onSubmit, isEdit, defaultVisibility }: 
             )}
             {endMode === "duration" && startMode === "prayer" && totalDurationMinutes > 0 && (
               <p className="text-xs text-gray-400">
-                Dauer wird gespeichert. Automatische Berechnung des Endes nicht möglich (Gebetszeit-Beginn).
+                {tE("durationSavedHint")}
               </p>
             )}
           </div>
@@ -390,12 +392,12 @@ export function EventForm({ initialData, onSubmit, isEdit, defaultVisibility }: 
 
       {/* Kapazität */}
       <div className="space-y-2">
-        <Label htmlFor="capacity">Maximale Teilnehmer (0 = unbegrenzt)</Label>
+        <Label htmlFor="capacity">{tE("capacityLabel")}</Label>
         <Input
           id="capacity"
           type="number"
           min={0}
-          placeholder="0 = unbegrenzt"
+          placeholder={tE("capacityPlaceholder")}
           value={capacity}
           onChange={(e) => {
             const val = e.target.value;
@@ -416,7 +418,7 @@ export function EventForm({ initialData, onSubmit, isEdit, defaultVisibility }: 
           />
           <Label htmlFor="is_recurring" className="flex items-center gap-2 cursor-pointer text-sm font-semibold text-gray-700">
             <RefreshCw className="h-4 w-4 text-purple-600" />
-            Veranstaltung wiederholt sich
+            {tE("recurringLabel")}
           </Label>
         </div>
 
@@ -424,7 +426,7 @@ export function EventForm({ initialData, onSubmit, isEdit, defaultVisibility }: 
           <div className="space-y-3 pl-7">
             {/* Intervall */}
             <div className="space-y-1.5">
-              <Label className="text-xs text-gray-500">Intervall</Label>
+              <Label className="text-xs text-gray-500">{tE("intervalLabel")}</Label>
               <select
                 value={recurrenceType}
                 onChange={(e) => setRecurrenceType(e.target.value as "daily" | "weekly" | "monthly")}
@@ -439,7 +441,7 @@ export function EventForm({ initialData, onSubmit, isEdit, defaultVisibility }: 
             {/* Wochentag */}
             {recurrenceType === "weekly" && (
               <div className="space-y-1.5">
-                <Label className="text-xs text-gray-500">Wochentag</Label>
+                <Label className="text-xs text-gray-500">{tE("weekdayLabel")}</Label>
                 <select
                   value={recurrenceDayOfWeek}
                   onChange={(e) => setRecurrenceDayOfWeek(e.target.value)}
@@ -455,7 +457,7 @@ export function EventForm({ initialData, onSubmit, isEdit, defaultVisibility }: 
             {/* Tag des Monats */}
             {recurrenceType === "monthly" && (
               <div className="space-y-1.5">
-                <Label className="text-xs text-gray-500">Am _. des Monats</Label>
+                <Label className="text-xs text-gray-500">{tE("monthDayLabel")}</Label>
                 <div className="flex items-center gap-2">
                   <Input
                     type="number"
@@ -465,14 +467,14 @@ export function EventForm({ initialData, onSubmit, isEdit, defaultVisibility }: 
                     onChange={(e) => setRecurrenceDayOfMonth(Math.max(1, Math.min(31, parseInt(e.target.value) || 1)))}
                     className="w-24 text-center"
                   />
-                  <span className="text-sm text-gray-500">des Monats</span>
+                  <span className="text-sm text-gray-500">{tE("ofMonth")}</span>
                 </div>
               </div>
             )}
 
             {/* Enddatum */}
             <div className="space-y-1.5">
-              <Label className="text-xs text-gray-500">Enddatum (optional)</Label>
+              <Label className="text-xs text-gray-500">{tE("recurringEndLabel")}</Label>
               <Input
                 type="date"
                 value={recurrenceEndDate}
@@ -491,7 +493,7 @@ export function EventForm({ initialData, onSubmit, isEdit, defaultVisibility }: 
           onClick={() => handleSubmit("published")}
           disabled={isSubmitting || !title || !startIsValid}
         >
-          {isSubmitting ? "Wird gespeichert..." : isEdit ? "Aktualisieren" : "Veröffentlichen"}
+          {isSubmitting ? tCommon("saving") : isEdit ? tCommon("update") : tCommon("publish")}
         </Button>
         <Button
           type="button"
@@ -499,7 +501,7 @@ export function EventForm({ initialData, onSubmit, isEdit, defaultVisibility }: 
           onClick={() => handleSubmit("draft")}
           disabled={isSubmitting || !title || !startIsValid}
         >
-          Als Entwurf speichern
+          {tCommon("saveDraft")}
         </Button>
         {isEdit && (
           <Button
@@ -508,7 +510,7 @@ export function EventForm({ initialData, onSubmit, isEdit, defaultVisibility }: 
             onClick={() => handleSubmit("cancelled")}
             disabled={isSubmitting}
           >
-            Absagen
+            {tE("btnCancel")}
           </Button>
         )}
         <Button
@@ -516,7 +518,7 @@ export function EventForm({ initialData, onSubmit, isEdit, defaultVisibility }: 
           variant="ghost"
           onClick={() => router.push("/admin/events")}
         >
-          Abbrechen
+          {tCommon("cancel")}
         </Button>
       </div>
     </div>

@@ -22,6 +22,8 @@ interface PostFormProps {
 export function PostForm({ initialData, onSubmit, isEdit, backPath = "/admin/posts", defaultVisibility }: PostFormProps) {
   const router = useRouter();
   const tL = useTranslations("labels");
+  const tP = useTranslations("posts.form");
+  const tCommon = useTranslations("common");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const categoryOptions = [
@@ -141,24 +143,24 @@ export function PostForm({ initialData, onSubmit, isEdit, backPath = "/admin/pos
 
       {/* Titel */}
       <div className="space-y-2">
-        <Label htmlFor="title">Titel *</Label>
+        <Label htmlFor="title">{tP("titleLabel")}</Label>
         <Input
           id="title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="Titel des Beitrags"
+          placeholder={tP("titlePlaceholder")}
           required
         />
       </div>
 
       {/* Inhalt */}
       <div className="space-y-2">
-        <Label htmlFor="content">Inhalt *</Label>
+        <Label htmlFor="content">{tP("contentLabel")}</Label>
         <Textarea
           id="content"
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          placeholder="Schreiben Sie hier Ihren Beitrag..."
+          placeholder={tP("contentPlaceholder")}
           rows={10}
           required
         />
@@ -167,7 +169,7 @@ export function PostForm({ initialData, onSubmit, isEdit, backPath = "/admin/pos
       {/* Kategorie + Sichtbarkeit */}
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="category">Kategorie</Label>
+          <Label htmlFor="category">{tP("categoryLabel")}</Label>
           <select
             id="category"
             value={category}
@@ -183,7 +185,7 @@ export function PostForm({ initialData, onSubmit, isEdit, backPath = "/admin/pos
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="visibility">Sichtbarkeit</Label>
+          <Label htmlFor="visibility">{tP("visibilityLabel")}</Label>
           <select
             id="visibility"
             value={visibility}
@@ -209,7 +211,7 @@ export function PostForm({ initialData, onSubmit, isEdit, backPath = "/admin/pos
           className="h-4 w-4 rounded border-gray-300 text-primary-500 focus:ring-ring"
         />
         <Label htmlFor="pinned" className="font-normal">
-          Beitrag oben anpinnen
+          {tP("pinnedLabel")}
         </Label>
       </div>
 
@@ -217,8 +219,8 @@ export function PostForm({ initialData, onSubmit, isEdit, backPath = "/admin/pos
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <Label>
-            Bilder{" "}
-            <span className="text-xs font-normal text-gray-400">(max. 10, je max. 10 MB)</span>
+            {tP("imagesLabel")}{" "}
+            <span className="text-xs font-normal text-gray-400">{tP("imagesHint")}</span>
           </Label>
           {totalImages < 10 && (
             <button
@@ -227,7 +229,7 @@ export function PostForm({ initialData, onSubmit, isEdit, backPath = "/admin/pos
               className="inline-flex items-center gap-1.5 rounded-md border border-dashed border-gray-300 px-3 py-1.5 text-xs text-gray-500 hover:border-gray-400 hover:text-gray-700 transition-colors"
             >
               <ImagePlus className="h-3.5 w-3.5" />
-              Bilder hinzufügen
+              {tP("addImages")}
             </button>
           )}
         </div>
@@ -273,7 +275,7 @@ export function PostForm({ initialData, onSubmit, isEdit, backPath = "/admin/pos
                   className="h-full w-full object-cover"
                 />
                 <div className="absolute inset-x-0 bottom-0 bg-violet-600/80 py-0.5 text-center text-[10px] text-white">
-                  Neu
+                  {tP("newBadge")}
                 </div>
                 <button
                   type="button"
@@ -295,7 +297,7 @@ export function PostForm({ initialData, onSubmit, isEdit, backPath = "/admin/pos
             className="flex w-full flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-gray-200 py-8 text-gray-400 hover:border-gray-300 hover:text-gray-500 transition-colors"
           >
             <ImagePlus className="h-8 w-8" />
-            <span className="text-sm">Bilder per Klick auswählen</span>
+            <span className="text-sm">{tP("selectImages")}</span>
           </button>
         )}
       </div>
@@ -307,7 +309,7 @@ export function PostForm({ initialData, onSubmit, isEdit, backPath = "/admin/pos
           onClick={() => handleSubmit("published")}
           disabled={isSubmitting || !title || !content}
         >
-          {isSubmitting ? "Wird gespeichert..." : isEdit ? "Aktualisieren & Veröffentlichen" : "Veröffentlichen"}
+          {isSubmitting ? tCommon("saving") : isEdit ? tCommon("updatePublish") : tCommon("publish")}
         </Button>
         <Button
           type="button"
@@ -315,14 +317,14 @@ export function PostForm({ initialData, onSubmit, isEdit, backPath = "/admin/pos
           onClick={() => handleSubmit("draft")}
           disabled={isSubmitting || !title || !content}
         >
-          {isEdit ? "Als Entwurf speichern" : "Entwurf speichern"}
+          {isEdit ? tCommon("saveAsDraft") : tCommon("saveDraft")}
         </Button>
         <Button
           type="button"
           variant="ghost"
           onClick={() => router.push(backPath)}
         >
-          Abbrechen
+          {tCommon("cancel")}
         </Button>
       </div>
     </div>

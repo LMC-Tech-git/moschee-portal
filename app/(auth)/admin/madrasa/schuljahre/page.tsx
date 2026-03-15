@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ChevronLeft, Plus, Calendar, Archive, Pencil, X } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useMosque } from "@/lib/mosque-context";
 import { useAuth } from "@/lib/auth-context";
 import {
@@ -23,6 +24,8 @@ import type { AcademicYear } from "@/types";
 export default function SchuljahrePage() {
   const { mosqueId } = useMosque();
   const { user } = useAuth();
+  const t = useTranslations("madrasa.schuljahre");
+  const tCommon = useTranslations("common");
   const [years, setYears] = useState<AcademicYear[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -98,14 +101,14 @@ export default function SchuljahrePage() {
       closeForm();
       await loadYears();
     } else {
-      setFormError(result.error || "Speichern fehlgeschlagen");
+      setFormError(result.error || t("saveFailed"));
     }
     setIsSaving(false);
   }
 
   async function handleArchive(year: AcademicYear) {
     if (!user) return;
-    if (!confirm(`Schuljahr "${year.name}" wirklich archivieren?`)) return;
+    if (!confirm(t("archiveConfirm"))) return;
 
     const result = await archiveAcademicYear(year.id, mosqueId, user.id);
     if (result.success) {
@@ -122,18 +125,18 @@ export default function SchuljahrePage() {
           className="mb-2 inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
         >
           <ChevronLeft className="h-4 w-4" />
-          Zurück zur Madrasa
+          {t("backLink")}
         </Link>
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Schuljahre</h1>
+            <h1 className="text-2xl font-bold text-gray-900">{t("title")}</h1>
             <p className="text-sm text-gray-500">
-              Verwalten Sie die Schuljahre Ihrer Madrasa.
+              {t("subtitle")}
             </p>
           </div>
           <Button onClick={openCreateForm} className="gap-2">
             <Plus className="h-4 w-4" />
-            Neues Schuljahr
+            {t("newBtn")}
           </Button>
         </div>
       </div>
@@ -144,7 +147,7 @@ export default function SchuljahrePage() {
           <CardContent className="p-4">
             <div className="mb-4 flex items-center justify-between">
               <h3 className="font-semibold text-gray-900">
-                {editingYear ? "Schuljahr bearbeiten" : "Neues Schuljahr"}
+                {editingYear ? t("formTitleEdit") : t("formTitleCreate")}
               </h3>
               <button
                 type="button"
@@ -163,16 +166,16 @@ export default function SchuljahrePage() {
 
             <div className="grid gap-4 sm:grid-cols-3">
               <div className="space-y-2">
-                <Label htmlFor="year_name">Name *</Label>
+                <Label htmlFor="year_name">{t("nameLabel")}</Label>
                 <Input
                   id="year_name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="z.B. 2025/26"
+                  placeholder={t("namePlaceholder")}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="year_start">Beginn *</Label>
+                <Label htmlFor="year_start">{t("startLabel")}</Label>
                 <Input
                   id="year_start"
                   type="date"
@@ -181,7 +184,7 @@ export default function SchuljahrePage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="year_end">Ende *</Label>
+                <Label htmlFor="year_end">{t("endLabel")}</Label>
                 <Input
                   id="year_end"
                   type="date"
@@ -197,10 +200,10 @@ export default function SchuljahrePage() {
                 disabled={isSaving || !name || !startDate || !endDate}
                 size="sm"
               >
-                {isSaving ? "Wird gespeichert..." : editingYear ? "Aktualisieren" : "Erstellen"}
+                {isSaving ? tCommon("saving") : editingYear ? tCommon("update") : tCommon("create")}
               </Button>
               <Button variant="ghost" size="sm" onClick={closeForm}>
-                Abbrechen
+                {tCommon("cancel")}
               </Button>
             </div>
           </CardContent>
@@ -224,14 +227,14 @@ export default function SchuljahrePage() {
             <div className="flex flex-col items-center justify-center py-12">
               <Calendar className="mb-3 h-10 w-10 text-gray-300" />
               <p className="mb-1 text-sm font-medium text-gray-600">
-                Noch keine Schuljahre
+                {t("emptyTitle")}
               </p>
               <p className="mb-4 text-xs text-gray-400">
-                Erstellen Sie Ihr erstes Schuljahr, um Kurse zuordnen zu können.
+                {t("emptyHint")}
               </p>
               <Button onClick={openCreateForm} size="sm" className="gap-2">
                 <Plus className="h-4 w-4" />
-                Neues Schuljahr
+                {t("newBtn")}
               </Button>
             </div>
           ) : (
@@ -265,7 +268,7 @@ export default function SchuljahrePage() {
                       type="button"
                       onClick={() => openEditForm(year)}
                       className="rounded p-1.5 text-gray-600 hover:bg-gray-100"
-                      title="Bearbeiten"
+                      title={t("editTitle")}
                     >
                       <Pencil className="h-4 w-4" />
                     </button>
@@ -274,7 +277,7 @@ export default function SchuljahrePage() {
                         type="button"
                         onClick={() => handleArchive(year)}
                         className="rounded p-1.5 text-amber-600 hover:bg-amber-50"
-                        title="Archivieren"
+                        title={t("archiveTitle")}
                       >
                         <Archive className="h-4 w-4" />
                       </button>

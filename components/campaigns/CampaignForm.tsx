@@ -19,6 +19,8 @@ interface CampaignFormProps {
 export function CampaignForm({ initialData, onSubmit, isEdit }: CampaignFormProps) {
   const router = useRouter();
   const tL = useTranslations("labels");
+  const tC = useTranslations("campaigns.form");
+  const tCommon = useTranslations("common");
 
   const categoryOptions = [
     { value: "ramadan", label: tL("campaign.category.ramadan") },
@@ -85,24 +87,24 @@ export function CampaignForm({ initialData, onSubmit, isEdit }: CampaignFormProp
 
       {/* Titel */}
       <div className="space-y-2">
-        <Label htmlFor="title">Titel *</Label>
+        <Label htmlFor="title">{tC("titleLabel")}</Label>
         <Input
           id="title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="Titel der Kampagne"
+          placeholder={tC("titlePlaceholder")}
           required
         />
       </div>
 
       {/* Beschreibung */}
       <div className="space-y-2">
-        <Label htmlFor="description">Beschreibung</Label>
+        <Label htmlFor="description">{tC("descriptionLabel")}</Label>
         <Textarea
           id="description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="Beschreiben Sie die Kampagne..."
+          placeholder={tC("descriptionPlaceholder")}
           rows={5}
         />
       </div>
@@ -110,7 +112,7 @@ export function CampaignForm({ initialData, onSubmit, isEdit }: CampaignFormProp
       {/* Kategorie + Ziel */}
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="category">Kategorie</Label>
+          <Label htmlFor="category">{tC("categoryLabel")}</Label>
           <select
             id="category"
             value={category}
@@ -123,7 +125,7 @@ export function CampaignForm({ initialData, onSubmit, isEdit }: CampaignFormProp
           </select>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="goal">Spendenziel (EUR) *</Label>
+          <Label htmlFor="goal">{tC("goalLabel")}</Label>
           <Input
             id="goal"
             type="number"
@@ -131,7 +133,7 @@ export function CampaignForm({ initialData, onSubmit, isEdit }: CampaignFormProp
             step={0.01}
             value={goalEuro}
             onChange={(e) => setGoalEuro(e.target.value)}
-            placeholder="z.B. 5000"
+            placeholder={tC("goalPlaceholder")}
             required
           />
         </div>
@@ -140,7 +142,7 @@ export function CampaignForm({ initialData, onSubmit, isEdit }: CampaignFormProp
       {/* Zeitraum */}
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="start_at">Startdatum</Label>
+          <Label htmlFor="start_at">{tC("startDateLabel")}</Label>
           <Input
             id="start_at"
             type="date"
@@ -149,7 +151,7 @@ export function CampaignForm({ initialData, onSubmit, isEdit }: CampaignFormProp
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="end_at">Enddatum</Label>
+          <Label htmlFor="end_at">{tC("endDateLabel")}</Label>
           <Input
             id="end_at"
             type="date"
@@ -166,7 +168,7 @@ export function CampaignForm({ initialData, onSubmit, isEdit }: CampaignFormProp
           onClick={() => handleSubmit("active")}
           disabled={isSubmitting || !title || !goalEuro}
         >
-          {isSubmitting ? "Wird gespeichert..." : isEdit ? "Aktualisieren" : "Kampagne starten"}
+          {isSubmitting ? tCommon("saving") : isEdit ? tCommon("update") : tC("btnStart")}
         </Button>
         {isEdit && (
           <>
@@ -176,7 +178,7 @@ export function CampaignForm({ initialData, onSubmit, isEdit }: CampaignFormProp
               onClick={() => handleSubmit("paused")}
               disabled={isSubmitting}
             >
-              Pausieren
+              {tCommon("pause")}
             </Button>
             <Button
               type="button"
@@ -184,7 +186,7 @@ export function CampaignForm({ initialData, onSubmit, isEdit }: CampaignFormProp
               onClick={() => handleSubmit("completed")}
               disabled={isSubmitting}
             >
-              Abschließen
+              {tCommon("complete")}
             </Button>
           </>
         )}
@@ -193,7 +195,7 @@ export function CampaignForm({ initialData, onSubmit, isEdit }: CampaignFormProp
           variant="ghost"
           onClick={() => router.push("/admin/kampagnen")}
         >
-          Abbrechen
+          {tCommon("cancel")}
         </Button>
       </div>
     </div>

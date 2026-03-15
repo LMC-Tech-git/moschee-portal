@@ -17,6 +17,7 @@ import { getEnrolledStudentIds } from "@/lib/actions/enrollments";
 import { formatCurrencyCents } from "@/lib/utils";
 import { Banknote, CheckCircle, X, ChevronLeft, ChevronRight, Plus, AlertCircle, Bell, Download } from "lucide-react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import type { CourseWithStats } from "@/types";
 
 function getCurrentMonthKey(): string {
@@ -52,6 +53,8 @@ type ActionState = {
 export default function AdminMadrasaGebuehrenPage() {
   const { mosqueId } = useMosque();
   const { user } = useAuth();
+  const t = useTranslations("madrasa.gebuehren");
+  const tCommon = useTranslations("common");
 
   const [monthKey, setMonthKey] = useState(getCurrentMonthKey());
   const [rows, setRows] = useState<FeeOverviewRow[]>([]);
@@ -167,7 +170,7 @@ export default function AdminMadrasaGebuehrenPage() {
 
   async function handleSendReminder(feeId: string) {
     if (!user) return;
-    if (!confirm("Erinnerungsmail an Eltern senden?")) return;
+    if (!confirm(t("reminderConfirm"))) return;
     setReminderFeeId(feeId);
     setReminderResult(null);
     const result = await sendFeeReminderEmail(mosqueId, user.id, feeId);
@@ -175,7 +178,7 @@ export default function AdminMadrasaGebuehrenPage() {
     setReminderResult({
       feeId,
       success: result.success,
-      msg: result.success ? "Mahnung gesendet" : (result.error || "Fehler"),
+      msg: result.success ? t("reminderSent") : (result.error || tCommon("error")),
     });
   }
 
@@ -197,18 +200,18 @@ export default function AdminMadrasaGebuehrenPage() {
     const sep = ";";
 
     function statusLabel(fee: FeeOverviewRow["fee"]): string {
-      if (!fee) return "Kein Eintrag";
-      if (fee.status === "paid") return "Bezahlt";
-      if (fee.status === "waived") return "Erlassen";
-      return "Offen";
+      if (!fee) return t("statusNoEntry");
+      if (fee.status === "paid") return t("statusPaid");
+      if (fee.status === "waived") return t("statusWaived");
+      return t("statusOpen");
     }
     function methodLabel(fee: FeeOverviewRow["fee"]): string {
       if (!fee?.payment_method) return "";
       const map: Record<string, string> = {
-        cash: "Bar",
-        transfer: "Überweisung",
-        stripe: "Online (Stripe)",
-        waived: "Erlassen",
+        cash: t("methodCash"),
+        transfer: t("methodTransfer"),
+        stripe: t("methodOnline"),
+        waived: t("methodWaived"),
       };
       return map[fee.payment_method] ?? fee.payment_method;
     }
@@ -255,8 +258,8 @@ export default function AdminMadrasaGebuehrenPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Gebühren</h1>
-          <p className="text-sm text-gray-500">Monatliche Madrasa-Gebühren verwalten.</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t("title")}</h1>
+          <p className="text-sm text-gray-500">{t("subtitle")}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {/* Kurs-Filter */}
@@ -268,7 +271,7 @@ export default function AdminMadrasaGebuehrenPage() {
                 disabled={isFilterLoading}
                 className="rounded-lg border border-gray-300 bg-white py-2 pl-3 pr-8 text-sm text-gray-700 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 disabled:opacity-60"
               >
-                <option value="all">Alle Kurse</option>
+                <option value="all">{t("allCourses")}</option>
                 {courses.map((c) => (
                   <option key={c.id} value={c.id}>{c.title}</option>
                 ))}
@@ -297,7 +300,7 @@ export default function AdminMadrasaGebuehrenPage() {
             href="/admin/madrasa"
             className="inline-flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
           >
-            Zur Madrasa-Übersicht
+            {t("backLink")}
           </Link>
         </div>
       </div>
@@ -335,10 +338,10 @@ export default function AdminMadrasaGebuehrenPage() {
 
       {/* Gebühren erstellen */}
       <div className="rounded-xl border border-gray-200 bg-white p-5">
-        <h2 className="mb-3 font-semibold text-gray-900">Gebühren für {formatMonthKey(monthKey)} erstellen</h2>
+        <h2 className="mb-3 font-semibold text-gray-900">{t("createSection", { month: formatMonthKey(monthKey) })}</h2>
         <div className="flex flex-wrap items-end gap-3">
           <div>
-            <label className="mb-1 block text-xs font-medium text-gray-600">Betrag je Schüler (€)</label>
+            <label className="mb-1 block text-xs font-medium text-gray-600">{t("amountLabel")}</label>
             <div className="relative">
               <input
                 type="number"
@@ -361,16 +364,16 @@ export default function AdminMadrasaGebuehrenPage() {
             className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-60"
           >
             <Plus className="h-4 w-4" />
-            {isCreating ? "Erstelle..." : "Gebühren erstellen"}
+            {isCreating ? t("btnCreating") : t("btnCreate")}
           </button>
         </div>
         {createResult && (
           <p className="mt-3 text-sm text-emerald-700">
-            {createResult.created} Gebühren erstellt, {createResult.skipped} bereits vorhanden.
+            {t("createResultMsg", { created: createResult.created, skipped: createResult.skipped })}
           </p>
         )}
         <p className="mt-2 text-xs text-gray-400">
-          Überspringt Schüler, die bereits einen Eintrag für diesen Monat haben.
+          {t("createHint")}
         </p>
       </div>
 
@@ -379,19 +382,19 @@ export default function AdminMadrasaGebuehrenPage() {
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <div className="rounded-xl border border-gray-200 bg-white p-4 text-center">
             <p className="text-2xl font-bold text-red-600">{openCount}</p>
-            <p className="text-xs text-gray-500 mt-1">Offen</p>
+            <p className="text-xs text-gray-500 mt-1">{t("kpiOpen")}</p>
           </div>
           <div className="rounded-xl border border-gray-200 bg-white p-4 text-center">
             <p className="text-2xl font-bold text-emerald-600">{paidCount}</p>
-            <p className="text-xs text-gray-500 mt-1">Bezahlt</p>
+            <p className="text-xs text-gray-500 mt-1">{t("kpiPaid")}</p>
           </div>
           <div className="rounded-xl border border-gray-200 bg-white p-4 text-center">
             <p className="text-2xl font-bold text-gray-400">{waivedCount}</p>
-            <p className="text-xs text-gray-500 mt-1">Erlassen</p>
+            <p className="text-xs text-gray-500 mt-1">{t("kpiWaived")}</p>
           </div>
           <div className="rounded-xl border border-gray-200 bg-white p-4 text-center">
             <p className="text-2xl font-bold text-amber-500">{noFeeCount}</p>
-            <p className="text-xs text-gray-500 mt-1">Kein Eintrag</p>
+            <p className="text-xs text-gray-500 mt-1">{t("kpiNoEntry")}</p>
           </div>
         </div>
       )}
@@ -406,12 +409,10 @@ export default function AdminMadrasaGebuehrenPage() {
           <div className="py-12 text-center">
             <Banknote className="mx-auto mb-2 h-8 w-8 text-gray-300" />
             <p className="text-sm font-medium text-gray-600">
-              {selectedCourseId !== "all" ? "Keine Schüler in diesem Kurs für diesen Monat" : "Keine Schüler gefunden"}
+              {selectedCourseId !== "all" ? t("emptyByCourse") : t("emptyAll")}
             </p>
             <p className="mt-1 text-xs text-gray-400">
-              {selectedCourseId !== "all"
-                ? "Wechsle den Kurs-Filter oder erstelle Gebühren für diesen Monat."
-                : "Erstelle zuerst Gebühren für diesen Monat oder füge aktive Schüler hinzu."}
+              {selectedCourseId !== "all" ? t("emptyByCourseHint") : t("emptyAllHint")}
             </p>
           </div>
         ) : (
@@ -419,11 +420,11 @@ export default function AdminMadrasaGebuehrenPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b bg-gray-50 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                  <th className="px-4 py-3">Schüler</th>
-                  <th className="px-4 py-3">Betrag</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3 hidden sm:table-cell">Zahlungsart</th>
-                  <th className="px-4 py-3 text-right">Aktionen</th>
+                  <th className="px-4 py-3">{t("colStudent")}</th>
+                  <th className="px-4 py-3">{t("colAmount")}</th>
+                  <th className="px-4 py-3">{t("colStatus")}</th>
+                  <th className="px-4 py-3 hidden sm:table-cell">{t("colPaymentMethod")}</th>
+                  <th className="px-4 py-3 text-right">{t("colActions")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y">
@@ -442,33 +443,33 @@ export default function AdminMadrasaGebuehrenPage() {
                       <td className="px-4 py-3">
                         {!row.fee ? (
                           <span className="inline-flex rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500">
-                            Kein Eintrag
+                            {t("statusNoEntry")}
                           </span>
                         ) : row.fee.status === "paid" ? (
                           <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">
                             <CheckCircle className="h-3 w-3" />
-                            Bezahlt
+                            {t("statusPaid")}
                           </span>
                         ) : row.fee.status === "waived" ? (
                           <span className="inline-flex rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500">
-                            Erlassen
+                            {t("statusWaived")}
                           </span>
                         ) : (
                           <span className="inline-flex rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
-                            Offen
+                            {t("statusOpen")}
                           </span>
                         )}
                       </td>
                       <td className="px-4 py-3 hidden sm:table-cell text-xs text-gray-500">
                         <span>
                           {row.fee?.payment_method === "cash"
-                            ? "Bar"
+                            ? t("methodCash")
                             : row.fee?.payment_method === "transfer"
-                            ? "Überweisung"
+                            ? t("methodTransfer")
                             : row.fee?.payment_method === "stripe"
-                            ? "Online (Stripe)"
+                            ? t("methodOnline")
                             : row.fee?.payment_method === "waived"
-                            ? "Erlassen"
+                            ? t("methodWaived")
                             : "—"}
                         </span>
                         {row.fee?.notes && (
@@ -496,7 +497,7 @@ export default function AdminMadrasaGebuehrenPage() {
                                 }}
                                 className="rounded px-2 py-1 text-xs font-medium text-emerald-700 hover:bg-emerald-50"
                               >
-                                Bar
+                                {t("actionCash")}
                               </button>
                               <button
                                 type="button"
@@ -506,7 +507,7 @@ export default function AdminMadrasaGebuehrenPage() {
                                 }}
                                 className="rounded px-2 py-1 text-xs font-medium text-blue-700 hover:bg-blue-50"
                               >
-                                Überweisung
+                                {t("actionTransfer")}
                               </button>
                               <button
                                 type="button"
@@ -516,13 +517,13 @@ export default function AdminMadrasaGebuehrenPage() {
                                 }}
                                 className="rounded px-2 py-1 text-xs font-medium text-gray-600 hover:bg-gray-100"
                               >
-                                Erlassen
+                                {t("actionWaive")}
                               </button>
                               <button
                                 type="button"
                                 onClick={() => handleSendReminder(row.fee!.id)}
                                 disabled={reminderFeeId === row.fee!.id}
-                                title="Erinnerungsmail an Eltern senden"
+                                title={t("reminderConfirm")}
                                 className="rounded px-2 py-1 text-xs font-medium text-orange-600 hover:bg-orange-50 disabled:opacity-50"
                               >
                                 {reminderFeeId === row.fee!.id ? (
@@ -530,7 +531,7 @@ export default function AdminMadrasaGebuehrenPage() {
                                 ) : (
                                   <Bell className="h-3 w-3 inline" />
                                 )}
-                                {" "}Mahnung
+                                {" "}{t("actionReminder")}
                               </button>
                             </>
                           )}
@@ -540,7 +541,7 @@ export default function AdminMadrasaGebuehrenPage() {
                                 type="text"
                                 value={actionNotes}
                                 onChange={(e) => setActionNotes(e.target.value)}
-                                placeholder="Notiz (optional)"
+                                placeholder={t("notePlaceholder")}
                                 className="w-40 rounded border border-gray-300 px-2 py-1 text-xs focus:border-emerald-500 focus:outline-none"
                               />
                               <div className="flex gap-1">
@@ -551,7 +552,7 @@ export default function AdminMadrasaGebuehrenPage() {
                                   className="inline-flex items-center gap-1 rounded bg-emerald-600 px-2 py-1 text-xs font-medium text-white hover:bg-emerald-700 disabled:opacity-60"
                                 >
                                   <CheckCircle className="h-3 w-3" />
-                                  {isActing ? "..." : actionState?.type === "waive" ? "Erlassen" : "Bestätigen"}
+                                  {isActing ? "..." : actionState?.type === "waive" ? t("actionWaive") : t("btnConfirm")}
                                 </button>
                                 <button
                                   type="button"
@@ -559,7 +560,7 @@ export default function AdminMadrasaGebuehrenPage() {
                                   className="inline-flex items-center gap-1 rounded border border-gray-300 px-2 py-1 text-xs font-medium text-gray-600 hover:bg-gray-50"
                                 >
                                   <X className="h-3 w-3" />
-                                  Abbrechen
+                                  {tCommon("cancel")}
                                 </button>
                               </div>
                             </div>
