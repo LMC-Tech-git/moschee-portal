@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ChevronLeft, Heart, TrendingUp } from "lucide-react";
 import { resolveMosqueWithSettings } from "@/lib/resolve-mosque";
+import { getTranslations } from "next-intl/server";
 import { getPublicCampaigns, getCampaignById } from "@/lib/actions/campaigns";
 import { DonationForm } from "./DonationForm";
 import { CampaignCard } from "@/components/campaigns/CampaignCard";
@@ -17,8 +18,9 @@ export async function generateMetadata({
 }) {
   const result = await resolveMosqueWithSettings(params.slug);
   if (!result) return { title: "Nicht gefunden" };
-  const title = `Spenden | ${result.mosque.name}`;
-  const description = `Unterstützen Sie die ${result.mosque.name} mit einer Spende. Sichere Online-Zahlung über Stripe.`;
+  const t = await getTranslations("publicDonate");
+  const title = t("metaTitle", { mosque: result.mosque.name });
+  const description = t("metaDesc", { mosque: result.mosque.name });
   return {
     title,
     description,
@@ -46,6 +48,7 @@ export default async function DonatePage({
   const result = await resolveMosqueWithSettings(params.slug);
   if (!result) notFound();
   const { mosque, settings } = result;
+  const t = await getTranslations("publicDonate");
 
   // Spenden-Schnellbeträge aus Settings parsen (z.B. "10,25,50,100" → Cents-Array)
   const quickAmounts = (settings.donation_quick_amounts || "10,25,50,100")
@@ -80,7 +83,7 @@ export default async function DonatePage({
           className="mb-6 inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
         >
           <ChevronLeft className="h-4 w-4" />
-          Zurück zum Dashboard
+          {t("back")}
         </Link>
 
         {/* Erfolgs-Banner */}
@@ -89,11 +92,10 @@ export default async function DonatePage({
             <Heart className="h-6 w-6 flex-shrink-0 text-emerald-500" />
             <div>
               <p className="font-semibold text-emerald-800">
-                Vielen Dank für Ihre Spende!
+                {t("thankYou")}
               </p>
               <p className="text-sm text-emerald-700">
-                Ihre Zahlung wurde erfolgreich übermittelt. Wir sind sehr
-                dankbar für Ihre Unterstützung.
+                {t("thankYouDesc")}
               </p>
             </div>
           </div>
@@ -102,19 +104,19 @@ export default async function DonatePage({
         {/* Demo: Stripe Test-Card Info */}
         {isDemoMosque && (
           <div className="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800">
-            <p className="mb-1.5 font-semibold">🧪 Demo-Modus — Testzahlung</p>
+            <p className="mb-1.5 font-semibold">🧪 {t("demoTitle")}</p>
             <p className="mb-0.5">
-              Kartennummer:{" "}
+              {t("demoCard")}{" "}
               <code className="rounded bg-blue-100 px-1 font-mono font-bold tracking-wider">
                 4242 4242 4242 4242
               </code>
             </p>
             <p>
-              Ablaufdatum:{" "}
+              {t("demoExpiry")}{" "}
               <code className="rounded bg-blue-100 px-1 font-mono">12/34</code>
-              {"  "}CVC:{" "}
+              {"  "}{t("demoCvc")}{" "}
               <code className="rounded bg-blue-100 px-1 font-mono">123</code>
-              {"  "}PLZ:{" "}
+              {"  "}{t("demoZip")}{" "}
               <code className="rounded bg-blue-100 px-1 font-mono">12345</code>
             </p>
           </div>
@@ -123,18 +125,17 @@ export default async function DonatePage({
         {/* Abbruch-Banner */}
         {searchParams.cancelled && (
           <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-            Der Zahlungsvorgang wurde abgebrochen. Sie können es jederzeit
-            erneut versuchen.
+            {t("cancelled")}
           </div>
         )}
 
         {/* Header */}
         <div className="mb-8 text-center">
           <h1 className="text-3xl font-extrabold text-gray-900">
-            Spenden an {mosque.name}
+            {t("title", { mosque: mosque.name })}
           </h1>
           <p className="mt-2 text-gray-600">
-            Unterstützen Sie unsere Gemeinde mit einer Spende.
+            {t("subtitle")}
           </p>
         </div>
 
@@ -144,13 +145,13 @@ export default async function DonatePage({
             <div className="mb-4 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <TrendingUp className="h-5 w-5 text-emerald-600" />
-                <h2 className="font-bold text-gray-900">Aktive Kampagnen</h2>
+                <h2 className="font-bold text-gray-900">{t("activeCampaigns")}</h2>
               </div>
               <Link
                 href={`/${params.slug}/campaigns`}
                 className="text-xs font-medium text-emerald-600 hover:underline"
               >
-                Alle anzeigen
+                {t("showAll")}
               </Link>
             </div>
             <div className="space-y-4">
@@ -167,7 +168,7 @@ export default async function DonatePage({
             <div className="my-6 flex items-center gap-3">
               <div className="flex-1 border-t border-gray-200" />
               <span className="whitespace-nowrap text-xs text-gray-400">
-                oder allgemein spenden
+                {t("orGeneral")}
               </span>
               <div className="flex-1 border-t border-gray-200" />
             </div>
@@ -179,13 +180,13 @@ export default async function DonatePage({
           <div className="mb-6">
             <div className="mb-2 flex items-center justify-between">
               <span className="text-sm font-medium text-gray-500">
-                Spende für:
+                {t("donateFor")}
               </span>
               <Link
                 href={`/${params.slug}/donate`}
                 className="text-xs text-gray-400 hover:text-gray-600 hover:underline"
               >
-                Allgemeine Spende wählen
+                {t("selectGeneral")}
               </Link>
             </div>
             <div className="rounded-xl border-2 border-emerald-500 bg-emerald-50 p-4">
@@ -201,10 +202,10 @@ export default async function DonatePage({
                 <div className="mb-1 flex justify-between text-xs text-emerald-700">
                   <span>
                     {formatCurrencyCents(preselectedCampaign.raised_cents)}{" "}
-                    gesammelt
+                    {t("raised")}
                   </span>
                   <span>
-                    {preselectedCampaign.progress_percent}% von{" "}
+                    {preselectedCampaign.progress_percent}{t("percentOf")}{" "}
                     {formatCurrencyCents(
                       preselectedCampaign.goal_amount_cents
                     )}

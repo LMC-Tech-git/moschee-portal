@@ -4,7 +4,6 @@ import { formatDate, formatDateTime } from "@/lib/utils";
 import { getNextOccurrence } from "@/lib/recurrence";
 import { getTranslations } from "next-intl/server";
 import {
-  eventCategoryLabels,
   eventCategoryColors,
   eventStatusLabels,
   eventStatusColors,
@@ -20,6 +19,10 @@ export async function EventCard({ event, compact, registrationCount }: EventCard
   const t = await getTranslations("eventCard");
   const tL = await getTranslations("labels");
   const nextOccurrence = event.is_recurring ? getNextOccurrence(event) : null;
+  const EVT_CAT_LABELS: Record<string, string> = {
+    youth: tL("event.category.youth"), lecture: tL("event.category.lecture"), quran: tL("event.category.quran"),
+    community: tL("event.category.community"), ramadan: tL("event.category.ramadan"), other: tL("event.category.other"),
+  };
 
   // Locale-aware recurrence label
   let recurrenceLabel = "";
@@ -59,7 +62,7 @@ export async function EventCard({ event, compact, registrationCount }: EventCard
             <span
               className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${eventCategoryColors[event.category]}`}
             >
-              {eventCategoryLabels[event.category]}
+              {EVT_CAT_LABELS[event.category] || event.category}
             </span>
             {event.is_recurring && recurrenceLabel && (
               <span className="flex items-center gap-1 text-purple-600">
@@ -90,7 +93,7 @@ export async function EventCard({ event, compact, registrationCount }: EventCard
             <span
               className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${eventCategoryColors[event.category]}`}
             >
-              {eventCategoryLabels[event.category]}
+              {EVT_CAT_LABELS[event.category] || event.category}
             </span>
             {event.is_recurring && (
               <span className="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-medium text-purple-700">

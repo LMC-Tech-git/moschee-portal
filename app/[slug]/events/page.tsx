@@ -3,12 +3,12 @@ import { cookies } from "next/headers";
 import Link from "next/link";
 import { CalendarDays, ChevronLeft } from "lucide-react";
 import { resolveMosqueBySlug } from "@/lib/resolve-mosque";
+import { getTranslations } from "next-intl/server";
 import {
   getPublicEventsFiltered,
   getMemberEventsFiltered,
 } from "@/lib/actions/events";
 import { EventCard } from "@/components/events/EventCard";
-import { eventCategoryLabels } from "@/lib/constants";
 import { getNextOccurrence } from "@/lib/recurrence";
 import type { Event } from "@/types";
 
@@ -21,20 +21,19 @@ export async function generateMetadata({
 }) {
   const mosque = await resolveMosqueBySlug(params.slug);
   if (!mosque) return { title: "Nicht gefunden" };
+  const t = await getTranslations("publicEvents");
+  const tL = await getTranslations("labels");
 
   const categoryMap: Record<string, string> = {
-    community: "Gemeinschaft",
-    lecture: "Vorträge",
-    quran: "Koran",
-    ramadan: "Ramadan",
-    other: "Sonstiges",
+    community: tL("event.category.community"), lecture: tL("event.category.lecture"),
+    quran: tL("event.category.quran"), ramadan: tL("event.category.ramadan"), other: tL("event.category.other"),
   };
 
   const catLabel = searchParams?.category ? categoryMap[searchParams.category] ?? searchParams.category : null;
   const title = catLabel
-    ? `Veranstaltungen – ${catLabel} | ${mosque.name}`
-    : `Veranstaltungen | ${mosque.name}`;
-  const description = `Veranstaltungen und Events der ${mosque.name}. Gemeinschaftstreffen, Vorträge und mehr.`;
+    ? t("metaTitleCat", { category: catLabel, mosque: mosque.name })
+    : t("metaTitle", { mosque: mosque.name });
+  const description = t("metaDesc", { mosque: mosque.name });
 
   return {
     title,
@@ -53,15 +52,7 @@ export async function generateMetadata({
   };
 }
 
-const CATEGORIES: { value: Event["category"] | ""; label: string }[] = [
-  { value: "",          label: "Alle"        },
-  { value: "community", label: "Gemeinde"    },
-  { value: "lecture",   label: "Vortrag"     },
-  { value: "quran",     label: "Quran"       },
-  { value: "ramadan",   label: "Ramadan"     },
-  { value: "youth",     label: "Jugend"      },
-  { value: "other",     label: "Sonstiges"   },
-];
+// CATEGORIES built inside component with translations
 
 export default async function EventsPage({
   params,
@@ -72,6 +63,18 @@ export default async function EventsPage({
 }) {
   const mosque = await resolveMosqueBySlug(params.slug);
   if (!mosque) notFound();
+  const t = await getTranslations("publicEvents");
+  const tL = await getTranslations("labels");
+
+  const CATEGORIES: { value: Event["category"] | ""; label: string }[] = [
+    { value: "",          label: t("allCategories") },
+    { value: "community", label: tL("event.category.community") },
+    { value: "lecture",   label: tL("event.category.lecture") },
+    { value: "quran",     label: tL("event.category.quran") },
+    { value: "ramadan",   label: tL("event.category.ramadan") },
+    { value: "youth",     label: tL("event.category.youth") },
+    { value: "other",     label: tL("event.category.other") },
+  ];
 
   const cookieStore = cookies();
   const isLoggedIn = !!cookieStore.get("pb_auth")?.value;
@@ -122,13 +125,13 @@ export default async function EventsPage({
             <Link
               href={`/${params.slug}`}
               className="text-white/70 hover:text-white transition-colors"
-              aria-label="Zurück zur Startseite"
+              aria-label={t("back")}
             >
               <ChevronLeft className="h-5 w-5" />
             </Link>
             <div>
               <h1 className="text-2xl font-extrabold text-white sm:text-3xl">
-                Veranstaltungen
+                {t("title")}
               </h1>
               <p className="mt-1 text-sm text-white/70">{mosque.name}</p>
             </div>
@@ -140,7 +143,7 @@ export default async function EventsPage({
       <div className="sticky top-0 z-10 border-b border-gray-200 bg-white shadow-sm">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
           <nav
-            aria-label="Kategorie-Filter"
+            aria-label={t("categoryFilter")}
             className="flex gap-1 overflow-x-auto py-3 scrollbar-none"
           >
             {CATEGORIES.map((cat) => {
@@ -170,10 +173,10 @@ export default async function EventsPage({
             <div className="rounded-xl border-2 border-dashed border-gray-200 bg-white py-16 text-center">
               <CalendarDays className="mx-auto mb-3 h-10 w-10 text-gray-300" aria-hidden="true" />
               <p className="font-medium text-gray-500">
-                Keine Veranstaltungen{" "}
+                {t("empty")}{" "}
                 {category
-                  ? `in der Kategorie „${eventCategoryLabels[category as Event["category"]]}"`
-                  : "vorhanden"}
+                  ? t("emptyInCategory", { category: CATEGORIES.find(c => c.value === category)?.label || category })
+                  : t("emptyAvailable")}
                 .
               </p>
             </div>
@@ -183,7 +186,7 @@ export default async function EventsPage({
               {upcoming.length > 0 && (
                 <div>
                   <h2 className="mb-4 text-lg font-bold text-gray-900">
-                    Kommende Veranstaltungen
+                    {t("upcoming")}
                   </h2>
                   <div className="space-y-4">
                     {upcoming.map((event) => (
@@ -203,7 +206,7 @@ export default async function EventsPage({
               {past.length > 0 && (
                 <div>
                   <h2 className="mb-4 text-lg font-bold text-gray-500">
-                    Vergangene Veranstaltungen
+                    {t("past")}
                   </h2>
                   <div className="space-y-4 opacity-75">
                     {past.map((event) => (

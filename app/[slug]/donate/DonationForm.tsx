@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect } from "react";
 import { Heart, ExternalLink, UserCheck } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useAuth } from "@/lib/auth-context";
 import { formatCurrencyCents } from "@/lib/utils";
 import { TurnstileWidget } from "@/components/shared/TurnstileWidget";
@@ -32,6 +33,7 @@ export function DonationForm({
   quickAmounts,
 }: DonationFormProps) {
   const presetAmounts = (quickAmounts && quickAmounts.length > 0) ? quickAmounts : DEFAULT_PRESET_AMOUNTS;
+  const t = useTranslations("donationForm");
   const { user, pb } = useAuth();
   const [amountCents, setAmountCents] = useState(() => {
     const amounts = (quickAmounts && quickAmounts.length > 0) ? quickAmounts : DEFAULT_PRESET_AMOUNTS;
@@ -63,7 +65,7 @@ export function DonationForm({
       <div className="text-center">
         <Heart className="mx-auto mb-4 h-12 w-12 text-amber-500" />
         <p className="mb-6 text-gray-600">
-          Spenden werden über einen externen Dienst abgewickelt.
+          {t("externalMsg")}
         </p>
         <a
           href={externalDonationUrl}
@@ -72,7 +74,7 @@ export function DonationForm({
           className="inline-flex items-center gap-2 rounded-lg bg-amber-500 px-8 py-3 text-lg font-bold text-white shadow-lg transition-colors hover:bg-amber-600"
         >
           <ExternalLink className="h-5 w-5" />
-          {externalDonationLabel || "Jetzt spenden"}
+          {externalDonationLabel || t("donateNow")}
         </a>
       </div>
     );
@@ -83,7 +85,7 @@ export function DonationForm({
       <div className="text-center">
         <Heart className="mx-auto mb-4 h-12 w-12 text-amber-500" />
         <p className="mb-6 text-gray-600">
-          Spenden werden über PayPal abgewickelt.
+          {t("paypalMsg")}
         </p>
         <a
           href={paypalDonateUrl}
@@ -92,7 +94,7 @@ export function DonationForm({
           className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-8 py-3 text-lg font-bold text-white shadow-lg transition-colors hover:bg-blue-700"
         >
           <ExternalLink className="h-5 w-5" />
-          Mit PayPal spenden
+          {t("paypalBtn")}
         </a>
       </div>
     );
@@ -103,10 +105,10 @@ export function DonationForm({
       <div className="text-center">
         <Heart className="mx-auto mb-4 h-12 w-12 text-gray-300" />
         <p className="text-gray-500">
-          Online-Spenden sind derzeit nicht aktiviert.
+          {t("disabledMsg")}
         </p>
         <p className="mt-2 text-sm text-gray-400">
-          Bitte kontaktieren Sie die Moschee direkt.
+          {t("disabledHint")}
         </p>
       </div>
     );
@@ -144,7 +146,7 @@ export function DonationForm({
       const data = await res.json();
 
       if (!res.ok || !data.success) {
-        setError(data.error || "Fehler beim Erstellen der Zahlung");
+        setError(data.error || t("errorPayment"));
         return;
       }
 
@@ -153,7 +155,7 @@ export function DonationForm({
         window.location.href = data.checkout_url;
       }
     } catch {
-      setError("Ein Netzwerkfehler ist aufgetreten");
+      setError(t("errorNetwork"));
     } finally {
       setIsSubmitting(false);
     }
@@ -183,9 +185,9 @@ export function DonationForm({
       {/* Betrag wählen */}
       <div>
         <label htmlFor="custom_amount" className="mb-2 block text-sm font-medium text-gray-700">
-          Spendenbetrag
+          {t("amountLabel")}
         </label>
-        <div className="mb-3 flex flex-wrap gap-2" role="group" aria-label="Vorgeschlagene Beträge">
+        <div className="mb-3 flex flex-wrap gap-2" role="group" aria-label={t("suggestedAmounts")}>
           {presetAmounts.map((cents) => (
             <button
               key={cents}
@@ -213,7 +215,7 @@ export function DonationForm({
             inputMode="decimal"
             value={customAmount}
             onChange={(e) => handleCustomAmountChange(e.target.value)}
-            placeholder="Anderer Betrag"
+            placeholder={t("customPlaceholder")}
             autoComplete="off"
             className="w-full rounded-lg border border-gray-300 py-2.5 pl-12 pr-4 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
           />
@@ -228,7 +230,7 @@ export function DonationForm({
           <UserCheck className="h-5 w-5 text-emerald-600 flex-shrink-0" />
           <div className="text-sm">
             <p className="font-medium text-emerald-800">
-              Spende als {user.full_name}
+              {t("donateAs", { name: user.full_name })}
             </p>
             <p className="text-emerald-600">{user.email}</p>
           </div>
@@ -237,28 +239,28 @@ export function DonationForm({
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <label htmlFor="donor_name" className="mb-1.5 block text-sm font-medium text-gray-700">
-              Name (optional)
+              {t("nameLabel")}
             </label>
             <input
               id="donor_name"
               type="text"
               value={donorName}
               onChange={(e) => setDonorName(e.target.value)}
-              placeholder="Ihr Name"
+              placeholder={t("namePlaceholder")}
               autoComplete="name"
               className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
             />
           </div>
           <div>
             <label htmlFor="donor_email" className="mb-1.5 block text-sm font-medium text-gray-700">
-              E-Mail (optional)
+              {t("emailLabel")}
             </label>
             <input
               id="donor_email"
               type="email"
               value={donorEmail}
               onChange={(e) => setDonorEmail(e.target.value)}
-              placeholder="ihre@email.de"
+              placeholder={t("emailPlaceholder")}
               autoComplete="email"
               className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
             />
@@ -268,7 +270,7 @@ export function DonationForm({
 
       {/* Betrag anzeigen */}
       <div className="rounded-lg bg-emerald-50 p-4 text-center">
-        <p className="text-sm text-gray-600">Ihr Spendenbetrag:</p>
+        <p className="text-sm text-gray-600">{t("yourAmount")}</p>
         <p className="text-3xl font-extrabold text-emerald-700">
           {formatCurrencyCents(amountCents)}
         </p>
@@ -284,17 +286,17 @@ export function DonationForm({
         className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-6 py-3 text-lg font-bold text-white shadow-lg transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
       >
         {isSubmitting ? (
-          "Wird vorbereitet\u2026"
+          t("submitting")
         ) : (
           <>
             <Heart className="h-5 w-5" />
-            Jetzt spenden
+            {t("submitBtn")}
           </>
         )}
       </button>
 
       <p className="text-center text-xs text-gray-400">
-        Sichere Zahlung über Stripe. Ihre Daten werden verschlüsselt übertragen.
+        {t("securePayment")}
       </p>
     </div>
   );

@@ -5,7 +5,6 @@ import type { Post } from "@/types";
 import { formatDate } from "@/lib/utils";
 import { getTranslations } from "next-intl/server";
 import {
-  postCategoryLabels,
   postCategoryColors,
   postStatusLabels,
   postStatusColors,
@@ -23,6 +22,11 @@ interface PostCardProps {
 
 export async function PostCard({ post, compact, href }: PostCardProps) {
   const t = await getTranslations("postCard");
+  const tL = await getTranslations("labels");
+  const CAT_LABELS: Record<string, string> = {
+    announcement: tL("post.category.announcement"), youth: tL("post.category.youth"),
+    campaign: tL("post.category.campaign"), event: tL("post.category.event"), general: tL("post.category.general"),
+  };
   const authorName = post.expand?.created_by
     ? `${post.expand.created_by.first_name} ${post.expand.created_by.last_name}`.trim() ||
       post.expand.created_by.full_name
@@ -38,7 +42,7 @@ export async function PostCard({ post, compact, href }: PostCardProps) {
             <span
               className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${postCategoryColors[post.category]}`}
             >
-              {postCategoryLabels[post.category]}
+              {CAT_LABELS[post.category] || post.category}
             </span>
             {post.published_at && (
               <time dateTime={new Date(post.published_at).toISOString()}>
@@ -86,7 +90,7 @@ export async function PostCard({ post, compact, href }: PostCardProps) {
             <span
               className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${postCategoryColors[post.category]}`}
             >
-              {postCategoryLabels[post.category]}
+              {CAT_LABELS[post.category] || post.category}
             </span>
             {post.pinned && (
               <span className="inline-flex items-center gap-1 text-xs font-medium text-amber-600">

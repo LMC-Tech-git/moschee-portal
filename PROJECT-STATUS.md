@@ -22,6 +22,7 @@
 | Health-Check API | `app/api/health/route.ts` |
 | PocketBase Backup-Script | `scripts/backup-pocketbase.sh` |
 | Migration-Script (idempotent) | `scripts/migrate-v1.mjs` |
+| **Mehrsprachigkeit (DE/TR)** | `messages/de.json`, `messages/tr.json`, `i18n/routing.ts`, alle Admin- + Member-Seiten |
 
 ### Öffentliches Portal (`/[slug]/...`)
 | Feature | Dateien |
@@ -167,7 +168,7 @@
 
 | Problem | Betroffen | Priorität |
 |---|---|---|
-| Pre-existing TS-Fehler | `app/(auth)/admin/page.tsx`, `CreateInviteDialog.tsx`, `enrollments.ts`, `members.ts`, `students.ts`, `mosque-context.tsx` | Niedrig |
+| Pre-existing TS-Fehler | `app/(auth)/admin/page.tsx`, `enrollments.ts`, `members.ts`, `students.ts`, `mosque-context.tsx` | Niedrig |
 | `logAudit` call in `updateBrandingSettings` / `updatePrayerSettings` / `updateDefaultSettings` nutzt `collection`/`recordId` statt `entityType`/`entityId` | `lib/actions/settings.ts` (ältere Funktionen) | Niedrig |
 | `email_outbox` — kein tatsächlicher Versand implementiert | `lib/actions/newsletter.ts` | Mittel |
 | `members` Legacy Collection leer — kann aufgeräumt werden | PocketBase | Niedrig |
@@ -185,10 +186,11 @@ Madrasa-Modul                 ████████████ 100%
 Member-Bereich                ██████████░░  85%  (E-Mail, Passwort-Reset fehlt)
 Zahlungen                     ████████████ 100%
 Security                      ████████████ 100%
+Mehrsprachigkeit (DE/TR)      ████████████ 100%
 E-Mail-Infrastruktur          ██░░░░░░░░░░  20%  (Queue vorhanden, Sender fehlt)
 ```
 
-**Gesamt: ~90% der V1-Kernfunktionen implementiert**
+**Gesamt: ~92% der V1-Kernfunktionen implementiert**
 
 ---
 
@@ -202,3 +204,20 @@ E-Mail-Infrastruktur          ██░░░░░░░░░░  20%  (Queue 
 4. Gebühren: CSV-Export für Buchhaltung
 
 Diese 4 Punkte schließen die letzten "kritischen" Lücken für einen Produktivbetrieb.
+
+---
+
+## 📝 Abgeschlossene Sessions
+
+| Session | Inhalt |
+|---|---|
+| 1–7 | Fundament, Auth, öffentliches Portal, Admin-Core, Zahlungen, Security |
+| 8 | Schüler-Collection (students), Madrasa-Einschreibungen |
+| 9 | Anwesenheits-Statistiken (AttendanceStats-Komponente) |
+| 10 | CSV/Excel Schüler-Import (StudentImportDialog, xlsx) |
+| 11 | Invite-System (Token, Admin-UI, Registrierungsflow) |
+| 12 | Gebetszeiten-Provider (AlAdhan, PB-Cache, TuneOffsets) |
+| 13 | Madrasa-Gebühren (student_fees, Stripe, Member-Tab) + Wiederkehrende Events |
+| 14 | Demo-System (seed-demo.mjs, DemoBanner, Limit-Checks) |
+| 15–17 | (diverse Bugfixes, Polishing, Admin-Einstellungen) |
+| **18** | **Vollständige Mehrsprachigkeit DE/TR** — 19 Dateien, ~1050 neue Übersetzungsschlüssel: alle Admin-Seiten (newsletter, invites, audit, settings, madrasa, spenden, posts/new, events/new), Formular-Komponenten (PostForm, EventForm, CampaignForm, CourseForm, CreateInviteDialog), Listenseiten (Kategorie-/Status-Labels), Member-Profil (Monatsanzeige locale-aware) |

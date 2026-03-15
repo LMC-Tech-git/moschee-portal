@@ -82,12 +82,12 @@ export default async function MosqueDashboard({
 
   // ── Gebetszeiten: Nächstes Gebet berechnen (server-side) ──────────────────
   const PRAYER_LIST = [
-    { key: "fajr" as const,    label: "Fajr"          },
+    { key: "fajr" as const,    label: t("fajr")       },
     { key: "sunrise" as const, label: t("sunrise")    },
-    { key: "dhuhr" as const,   label: "Dhuhr"         },
-    { key: "asr" as const,     label: "Asr"           },
-    { key: "maghrib" as const, label: "Maghrib"       },
-    { key: "isha" as const,    label: "Isha"          },
+    { key: "dhuhr" as const,   label: t("dhuhr")      },
+    { key: "asr" as const,     label: t("asr")        },
+    { key: "maghrib" as const, label: t("maghrib")    },
+    { key: "isha" as const,    label: t("isha")       },
   ] as { key: keyof PrayerTimes; label: string }[];
   const prayerMins = (t: string) => {
     const [h, m] = t.split(":").map(Number);

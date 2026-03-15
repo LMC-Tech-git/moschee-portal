@@ -3,24 +3,15 @@ import { cookies } from "next/headers";
 import Link from "next/link";
 import { FileText, ChevronLeft, ChevronRight } from "lucide-react";
 import { resolveMosqueWithSettings } from "@/lib/resolve-mosque";
+import { getTranslations } from "next-intl/server";
 import {
   getPublicPostsFiltered,
   getMemberPostsFiltered,
 } from "@/lib/actions/posts";
 import { PostCard } from "@/components/posts/PostCard";
-import { postCategoryLabels } from "@/lib/constants";
 import type { Post } from "@/types";
 
 const POSTS_PER_PAGE = 20;
-
-const CATEGORIES: { value: Post["category"] | ""; label: string }[] = [
-  { value: "",             label: "Alle"          },
-  { value: "announcement", label: "Ankündigungen" },
-  { value: "general",      label: "Allgemein"     },
-  { value: "event",        label: "Veranstaltung" },
-  { value: "campaign",     label: "Kampagne"      },
-  { value: "youth",        label: "Jugend"        },
-];
 
 export default async function PostsPage({
   params,
@@ -32,6 +23,17 @@ export default async function PostsPage({
   const result = await resolveMosqueWithSettings(params.slug);
   if (!result) notFound();
   const { mosque } = result;
+  const t = await getTranslations("publicPosts");
+  const tL = await getTranslations("labels");
+
+  const CATEGORIES: { value: Post["category"] | ""; label: string }[] = [
+    { value: "",             label: t("allCategories") },
+    { value: "announcement", label: tL("post.category.announcement") },
+    { value: "general",      label: tL("post.category.general") },
+    { value: "event",        label: tL("post.category.event") },
+    { value: "campaign",     label: tL("post.category.campaign") },
+    { value: "youth",        label: tL("post.category.youth") },
+  ];
 
   const cookieStore = cookies();
   const isLoggedIn = !!cookieStore.get("pb_auth")?.value;
@@ -85,13 +87,13 @@ export default async function PostsPage({
             <Link
               href={`/${params.slug}`}
               className="text-white/70 hover:text-white transition-colors"
-              aria-label="Zurück zur Startseite"
+              aria-label={t("back")}
             >
               <ChevronLeft className="h-5 w-5" />
             </Link>
             <div>
               <h1 className="text-2xl font-extrabold text-white sm:text-3xl">
-                Beiträge
+                {t("title")}
               </h1>
               <p className="mt-1 text-sm text-white/70">{mosque.name}</p>
             </div>
@@ -103,7 +105,7 @@ export default async function PostsPage({
       <div className="sticky top-0 z-10 border-b border-gray-200 bg-white shadow-sm">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <nav
-            aria-label="Kategorie-Filter"
+            aria-label={t("categoryFilter")}
             className="flex gap-1 overflow-x-auto py-3 scrollbar-none"
           >
             {CATEGORIES.map((cat) => {
@@ -136,10 +138,10 @@ export default async function PostsPage({
                 aria-hidden="true"
               />
               <p className="font-medium text-gray-500">
-                Keine Beiträge{" "}
+                {t("empty")}{" "}
                 {category
-                  ? `in der Kategorie „${postCategoryLabels[category as Post["category"]]}"`
-                  : "vorhanden"}
+                  ? t("emptyInCategory", { category: CATEGORIES.find(c => c.value === category)?.label || category })
+                  : t("emptyAvailable")}
                 .
               </p>
             </div>
@@ -158,14 +160,14 @@ export default async function PostsPage({
           {/* Paginierung */}
           {totalPages > 1 && (
             <nav
-              aria-label="Seiten-Navigation"
+              aria-label={t("pageNav")}
               className="mt-8 flex items-center justify-center gap-2"
             >
               {page > 1 ? (
                 <Link
                   href={pageHref(page - 1)}
                   className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 transition-colors"
-                  aria-label="Vorherige Seite"
+                  aria-label={t("prevPage")}
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </Link>
@@ -210,7 +212,7 @@ export default async function PostsPage({
                 <Link
                   href={pageHref(page + 1)}
                   className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 transition-colors"
-                  aria-label="Nächste Seite"
+                  aria-label={t("nextPage")}
                 >
                   <ChevronRight className="h-4 w-4" />
                 </Link>

@@ -1,14 +1,7 @@
 import { Heart, Users } from "lucide-react";
 import { formatCurrencyCents } from "@/lib/utils";
+import { getTranslations } from "next-intl/server";
 import type { CampaignWithProgress } from "@/types";
-
-const categoryLabels: Record<CampaignWithProgress["category"], string> = {
-  ramadan: "Ramadan",
-  construction: "Bau",
-  aid: "Hilfe",
-  maintenance: "Instandhaltung",
-  general: "Allgemein",
-};
 
 const categoryColors: Record<CampaignWithProgress["category"], string> = {
   ramadan: "bg-green-100 text-green-700",
@@ -23,7 +16,13 @@ interface CampaignCardProps {
   compact?: boolean;
 }
 
-export function CampaignCard({ campaign, compact }: CampaignCardProps) {
+export async function CampaignCard({ campaign, compact }: CampaignCardProps) {
+  const t = await getTranslations("campaignCard");
+  const tL = await getTranslations("labels");
+  const CAT_LABELS: Record<string, string> = {
+    ramadan: tL("campaign.category.ramadan"), construction: tL("campaign.category.construction"),
+    aid: tL("campaign.category.aid"), maintenance: tL("campaign.category.maintenance"), general: tL("campaign.category.general"),
+  };
   if (compact) {
     return (
       <div className="flex items-center gap-3 rounded-lg border border-gray-200 bg-white px-4 py-3">
@@ -35,7 +34,7 @@ export function CampaignCard({ campaign, compact }: CampaignCardProps) {
             <span
               className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${categoryColors[campaign.category]}`}
             >
-              {categoryLabels[campaign.category]}
+              {CAT_LABELS[campaign.category] || campaign.category}
             </span>
             <span>
               {formatCurrencyCents(campaign.raised_cents)} /{" "}
@@ -67,7 +66,7 @@ export function CampaignCard({ campaign, compact }: CampaignCardProps) {
           <span
             className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${categoryColors[campaign.category]}`}
           >
-            {categoryLabels[campaign.category]}
+            {CAT_LABELS[campaign.category] || campaign.category}
           </span>
           <span
             className={`rounded-full px-2 py-0.5 text-xs font-medium ${
@@ -79,10 +78,10 @@ export function CampaignCard({ campaign, compact }: CampaignCardProps) {
             }`}
           >
             {campaign.status === "active"
-              ? "Aktiv"
+              ? t("statusActive")
               : campaign.status === "completed"
-                ? "Abgeschlossen"
-                : "Pausiert"}
+                ? t("statusCompleted")
+                : t("statusPaused")}
           </span>
         </div>
 
@@ -105,7 +104,7 @@ export function CampaignCard({ campaign, compact }: CampaignCardProps) {
               {formatCurrencyCents(campaign.raised_cents)}
             </span>
             <span className="text-gray-500">
-              von {formatCurrencyCents(campaign.goal_amount_cents)}
+              {t("of")} {formatCurrencyCents(campaign.goal_amount_cents)}
             </span>
           </div>
           <div className="h-3 overflow-hidden rounded-full bg-gray-200">
@@ -120,11 +119,11 @@ export function CampaignCard({ campaign, compact }: CampaignCardProps) {
         <div className="flex items-center gap-4 text-xs text-gray-500">
           <span className="flex items-center gap-1">
             <Heart className="h-3 w-3" aria-hidden="true" />
-            {campaign.progress_percent}% erreicht
+            {campaign.progress_percent}% {t("reached")}
           </span>
           <span className="flex items-center gap-1">
             <Users className="h-3 w-3" aria-hidden="true" />
-            {campaign.donor_count} Spender
+            {campaign.donor_count} {t("donors")}
           </span>
         </div>
       </div>
