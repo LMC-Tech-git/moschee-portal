@@ -14,6 +14,7 @@ import {
   Banknote,
 } from "lucide-react";
 import { resolveMosqueWithSettings } from "@/lib/resolve-mosque";
+import { getTranslations } from "next-intl/server";
 
 const PB_URL = process.env.NEXT_PUBLIC_POCKETBASE_URL || "";
 import { getPrayerTimesForDate, buildPrayerConfig } from "@/lib/prayer";
@@ -51,6 +52,7 @@ export default async function MosqueDashboard({
   const result = await resolveMosqueWithSettings(params.slug);
   if (!result) notFound();
   const { mosque, settings } = result;
+  const t = await getTranslations("mosque.dashboard");
 
   // Prüfe ob User eingeloggt ist (via Cookie)
   const cookieStore = cookies();
@@ -80,12 +82,12 @@ export default async function MosqueDashboard({
 
   // ── Gebetszeiten: Nächstes Gebet berechnen (server-side) ──────────────────
   const PRAYER_LIST = [
-    { key: "fajr" as const,    label: "Fajr"    },
-    { key: "sunrise" as const, label: "Aufgang" },
-    { key: "dhuhr" as const,   label: "Dhuhr"   },
-    { key: "asr" as const,     label: "Asr"     },
-    { key: "maghrib" as const, label: "Maghrib" },
-    { key: "isha" as const,    label: "Isha"    },
+    { key: "fajr" as const,    label: "Fajr"          },
+    { key: "sunrise" as const, label: t("sunrise")    },
+    { key: "dhuhr" as const,   label: "Dhuhr"         },
+    { key: "asr" as const,     label: "Asr"           },
+    { key: "maghrib" as const, label: "Maghrib"       },
+    { key: "isha" as const,    label: "Isha"          },
   ] as { key: keyof PrayerTimes; label: string }[];
   const prayerMins = (t: string) => {
     const [h, m] = t.split(":").map(Number);
@@ -136,12 +138,12 @@ export default async function MosqueDashboard({
 
       {/* Gebetszeiten — nur anzeigen wenn Provider aktiv und Daten vorhanden */}
       {prayerTimes && (
-        <section aria-label="Heutige Gebetszeiten" className="border-b border-gray-100 bg-white py-6">
+        <section aria-label={t("prayerTimes")} className="border-b border-gray-100 bg-white py-6">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="mb-4 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Clock className="h-5 w-5 text-emerald-600" aria-hidden="true" />
-                <h2 className="text-lg font-bold text-gray-900">Heutige Gebetszeiten</h2>
+                <h2 className="text-lg font-bold text-gray-900">{t("prayerTimes")}</h2>
               </div>
               {prayerTimes.hijriDate && (
                 <span className="text-sm text-gray-400 hidden sm:block">{prayerTimes.hijriDate}</span>
@@ -191,7 +193,7 @@ export default async function MosqueDashboard({
       )}
 
       {/* KPI-Kacheln */}
-      <section aria-label="Gemeinde-Statistiken" className="border-b border-gray-100 bg-white py-6">
+      <section aria-label={t("communityStats")} className="border-b border-gray-100 bg-white py-6">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
             <Link
@@ -200,7 +202,7 @@ export default async function MosqueDashboard({
             >
               <KPITile
                 icon={<Target className="h-5 w-5 text-emerald-600" />}
-                label="Aktive Kampagnen"
+                label={t("activeCampaigns")}
                 value={stats.activeCampaigns}
               />
             </Link>
@@ -210,7 +212,7 @@ export default async function MosqueDashboard({
             >
               <KPITile
                 icon={<Banknote className="h-5 w-5 text-amber-600" />}
-                label="Kampagnen-Spenden"
+                label={t("campaignDonations")}
                 value={formatCurrencyCents(stats.campaignDonationsCents)}
               />
             </Link>
@@ -220,13 +222,13 @@ export default async function MosqueDashboard({
             >
               <KPITile
                 icon={<CalendarDays className="h-5 w-5 text-blue-600" />}
-                label="Events diesen Monat"
+                label={t("eventsThisMonth")}
                 value={stats.upcomingEventsThisMonth}
               />
             </Link>
             <KPITile
               icon={<FileText className="h-5 w-5 text-gray-600" />}
-              label="Beiträge"
+              label={t("posts")}
               value={stats.publishedPosts}
             />
           </div>
@@ -241,14 +243,14 @@ export default async function MosqueDashboard({
             <div className="lg:col-span-2">
               <div className="mb-4 flex items-center gap-2">
                 <FileText className="h-5 w-5 text-emerald-600" aria-hidden="true" />
-                <h2 className="text-xl font-bold text-gray-900">Beiträge</h2>
+                <h2 className="text-xl font-bold text-gray-900">{t("posts")}</h2>
               </div>
 
               {posts.length === 0 ? (
                 <div className="rounded-xl border-2 border-dashed border-gray-200 bg-white p-8 text-center">
                   <FileText className="mx-auto mb-2 h-8 w-8 text-gray-300" aria-hidden="true" />
                   <p className="text-sm text-gray-500">
-                    Noch keine Beiträge veröffentlicht.
+                    {t("noPosts")}
                   </p>
                 </div>
               ) : (
@@ -272,19 +274,19 @@ export default async function MosqueDashboard({
                   <div className="flex items-center gap-2">
                     <CalendarDays className="h-5 w-5 text-blue-600" aria-hidden="true" />
                     <h3 className="font-bold text-gray-900">
-                      Veranstaltungen
+                      {t("events")}
                     </h3>
                   </div>
                   <Link
                     href={`/${params.slug}/events`}
                     className="text-xs font-medium text-blue-600 hover:underline"
                   >
-                    Alle anzeigen<span className="sr-only"> Veranstaltungen</span>
+                    {t("showAllEvents")}<span className="sr-only"> {t("events")}</span>
                   </Link>
                 </div>
                 {upcomingEvents.length === 0 ? (
                   <p className="text-sm text-gray-500">
-                    Keine kommenden Veranstaltungen.
+                    {t("noEvents")}
                   </p>
                 ) : (
                   <div className="space-y-3">
@@ -305,18 +307,18 @@ export default async function MosqueDashboard({
                 <div className="mb-3 flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <TrendingUp className="h-5 w-5 text-emerald-600" aria-hidden="true" />
-                    <h3 className="font-bold text-gray-900">Kampagnen</h3>
+                    <h3 className="font-bold text-gray-900">{t("campaigns")}</h3>
                   </div>
                   <Link
                     href={`/${params.slug}/campaigns`}
                     className="text-xs font-medium text-emerald-600 hover:underline"
                   >
-                    Alle anzeigen<span className="sr-only"> Kampagnen</span>
+                    {t("showAllCampaigns")}<span className="sr-only"> {t("campaigns")}</span>
                   </Link>
                 </div>
                 {campaigns.length === 0 ? (
                   <p className="text-sm text-gray-500">
-                    Keine aktiven Kampagnen.
+                    {t("noCampaigns")}
                   </p>
                 ) : (
                   <div className="space-y-3">
@@ -342,15 +344,15 @@ export default async function MosqueDashboard({
                           />
                           <div className="flex items-center justify-between text-xs text-gray-500">
                             <span>
-                              {formatCurrencyCents(campaign.raised_cents)} gesammelt
+                              {formatCurrencyCents(campaign.raised_cents)} {t("raised")}
                             </span>
                             <span>
-                              Ziel: {formatCurrencyCents(campaign.goal_amount_cents)}
+                              {t("goal")}: {formatCurrencyCents(campaign.goal_amount_cents)}
                             </span>
                           </div>
                           {campaign.donor_count > 0 && (
                             <p className="text-xs text-gray-400">
-                              {campaign.donor_count} Spender
+                              {campaign.donor_count} {t("donors")}
                             </p>
                           )}
                         </div>
@@ -364,15 +366,15 @@ export default async function MosqueDashboard({
               <div className="rounded-xl border border-gray-200 bg-gradient-to-br from-amber-50 to-orange-50 p-5">
                 <div className="mb-3 flex items-center gap-2">
                   <Heart className="h-5 w-5 text-amber-600" aria-hidden="true" />
-                  <h3 className="font-bold text-gray-900">Spenden</h3>
+                  <h3 className="font-bold text-gray-900">{t("donations")}</h3>
                 </div>
                 <p className="mb-4 text-sm text-gray-600">
-                  Unterstützen Sie unsere Gemeinde mit einer Spende.
+                  {t("donateSupport")}
                 </p>
                 <Button asChild className="w-full bg-amber-500 hover:bg-amber-600">
                   <Link href={`/${params.slug}/donate`} className="inline-flex items-center justify-center gap-2">
                     <Heart className="h-4 w-4" />
-                    Jetzt spenden
+                    {t("donateNow")}
                   </Link>
                 </Button>
               </div>
@@ -380,12 +382,12 @@ export default async function MosqueDashboard({
               {/* Kontakt */}
               {(mosque.phone || mosque.email) && (
                 <div className="rounded-xl border border-gray-200 bg-white p-5">
-                  <h3 className="mb-3 font-bold text-gray-900">Kontakt</h3>
+                  <h3 className="mb-3 font-bold text-gray-900">{t("contact")}</h3>
                   <div className="space-y-2 text-sm text-gray-600">
                     {mosque.address && <p>{mosque.address}</p>}
                     {mosque.phone && (
                       <p>
-                        Tel:{" "}
+                        {t("phone")}:{" "}
                         <a
                           href={`tel:${mosque.phone}`}
                           className="text-emerald-600 hover:underline"
@@ -396,7 +398,7 @@ export default async function MosqueDashboard({
                     )}
                     {mosque.email && (
                       <p>
-                        E-Mail:{" "}
+                        {t("email")}:{" "}
                         <a
                           href={`mailto:${mosque.email}`}
                           className="text-emerald-600 hover:underline"

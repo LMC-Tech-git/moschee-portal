@@ -226,7 +226,26 @@
       "raised": "toplandı",
       "goal": "Hedef",
       "donors": "Bağışçı",
-      "communityStats": "Cemaat İstatistikleri"
+      "communityStats": "Cemaat İstatistikleri",
+      "donations": "Bağışlar"
+    }
+  },
+  "postCard": {
+    "pinned": "Sabitlenmiş"
+  },
+  "eventCard": {
+    "recurring": "Tekrarlayan",
+    "nextOccurrence": "Sonraki:",
+    "minutesShort": "dk",
+    "hoursShort": "sa",
+    "places": "Yer",
+    "afterPrayer": "{prayer} sonrası",
+    "recurrence": {
+      "daily": "Günlük",
+      "weekly": "Her {day}",
+      "weeklyGeneric": "Haftalık",
+      "monthly": "Aylık",
+      "monthlyOn": "Her ayın {day}. günü"
     }
   },
   "admin": {

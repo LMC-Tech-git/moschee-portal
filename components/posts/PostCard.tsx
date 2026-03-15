@@ -3,6 +3,7 @@ import Image from "next/image";
 import { Pin, Calendar, User, Images } from "lucide-react";
 import type { Post } from "@/types";
 import { formatDate } from "@/lib/utils";
+import { getTranslations } from "next-intl/server";
 import {
   postCategoryLabels,
   postCategoryColors,
@@ -20,7 +21,8 @@ interface PostCardProps {
   href?: string;
 }
 
-export function PostCard({ post, compact, href }: PostCardProps) {
+export async function PostCard({ post, compact, href }: PostCardProps) {
+  const t = await getTranslations("postCard");
   const authorName = post.expand?.created_by
     ? `${post.expand.created_by.first_name} ${post.expand.created_by.last_name}`.trim() ||
       post.expand.created_by.full_name
@@ -89,7 +91,7 @@ export function PostCard({ post, compact, href }: PostCardProps) {
             {post.pinned && (
               <span className="inline-flex items-center gap-1 text-xs font-medium text-amber-600">
                 <Pin className="h-3 w-3" aria-hidden="true" />
-                Angepinnt
+                {t("pinned")}
               </span>
             )}
           </div>

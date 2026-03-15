@@ -226,7 +226,26 @@
       "raised": "gesammelt",
       "goal": "Ziel",
       "donors": "Spender",
-      "communityStats": "Gemeinde-Statistiken"
+      "communityStats": "Gemeinde-Statistiken",
+      "donations": "Spenden"
+    }
+  },
+  "postCard": {
+    "pinned": "Angepinnt"
+  },
+  "eventCard": {
+    "recurring": "Wiederkehrend",
+    "nextOccurrence": "Nächstes:",
+    "minutesShort": "Min",
+    "hoursShort": "Std",
+    "places": "Plätze",
+    "afterPrayer": "nach {prayer}",
+    "recurrence": {
+      "daily": "Täglich",
+      "weekly": "Jeden {day}",
+      "weeklyGeneric": "Wöchentlich",
+      "monthly": "Monatlich",
+      "monthlyOn": "Monatlich am {day}."
     }
   },
   "admin": {

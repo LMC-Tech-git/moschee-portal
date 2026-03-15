@@ -1,23 +1,8 @@
 import { Calendar, MapPin, Users, RefreshCw } from "lucide-react";
 import type { Event } from "@/types";
 import { formatDate, formatDateTime } from "@/lib/utils";
-import { getNextOccurrence, getRecurrenceLabel } from "@/lib/recurrence";
-
-const PRAYER_LABELS: Record<string, string> = {
-  fajr: "Fajr",
-  dhuhr: "Dhuhr",
-  asr: "Asr",
-  maghrib: "Maghrib",
-  isha: "Isha",
-};
-
-function formatEventStart(event: Event): string {
-  if (event.start_prayer) {
-    const label = PRAYER_LABELS[event.start_prayer] || event.start_prayer;
-    return `nach ${label}${event.start_at ? `, ${formatDate(event.start_at)}` : ""}`;
-  }
-  return event.start_at ? formatDateTime(event.start_at) : "";
-}
+import { getNextOccurrence } from "@/lib/recurrence";
+import { getTranslations } from "next-intl/server";
 import {
   eventCategoryLabels,
   eventCategoryColors,
@@ -31,9 +16,39 @@ interface EventCardProps {
   registrationCount?: number;
 }
 
-export function EventCard({ event, compact, registrationCount }: EventCardProps) {
-  const recurrenceLabel = event.is_recurring ? getRecurrenceLabel(event) : "";
+export async function EventCard({ event, compact, registrationCount }: EventCardProps) {
+  const t = await getTranslations("eventCard");
+  const tL = await getTranslations("labels");
   const nextOccurrence = event.is_recurring ? getNextOccurrence(event) : null;
+
+  // Locale-aware recurrence label
+  let recurrenceLabel = "";
+  if (event.is_recurring && event.recurrence_type) {
+    if (event.recurrence_type === "daily") {
+      recurrenceLabel = t("recurrence.daily");
+    } else if (event.recurrence_type === "weekly") {
+      const DAY_KEYS: Record<string, string> = {
+        monday: tL("day.monday"), tuesday: tL("day.tuesday"), wednesday: tL("day.wednesday"),
+        thursday: tL("day.thursday"), friday: tL("day.friday"), saturday: tL("day.saturday"), sunday: tL("day.sunday"),
+      };
+      const dayKey = event.recurrence_day_of_week || "";
+      const dayLabel = DAY_KEYS[dayKey] || "";
+      recurrenceLabel = dayLabel ? t("recurrence.weekly", { day: dayLabel }) : t("recurrence.weeklyGeneric");
+    } else if (event.recurrence_type === "monthly") {
+      recurrenceLabel = event.recurrence_day_of_month
+        ? t("recurrence.monthlyOn", { day: event.recurrence_day_of_month })
+        : t("recurrence.monthly");
+    }
+  }
+
+  // Locale-aware event start string
+  function formatStart(): string {
+    if (event.start_prayer) {
+      const prayerLabel = event.start_prayer.charAt(0).toUpperCase() + event.start_prayer.slice(1);
+      return t("afterPrayer", { prayer: prayerLabel }) + (event.start_at ? `, ${formatDate(event.start_at)}` : "");
+    }
+    return event.start_at ? formatDateTime(event.start_at) : "";
+  }
 
   if (compact) {
     return (
@@ -53,7 +68,7 @@ export function EventCard({ event, compact, registrationCount }: EventCardProps)
               </span>
             )}
             {!event.is_recurring && (event.start_at || event.start_prayer) && (
-              <span>{formatEventStart(event)}</span>
+              <span>{formatStart()}</span>
             )}
           </div>
         </div>
@@ -80,7 +95,7 @@ export function EventCard({ event, compact, registrationCount }: EventCardProps)
             {event.is_recurring && (
               <span className="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-medium text-purple-700">
                 <RefreshCw className="h-3 w-3" />
-                Wiederkehrend
+                {t("recurring")}
               </span>
             )}
           </div>
@@ -109,7 +124,7 @@ export function EventCard({ event, compact, registrationCount }: EventCardProps)
               <span className="text-purple-700 font-medium">{recurrenceLabel}</span>
               {nextOccurrence && (
                 <span className="text-gray-400">
-                  · Nächstes:{" "}
+                  · {t("nextOccurrence")}{" "}
                   {nextOccurrence.toLocaleDateString("de-DE", {
                     weekday: "short", day: "2-digit", month: "2-digit", year: "numeric",
                   })}
@@ -119,7 +134,7 @@ export function EventCard({ event, compact, registrationCount }: EventCardProps)
           ) : (event.start_at || event.start_prayer) && (
             <div className="flex items-center gap-2">
               <Calendar className="h-4 w-4 shrink-0" aria-hidden="true" />
-              <span>{formatEventStart(event)}</span>
+              <span>{formatStart()}</span>
               {event.end_at && !event.start_prayer && (
                 <span className="text-gray-400">
                   –{" "}
@@ -131,10 +146,10 @@ export function EventCard({ event, compact, registrationCount }: EventCardProps)
               {event.duration_minutes > 0 && (
                 <span className="text-gray-400">
                   ({event.duration_minutes < 60
-                    ? `${event.duration_minutes} Min`
+                    ? `${event.duration_minutes} ${t("minutesShort")}`
                     : event.duration_minutes % 60 === 0
-                      ? `${event.duration_minutes / 60} Std`
-                      : `${Math.floor(event.duration_minutes / 60)} Std ${event.duration_minutes % 60} Min`})
+                      ? `${event.duration_minutes / 60} ${t("hoursShort")}`
+                      : `${Math.floor(event.duration_minutes / 60)} ${t("hoursShort")} ${event.duration_minutes % 60} ${t("minutesShort")}`})
                 </span>
               )}
             </div>
@@ -150,8 +165,8 @@ export function EventCard({ event, compact, registrationCount }: EventCardProps)
               <Users className="h-4 w-4 shrink-0" aria-hidden="true" />
               <span>
                 {registrationCount !== undefined
-                  ? `${registrationCount} / ${event.capacity} Plätze`
-                  : `${event.capacity} Plätze`}
+                  ? `${registrationCount} / ${event.capacity} ${t("places")}`
+                  : `${event.capacity} ${t("places")}`}
               </span>
             </div>
           )}
