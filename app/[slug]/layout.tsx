@@ -1,11 +1,13 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { resolveMosqueWithSettings } from "@/lib/resolve-mosque";
 import { getBrandColor } from "@/lib/constants";
 import type { Mosque, Settings } from "@/types";
 import { DemoReturnButton } from "@/components/shared/DemoReturnButton";
 import { TokenReceiver } from "@/components/shared/TokenReceiver";
 import { MosqueInitializer } from "@/components/shared/MosqueInitializer";
+import { AlertTriangle } from "lucide-react";
 
 /**
  * Server-seitiges Layout für Slug-basierte öffentliche Seiten.
@@ -66,6 +68,8 @@ export default async function SlugLayout({
     process.env.NEXT_PUBLIC_DEMO_MOSQUE_ID !== "" &&
     mosque.id === process.env.NEXT_PUBLIC_DEMO_MOSQUE_ID;
 
+  const tBanner = isDemoBanner ? await getTranslations("demo.banner") : null;
+
   return (
     <div
       data-mosque-id={mosque.id}
@@ -81,11 +85,12 @@ export default async function SlugLayout({
         <TokenReceiver />
       </Suspense>
       <MosqueInitializer mosque={mosque} />
-      {isDemoBanner && (
+      {isDemoBanner && tBanner && (
         <div className="flex items-center justify-between gap-2 border-b border-amber-200 bg-amber-50 px-4 py-2.5 text-sm text-amber-800">
           <div className="flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4 shrink-0" />
             <span>
-              ⚠️ <strong>Demo-Modus</strong> — Alle Daten können jederzeit zurückgesetzt werden.
+              <strong>{tBanner("title")}</strong> — {tBanner("message")}
             </span>
           </div>
           <DemoReturnButton />

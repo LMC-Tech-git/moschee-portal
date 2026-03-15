@@ -8,6 +8,7 @@ import { MosqueProvider } from "@/lib/mosque-context";
 import { ServiceWorkerRegistration } from "@/components/shared/ServiceWorkerRegistration";
 import Header from "@/components/shared/Header";
 import Footer from "@/components/shared/Footer";
+import { DemoBanner } from "@/components/shared/DemoBanner";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -98,6 +99,7 @@ export default async function RootLayout({
             <MosqueProvider>
               <div className="flex min-h-screen flex-col">
                 <Header />
+                <DemoBanner />
                 <main id="main-content" className="flex-1">{children}</main>
                 <Footer />
               </div>
