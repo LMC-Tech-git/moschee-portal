@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { KeyRound, Mail, ArrowLeft, CheckCircle } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { getClientPB } from "@/lib/pocketbase";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export default function ForgotPasswordPage() {
+  const t = useTranslations("forgotPassword");
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -43,16 +45,11 @@ export default function ForgotPasswordPage() {
             <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100">
               <CheckCircle className="h-7 w-7 text-emerald-600" />
             </div>
-            <CardTitle className="text-2xl">E-Mail gesendet</CardTitle>
-            <CardDescription>
-              Wenn eine Konto mit dieser E-Mail-Adresse existiert, haben Sie eine E-Mail mit einem
-              Link zum Zurücksetzen des Passworts erhalten.
-            </CardDescription>
+            <CardTitle className="text-2xl">{t("sentTitle")}</CardTitle>
+            <CardDescription>{t("sentDesc")}</CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-gray-500">
-              Bitte prüfen Sie auch Ihren Spam-Ordner. Der Link ist 30 Minuten gültig.
-            </p>
+            <p className="text-sm text-gray-500">{t("sentHint")}</p>
           </CardContent>
           <CardFooter className="justify-center">
             <Link
@@ -60,7 +57,7 @@ export default function ForgotPasswordPage() {
               className="inline-flex items-center gap-2 text-sm font-medium text-primary-600 hover:text-primary-700"
             >
               <ArrowLeft className="h-4 w-4" />
-              Zurück zum Login
+              {t("backToLogin")}
             </Link>
           </CardFooter>
         </Card>
@@ -75,10 +72,8 @@ export default function ForgotPasswordPage() {
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary-100">
             <KeyRound className="h-7 w-7 text-primary-600" />
           </div>
-          <CardTitle className="text-2xl">Passwort vergessen?</CardTitle>
-          <CardDescription>
-            Geben Sie Ihre E-Mail-Adresse ein. Wir senden Ihnen einen Link zum Zurücksetzen.
-          </CardDescription>
+          <CardTitle className="text-2xl">{t("title")}</CardTitle>
+          <CardDescription>{t("subtitle")}</CardDescription>
         </CardHeader>
 
         <form onSubmit={handleSubmit}>
@@ -90,13 +85,13 @@ export default function ForgotPasswordPage() {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="email">E-Mail-Adresse</Label>
+              <Label htmlFor="email">{t("emailLabel")}</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                 <Input
                   id="email"
                   type="email"
-                  placeholder="ihre@email.de"
+                  placeholder={t("emailPlaceholder")}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="pl-10"
@@ -118,10 +113,10 @@ export default function ForgotPasswordPage() {
               {isLoading ? (
                 <span className="flex items-center gap-2">
                   <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                  Wird gesendet…
+                  {t("submitting")}
                 </span>
               ) : (
-                "Link anfordern"
+                t("submit")
               )}
             </Button>
 
@@ -130,7 +125,7 @@ export default function ForgotPasswordPage() {
               className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700"
             >
               <ArrowLeft className="h-4 w-4" />
-              Zurück zum Login
+              {t("backToLogin")}
             </Link>
           </CardFooter>
         </form>

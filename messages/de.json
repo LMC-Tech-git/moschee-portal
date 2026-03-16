@@ -1346,5 +1346,35 @@
       "s8_title": "8. Anwendbares Recht",
       "s8_body": "Es gilt deutsches Recht. Gerichtsstand ist Neu-Ulm, sofern gesetzlich zulässig."
     }
+  },
+  "forgotPassword": {
+    "title": "Passwort vergessen?",
+    "subtitle": "Geben Sie Ihre E-Mail-Adresse ein. Wir senden Ihnen einen Link zum Zurücksetzen.",
+    "emailLabel": "E-Mail-Adresse",
+    "emailPlaceholder": "ihre@email.de",
+    "submit": "Link anfordern",
+    "submitting": "Wird gesendet…",
+    "backToLogin": "Zurück zum Login",
+    "sentTitle": "E-Mail gesendet",
+    "sentDesc": "Wenn ein Konto mit dieser E-Mail-Adresse existiert, haben Sie einen Link zum Zurücksetzen erhalten.",
+    "sentHint": "Bitte prüfen Sie auch Ihren Spam-Ordner. Der Link ist 30 Minuten gültig."
+  },
+  "resetPassword": {
+    "invalidTitle": "Ungültiger Link",
+    "invalidDesc": "Dieser Link zum Zurücksetzen des Passworts ist ungültig oder abgelaufen.",
+    "requestNew": "Neuen Link anfordern",
+    "title": "Neues Passwort setzen",
+    "subtitle": "Wählen Sie ein neues Passwort für Ihr Konto.",
+    "passwordLabel": "Neues Passwort",
+    "passwordPlaceholder": "Mindestens 8 Zeichen",
+    "confirmLabel": "Passwort bestätigen",
+    "confirmPlaceholder": "Passwort wiederholen",
+    "mismatch": "Die Passwörter stimmen nicht überein.",
+    "submit": "Passwort speichern",
+    "submitting": "Wird gespeichert…",
+    "successTitle": "Passwort geändert",
+    "successDesc": "Ihr Passwort wurde erfolgreich geändert. Sie werden zum Login weitergeleitet…",
+    "errorInvalid": "Der Link ist abgelaufen oder ungültig. Bitte fordern Sie einen neuen an.",
+    "errorGeneric": "Fehler beim Zurücksetzen. Bitte versuchen Sie es erneut."
   }
 }

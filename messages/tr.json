@@ -1346,5 +1346,35 @@
       "s8_title": "8. Uygulanacak Hukuk",
       "s8_body": "Alman hukuku geçerlidir. Yasal olarak izin verildiği ölçüde yargı yeri Neu-Ulm'dur."
     }
+  },
+  "forgotPassword": {
+    "title": "Şifremi unuttum?",
+    "subtitle": "E-posta adresinizi girin. Size sıfırlama bağlantısı göndereceğiz.",
+    "emailLabel": "E-posta adresi",
+    "emailPlaceholder": "sizin@email.com",
+    "submit": "Bağlantı iste",
+    "submitting": "Gönderiliyor…",
+    "backToLogin": "Girişe dön",
+    "sentTitle": "E-posta gönderildi",
+    "sentDesc": "Bu e-posta adresine sahip bir hesap varsa, sıfırlama bağlantısı gönderildi.",
+    "sentHint": "Lütfen spam klasörünüzü de kontrol edin. Bağlantı 30 dakika geçerlidir."
+  },
+  "resetPassword": {
+    "invalidTitle": "Geçersiz bağlantı",
+    "invalidDesc": "Bu şifre sıfırlama bağlantısı geçersiz veya süresi dolmuş.",
+    "requestNew": "Yeni bağlantı iste",
+    "title": "Yeni şifre belirle",
+    "subtitle": "Hesabınız için yeni bir şifre seçin.",
+    "passwordLabel": "Yeni şifre",
+    "passwordPlaceholder": "En az 8 karakter",
+    "confirmLabel": "Şifreyi onayla",
+    "confirmPlaceholder": "Şifreyi tekrar girin",
+    "mismatch": "Şifreler eşleşmiyor.",
+    "submit": "Şifreyi kaydet",
+    "submitting": "Kaydediliyor…",
+    "successTitle": "Şifre değiştirildi",
+    "successDesc": "Şifreniz başarıyla değiştirildi. Giriş sayfasına yönlendiriliyorsunuz…",
+    "errorInvalid": "Bağlantının süresi dolmuş veya geçersiz. Lütfen yeni bir tane isteyin.",
+    "errorGeneric": "Sıfırlama sırasında hata oluştu. Lütfen tekrar deneyin."
   }
 }
