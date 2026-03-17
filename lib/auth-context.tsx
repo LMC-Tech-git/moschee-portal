@@ -25,7 +25,7 @@ interface AuthUser {
   phone: string;
   member_no: string;
   mosque_id: string;
-  role: "member" | "admin" | "teacher" | "imam" | "editor" | "super_admin";
+  role: "member" | "admin" | "teacher" | "imam" | "editor" | "super_admin" | "madrasa_admin" | "treasurer" | "secretary";
   status: "pending" | "active" | "blocked";
 }
 
@@ -68,7 +68,7 @@ function mapRecordToUser(record: RecordModel): AuthUser {
     phone: record.phone || "",
     member_no: record.member_no || record.membership_number || "",
     mosque_id: record.mosque_id || "",
-    role: (["admin","teacher","imam","editor","super_admin"] as const).includes(record.role) ? record.role as AuthUser["role"] : "member",
+    role: (["admin","teacher","imam","editor","super_admin","madrasa_admin","treasurer","secretary"] as const).includes(record.role) ? record.role as AuthUser["role"] : "member",
     status: record.status || "pending",
   };
 }
