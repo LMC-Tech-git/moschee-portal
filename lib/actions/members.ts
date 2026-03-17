@@ -622,12 +622,12 @@ export async function deleteMember(
 
     await pb.collection("users").delete(targetUserId);
 
-    await logAudit(pb, {
-      mosque_id: mosqueId,
-      actor_user_id: actorUserId,
+    await logAudit({
+      mosqueId,
+      userId: actorUserId,
       action: "member.deleted",
-      target_type: "user",
-      target_id: targetUserId,
+      entityType: "user",
+      entityId: targetUserId,
       details: { email: target.email, full_name: target.full_name },
     });
 
