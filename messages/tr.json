@@ -788,6 +788,22 @@
       "saveProfile": "Profili Kaydet",
       "saving": "Kaydediliyor...",
       "savedSuccess": "Profil başarıyla güncellendi",
+      "emailChange": {
+        "title": "E-posta Adresi",
+        "changeButton": "Değiştir",
+        "newEmailLabel": "Yeni E-posta Adresi",
+        "newEmailPlaceholder": "yeni@adres.de",
+        "sendConfirmation": "Onay bağlantısı gönder",
+        "sending": "Gönderiliyor...",
+        "cancel": "İptal",
+        "sentTitle": "Onay bağlantısı gönderildi",
+        "sentDesc": "Lütfen gelen kutunuzu kontrol edin ve yeni adresi etkinleştirmek için bağlantıya tıklayın.",
+        "successMessage": "E-posta adresiniz başarıyla değiştirildi.",
+        "errorInvalid": "Onay bağlantısı geçersiz.",
+        "errorExpired": "Onay bağlantısının süresi dolmuş. Lütfen değişikliği yeniden başlatın.",
+        "errorTaken": "Bu e-posta adresi başka bir hesap tarafından kullanılmaktadır.",
+        "errorServer": "Bir hata oluştu. Lütfen tekrar deneyin."
+      },
       "status": {
         "active": "Aktif",
         "blocked": "Engellendi",

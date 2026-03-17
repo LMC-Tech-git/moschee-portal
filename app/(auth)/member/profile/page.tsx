@@ -4,9 +4,11 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useTranslations, useLocale } from "next-intl";
 import { useAuth } from "@/lib/auth-context";
+import { useSearchParams } from "next/navigation";
 import { useMosque } from "@/lib/mosque-context";
 import {
   updateProfile,
+  requestEmailChange,
   getMemberDonations,
   getMemberEventHistory,
 } from "@/lib/actions/members";
@@ -66,11 +68,39 @@ function nextMonthKey(key: string): string {
 
 export default function MemberProfilePage() {
   const t = useTranslations();
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const { mosqueId, mosque } = useMosque();
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<Tab>("profile");
   const [feesEnabled, setFeesEnabled] = useState(false);
   const [stripeEnabled, setStripeEnabled] = useState(false);
+  const [emailChangedSuccess, setEmailChangedSuccess] = useState(false);
+  const [emailChangedError, setEmailChangedError] = useState("");
+
+  // URL-Params nach E-Mail-Bestätigung auswerten
+  useEffect(() => {
+    const changed = searchParams.get("email_changed");
+    const err = searchParams.get("email_error");
+    if (changed === "true") {
+      setEmailChangedSuccess(true);
+      setActiveTab("profile");
+      // Auth-State mit neuer Adresse aktualisieren
+      refreshUser();
+      // Param aus URL entfernen
+      window.history.replaceState({}, "", "/member/profile");
+    } else if (err) {
+      const msgs: Record<string, string> = {
+        invalid: t("member.profile.emailChange.errorInvalid"),
+        expired: t("member.profile.emailChange.errorExpired"),
+        taken: t("member.profile.emailChange.errorTaken"),
+        server: t("member.profile.emailChange.errorServer"),
+      };
+      setEmailChangedError(msgs[err] || t("member.profile.emailChange.errorServer"));
+      setActiveTab("profile");
+      window.history.replaceState({}, "", "/member/profile");
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (!mosqueId) return;
@@ -182,6 +212,20 @@ export default function MemberProfilePage() {
           </button>
         ))}
       </div>
+
+      {/* E-Mail-Änderung Rückmeldungen */}
+      {emailChangedSuccess && (
+        <div className="mb-4 flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-700">
+          <CheckCircle className="h-4 w-4 shrink-0" />
+          {t("member.profile.emailChange.successMessage")}
+        </div>
+      )}
+      {emailChangedError && (
+        <div className="mb-4 flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          <AlertCircle className="h-4 w-4 shrink-0" />
+          {emailChangedError}
+        </div>
+      )}
 
       {/* Tab Content */}
       {activeTab === "profile" && <ProfileEditForm user={user} />}
@@ -322,6 +366,132 @@ function ProfileEditForm({ user }: { user: NonNullable<ReturnType<typeof useAuth
           </button>
         </div>
       </form>
+
+      <EmailChangeSection userId={user.id} currentEmail={user.email} />
+    </div>
+  );
+}
+
+// --- E-Mail-Adresse ändern ---
+
+function EmailChangeSection({
+  userId,
+  currentEmail,
+}: {
+  userId: string;
+  currentEmail: string;
+}) {
+  const t = useTranslations();
+  const [isOpen, setIsOpen] = useState(false);
+  const [newEmail, setNewEmail] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const [sent, setSent] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+    setIsSubmitting(true);
+
+    const result = await requestEmailChange(userId, newEmail);
+
+    if (result.success) {
+      setSent(true);
+      setNewEmail("");
+    } else {
+      setError(result.error || t("member.profile.emailChange.errorServer"));
+    }
+
+    setIsSubmitting(false);
+  }
+
+  function handleOpen() {
+    setIsOpen(true);
+    setSent(false);
+    setError("");
+    setNewEmail("");
+  }
+
+  return (
+    <div className="mt-6 border-t border-gray-200 pt-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-medium text-gray-700">
+            {t("member.profile.emailChange.title")}
+          </p>
+          <p className="mt-0.5 flex items-center gap-1 text-sm text-gray-500">
+            <Mail className="h-3.5 w-3.5" />
+            {currentEmail}
+          </p>
+        </div>
+        {!isOpen && (
+          <button
+            type="button"
+            onClick={handleOpen}
+            className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          >
+            {t("member.profile.emailChange.changeButton")}
+          </button>
+        )}
+      </div>
+
+      {isOpen && !sent && (
+        <form onSubmit={handleSubmit} className="mt-4 space-y-3">
+          <div>
+            <label
+              htmlFor="newEmail"
+              className="mb-1.5 block text-sm font-medium text-gray-700"
+            >
+              {t("member.profile.emailChange.newEmailLabel")}
+            </label>
+            <input
+              id="newEmail"
+              type="email"
+              value={newEmail}
+              onChange={(e) => setNewEmail(e.target.value)}
+              placeholder={t("member.profile.emailChange.newEmailPlaceholder")}
+              required
+              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+            />
+          </div>
+
+          {error && (
+            <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+              <AlertCircle className="h-4 w-4 shrink-0" />
+              {error}
+            </div>
+          )}
+
+          <div className="flex gap-2">
+            <button
+              type="submit"
+              disabled={isSubmitting || !newEmail}
+              className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isSubmitting
+                ? t("member.profile.emailChange.sending")
+                : t("member.profile.emailChange.sendConfirmation")}
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsOpen(false)}
+              className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            >
+              {t("member.profile.emailChange.cancel")}
+            </button>
+          </div>
+        </form>
+      )}
+
+      {sent && (
+        <div className="mt-4 flex items-start gap-2 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700">
+          <CheckCircle className="mt-0.5 h-4 w-4 shrink-0" />
+          <div>
+            <p className="font-medium">{t("member.profile.emailChange.sentTitle")}</p>
+            <p className="mt-0.5 text-emerald-600">{t("member.profile.emailChange.sentDesc")}</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

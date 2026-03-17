@@ -1,8 +1,11 @@
 "use server";
 
+import { randomBytes } from "crypto";
 import { getAdminPB } from "@/lib/pocketbase-admin";
 import { logAudit } from "@/lib/audit";
 import { applyPhoneNorm, detectCountryFromMosque } from "@/lib/phone";
+import { sendEmailDirect } from "@/lib/email";
+import { renderEmailChangeConfirmation } from "@/lib/email/templates";
 import type { User, Donation, EventRegistration } from "@/types";
 import type { RecordModel } from "pocketbase";
 
@@ -274,6 +277,81 @@ export async function updateProfile(
   } catch (error) {
     console.error("[Profile] Fehler:", error);
     return { success: false, error: "Profil konnte nicht aktualisiert werden" };
+  }
+}
+
+/**
+ * E-Mail-Adresse ändern: Token generieren + Bestätigungsmail an neue Adresse senden.
+ */
+export async function requestEmailChange(
+  userId: string,
+  newEmail: string
+): Promise<ActionResult> {
+  try {
+    const trimmed = newEmail.trim().toLowerCase();
+    if (!trimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+      return { success: false, error: "Ungültige E-Mail-Adresse." };
+    }
+
+    const pb = await getAdminPB();
+
+    // Neue Adresse darf nicht schon vergeben sein
+    try {
+      await pb.collection("users").getFirstListItem(`email = "${trimmed}"`);
+      return { success: false, error: "Diese E-Mail-Adresse wird bereits verwendet." };
+    } catch {
+      // Gut — nicht vergeben
+    }
+
+    const user = await pb.collection("users").getOne(userId);
+
+    // Nicht ändern wenn identisch
+    if (user.email === trimmed) {
+      return { success: false, error: "Das ist bereits Ihre aktuelle E-Mail-Adresse." };
+    }
+
+    const mosque = await pb.collection("mosques").getOne(user.mosque_id);
+
+    const token = randomBytes(32).toString("hex");
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+
+    await pb.collection("users").update(userId, {
+      pending_email: trimmed,
+      email_change_token: token,
+      email_change_expires_at: expiresAt,
+    });
+
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "";
+    const confirmUrl = `${appUrl}/api/email-change/confirm?token=${token}`;
+    const userName = `${user.first_name || ""} ${user.last_name || ""}`.trim() || undefined;
+
+    const html = renderEmailChangeConfirmation({
+      mosqueName: mosque.name,
+      userName,
+      newEmail: trimmed,
+      confirmUrl,
+      accentColor: mosque.brand_primary_color || undefined,
+    });
+
+    const sendResult = await sendEmailDirect({
+      to: trimmed,
+      subject: `E-Mail-Adresse bestätigen — ${mosque.name}`,
+      html,
+    });
+
+    if (!sendResult.success) {
+      await pb.collection("users").update(userId, {
+        pending_email: "",
+        email_change_token: "",
+        email_change_expires_at: "",
+      });
+      return { success: false, error: "Bestätigungs-E-Mail konnte nicht gesendet werden." };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error("[requestEmailChange] Fehler:", error);
+    return { success: false, error: "E-Mail-Änderung konnte nicht gestartet werden." };
   }
 }
 

@@ -594,6 +594,9 @@ const USERS_NEW_FIELDS = [
   { name: "first_name", type: "text" },
   { name: "last_name", type: "text" },
   { name: "member_no", type: "text" },
+  { name: "pending_email", type: "text" },
+  { name: "email_change_token", type: "text" },
+  { name: "email_change_expires_at", type: "text" },
 ];
 
 const CAMPAIGNS_NEW_FIELDS = [

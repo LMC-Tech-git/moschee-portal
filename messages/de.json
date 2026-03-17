@@ -788,6 +788,22 @@
       "saveProfile": "Profil speichern",
       "saving": "Wird gespeichert...",
       "savedSuccess": "Profil erfolgreich aktualisiert",
+      "emailChange": {
+        "title": "E-Mail-Adresse",
+        "changeButton": "\u00c4ndern",
+        "newEmailLabel": "Neue E-Mail-Adresse",
+        "newEmailPlaceholder": "neue@adresse.de",
+        "sendConfirmation": "Best\u00e4tigungslink senden",
+        "sending": "Wird gesendet...",
+        "cancel": "Abbrechen",
+        "sentTitle": "Best\u00e4tigungslink gesendet",
+        "sentDesc": "Bitte pr\u00fcfen Sie Ihr Postfach und klicken Sie auf den Link, um die neue Adresse zu aktivieren.",
+        "successMessage": "Ihre E-Mail-Adresse wurde erfolgreich ge\u00e4ndert.",
+        "errorInvalid": "Der Best\u00e4tigungslink ist ung\u00fcltig.",
+        "errorExpired": "Der Best\u00e4tigungslink ist abgelaufen. Bitte starten Sie die \u00c4nderung erneut.",
+        "errorTaken": "Diese E-Mail-Adresse wird bereits von einem anderen Konto verwendet.",
+        "errorServer": "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut."
+      },
       "status": {
         "active": "Aktiv",
         "blocked": "Gesperrt",

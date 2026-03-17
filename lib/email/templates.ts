@@ -346,3 +346,47 @@ export function renderGuestEventVerify(data: {
   `;
   return baseTemplate(content, data.mosqueName, data.accentColor);
 }
+
+// =========================================
+// E-Mail-Adresse ändern — Bestätigung
+// =========================================
+
+export function renderEmailChangeConfirmation(data: {
+  mosqueName: string;
+  userName?: string;
+  newEmail: string;
+  confirmUrl: string;
+  accentColor?: string;
+}): string {
+  const content = `
+    <h2 style="margin:0 0 16px;color:#111827;font-size:22px;">E-Mail-Adresse \u00e4ndern</h2>
+    <p style="margin:0 0 24px;color:#374151;font-size:16px;line-height:1.6;">
+      ${data.userName ? `Hallo ${data.userName},` : "Hallo,"}<br/>
+      Sie haben beantragt, Ihre E-Mail-Adresse im Moschee-Portal zu \u00e4ndern.
+      Bitte best\u00e4tigen Sie die neue Adresse, indem Sie den Button unten anklicken.
+    </p>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9fafb;border-radius:8px;border:1px solid #e5e7eb;margin:0 0 24px;">
+      <tr>
+        <td style="padding:16px 20px;">
+          <p style="margin:0 0 4px;color:#6b7280;font-size:12px;text-transform:uppercase;letter-spacing:0.05em;">Neue E-Mail-Adresse</p>
+          <p style="margin:0;color:#111827;font-size:16px;font-weight:600;">${data.newEmail}</p>
+        </td>
+      </tr>
+    </table>
+
+    <p style="margin:0 0 24px;">
+      <a href="${data.confirmUrl}" style="display:inline-block;background:#059669;color:#ffffff;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:16px;">
+        E-Mail-Adresse best\u00e4tigen \u2192
+      </a>
+    </p>
+
+    <p style="margin:0 0 8px;color:#6b7280;font-size:13px;">
+      Dieser Link ist 24 Stunden g\u00fcltig. Falls Sie diese \u00c4nderung nicht beantragt haben, k\u00f6nnen Sie diese E-Mail ignorieren \u2014 Ihre bisherige E-Mail-Adresse bleibt unver\u00e4ndert.
+    </p>
+    <p style="margin:0;color:#9ca3af;font-size:12px;word-break:break-all;">
+      Oder kopieren Sie diesen Link: ${data.confirmUrl}
+    </p>
+  `;
+  return baseTemplate(content, data.mosqueName, data.accentColor);
+}
