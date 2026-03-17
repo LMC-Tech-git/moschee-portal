@@ -69,7 +69,17 @@
 | Spenden-Verlauf | `app/(auth)/member/profile/` (Tab) |
 | Event-Anmeldungen | `app/(auth)/member/profile/` (Tab) |
 | **Madrasa-Gebühren (Kinder, Online-Zahlung via Stripe)** | `app/(auth)/member/profile/` (Tab) |
-| Spendenbescheinigung | `app/(auth)/member/spendenbescheinigung/` |
+| Spendenbescheinigung (Drucken + **Per E-Mail senden**) | `app/(auth)/member/spendenbescheinigung/` |
+
+### E-Mail-Infrastruktur
+| Komponente | Beschreibung |
+|---|---|
+| **Resend.com** | Transaktionale E-Mails (noreply@mail.moschee.app), Domain verifiziert (DKIM, SPF, DMARC) |
+| **PocketBase SMTP** | smtp.resend.com:587 (StartTLS) für Passwort-Reset + Verifizierungsmails |
+| **Email Queue** | `email_outbox` Collection → `GET/POST /api/email/process-queue` (CRON_SECRET) |
+| **Cron-Job** | Alle 5 Min: `curl https://moschee.app/api/email/process-queue` via Linux-Crontab |
+| **Stripe Webhook** | `checkout.session.completed` → Spendenbestätigungs-Mail |
+| **E-Mail-Templates** | 6 HTML-Templates: Newsletter, Event-Bestätigung, Gebühren-Erinnerung, Admin-Notiz, Spendenquittung, **Jahresbescheinigung** |
 
 ### API-Endpunkte
 | Endpunkt | Zweck |
@@ -78,6 +88,7 @@
 | `POST /api/[slug]/events/[id]/register-guest` | Gast-Anmeldung zu Events |
 | `GET/POST /api/[slug]/invite/[token]` | Einladungs-Token validieren + registrieren |
 | `POST /api/stripe/webhook` | Stripe Webhooks (Spenden + Gebühren) |
+| `GET/POST /api/email/process-queue` | E-Mail-Queue verarbeiten (Cron + manuell) |
 | `GET /api/health` | Health-Check |
 
 ### Server Actions (`lib/actions/`)
@@ -87,8 +98,9 @@
 | `events.ts` | Events CRUD, Anmeldungen, CSV-Export, Statistik |
 | `campaigns.ts` | Kampagnen CRUD + Fortschritt |
 | `donations.ts` | Spenden CRUD + KPIs |
-| `members.ts` | Mitglieder CRUD |
+| `members.ts` | Mitglieder CRUD + **sendDonationReceiptByEmail** |
 | `newsletter.ts` | email_outbox CRUD |
+| `email.ts` | Gebühren-Erinnerungsmails |
 | `invites.ts` | Einladungen CRUD + Token-Validierung |
 | `dashboard.ts` | Dashboard KPI-Aggregation |
 | `settings.ts` | Einstellungen (Branding, Gebetszeiten, Defaults, Madrasa) |
@@ -134,10 +146,9 @@
 
 | Feature | Beschreibung | Aufwand |
 |---|---|---|
-| **E-Mail-Versand** | `email_outbox` ist vorhanden, aber kein Sender. Newsletter, Event-Bestätigung, Gebühren-Erinnerung per E-Mail | M |
-| **Passwort zurücksetzen** | Forgot-Password Flow für Member (PocketBase hat das, aber kein UI) | S |
 | **Admin: Schüler ↔ Eltern verknüpfen** | Admin soll einem bestehenden Portal-User als `parent_id` zuweisen können (aktuell nur bei Schüler-Erstellung) | S |
 | **Gebühren: CSV-Export** | Admin kann Gebühren-Übersicht als CSV/Excel exportieren | S |
+| **Invite-Mail** | Einladungslink per E-Mail versenden (aktuell nur Link kopieren) | S |
 
 ### P2 — Mittlere Priorität (UX-Verbesserungen)
 
@@ -170,9 +181,9 @@
 |---|---|---|
 | Pre-existing TS-Fehler | `app/(auth)/admin/page.tsx`, `enrollments.ts`, `members.ts`, `students.ts`, `mosque-context.tsx` | Niedrig |
 | `logAudit` call in `updateBrandingSettings` / `updatePrayerSettings` / `updateDefaultSettings` nutzt `collection`/`recordId` statt `entityType`/`entityId` | `lib/actions/settings.ts` (ältere Funktionen) | Niedrig |
-| `email_outbox` — kein tatsächlicher Versand implementiert | `lib/actions/newsletter.ts` | Mittel |
 | `members` Legacy Collection leer — kann aufgeräumt werden | PocketBase | Niedrig |
 | Stripe API Version `2024-06-20` — bei PB-Update ggf. aktualisieren | `app/api/stripe/webhook/route.ts` | Niedrig |
+| Invite-Mail fehlt (Link nur kopierbar, kein E-Mail-Versand) | `app/(auth)/admin/invites/` | Mittel |
 
 ---
 
@@ -183,27 +194,27 @@ Fundament & Infrastruktur    ████████████ 100%
 Öffentliches Portal           ████████████ 100%
 Admin-Panel (Core)            ████████████ 100%
 Madrasa-Modul                 ████████████ 100%
-Member-Bereich                ██████████░░  85%  (E-Mail, Passwort-Reset fehlt)
+Member-Bereich                ███████████░  95%  (Invite-Mail fehlt)
 Zahlungen                     ████████████ 100%
 Security                      ████████████ 100%
 Mehrsprachigkeit (DE/TR)      ████████████ 100%
-E-Mail-Infrastruktur          ██░░░░░░░░░░  20%  (Queue vorhanden, Sender fehlt)
+E-Mail-Infrastruktur          ███████████░  95%  (Invite-Mail, Gebühren-Erinnerung ausstehend)
 ```
 
-**Gesamt: ~92% der V1-Kernfunktionen implementiert**
+**Gesamt: ~97% der V1-Kernfunktionen implementiert**
 
 ---
 
 ## 🚀 Empfohlener nächster Sprint
 
-**Ziel: E-Mail-Versand + UX-Polishing**
+**Ziel: Pilot-Moschee vorbereiten**
 
-1. E-Mail-Versand via SMTP oder Resend.com (Queue bereits in `email_outbox`)
-2. Passwort-Reset Flow (Forgot Password UI → PocketBase Auth)
+1. Invite-Mail — Einladungslinks direkt per E-Mail versenden
+2. Gebühren: CSV-Export für Buchhaltung
 3. Schüler ↔ Parent-Verknüpfung im Admin verbessern
-4. Gebühren: CSV-Export für Buchhaltung
+4. Stripe Connect für Pilot-Moschee aktivieren (getrennte Auszahlungen)
 
-Diese 4 Punkte schließen die letzten "kritischen" Lücken für einen Produktivbetrieb.
+Das System ist produktionsbereit — E-Mails, Zahlungen, und alle Kernfunktionen funktionieren.
 
 ---
 
@@ -221,3 +232,4 @@ Diese 4 Punkte schließen die letzten "kritischen" Lücken für einen Produktivb
 | 14 | Demo-System (seed-demo.mjs, DemoBanner, Limit-Checks) |
 | 15–17 | (diverse Bugfixes, Polishing, Admin-Einstellungen) |
 | **18** | **Vollständige Mehrsprachigkeit DE/TR** — 19 Dateien, ~1050 neue Übersetzungsschlüssel: alle Admin-Seiten (newsletter, invites, audit, settings, madrasa, spenden, posts/new, events/new), Formular-Komponenten (PostForm, EventForm, CampaignForm, CourseForm, CreateInviteDialog), Listenseiten (Kategorie-/Status-Labels), Member-Profil (Monatsanzeige locale-aware) |
+| **19** | **E-Mail-Infrastruktur vollständig in Betrieb** — Resend.com eingerichtet (Domain verifiziert: mail.moschee.app, DKIM/SPF/DMARC), PocketBase SMTP für Passwort-Reset/Verifikation, Cron-Job für email_outbox (alle 5 Min), Stripe Webhook für Spendenbestätigung, PocketBase als systemd-Dienst (Auto-Restart), CSP-Fix (`connect-src` Origin statt Pfad), JSON-Syntaxfehler in Übersetzungsdateien behoben, **Spendenbescheinigung per E-Mail** (neues Feature: `renderAnnualDonationReceipt`, `sendDonationReceiptByEmail`, E-Mail-Button auf Bescheinigungsseite) |
