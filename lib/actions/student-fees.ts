@@ -346,11 +346,19 @@ export async function createFeeStripeCheckout(
       ? `${(feeRecord.expand.student_id as Record<string, string>).first_name} ${(feeRecord.expand.student_id as Record<string, string>).last_name}`
       : "Schüler";
 
+    // E-Mail des Elternteils laden (für Stripe-Prefill)
+    let parentEmail: string | undefined;
+    try {
+      const parentRecord = await pb.collection("users").getOne(parentUserId, { fields: "email" });
+      parentEmail = parentRecord.email || undefined;
+    } catch {}
+
     // Stripe Checkout Session erstellen
     const stripe = new Stripe(stripeKey, { apiVersion: "2024-06-20" });
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
+      customer_email: parentEmail,
       line_items: [
         {
           price_data: {
