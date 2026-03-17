@@ -3,10 +3,10 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Printer, FileText } from "lucide-react";
+import { ArrowLeft, Printer, FileText, Mail, CheckCircle } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useMosque } from "@/lib/mosque-context";
-import { getDonationReceiptData, type DonationReceiptData } from "@/lib/actions/members";
+import { getDonationReceiptData, sendDonationReceiptByEmail, type DonationReceiptData } from "@/lib/actions/members";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -21,6 +21,9 @@ export default function SpendenbescheinigungPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [selectedYear, setSelectedYear] = useState(year);
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
+  const [emailError, setEmailError] = useState("");
 
   useEffect(() => {
     if (!user || !mosqueId) return;
@@ -39,6 +42,20 @@ export default function SpendenbescheinigungPage() {
 
     load();
   }, [user, mosqueId, selectedYear]);
+
+  async function handleSendEmail() {
+    if (!user || !mosqueId) return;
+    setIsSendingEmail(true);
+    setEmailError("");
+    setEmailSent(false);
+    const result = await sendDonationReceiptByEmail(user.id, mosqueId, selectedYear);
+    if (result.success) {
+      setEmailSent(true);
+    } else {
+      setEmailError(result.error || "E-Mail konnte nicht gesendet werden");
+    }
+    setIsSendingEmail(false);
+  }
 
   if (!user) return null;
 
@@ -89,6 +106,21 @@ export default function SpendenbescheinigungPage() {
               </option>
             ))}
           </select>
+          {emailSent ? (
+            <span className="flex items-center gap-2 text-sm font-medium text-emerald-600">
+              <CheckCircle className="h-4 w-4" />
+              E-Mail gesendet
+            </span>
+          ) : (
+            <Button
+              onClick={handleSendEmail}
+              disabled={!data || data.donations.length === 0 || isSendingEmail}
+              variant="outline"
+            >
+              <Mail className="mr-2 h-4 w-4" />
+              {isSendingEmail ? "Sende..." : "Per E-Mail senden"}
+            </Button>
+          )}
           <Button
             onClick={() => window.print()}
             disabled={!data || data.donations.length === 0}
@@ -99,6 +131,12 @@ export default function SpendenbescheinigungPage() {
           </Button>
         </div>
       </div>
+
+      {emailError && (
+        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700 print:hidden">
+          {emailError}
+        </div>
+      )}
 
       {isLoading ? (
         <div className="space-y-4">

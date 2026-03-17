@@ -457,3 +457,64 @@ export async function getDonationReceiptData(
     return { success: false, error: "Daten konnten nicht geladen werden" };
   }
 }
+
+/**
+ * Spendenbescheinigung per E-Mail an den Spender senden.
+ */
+export async function sendDonationReceiptByEmail(
+  userId: string,
+  mosqueId: string,
+  year: number
+): Promise<ActionResult<{ email: string }>> {
+  try {
+    const receiptResult = await getDonationReceiptData(userId, mosqueId, year);
+    if (!receiptResult.success || !receiptResult.data) {
+      return { success: false, error: receiptResult.error || "Daten nicht gefunden" };
+    }
+    const d = receiptResult.data;
+    if (d.donations.length === 0) {
+      return { success: false, error: "Keine Spenden für dieses Jahr vorhanden" };
+    }
+    if (!d.donor.email) {
+      return { success: false, error: "Keine E-Mail-Adresse hinterlegt" };
+    }
+
+    // Branding-Farbe laden (optional)
+    let accentColor: string | undefined;
+    try {
+      const pb = await getAdminPB();
+      const settings = await pb.collection("settings").getFirstListItem(`mosque_id = "${mosqueId}"`);
+      accentColor = settings.brand_primary_color || undefined;
+    } catch { /* kein Branding → Default */ }
+
+    const { renderAnnualDonationReceipt } = await import("@/lib/email/templates");
+    const { sendEmailDirect } = await import("@/lib/email");
+
+    const html = renderAnnualDonationReceipt({
+      mosqueName: d.mosque.name,
+      mosqueAddress: d.mosque.address,
+      mosqueCity: d.mosque.city,
+      donorName: d.donor.full_name,
+      donorMembershipNumber: d.donor.membership_number || undefined,
+      year: d.year,
+      donations: d.donations,
+      totalCents: d.totalCents,
+      accentColor,
+    });
+
+    const result = await sendEmailDirect({
+      to: d.donor.email,
+      subject: `Spendenbescheinigung ${d.year} — ${d.mosque.name}`,
+      html,
+    });
+
+    if (!result.success) {
+      return { success: false, error: result.error || "E-Mail konnte nicht gesendet werden" };
+    }
+
+    return { success: true, data: { email: d.donor.email } };
+  } catch (error) {
+    console.error("[Members] Fehler beim Senden der Spendenbescheinigung:", error);
+    return { success: false, error: "Unbekannter Fehler beim E-Mail-Versand" };
+  }
+}

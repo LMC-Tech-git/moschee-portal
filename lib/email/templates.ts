@@ -203,6 +203,86 @@ export function renderFeeReminder(data: {
 }
 
 // =========================================
+// Jährliche Spendenbescheinigung per E-Mail
+// =========================================
+
+export function renderAnnualDonationReceipt(data: {
+  mosqueName: string;
+  mosqueAddress?: string;
+  mosqueCity?: string;
+  donorName: string;
+  donorMembershipNumber?: string;
+  year: number;
+  donations: { amount_cents: number; paid_at: string; provider: string }[];
+  totalCents: number;
+  accentColor?: string;
+}): string {
+  function formatEuro(cents: number): string {
+    return new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" }).format(cents / 100);
+  }
+  function formatDate(dateStr: string): string {
+    if (!dateStr) return "—";
+    return new Intl.DateTimeFormat("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" }).format(new Date(dateStr));
+  }
+  function formatProvider(p: string): string {
+    if (p === "stripe") return "Kreditkarte/SEPA";
+    if (p === "paypal_link") return "PayPal";
+    if (p === "manual") return "Barzahlung";
+    return p;
+  }
+
+  const rows = data.donations.map((d, i) => `
+    <tr>
+      <td style="padding:8px 12px 8px 0;color:#6b7280;font-size:13px;border-bottom:1px solid #f3f4f6;">${i + 1}</td>
+      <td style="padding:8px 12px 8px 0;font-size:13px;border-bottom:1px solid #f3f4f6;">${formatDate(d.paid_at)}</td>
+      <td style="padding:8px 12px 8px 0;font-size:13px;color:#6b7280;border-bottom:1px solid #f3f4f6;">${formatProvider(d.provider)}</td>
+      <td style="padding:8px 0;font-size:13px;font-weight:600;text-align:right;border-bottom:1px solid #f3f4f6;">${formatEuro(d.amount_cents)}</td>
+    </tr>
+  `).join("");
+
+  const content = `
+    <h2 style="margin:0 0 4px;color:#111827;font-size:22px;">Spendenbescheinigung ${data.year}</h2>
+    <p style="margin:0 0 24px;color:#6b7280;font-size:14px;">Ausgestellt am ${formatDate(new Date().toISOString())}</p>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9fafb;border-radius:8px;border:1px solid #e5e7eb;margin:0 0 24px;">
+      <tr>
+        <td style="padding:16px 20px;">
+          <p style="margin:0 0 2px;color:#6b7280;font-size:11px;text-transform:uppercase;letter-spacing:0.05em;">Spender/in</p>
+          <p style="margin:0 0 ${data.donorMembershipNumber ? "8px" : "0"};color:#111827;font-size:16px;font-weight:700;">${data.donorName}</p>
+          ${data.donorMembershipNumber ? `<p style="margin:0;color:#6b7280;font-size:12px;">Mitgliedsnr.: ${data.donorMembershipNumber}</p>` : ""}
+        </td>
+      </tr>
+    </table>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 8px;">
+      <thead>
+        <tr>
+          <th style="padding:0 12px 8px 0;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:#9ca3af;font-weight:600;">Nr.</th>
+          <th style="padding:0 12px 8px 0;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:#9ca3af;font-weight:600;">Datum</th>
+          <th style="padding:0 12px 8px 0;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:#9ca3af;font-weight:600;">Zahlungsart</th>
+          <th style="padding:0 0 8px;text-align:right;font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:#9ca3af;font-weight:600;">Betrag</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+      <tfoot>
+        <tr>
+          <td colspan="3" style="padding:12px 0 0;text-align:right;font-size:14px;font-weight:700;color:#111827;">Gesamtsumme ${data.year}:</td>
+          <td style="padding:12px 0 0;text-align:right;font-size:18px;font-weight:700;color:#059669;">${formatEuro(data.totalCents)}</td>
+        </tr>
+      </tfoot>
+    </table>
+
+    <div style="margin:24px 0;padding:12px 16px;background:#fffbeb;border:1px solid #fde68a;border-radius:6px;">
+      <p style="margin:0;font-size:12px;color:#92400e;line-height:1.6;">
+        <strong>Hinweis:</strong> Diese Übersicht dient als Bestätigung Ihrer Spenden an ${data.mosqueName}.
+        Bei Beträgen bis 300,00 EUR genügt als Nachweis der Kontoauszug zusammen mit dieser Bestätigung (§ 50 Abs. 4 EStDV).
+      </p>
+    </div>
+  `;
+  return baseTemplate(content, data.mosqueName, data.accentColor);
+}
+
+// =========================================
 // Admin-Benachrichtigung
 // =========================================
 
