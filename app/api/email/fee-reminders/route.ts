@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
     const monthKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`;
 
     // Alle Settings mit aktivierter Auto-Erinnerung laden
-    let allSettings;
+    let allSettings: any[] = [];
     try {
       allSettings = await pb.collection("settings").getFullList({
         filter: `fee_reminder_enabled = true && madrasa_fees_enabled = true`,
