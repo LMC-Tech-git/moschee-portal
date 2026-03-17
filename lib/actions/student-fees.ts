@@ -21,6 +21,7 @@ function mapRecordToFee(record: RecordModel): StudentFee {
     provider_ref: record.provider_ref || "",
     notes: record.notes || "",
     created_by: record.created_by || "",
+    reminder_sent_at: record.reminder_sent_at || "",
     created: record.created || "",
     updated: record.updated || "",
     expand: record.expand
