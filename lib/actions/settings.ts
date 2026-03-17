@@ -248,6 +248,8 @@ export async function getPortalSettings(mosqueId: string): Promise<{
         donation_quick_amounts: "10,25,50,100",
         madrasa_fees_enabled: false,
         madrasa_default_fee_cents: 1000,
+        fee_reminder_enabled: false,
+        fee_reminder_day: 15,
         created: "",
         updated: "",
       };
