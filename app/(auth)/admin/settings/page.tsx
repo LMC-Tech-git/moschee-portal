@@ -100,7 +100,9 @@ export default function AdminSettingsPage() {
   const [madrasaFeeSettings, setMadrasaFeeSettings] = useState<{
     madrasa_fees_enabled: boolean;
     madrasa_default_fee_cents: number;
-  }>({ madrasa_fees_enabled: false, madrasa_default_fee_cents: 1000 });
+    fee_reminder_enabled: boolean;
+    fee_reminder_day: number;
+  }>({ madrasa_fees_enabled: false, madrasa_default_fee_cents: 1000, fee_reminder_enabled: false, fee_reminder_day: 15 });
 
   useEffect(() => {
     if (!mosqueId) return;
@@ -1189,13 +1191,15 @@ function MadrasaTab({
 }: {
   mosqueId: string;
   userId: string;
-  feeSettings: { madrasa_fees_enabled: boolean; madrasa_default_fee_cents: number };
+  feeSettings: { madrasa_fees_enabled: boolean; madrasa_default_fee_cents: number; fee_reminder_enabled: boolean; fee_reminder_day: number };
   donationProvider: string;
-  onSaved: (updated: { madrasa_fees_enabled: boolean; madrasa_default_fee_cents: number }) => void;
+  onSaved: (updated: { madrasa_fees_enabled: boolean; madrasa_default_fee_cents: number; fee_reminder_enabled: boolean; fee_reminder_day: number }) => void;
 }) {
   const t = useTranslations("settings");
   const [feesEnabled, setFeesEnabled] = useState(feeSettings.madrasa_fees_enabled);
   const [defaultFeeCents, setDefaultFeeCents] = useState(feeSettings.madrasa_default_fee_cents);
+  const [reminderEnabled, setReminderEnabled] = useState(feeSettings.fee_reminder_enabled);
+  const [reminderDay, setReminderDay] = useState(feeSettings.fee_reminder_day);
   const [isSaving, setIsSaving] = useState(false);
   const [status, setStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
@@ -1208,11 +1212,18 @@ function MadrasaTab({
     const result = await updateMadrasaFeeSettings(mosqueId, userId, {
       madrasa_fees_enabled: feesEnabled,
       madrasa_default_fee_cents: defaultFeeCents,
+      fee_reminder_enabled: reminderEnabled,
+      fee_reminder_day: reminderDay,
     });
     setIsSaving(false);
     if (result.success) {
       setStatus({ type: "success", message: t("madrasaFee.saved") });
-      onSaved({ madrasa_fees_enabled: feesEnabled, madrasa_default_fee_cents: defaultFeeCents });
+      onSaved({
+        madrasa_fees_enabled: feesEnabled,
+        madrasa_default_fee_cents: defaultFeeCents,
+        fee_reminder_enabled: reminderEnabled,
+        fee_reminder_day: reminderDay,
+      });
     } else {
       setStatus({ type: "error", message: result.error || t("madrasaFee.saveError") });
     }
@@ -1221,6 +1232,8 @@ function MadrasaTab({
   function handleReset() {
     setFeesEnabled(feeSettings.madrasa_fees_enabled);
     setDefaultFeeCents(feeSettings.madrasa_default_fee_cents);
+    setReminderEnabled(feeSettings.fee_reminder_enabled);
+    setReminderDay(feeSettings.fee_reminder_day);
     setStatus(null);
   }
 
@@ -1303,6 +1316,54 @@ function MadrasaTab({
                     {t("madrasaFee.noStripe")}
                   </p>
                 </div>
+              </div>
+            )}
+          </SectionCard>
+
+          <SectionCard
+            title={t("madrasaFee.reminderTitle")}
+            description={t("madrasaFee.reminderDesc")}
+          >
+            <label className="flex cursor-pointer items-center justify-between gap-4 rounded-xl border border-gray-200 p-4 hover:bg-gray-50">
+              <div>
+                <p className="font-medium text-gray-900">{t("madrasaFee.reminderEnabled")}</p>
+                <p className="mt-0.5 text-sm text-gray-500">
+                  {t("madrasaFee.reminderEnabledDesc")}
+                </p>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={reminderEnabled}
+                onClick={() => setReminderEnabled((p) => !p)}
+                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 ${
+                  reminderEnabled ? "bg-emerald-600" : "bg-gray-300"
+                }`}
+              >
+                <span
+                  className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow ring-0 transition-transform ${
+                    reminderEnabled ? "translate-x-5" : "translate-x-0"
+                  }`}
+                />
+              </button>
+            </label>
+
+            {reminderEnabled && (
+              <div className="mt-4 space-y-2">
+                <label className="block text-sm font-medium text-gray-700">{t("madrasaFee.reminderDay")}</label>
+                <p className="text-xs text-gray-500">{t("madrasaFee.reminderDayDesc")}</p>
+                <input
+                  type="number"
+                  min={1}
+                  max={28}
+                  value={reminderDay}
+                  onChange={(e) => {
+                    const v = parseInt(e.target.value) || 15;
+                    setReminderDay(Math.max(1, Math.min(28, v)));
+                  }}
+                  className="w-20 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                />
+                <p className="text-xs text-gray-400">{t("madrasaFee.reminderDayHint")}</p>
               </div>
             )}
           </SectionCard>

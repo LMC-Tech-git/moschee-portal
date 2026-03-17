@@ -632,6 +632,7 @@ const STUDENT_FEES_COLLECTION = {
     },
     { name: "provider_ref", type: "text" },
     { name: "notes", type: "text" },
+    { name: "reminder_sent_at", type: "text" },
     { name: "created_by", type: "relation", options: { collectionId: "", maxSelect: 1 } },
   ],
   indexes: [
@@ -643,6 +644,8 @@ const STUDENT_FEES_COLLECTION = {
 const SETTINGS_MADRASA_FIELDS = [
   { name: "madrasa_fees_enabled", type: "bool", options: { default: false } },
   { name: "madrasa_default_fee_cents", type: "number", options: { min: 0, default: 1000 } },
+  { name: "fee_reminder_enabled", type: "bool", options: { default: false } },
+  { name: "fee_reminder_day", type: "number", options: { min: 1, max: 28, default: 15 } },
 ];
 
 const EVENTS_RECURRING_FIELDS = [
@@ -1000,6 +1003,19 @@ async function main() {
       console.log(`   ✅ settings (madrasa): ${fieldsToAdd.map((f) => f.name).join(", ")} hinzugefügt`);
     } else {
       console.log("   ⏭️  settings: alle Madrasa-Felder vorhanden");
+    }
+  }
+
+  // 9b. student_fees: reminder_sent_at hinzufügen
+  if (collectionMap.student_fees) {
+    const feesCol = (await getExistingCollections()).find((c) => c.name === "student_fees");
+    const existingFieldNames = (feesCol?.schema || []).map((f) => f.name);
+    if (!existingFieldNames.includes("reminder_sent_at")) {
+      const newSchema = [...(feesCol?.schema || []), { name: "reminder_sent_at", type: "text" }];
+      await updateCollection("student_fees", { schema: newSchema });
+      console.log("   ✅ student_fees: reminder_sent_at hinzugefügt");
+    } else {
+      console.log("   ⏭️  student_fees: reminder_sent_at bereits vorhanden");
     }
   }
 

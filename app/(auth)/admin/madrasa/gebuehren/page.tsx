@@ -11,7 +11,7 @@ import {
   type FeeOverviewRow,
 } from "@/lib/actions/student-fees";
 import { getMadrasaFeeSettings } from "@/lib/actions/settings";
-import { sendFeeReminderEmail } from "@/lib/actions/email";
+import { sendFeeReminderEmail, sendBulkFeeReminders } from "@/lib/actions/email";
 import { getCoursesByMosque } from "@/lib/actions/courses";
 import { getEnrolledStudentIds } from "@/lib/actions/enrollments";
 import { formatCurrencyCents } from "@/lib/utils";
@@ -68,6 +68,8 @@ export default function AdminMadrasaGebuehrenPage() {
   const [isActing, setIsActing] = useState(false);
   const [reminderFeeId, setReminderFeeId] = useState<string | null>(null);
   const [reminderResult, setReminderResult] = useState<{ feeId: string; success: boolean; msg: string } | null>(null);
+  const [isBulkReminding, setIsBulkReminding] = useState(false);
+  const [bulkReminderResult, setBulkReminderResult] = useState<{ sent: number; skipped: number; failed: number } | null>(null);
   const [error, setError] = useState("");
 
   // Kurs-Filter
@@ -120,6 +122,7 @@ export default function AdminMadrasaGebuehrenPage() {
   async function loadData() {
     setIsLoading(true);
     setCreateResult(null);
+    setBulkReminderResult(null);
     setError("");
     const result = await getMonthlyFeeOverview(mosqueId, monthKey);
     if (result.success && result.data) {
@@ -180,6 +183,21 @@ export default function AdminMadrasaGebuehrenPage() {
       success: result.success,
       msg: result.success ? t("reminderSent") : (result.error || tCommon("error")),
     });
+  }
+
+  async function handleBulkReminder() {
+    if (!user) return;
+    if (!confirm(t("bulkReminderConfirm"))) return;
+    setIsBulkReminding(true);
+    setBulkReminderResult(null);
+    const result = await sendBulkFeeReminders(mosqueId, user.id, monthKey);
+    setIsBulkReminding(false);
+    if (result.success) {
+      setBulkReminderResult({ sent: result.sent, skipped: result.skipped, failed: result.failed });
+      await loadData();
+    } else {
+      setError(result.error || tCommon("error"));
+    }
   }
 
   // Gefilterte Zeilen (nach Kurs)
@@ -284,6 +302,21 @@ export default function AdminMadrasaGebuehrenPage() {
             </div>
           )}
 
+          {/* Bulk-Mahnung */}
+          <button
+            type="button"
+            onClick={handleBulkReminder}
+            disabled={openCount === 0 || isBulkReminding}
+            className="inline-flex items-center gap-2 rounded-lg border border-orange-300 bg-orange-50 px-4 py-2 text-sm font-medium text-orange-700 hover:bg-orange-100 disabled:opacity-50"
+          >
+            {isBulkReminding ? (
+              <span className="h-4 w-4 inline-block animate-spin rounded-full border-2 border-orange-400 border-t-transparent" />
+            ) : (
+              <Bell className="h-4 w-4" />
+            )}
+            {isBulkReminding ? t("bulkReminderSending") : t("bulkReminder")}
+          </button>
+
           {/* Export */}
           <button
             type="button"
@@ -333,6 +366,14 @@ export default function AdminMadrasaGebuehrenPage() {
         <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
           <AlertCircle className="h-4 w-4 shrink-0" />
           {error}
+        </div>
+      )}
+
+      {/* Bulk-Mahnung Ergebnis */}
+      {bulkReminderResult && (
+        <div className="flex items-center gap-2 rounded-lg border border-orange-200 bg-orange-50 p-3 text-sm text-orange-700">
+          <Bell className="h-4 w-4 shrink-0" />
+          {t("bulkReminderResult", { sent: bulkReminderResult.sent, skipped: bulkReminderResult.skipped, failed: bulkReminderResult.failed })}
         </div>
       )}
 

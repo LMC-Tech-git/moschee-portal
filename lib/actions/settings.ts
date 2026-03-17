@@ -266,7 +266,12 @@ export async function getPortalSettings(mosqueId: string): Promise<{
 
 export async function getMadrasaFeeSettings(mosqueId: string): Promise<{
   success: boolean;
-  data?: { madrasa_fees_enabled: boolean; madrasa_default_fee_cents: number };
+  data?: {
+    madrasa_fees_enabled: boolean;
+    madrasa_default_fee_cents: number;
+    fee_reminder_enabled: boolean;
+    fee_reminder_day: number;
+  };
   error?: string;
 }> {
   try {
@@ -280,12 +285,19 @@ export async function getMadrasaFeeSettings(mosqueId: string): Promise<{
         data: {
           madrasa_fees_enabled: record.madrasa_fees_enabled || false,
           madrasa_default_fee_cents: record.madrasa_default_fee_cents || 1000,
+          fee_reminder_enabled: record.fee_reminder_enabled || false,
+          fee_reminder_day: record.fee_reminder_day || 15,
         },
       };
     } catch {
       return {
         success: true,
-        data: { madrasa_fees_enabled: false, madrasa_default_fee_cents: 1000 },
+        data: {
+          madrasa_fees_enabled: false,
+          madrasa_default_fee_cents: 1000,
+          fee_reminder_enabled: false,
+          fee_reminder_day: 15,
+        },
       };
     }
   } catch (error) {
@@ -297,7 +309,12 @@ export async function getMadrasaFeeSettings(mosqueId: string): Promise<{
 export async function updateMadrasaFeeSettings(
   mosqueId: string,
   userId: string,
-  data: { madrasa_fees_enabled: boolean; madrasa_default_fee_cents: number }
+  data: {
+    madrasa_fees_enabled: boolean;
+    madrasa_default_fee_cents: number;
+    fee_reminder_enabled: boolean;
+    fee_reminder_day: number;
+  }
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const pb = await getAdminPB();

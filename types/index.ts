@@ -60,6 +60,8 @@ export interface Settings {
   // Madrasa-Gebühren
   madrasa_fees_enabled: boolean;
   madrasa_default_fee_cents: number;  // z.B. 1000 = 10 €
+  fee_reminder_enabled: boolean;      // Automatische Gebühren-Erinnerung
+  fee_reminder_day: number;           // Tag im Monat (1-28)
   created: string;
   updated: string;
 }
@@ -445,6 +447,7 @@ export interface StudentFee {
   payment_method: "cash" | "transfer" | "stripe" | "waived" | "";
   provider_ref: string;       // Stripe Session ID
   notes: string;
+  reminder_sent_at: string;   // ISO-Datum der letzten Mahnung
   created_by: string;         // Relation → users
   created: string;
   updated: string;
