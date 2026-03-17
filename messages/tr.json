@@ -416,6 +416,9 @@
     "panel": "Yönetici Paneli",
     "editorAccess": "Editör Erişimi",
     "editorBadge": "Editör Erişimi (Haberler · Etkinlikler · Kampanyalar)",
+    "madrasaAdminBadge": "Medrese Müdürü",
+    "treasurerBadge": "Muhasebeci",
+    "secretaryBadge": "Sekreterya",
     "platformOverview": "Platform Genel Bakış",
     "backToPortal": "Portale Dön"
   },
@@ -428,7 +431,7 @@
     "filterAllStatus": "Tüm Durumlar",
     "colName": "Ad",
     "colEmail": "E-posta",
-    "colNumber": "No.",
+    "colPhone": "Telefon",
     "colRole": "Rol",
     "colStatus": "Durum",
     "colActions": "İşlemler",
@@ -437,6 +440,12 @@
     "activate": "Onayla",
     "deactivate": "Deaktive Et",
     "reactivate": "Yeniden Aktive Et",
+    "delete": "Sil",
+    "deleteConfirm": "Gerçekten silinsin mi?",
+    "deleteYes": "Evet, sil",
+    "deleteNo": "İptal",
+    "deleteSuccess": "Üye silindi",
+    "deleteError": "Üye silinirken hata oluştu",
     "statusChanged": "Durum \"{status}\" olarak değiştirildi",
     "loadError": "Üyeler yüklenirken hata oluştu",
     "statusError": "Durum değiştirilirken hata oluştu",
@@ -449,7 +458,11 @@
       "member": "Üye",
       "admin": "Yönetici",
       "teacher": "Öğretmen",
-      "imam": "İmam"
+      "imam": "İmam",
+      "editor": "Editör",
+      "madrasa_admin": "Medrese Müdürü",
+      "treasurer": "Muhasebeci",
+      "secretary": "Sekreterya"
     }
   },
   "posts": {
@@ -588,6 +601,8 @@
       "title": "Medrese Yönetimi",
       "desc": "Burada İslam eğitimini yönetiyorsunuz: ders oluşturma, öğrenci kaydı, devamsızlık ve ücret yönetimi."
     },
+    "kpiTotalStudents": "Toplam Öğrenci",
+    "kpiEnrolledStudents": "Kayıtlı Öğrenci",
     "newCourse": "Yeni Ders",
     "fees": "Ücretler",
     "academicYears": "Öğretim Yılları",
@@ -1303,7 +1318,10 @@
       "admin": "Yönetici",
       "editor": "Editör (Haberler, Etkinlikler, Kampanyalar)",
       "teacher": "Öğretmen (Medrese)",
-      "imam": "İmam (Haber paylaşımı)"
+      "imam": "İmam (Haber paylaşımı)",
+      "madrasa_admin": "Medrese Müdürü (Medrese + Bülten)",
+      "treasurer": "Muhasebeci (Bağışlar + Kampanyalar)",
+      "secretary": "Sekreterya (Üyeler, Etkinlikler, Bülten, Davetler)"
     },
     "recurrence": {
       "daily": "Günlük",

@@ -28,12 +28,34 @@ import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
 
-// Editor darf nur diese Routen besuchen
+// Rollen mit eingeschränktem Zugriff: erlaubte Routen-Prefixe
 const EDITOR_ALLOWED_PREFIXES = [
   "/admin/posts",
   "/admin/events",
   "/admin/kampagnen",
 ];
+const MADRASA_ADMIN_ALLOWED_PREFIXES = [
+  "/admin/madrasa",
+  "/admin/newsletter",
+];
+const TREASURER_ALLOWED_PREFIXES = [
+  "/admin/spenden",
+  "/admin/kampagnen",
+];
+const SECRETARY_ALLOWED_PREFIXES = [
+  "/admin/mitglieder",
+  "/admin/events",
+  "/admin/newsletter",
+  "/admin/invites",
+];
+
+// Standard-Redirect pro eingeschränkter Rolle
+const ROLE_DEFAULT_REDIRECT: Record<string, string> = {
+  editor:        "/admin/posts",
+  madrasa_admin: "/admin/madrasa",
+  treasurer:     "/admin/spenden",
+  secretary:     "/admin/mitglieder",
+};
 
 export default function AdminLayout({
   children,
@@ -48,9 +70,18 @@ export default function AdminLayout({
 
   const role = user?.role;
   const canAccess =
-    role === "admin" || role === "super_admin" || role === "editor";
+    role === "admin" ||
+    role === "super_admin" ||
+    role === "editor" ||
+    role === "madrasa_admin" ||
+    role === "treasurer" ||
+    role === "secretary";
   const isSuperAdmin = role === "super_admin";
   const isEditor = role === "editor";
+  const isMadrasaAdmin = role === "madrasa_admin";
+  const isTreasurer = role === "treasurer";
+  const isSecretary = role === "secretary";
+  const isRestrictedRole = isEditor || isMadrasaAdmin || isTreasurer || isSecretary;
 
   const adminNav = [
     {
@@ -75,37 +106,37 @@ export default function AdminLayout({
       label: t("quickAccess.members.title"),
       href: "/admin/mitglieder",
       icon: Users,
-      roles: ["admin", "super_admin"],
+      roles: ["admin", "super_admin", "secretary"],
     },
     {
       label: t("quickAccess.campaigns.title"),
       href: "/admin/kampagnen",
       icon: Target,
-      roles: ["admin", "super_admin", "editor"],
+      roles: ["admin", "super_admin", "editor", "treasurer"],
     },
     {
       label: t("quickAccess.donations.title"),
       href: "/admin/spenden",
       icon: Banknote,
-      roles: ["admin", "super_admin"],
+      roles: ["admin", "super_admin", "treasurer"],
     },
     {
       label: t("quickAccess.madrasa.title"),
       href: "/admin/madrasa",
       icon: BookOpen,
-      roles: ["admin", "super_admin"],
+      roles: ["admin", "super_admin", "madrasa_admin"],
     },
     {
       label: t("quickAccess.newsletter.title"),
       href: "/admin/newsletter",
       icon: Mail,
-      roles: ["admin", "super_admin"],
+      roles: ["admin", "super_admin", "madrasa_admin", "secretary"],
     },
     {
       label: t("quickAccess.invites.title"),
       href: "/admin/invites",
       icon: Link2,
-      roles: ["admin", "super_admin"],
+      roles: ["admin", "super_admin", "secretary"],
     },
     {
       label: t("quickAccess.audit.title"),
@@ -128,18 +159,24 @@ export default function AdminLayout({
     }
   }, [isAuthenticated, isLoading, canAccess, router]);
 
-  // Editor: Weiterleitung bei unerlaubten Routen
+  // Eingeschränkte Rollen: Weiterleitung bei unerlaubten Routen
   useEffect(() => {
-    if (!isLoading && isEditor && isAuthenticated) {
-      const isAllowed = EDITOR_ALLOWED_PREFIXES.some(
-        (prefix) =>
-          pathname === prefix || pathname.startsWith(prefix + "/")
+    if (!isLoading && isAuthenticated && isRestrictedRole) {
+      let allowedPrefixes: string[] = [];
+      if (isEditor)        allowedPrefixes = EDITOR_ALLOWED_PREFIXES;
+      else if (isMadrasaAdmin) allowedPrefixes = MADRASA_ADMIN_ALLOWED_PREFIXES;
+      else if (isTreasurer)    allowedPrefixes = TREASURER_ALLOWED_PREFIXES;
+      else if (isSecretary)    allowedPrefixes = SECRETARY_ALLOWED_PREFIXES;
+
+      const isAllowed = allowedPrefixes.some(
+        (prefix) => pathname === prefix || pathname.startsWith(prefix + "/")
       );
       if (!isAllowed) {
-        router.replace("/admin/posts");
+        const defaultRedirect = ROLE_DEFAULT_REDIRECT[role ?? ""] ?? "/";
+        router.replace(defaultRedirect);
       }
     }
-  }, [isLoading, isEditor, isAuthenticated, pathname, router]);
+  }, [isLoading, isRestrictedRole, isEditor, isMadrasaAdmin, isTreasurer, isSecretary, isAuthenticated, pathname, router, role]);
 
   if (isLoading) {
     return (
@@ -185,7 +222,7 @@ export default function AdminLayout({
                     : mosque?.name || t("panel")}
                 </p>
                 <p className="text-xs text-gray-500">
-                  {isEditor ? t("editorAccess") : user?.full_name}
+                  {isRestrictedRole && !isEditor ? user?.full_name : isEditor ? t("editorAccess") : user?.full_name}
                 </p>
               </div>
             </div>
@@ -204,11 +241,29 @@ export default function AdminLayout({
               </Link>
             )}
 
-            {/* Editor-Badge */}
+            {/* Rollen-Badges für eingeschränkte Rollen */}
             {isEditor && (
               <div className="flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700">
                 <Edit3 className="h-3.5 w-3.5" />
                 {t("editorBadge")}
+              </div>
+            )}
+            {isMadrasaAdmin && (
+              <div className="flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700">
+                <BookOpen className="h-3.5 w-3.5" />
+                {t("madrasaAdminBadge")}
+              </div>
+            )}
+            {isTreasurer && (
+              <div className="flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-700">
+                <Banknote className="h-3.5 w-3.5" />
+                {t("treasurerBadge")}
+              </div>
+            )}
+            {isSecretary && (
+              <div className="flex items-center gap-1.5 rounded-lg border border-violet-200 bg-violet-50 px-3 py-1.5 text-xs font-medium text-violet-700">
+                <Users className="h-3.5 w-3.5" />
+                {t("secretaryBadge")}
               </div>
             )}
           </div>

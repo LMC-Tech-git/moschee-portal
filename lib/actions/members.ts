@@ -596,3 +596,44 @@ export async function sendDonationReceiptByEmail(
     return { success: false, error: "Unbekannter Fehler beim E-Mail-Versand" };
   }
 }
+
+// --- Mitglied löschen ---
+
+export async function deleteMember(
+  targetUserId: string,
+  mosqueId: string,
+  actorUserId: string
+): Promise<{ success: true } | { success: false; error: string }> {
+  try {
+    if (!targetUserId || !mosqueId || !actorUserId) {
+      return { success: false, error: "Ungültige Parameter" };
+    }
+    if (targetUserId === actorUserId) {
+      return { success: false, error: "Du kannst dein eigenes Konto nicht löschen" };
+    }
+
+    const pb = await getAdminPB();
+
+    // Tenant-Check
+    const target = await pb.collection("users").getOne(targetUserId, { fields: "id,mosque_id,full_name,email" });
+    if (target.mosque_id !== mosqueId) {
+      return { success: false, error: "Mitglied nicht gefunden" };
+    }
+
+    await pb.collection("users").delete(targetUserId);
+
+    await logAudit(pb, {
+      mosque_id: mosqueId,
+      actor_user_id: actorUserId,
+      action: "member.deleted",
+      target_type: "user",
+      target_id: targetUserId,
+      details: { email: target.email, full_name: target.full_name },
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("[Members] Fehler beim Löschen:", error);
+    return { success: false, error: "Mitglied konnte nicht gelöscht werden" };
+  }
+}

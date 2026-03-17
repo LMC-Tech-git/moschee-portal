@@ -353,3 +353,41 @@ export async function getTeachersByMosque(
     return { success: false, error: "Lehrer konnten nicht geladen werden" };
   }
 }
+
+// --- Madrasa KPIs ---
+
+export interface MadrasaKPIs {
+  totalStudents: number;
+  enrolledStudents: number;
+}
+
+export async function getMadrasaKPIs(
+  mosqueId: string
+): Promise<{ success: true; data: MadrasaKPIs } | { success: false; error: string }> {
+  try {
+    const pb = await getAdminPB();
+
+    const [studentsResult, enrollmentsResult] = await Promise.all([
+      pb.collection("students").getList(1, 1, {
+        filter: `mosque_id = "${mosqueId}" && status = "active"`,
+        fields: "id",
+      }),
+      pb.collection("course_enrollments").getList(1, 1, {
+        filter: `mosque_id = "${mosqueId}" && status = "enrolled"`,
+        fields: "id",
+      }),
+    ]);
+
+    return {
+      success: true,
+      data: {
+        totalStudents: studentsResult.totalItems,
+        enrolledStudents: enrollmentsResult.totalItems,
+      },
+    };
+  } catch (error) {
+    console.error("[Courses] Fehler beim Laden der Madrasa-KPIs:", error);
+    return { success: false, error: "KPIs konnten nicht geladen werden" };
+  }
+}
+

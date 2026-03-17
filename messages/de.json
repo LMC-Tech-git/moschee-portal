@@ -416,6 +416,9 @@
     "panel": "Admin-Panel",
     "editorAccess": "Editor-Zugang",
     "editorBadge": "Editor-Zugang (Posts · Events · Kampagnen)",
+    "madrasaAdminBadge": "Madrasa-Leitung",
+    "treasurerBadge": "Kassenwart",
+    "secretaryBadge": "Sekretariat",
     "platformOverview": "Plattform-Übersicht",
     "backToPortal": "Zurück zum Portal"
   },
@@ -428,7 +431,7 @@
     "filterAllStatus": "Alle Status",
     "colName": "Name",
     "colEmail": "E-Mail",
-    "colNumber": "Nr.",
+    "colPhone": "Telefon",
     "colRole": "Rolle",
     "colStatus": "Status",
     "colActions": "Aktionen",
@@ -437,6 +440,12 @@
     "activate": "Freischalten",
     "deactivate": "Deaktivieren",
     "reactivate": "Reaktivieren",
+    "delete": "Löschen",
+    "deleteConfirm": "Wirklich löschen?",
+    "deleteYes": "Ja, löschen",
+    "deleteNo": "Abbrechen",
+    "deleteSuccess": "Mitglied wurde gelöscht",
+    "deleteError": "Fehler beim Löschen des Mitglieds",
     "statusChanged": "Status auf \"{status}\" geändert",
     "loadError": "Fehler beim Laden der Mitglieder",
     "statusError": "Fehler beim Ändern des Status",
@@ -449,7 +458,11 @@
       "member": "Mitglied",
       "admin": "Admin",
       "teacher": "Lehrer",
-      "imam": "Imam"
+      "imam": "Imam",
+      "editor": "Editor",
+      "madrasa_admin": "Madrasa-Leitung",
+      "treasurer": "Kassenwart",
+      "secretary": "Sekretariat"
     }
   },
   "posts": {
@@ -588,6 +601,8 @@
       "title": "Madrasa-Verwaltung",
       "desc": "Hier verwalten Sie den Islamunterricht: Kurse anlegen, Schüler einschreiben, Anwesenheit führen und Gebühren verwalten."
     },
+    "kpiTotalStudents": "Schüler gesamt",
+    "kpiEnrolledStudents": "Eingeschriebene Schüler",
     "newCourse": "Neuer Kurs",
     "fees": "Gebühren",
     "academicYears": "Schuljahre",
@@ -1303,7 +1318,10 @@
       "admin": "Administrator",
       "editor": "Editor (Beiträge, Events, Kampagnen)",
       "teacher": "Lehrer (Madrasa)",
-      "imam": "Imam (Beiträge posten)"
+      "imam": "Imam (Beiträge posten)",
+      "madrasa_admin": "Madrasa-Leitung (Madrasa + Newsletter)",
+      "treasurer": "Kassenwart (Spenden + Kampagnen)",
+      "secretary": "Sekretariat (Mitglieder, Events, Newsletter, Einladungen)"
     },
     "recurrence": {
       "daily": "Täglich",

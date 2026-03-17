@@ -853,7 +853,7 @@ async function main() {
     const roleField = (userColCurrent?.schema || []).find((f) => f.name === "role");
     if (roleField && roleField.options?.values) {
       const currentValues = roleField.options.values;
-      const requiredRoles = ["member", "teacher", "imam", "editor", "admin", "super_admin"];
+      const requiredRoles = ["member", "teacher", "imam", "editor", "admin", "super_admin", "madrasa_admin", "treasurer", "secretary"];
       const missingRoles = requiredRoles.filter((r) => !currentValues.includes(r));
       if (missingRoles.length > 0) {
         const updatedSchema = (userColCurrent.schema || []).map((f) =>
@@ -1028,7 +1028,7 @@ async function main() {
     const roleField = (invitesCol?.schema || []).find((f) => f.name === "role");
     if (roleField && roleField.options?.values) {
       const currentValues = roleField.options.values;
-      const requiredRoles = ["member", "teacher", "imam", "editor", "admin"];
+      const requiredRoles = ["member", "teacher", "imam", "editor", "admin", "madrasa_admin", "treasurer", "secretary"];
       const missingRoles = requiredRoles.filter((r) => !currentValues.includes(r));
       if (missingRoles.length > 0) {
         const updatedSchema = (invitesCol.schema || []).map((f) =>

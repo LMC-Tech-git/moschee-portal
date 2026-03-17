@@ -175,7 +175,7 @@ export const createInviteSchema = z.object({
   type: z.enum(["personal", "group"]),
   label: z.string().max(100).optional().default(""),
   email: z.string().email("Ungültige E-Mail-Adresse").optional().or(z.literal("")).default(""),
-  role: z.enum(["member", "teacher", "imam", "admin", "editor", "super_admin"]).default("member"),
+  role: z.enum(["member", "teacher", "imam", "admin", "editor", "super_admin", "madrasa_admin", "treasurer", "secretary"]).default("member"),
   initial_status: z.enum(["pending", "active"]).default("pending"),
   max_uses: z.number().int().min(1, "Mindestens 1 Nutzung").optional(),
   expires_at: z.string().optional().default(""),

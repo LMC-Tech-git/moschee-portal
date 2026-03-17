@@ -18,11 +18,13 @@ import {
 } from "lucide-react";
 import { useMosque } from "@/lib/mosque-context";
 import { useAuth } from "@/lib/auth-context";
-import { getCoursesByMosque, deleteCourse } from "@/lib/actions/courses";
+import { getCoursesByMosque, deleteCourse, getMadrasaKPIs } from "@/lib/actions/courses";
+import type { MadrasaKPIs } from "@/lib/actions/courses";
 import { getAcademicYearsByMosque } from "@/lib/actions/academic-years";
 import { getMadrasaFeeSettings } from "@/lib/actions/settings";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { KPITile } from "@/components/shared/KPITile";
 import { DemoHint } from "@/components/demo/DemoHint";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
@@ -53,14 +55,16 @@ export default function AdminMadrasaPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [deletingCourseId, setDeletingCourseId] = useState<string | null>(null);
   const [feesEnabled, setFeesEnabled] = useState(false);
+  const [kpis, setKpis] = useState<MadrasaKPIs | null>(null);
 
-  // Schuljahre + Fee-Settings laden
+  // Schuljahre + Fee-Settings + KPIs laden
   useEffect(() => {
     if (!mosqueId) return;
     async function loadYears() {
-      const [yearsResult, feeResult] = await Promise.all([
+      const [yearsResult, feeResult, kpiResult] = await Promise.all([
         getAcademicYearsByMosque(mosqueId),
         getMadrasaFeeSettings(mosqueId),
+        getMadrasaKPIs(mosqueId),
       ]);
       if (yearsResult.success && yearsResult.data) {
         setAcademicYears(yearsResult.data);
@@ -69,6 +73,9 @@ export default function AdminMadrasaPage() {
       }
       if (feeResult.success && feeResult.data) {
         setFeesEnabled(feeResult.data.madrasa_fees_enabled);
+      }
+      if (kpiResult.success && kpiResult.data) {
+        setKpis(kpiResult.data);
       }
     }
     loadYears();
@@ -123,6 +130,23 @@ export default function AdminMadrasaPage() {
         title={t("hint.title")}
         description={t("hint.desc")}
       />
+
+      {/* KPI-Kacheln */}
+      {kpis !== null && (
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <KPITile
+            icon={<Users className="h-5 w-5 text-emerald-600" />}
+            label={t("kpiTotalStudents")}
+            value={kpis.totalStudents}
+          />
+          <KPITile
+            icon={<BookOpen className="h-5 w-5 text-blue-600" />}
+            label={t("kpiEnrolledStudents")}
+            value={kpis.enrolledStudents}
+          />
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>

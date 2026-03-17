@@ -12,11 +12,12 @@ import {
   ChevronLeft,
   ChevronRight,
   UserPlus,
+  Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 import { useMosque } from "@/lib/mosque-context";
-import { getMembersByMosque, updateMemberStatus } from "@/lib/actions/members";
+import { getMembersByMosque, updateMemberStatus, deleteMember } from "@/lib/actions/members";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -67,6 +68,9 @@ export default function MitgliederListePage() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const [inviteOpen, setInviteOpen] = useState(false);
+  const [deletingMemberId, setDeletingMemberId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const canDelete = user?.role === "admin" || user?.role === "super_admin";
 
   // Filter
   const [searchQuery, setSearchQuery] = useState("");
@@ -107,6 +111,26 @@ export default function MitgliederListePage() {
   useEffect(() => {
     setPage(1);
   }, [searchQuery, roleFilter, statusFilter]);
+
+  async function handleDelete(memberId: string) {
+    if (!user) return;
+    setIsDeleting(true);
+    try {
+      const result = await deleteMember(memberId, mosqueId, user.id);
+      if (result.success) {
+        toast.success(t("deleteSuccess"));
+        setMembers((prev) => prev.filter((m) => m.id !== memberId));
+        setTotalItems((prev) => prev - 1);
+      } else {
+        toast.error(result.error || t("deleteError"));
+      }
+    } catch {
+      toast.error(t("deleteError"));
+    } finally {
+      setDeletingMemberId(null);
+      setIsDeleting(false);
+    }
+  }
 
   async function handleStatusChange(memberId: string, newStatus: "pending" | "active" | "inactive") {
     if (!user) return;
@@ -210,7 +234,7 @@ export default function MitgliederListePage() {
                   <tr className="border-b bg-gray-50 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                     <th className="px-4 py-3">{t("colName")}</th>
                     <th className="px-4 py-3 hidden sm:table-cell">{t("colEmail")}</th>
-                    <th className="px-4 py-3 hidden md:table-cell">{t("colNumber")}</th>
+                    <th className="px-4 py-3 hidden md:table-cell">{t("colPhone")}</th>
                     <th className="px-4 py-3">{t("colRole")}</th>
                     <th className="px-4 py-3">{t("colStatus")}</th>
                     <th className="px-4 py-3 text-right">{t("colActions")}</th>
@@ -229,8 +253,8 @@ export default function MitgliederListePage() {
                       <td className="px-4 py-3 hidden sm:table-cell text-gray-600">
                         {member.email}
                       </td>
-                      <td className="px-4 py-3 hidden md:table-cell text-gray-500 font-mono text-xs">
-                        {member.membership_number || member.member_no || "—"}
+                      <td className="px-4 py-3 hidden md:table-cell text-gray-500 text-xs">
+                        {member.phone || "—"}
                       </td>
                       <td className="px-4 py-3">
                         <span
@@ -298,6 +322,37 @@ export default function MitgliederListePage() {
                           >
                             <Pencil className="h-4 w-4" />
                           </Link>
+                          {canDelete && deletingMemberId === member.id ? (
+                            <span className="inline-flex items-center gap-1 rounded-full border border-red-300 bg-red-50 px-2 py-1 text-xs">
+                              <span className="text-red-700">{t("deleteConfirm")}</span>
+                              <button
+                                type="button"
+                                disabled={isDeleting}
+                                onClick={(e) => { e.stopPropagation(); handleDelete(member.id); }}
+                                className="font-semibold text-red-600 hover:text-red-800 disabled:opacity-50"
+                              >
+                                {t("deleteYes")}
+                              </button>
+                              <span className="text-red-300">|</span>
+                              <button
+                                type="button"
+                                onClick={(e) => { e.stopPropagation(); setDeletingMemberId(null); }}
+                                className="text-gray-500 hover:text-gray-700"
+                              >
+                                {t("deleteNo")}
+                              </button>
+                            </span>
+                          ) : canDelete && member.id !== user?.id ? (
+                            <button
+                              type="button"
+                              onClick={(e) => { e.stopPropagation(); setDeletingMemberId(member.id); }}
+                              className="rounded p-1.5 text-red-500 hover:bg-red-50"
+                              title={t("delete")}
+                              aria-label={`${member.full_name} löschen`}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          ) : null}
                         </div>
                       </td>
                     </tr>

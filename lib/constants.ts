@@ -377,18 +377,36 @@ export const PRAYER_METHODS = [
 // =========================================
 
 export const ROLE_LABELS: Record<string, string> = {
-  super_admin: 'Plattform-Admin',
-  admin: 'Administrator',
-  editor: 'Editor',
-  imam: 'Imam',
-  teacher: 'Lehrer',
-  member: 'Mitglied',
+  super_admin:   'Plattform-Admin',
+  admin:         'Administrator',
+  editor:        'Editor',
+  imam:          'Imam',
+  teacher:       'Lehrer',
+  madrasa_admin: 'Madrasa-Leitung',
+  treasurer:     'Kassenwart',
+  secretary:     'Sekretariat',
+  member:        'Mitglied',
+};
+
+export const ROLE_LABELS_TR: Record<string, string> = {
+  super_admin:   'Platform Yöneticisi',
+  admin:         'Yönetici',
+  editor:        'Editör',
+  imam:          'İmam',
+  teacher:       'Öğretmen',
+  madrasa_admin: 'Medrese Müdürü',
+  treasurer:     'Muhasebeci',
+  secretary:     'Sekreterya',
+  member:        'Üye',
 };
 
 export const ROLE_OPTIONS = [
-  { value: 'member',  label: 'Mitglied' },
-  { value: 'admin',   label: 'Administrator' },
-  { value: 'editor',  label: 'Editor (Beiträge, Events, Kampagnen)' },
-  { value: 'teacher', label: 'Lehrer (Madrasa)' },
-  { value: 'imam',    label: 'Imam (Beiträge posten)' },
+  { value: 'member',        label: 'Mitglied' },
+  { value: 'admin',         label: 'Administrator' },
+  { value: 'editor',        label: 'Editor (Beiträge, Events, Kampagnen)' },
+  { value: 'teacher',       label: 'Lehrer (Madrasa)' },
+  { value: 'imam',          label: 'Imam (Beiträge posten)' },
+  { value: 'madrasa_admin', label: 'Madrasa-Leitung (Madrasa + Newsletter)' },
+  { value: 'treasurer',     label: 'Kassenwart (Spenden + Kampagnen)' },
+  { value: 'secretary',     label: 'Sekretariat (Mitglieder, Events, Newsletter, Einladungen)' },
 ] as const;

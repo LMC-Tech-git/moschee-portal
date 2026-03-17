@@ -49,16 +49,19 @@ export function CreateInviteDialog({
   const tCommon = useTranslations("common");
 
   const roleOptions = [
-    { value: "member", label: tL("role.member") },
-    { value: "imam", label: tL("role.imam") },
-    { value: "teacher", label: tL("role.teacher") },
-    { value: "editor", label: tL("role.editor") },
-    { value: "admin", label: tL("role.admin") },
+    { value: "member",        label: tL("role.member") },
+    { value: "imam",          label: tL("role.imam") },
+    { value: "teacher",       label: tL("role.teacher") },
+    { value: "editor",        label: tL("role.editor") },
+    { value: "madrasa_admin", label: tL("role.madrasa_admin") },
+    { value: "treasurer",     label: tL("role.treasurer") },
+    { value: "secretary",     label: tL("role.secretary") },
+    { value: "admin",         label: tL("role.admin") },
   ];
 
   const [step, setStep] = useState<Step>("form");
   const [inviteType, setInviteType] = useState<InviteType>("personal");
-  const [role, setRole] = useState<"member" | "teacher" | "imam" | "editor" | "admin">("member");
+  const [role, setRole] = useState<"member" | "teacher" | "imam" | "editor" | "admin" | "madrasa_admin" | "treasurer" | "secretary">("member");
   const [initialStatus, setInitialStatus] = useState<"pending" | "active">("pending");
   const [label, setLabel] = useState("");
   const [email, setEmail] = useState("");
