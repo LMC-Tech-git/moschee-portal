@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { CalendarDays, TrendingUp, Users, ChevronDown, ChevronUp, AlertTriangle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,6 +20,7 @@ function getRateColors(rate: number): { badge: string; bar: string; text: string
 }
 
 export default function AttendanceStats({ stats, isLoading }: AttendanceStatsProps) {
+  const t = useTranslations("lehrer.attendance.stats");
   const [showSessions, setShowSessions] = useState(false);
 
   if (isLoading) {
@@ -32,7 +34,7 @@ export default function AttendanceStats({ stats, isLoading }: AttendanceStatsPro
   if (!stats) {
     return (
       <div className="rounded-xl border border-gray-200 bg-gray-50 py-12 text-center text-sm text-gray-400">
-        Keine Daten verfügbar.
+        {t("noData")}
       </div>
     );
   }
@@ -40,7 +42,7 @@ export default function AttendanceStats({ stats, isLoading }: AttendanceStatsPro
   if (stats.totalSessions === 0) {
     return (
       <div className="rounded-xl border border-gray-200 bg-gray-50 py-12 text-center text-sm text-gray-400">
-        Noch keine Unterrichtsstunden eingetragen.
+        {t("noSessions")}
       </div>
     );
   }
@@ -55,21 +57,21 @@ export default function AttendanceStats({ stats, isLoading }: AttendanceStatsPro
           <CardContent className="p-4 text-center">
             <CalendarDays className="mx-auto mb-1.5 h-5 w-5 text-gray-400" aria-hidden="true" />
             <p className="tabular-nums text-2xl font-bold text-gray-900">{stats.totalSessions}</p>
-            <p className="text-xs text-gray-500">Unterrichten</p>
+            <p className="text-xs text-gray-500">{t("sessions")}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
             <TrendingUp className="mx-auto mb-1.5 h-5 w-5 text-gray-400" aria-hidden="true" />
             <p className={cn("tabular-nums text-2xl font-bold", rateColors.text)}>{stats.avgClassRate}%</p>
-            <p className="text-xs text-gray-500">Ø Anwesenheit</p>
+            <p className="text-xs text-gray-500">{t("avgAttendance")}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
             <Users className="mx-auto mb-1.5 h-5 w-5 text-gray-400" aria-hidden="true" />
             <p className="tabular-nums text-2xl font-bold text-gray-900">{stats.enrolledCount}</p>
-            <p className="text-xs text-gray-500">Schüler</p>
+            <p className="text-xs text-gray-500">{t("students")}</p>
           </CardContent>
         </Card>
       </div>
@@ -77,7 +79,7 @@ export default function AttendanceStats({ stats, isLoading }: AttendanceStatsPro
       {/* Schüler-Statistik */}
       <Card>
         <CardHeader className="px-4 pb-2 pt-4">
-          <CardTitle className="text-sm font-semibold text-gray-700">Schüler-Statistik</CardTitle>
+          <CardTitle className="text-sm font-semibold text-gray-700">{t("studentStats")}</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           <div className="divide-y">
@@ -119,10 +121,10 @@ export default function AttendanceStats({ stats, isLoading }: AttendanceStatsPro
 
                   {/* Detail-Counts */}
                   <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-xs">
-                    <span className="text-emerald-600">{s.present} anwesend</span>
-                    {s.late > 0 && <span className="text-amber-600">{s.late} verspätet</span>}
-                    {s.absent > 0 && <span className="text-red-600">{s.absent} abwesend</span>}
-                    {s.excused > 0 && <span className="text-blue-600">{s.excused} entschuldigt</span>}
+                    <span className="text-emerald-600">{t("presentCount", { n: s.present })}</span>
+                    {s.late > 0 && <span className="text-amber-600">{t("lateCount", { n: s.late })}</span>}
+                    {s.absent > 0 && <span className="text-red-600">{t("absentCount", { n: s.absent })}</span>}
+                    {s.excused > 0 && <span className="text-blue-600">{t("excusedCount", { n: s.excused })}</span>}
                   </div>
                 </div>
               );
@@ -140,7 +142,7 @@ export default function AttendanceStats({ stats, isLoading }: AttendanceStatsPro
           className="flex w-full items-center justify-between px-4 py-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-t-xl"
         >
           <span className="text-sm font-semibold text-gray-700">
-            Sessions-Übersicht ({stats.sessionStats.length})
+            {t("sessionsOverview", { count: stats.sessionStats.length })}
           </span>
           {showSessions ? (
             <ChevronUp className="h-4 w-4 text-gray-400" aria-hidden="true" />
@@ -165,7 +167,7 @@ export default function AttendanceStats({ stats, isLoading }: AttendanceStatsPro
                     </span>
                     <div className="flex items-center gap-3">
                       <span className="text-xs text-gray-500">
-                        {s.present + s.late} / {s.total} anwesend
+                        {t("sessionPresent", { present: s.present + s.late, total: s.total })}
                       </span>
                       <Badge className={cn("tabular-nums text-xs", colors.badge)}>{s.rate}%</Badge>
                     </div>

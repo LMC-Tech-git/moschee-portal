@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { BookOpen, ClipboardList, Clock, Users, GraduationCap } from "lucide-react";
 import { useMosque } from "@/lib/mosque-context";
@@ -18,6 +19,7 @@ import {
 import type { CourseWithStats, AcademicYear } from "@/types";
 
 export default function LehrerDashboard() {
+  const t = useTranslations("lehrer");
   const { mosqueId } = useMosque();
   const { user } = useAuth();
   const [courses, setCourses] = useState<CourseWithStats[]>([]);
@@ -77,12 +79,12 @@ export default function LehrerDashboard() {
       <div>
         <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
           <GraduationCap className="h-6 w-6 text-blue-600" />
-          Meine Kurse
+          {t("myCourses")}
         </h1>
         <p className="text-sm text-gray-500">
           {activeYear
-            ? `Schuljahr ${activeYear.name}`
-            : "Kein aktives Schuljahr"}
+            ? t("schoolYear", { name: activeYear.name })
+            : t("noActiveYear")}
           {" — "}
           {today.toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long" })}
         </p>
@@ -93,10 +95,10 @@ export default function LehrerDashboard() {
           <CardContent className="flex flex-col items-center justify-center py-12">
             <BookOpen className="mb-3 h-10 w-10 text-gray-300" />
             <p className="text-sm font-medium text-gray-600">
-              Keine Kurse zugewiesen
+              {t("noCourses")}
             </p>
             <p className="text-xs text-gray-400">
-              Ein Admin muss Ihnen Kurse zuweisen.
+              {t("noCoursesHint")}
             </p>
           </CardContent>
         </Card>
@@ -106,11 +108,11 @@ export default function LehrerDashboard() {
           {todayCourses.length > 0 && (
             <div>
               <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-emerald-700">
-                Heute — {dayOfWeekLabels[todayDay as keyof typeof dayOfWeekLabels]}
+                {t("today", { day: dayOfWeekLabels[todayDay as keyof typeof dayOfWeekLabels] })}
               </h2>
               <div className="grid gap-4 sm:grid-cols-2">
                 {todayCourses.map((course) => (
-                  <CourseCard key={course.id} course={course} isToday />
+                  <CourseCard key={course.id} course={course} isToday t={t} />
                 ))}
               </div>
             </div>
@@ -120,11 +122,11 @@ export default function LehrerDashboard() {
           {otherCourses.length > 0 && (
             <div>
               <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-500">
-                Weitere Kurse
+                {t("otherCourses")}
               </h2>
               <div className="grid gap-4 sm:grid-cols-2">
                 {otherCourses.map((course) => (
-                  <CourseCard key={course.id} course={course} />
+                  <CourseCard key={course.id} course={course} t={t} />
                 ))}
               </div>
             </div>
@@ -135,7 +137,7 @@ export default function LehrerDashboard() {
   );
 }
 
-function CourseCard({ course, isToday }: { course: CourseWithStats; isToday?: boolean }) {
+function CourseCard({ course, isToday, t }: { course: CourseWithStats; isToday?: boolean; t: (key: string, values?: Record<string, string | number>) => string }) {
   return (
     <Card className={cn(
       "transition-shadow hover:shadow-md",
@@ -164,7 +166,7 @@ function CourseCard({ course, isToday }: { course: CourseWithStats; isToday?: bo
           </div>
           <div className="flex items-center gap-2">
             <Users className="h-3.5 w-3.5 text-gray-400" />
-            {course.enrolled_count} Schüler
+            {t("students", { count: course.enrolled_count })}
             {course.max_students > 0 && ` / ${course.max_students}`}
           </div>
         </div>
@@ -180,7 +182,7 @@ function CourseCard({ course, isToday }: { course: CourseWithStats; isToday?: bo
           )}
         >
           <ClipboardList className="h-4 w-4" />
-          Anwesenheit eintragen
+          {t("enterAttendance")}
         </Link>
       </CardContent>
     </Card>

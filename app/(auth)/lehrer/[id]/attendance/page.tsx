@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useParams } from "next/navigation";
 import { ChevronLeft, ClipboardList, Save, Check, X, Clock, AlertCircle, CheckCheck, Trash2 } from "lucide-react";
 import Link from "next/link";
@@ -39,6 +40,7 @@ interface StudentRow {
 }
 
 export default function LehrerAttendancePage() {
+  const t = useTranslations("lehrer");
   const params = useParams();
   const courseId = params.id as string;
   const { mosqueId } = useMosque();
@@ -160,7 +162,7 @@ export default function LehrerAttendancePage() {
     );
 
     if (result.success) {
-      setSuccess("Anwesenheit gespeichert!");
+      setSuccess(t("attendance.saveSuccess"));
       setTimeout(() => setSuccess(""), 3000);
       if (!pastSessions.includes(sessionDate)) {
         setPastSessions((prev) => [sessionDate, ...prev]);
@@ -168,7 +170,7 @@ export default function LehrerAttendancePage() {
       // Statistik invalidieren
       setCourseStats(null);
     } else {
-      setError(result.error || "Speichern fehlgeschlagen");
+      setError(result.error || t("attendance.saveFailed"));
     }
     setIsSaving(false);
   }
@@ -185,7 +187,7 @@ export default function LehrerAttendancePage() {
       }
       setCourseStats(null);
     } else {
-      setError(result.error || "Session konnte nicht gelöscht werden");
+      setError(result.error || t("attendance.deleteSessionFailed"));
     }
     setDeletingSession(null);
     setIsDeletingSession(false);
@@ -206,13 +208,13 @@ export default function LehrerAttendancePage() {
   if (!course) {
     return (
       <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-center">
-        <p className="text-sm text-red-700">Kurs nicht gefunden</p>
+        <p className="text-sm text-red-700">{t("attendance.courseNotFound")}</p>
         <Link
           href="/lehrer"
           className="mt-3 inline-flex items-center gap-1 text-sm text-red-600 hover:underline"
         >
           <ChevronLeft className="h-4 w-4" />
-          Zurück zu Meine Kurse
+          {t("attendance.backLink")}
         </Link>
       </div>
     );
@@ -225,10 +227,10 @@ export default function LehrerAttendancePage() {
   const excusedCount = students.filter((s) => s.status === "excused").length;
 
   const statusButtons: { status: AttendanceStatus; icon: typeof Check; label: string; color: string }[] = [
-    { status: "present", icon: Check, label: "Anwesend", color: "text-emerald-600 hover:bg-emerald-50 border-emerald-200" },
-    { status: "late", icon: Clock, label: "Verspätet", color: "text-amber-600 hover:bg-amber-50 border-amber-200" },
-    { status: "absent", icon: X, label: "Abwesend", color: "text-red-600 hover:bg-red-50 border-red-200" },
-    { status: "excused", icon: AlertCircle, label: "Entschuldigt", color: "text-blue-600 hover:bg-blue-50 border-blue-200" },
+    { status: "present", icon: Check, label: t("attendance.present"), color: "text-emerald-600 hover:bg-emerald-50 border-emerald-200" },
+    { status: "late", icon: Clock, label: t("attendance.late"), color: "text-amber-600 hover:bg-amber-50 border-amber-200" },
+    { status: "absent", icon: X, label: t("attendance.absent"), color: "text-red-600 hover:bg-red-50 border-red-200" },
+    { status: "excused", icon: AlertCircle, label: t("attendance.excused"), color: "text-blue-600 hover:bg-blue-50 border-blue-200" },
   ];
 
   return (
@@ -240,7 +242,7 @@ export default function LehrerAttendancePage() {
           className="mb-2 inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
         >
           <ChevronLeft className="h-4 w-4" />
-          Zurück zu Meine Kurse
+          {t("attendance.backLink")}
         </Link>
         <h1 className="flex items-center gap-2 text-2xl font-bold text-gray-900">
           <ClipboardList className="h-6 w-6 text-emerald-600" />
@@ -255,9 +257,9 @@ export default function LehrerAttendancePage() {
       {/* Tabs */}
       <Tabs defaultValue="attendance" onValueChange={handleTabChange}>
         <TabsList className="w-full sm:w-auto">
-          <TabsTrigger value="attendance" className="flex-1 sm:flex-none">Anwesenheit</TabsTrigger>
+          <TabsTrigger value="attendance" className="flex-1 sm:flex-none">{t("attendance.tabAttendance")}</TabsTrigger>
           <TabsTrigger value="stats" className="flex-1 sm:flex-none">
-            Statistik
+            {t("attendance.tabStats")}
             {pastSessions.length > 0 && (
               <span className="ml-1.5 rounded-full bg-gray-200 px-1.5 py-0.5 text-xs font-medium text-gray-600">
                 {pastSessions.length}
@@ -273,7 +275,7 @@ export default function LehrerAttendancePage() {
             <Card>
               <CardContent className="p-4">
                 <div className="space-y-2">
-                  <Label htmlFor="session_date">Datum</Label>
+                  <Label htmlFor="session_date">{t("attendance.dateLabel")}</Label>
                   <Input
                     id="session_date"
                     type="date"
@@ -283,19 +285,19 @@ export default function LehrerAttendancePage() {
                 </div>
                 {pastSessions.length > 0 && (
                   <div className="mt-3">
-                    <p className="mb-1 text-xs text-gray-500">Letzte Sessions:</p>
+                    <p className="mb-1 text-xs text-gray-500">{t("attendance.recentSessions")}</p>
                     <div className="flex flex-wrap gap-1">
                       {pastSessions.slice(0, 5).map((date) => (
                         deletingSession === date ? (
                           <span key={date} className="inline-flex items-center gap-1 rounded-full border border-red-300 bg-red-50 px-2 py-1 text-xs">
-                            <span className="text-red-700">Löschen?</span>
+                            <span className="text-red-700">{t("attendance.deleteConfirm")}</span>
                             <button
                               type="button"
                               disabled={isDeletingSession}
                               onClick={() => handleDeleteSession(date)}
                               className="font-semibold text-red-600 hover:text-red-800 disabled:opacity-50"
                             >
-                              Ja
+                              {t("attendance.deleteYes")}
                             </button>
                             <span className="text-red-300">|</span>
                             <button
@@ -303,7 +305,7 @@ export default function LehrerAttendancePage() {
                               onClick={() => setDeletingSession(null)}
                               className="text-gray-500 hover:text-gray-700"
                             >
-                              Nein
+                              {t("attendance.deleteNo")}
                             </button>
                           </span>
                         ) : (
@@ -326,7 +328,7 @@ export default function LehrerAttendancePage() {
                             <button
                               type="button"
                               onClick={() => setDeletingSession(date)}
-                              title="Session löschen"
+                              title={t("attendance.deleteSessionTitle")}
                               className={cn(
                                 "rounded-r-full px-1.5 py-1 text-xs transition-colors",
                                 sessionDate === date
@@ -350,19 +352,19 @@ export default function LehrerAttendancePage() {
                 <CardContent className="flex items-center gap-6 p-4">
                   <div className="text-center">
                     <p className="text-2xl font-bold text-emerald-600">{presentCount}</p>
-                    <p className="text-xs text-gray-500">Anwesend</p>
+                    <p className="text-xs text-gray-500">{t("attendance.present")}</p>
                   </div>
                   <div className="text-center">
                     <p className="text-2xl font-bold text-red-600">{absentCount}</p>
-                    <p className="text-xs text-gray-500">Abwesend</p>
+                    <p className="text-xs text-gray-500">{t("attendance.absent")}</p>
                   </div>
                   <div className="text-center">
                     <p className="text-2xl font-bold text-amber-600">{lateCount}</p>
-                    <p className="text-xs text-gray-500">Verspätet</p>
+                    <p className="text-xs text-gray-500">{t("attendance.late")}</p>
                   </div>
                   <div className="text-center">
                     <p className="text-2xl font-bold text-blue-600">{excusedCount}</p>
-                    <p className="text-xs text-gray-500">Entschuldigt</p>
+                    <p className="text-xs text-gray-500">{t("attendance.excused")}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -378,10 +380,10 @@ export default function LehrerAttendancePage() {
                 className="gap-2 bg-emerald-600 hover:bg-emerald-700"
               >
                 <CheckCheck className="h-4 w-4" />
-                Alle anwesend
+                {t("attendance.markAll")}
               </Button>
               <div className="h-6 w-px bg-gray-200" />
-              <span className="text-xs text-gray-400">Einzeln ändern:</span>
+              <span className="text-xs text-gray-400">{t("attendance.markIndividual")}</span>
             </div>
           )}
 
@@ -402,7 +404,7 @@ export default function LehrerAttendancePage() {
             <CardContent className="p-0">
               {students.length === 0 ? (
                 <div className="py-12 text-center text-sm text-gray-400">
-                  Keine eingeschriebenen Schüler in diesem Kurs.
+                  {t("attendance.noStudents")}
                 </div>
               ) : (
                 <div className="divide-y">
@@ -424,7 +426,7 @@ export default function LehrerAttendancePage() {
                               type="button"
                               onClick={() => setStudentStatus(student.student_id, sb.status)}
                               title={sb.label}
-                              aria-label={`${student.student_name} als ${sb.label} markieren`}
+                              aria-label={t("attendance.markAs", { name: student.student_name, status: sb.label })}
                               className={cn(
                                 "rounded-lg border p-2 text-xs font-medium transition-colors",
                                 isActive
@@ -454,7 +456,7 @@ export default function LehrerAttendancePage() {
                 size="lg"
               >
                 <Save className="h-4 w-4" />
-                {isSaving ? "Wird gespeichert…" : "Anwesenheit speichern"}
+                {isSaving ? t("attendance.saving") : t("attendance.saveBtn")}
               </Button>
             </div>
           )}

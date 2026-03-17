@@ -9,25 +9,27 @@ import {
   Menu,
   GraduationCap,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useAuth } from "@/lib/auth-context";
 import { useMosque } from "@/lib/mosque-context";
 import { cn } from "@/lib/utils";
-
-const teacherNav = [
-  {
-    label: "Meine Kurse",
-    href: "/lehrer",
-    icon: BookOpen,
-  },
-];
 
 export default function LehrerLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const t = useTranslations("lehrer");
   const { user, isAuthenticated, isLoading } = useAuth();
   const { mosque } = useMosque();
+
+  const teacherNav = [
+    {
+      label: t("myCourses"),
+      href: "/lehrer",
+      icon: BookOpen,
+    },
+  ];
   const router = useRouter();
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -43,7 +45,7 @@ export default function LehrerLayout({
       <div className="flex min-h-[60vh] items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="h-10 w-10 animate-spin rounded-full border-4 border-emerald-200 border-t-emerald-600 motion-reduce:animate-none" />
-          <p className="text-sm text-gray-500">Lehrer-Bereich wird geladen…</p>
+          <p className="text-sm text-gray-500">{t("loading")}</p>
         </div>
       </div>
     );
@@ -60,7 +62,7 @@ export default function LehrerLayout({
         type="button"
         onClick={() => setSidebarOpen(!sidebarOpen)}
         className="fixed bottom-4 right-4 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-600 text-white shadow-lg lg:hidden"
-        aria-label="Lehrer-Menü"
+        aria-label={t("menuAriaLabel")}
       >
         <Menu className="h-5 w-5" />
       </button>
@@ -89,7 +91,7 @@ export default function LehrerLayout({
               </div>
               <div>
                 <p className="text-sm font-semibold text-gray-800">
-                  {mosque?.name || "Lehrer-Panel"}
+                  {mosque?.name || t("panelFallback")}
                 </p>
                 <p className="text-xs text-gray-500">
                   {user?.first_name} {user?.last_name}
@@ -132,7 +134,7 @@ export default function LehrerLayout({
               className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-500 hover:bg-gray-50 hover:text-gray-700"
             >
               <ChevronLeft className="h-4 w-4" />
-              Zurück zum Portal
+              {t("backToPortal")}
             </Link>
           </div>
         </div>
