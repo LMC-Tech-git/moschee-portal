@@ -7,6 +7,8 @@ const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
 // Lokal: http://91.98.142.128:8090
 // Produktion: https://api.moschee.app
 const pbUrl = process.env.NEXT_PUBLIC_POCKETBASE_URL || "http://91.98.142.128:8090";
+// Für CSP nur den Origin verwenden (ohne Pfad), damit Subpfade wie /pb/api/... erlaubt sind
+const pbCspOrigin = (() => { try { return new URL(pbUrl).origin; } catch { return pbUrl; } })();
 
 const nextConfig = {
   // Router Cache (client-seitig) für dynamische Seiten deaktivieren.
@@ -62,10 +64,10 @@ const nextConfig = {
               `script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://challenges.cloudflare.com`,
               "style-src 'self' 'unsafe-inline'",
               // PB-URL dynamisch (Bilder aus PocketBase-Storage)
-              `img-src 'self' data: blob: https: ${pbUrl}`,
+              `img-src 'self' data: blob: https: ${pbCspOrigin}`,
               "font-src 'self' https://fonts.gstatic.com",
               // API-Verbindungen: eigene App, Stripe, AlAdhan (Gebetszeiten), PocketBase
-              `connect-src 'self' https://api.stripe.com https://api.aladhan.com ${pbUrl}`,
+              `connect-src 'self' https://api.stripe.com https://api.aladhan.com ${pbCspOrigin}`,
               // Stripe Checkout-Iframe + Cloudflare Turnstile
               "frame-src https://js.stripe.com https://challenges.cloudflare.com",
               "worker-src 'self'",
