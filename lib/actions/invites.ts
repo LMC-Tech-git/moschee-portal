@@ -100,7 +100,7 @@ interface CreateInviteData {
   type: "personal" | "group";
   label?: string;
   email?: string;
-  role?: "member" | "teacher" | "admin" | "imam" | "editor";
+  role?: "member" | "teacher" | "admin" | "imam" | "editor" | "madrasa_admin" | "treasurer" | "secretary";
   initial_status?: "pending" | "active";
   max_uses?: number;
   expires_at?: string;
