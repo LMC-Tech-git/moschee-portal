@@ -32,6 +32,8 @@ type FormData = {
   father_name: string;
   father_phone: string;
   parent_is_member: boolean | null;
+  address: string;
+  health_notes: string;
   notes: string;
   privacy_accepted: boolean;
 };
@@ -51,6 +53,8 @@ const initialForm: FormData = {
   father_name: "",
   father_phone: "",
   parent_is_member: null,
+  address: "",
+  health_notes: "",
   notes: "",
   privacy_accepted: false,
 };
@@ -227,6 +231,19 @@ export function MemberStudentForm({ parentId, parentName, parentPhone, onSuccess
         </div>
       </div>
 
+      {/* Anschrift */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          {t("address")}
+        </label>
+        <input
+          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          placeholder={t("addressPlaceholder")}
+          value={form.address}
+          onChange={(e) => set("address", e.target.value)}
+        />
+      </div>
+
       {/* Letztes Schuljahr */}
       <div className="border-t pt-4">
         <p className="text-sm font-semibold text-gray-700 mb-3">{t("lastYearSection")}</p>
@@ -370,6 +387,18 @@ export function MemberStudentForm({ parentId, parentName, parentPhone, onSuccess
           ))}
         </div>
         {errors.parent_is_member && <p className="text-xs text-red-600 mt-1">{errors.parent_is_member}</p>}
+      </div>
+
+      {/* Gesundheitshinweise */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">{t("healthNotes")}</label>
+        <textarea
+          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          rows={2}
+          placeholder={t("healthNotesPlaceholder")}
+          value={form.health_notes}
+          onChange={(e) => set("health_notes", e.target.value)}
+        />
       </div>
 
       {/* Notizen */}

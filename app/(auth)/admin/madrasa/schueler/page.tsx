@@ -6,7 +6,7 @@ import { Search, Plus, Upload, UserCheck, UserX, Baby, CheckSquare, Square, X } 
 import { useMosque } from "@/lib/mosque-context";
 import { useAuth } from "@/lib/auth-context";
 import { getStudentsByMosque, updateStudent } from "@/lib/actions/students";
-import { getActiveEnrollmentStudentIds, enrollStudent } from "@/lib/actions/enrollments";
+import { getStudentEnrollmentsMap, enrollStudent } from "@/lib/actions/enrollments";
 import { getCoursesByMosque } from "@/lib/actions/courses";
 import { AdminStudentDialog } from "@/components/madrasa/AdminStudentDialog";
 import { StudentImportDialog } from "@/components/madrasa/StudentImportDialog";
@@ -31,12 +31,13 @@ export default function AdminStudentsPage() {
 
   const [students, setStudents] = useState<Student[]>([]);
   const [enrolledIds, setEnrolledIds] = useState<Set<string>>(new Set());
+  const [enrollmentMap, setEnrollmentMap] = useState<Record<string, { courseId: string; courseName: string }[]>>({});
   const [courses, setCourses] = useState<Course[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   // Filters
   const [search, setSearch] = useState("");
-  const [showInactive, setShowInactive] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<"active" | "inactive" | "all">("active");
   const [classFilter, setClassFilter] = useState("all");
   const [noEnrollmentFilter, setNoEnrollmentFilter] = useState(false);
 
@@ -57,13 +58,16 @@ export default function AdminStudentsPage() {
   async function loadAll() {
     if (!mosqueId) return;
     setIsLoading(true);
-    const [studentsRes, enrolledRes, coursesRes] = await Promise.all([
+    const [studentsRes, enrollmentsRes, coursesRes] = await Promise.all([
       getStudentsByMosque(mosqueId, true), // load all to handle inactive toggle client-side
-      getActiveEnrollmentStudentIds(mosqueId),
+      getStudentEnrollmentsMap(mosqueId),
       getCoursesByMosque(mosqueId, { status: "active", limit: 200 }),
     ]);
     if (studentsRes.success && studentsRes.data) setStudents(studentsRes.data);
-    if (enrolledRes.success && enrolledRes.data) setEnrolledIds(new Set(enrolledRes.data));
+    if (enrollmentsRes.success && enrollmentsRes.data) {
+      setEnrollmentMap(enrollmentsRes.data);
+      setEnrolledIds(new Set(Object.keys(enrollmentsRes.data)));
+    }
     if (coursesRes.success && coursesRes.data) {
       setCourses(coursesRes.data.map((c) => ({ id: c.id, title: c.title })));
     }
@@ -85,7 +89,7 @@ export default function AdminStudentsPage() {
   const filtered = useMemo(() => {
     let list = students;
 
-    if (!showInactive) list = list.filter((s) => s.status === "active");
+    if (statusFilter !== "all") list = list.filter((s) => s.status === statusFilter);
 
     if (search.trim()) {
       const q = search.toLowerCase();
@@ -108,7 +112,7 @@ export default function AdminStudentsPage() {
     }
 
     return list;
-  }, [students, showInactive, search, classFilter, noEnrollmentFilter, enrolledIds]);
+  }, [students, statusFilter, search, classFilter, noEnrollmentFilter, enrolledIds]);
 
   // Selection helpers
   function toggleSelect(id: string) {
@@ -202,14 +206,14 @@ export default function AdminStudentsPage() {
             className="flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
           >
             <Upload className="h-4 w-4" />
-            <span className="hidden sm:inline">{tAdmin("importButton")}</span>
+            <span>{tAdmin("importButton")}</span>
           </button>
           <button
             onClick={() => setCreateDialogOpen(true)}
             className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700 transition-colors"
           >
             <Plus className="h-4 w-4" />
-            <span className="hidden sm:inline">{tAdmin("addButton")}</span>
+            <span>{tAdmin("addButton")}</span>
           </button>
         </div>
       </div>
@@ -249,18 +253,18 @@ export default function AdminStudentsPage() {
           {t("noEnrollment")}
         </label>
 
-        <label className="flex cursor-pointer items-center gap-2 text-sm text-gray-600 whitespace-nowrap">
-          <input
-            type="checkbox"
-            checked={showInactive}
-            onChange={(e) => setShowInactive(e.target.checked)}
-            className="accent-emerald-600"
-          />
-          {t("showInactive")}
-        </label>
+        <select
+          className="rounded-lg border border-gray-300 py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value as "active" | "inactive" | "all")}
+        >
+          <option value="active">{t("statusActive")}</option>
+          <option value="inactive">{t("statusInactive")}</option>
+          <option value="all">{t("statusAll")}</option>
+        </select>
 
         <span className="text-sm text-gray-400 whitespace-nowrap">
-          {filtered.length} / {showInactive ? students.length : students.filter((s) => s.status === "active").length}
+          {filtered.length} / {statusFilter === "all" ? students.length : students.filter((s) => s.status === statusFilter).length}
         </span>
       </div>
 
@@ -338,6 +342,7 @@ export default function AdminStudentsPage() {
                 </th>
                 <th className="px-4 py-3 text-left">{t("columns.name")}</th>
                 <th className="hidden px-4 py-3 text-left sm:table-cell">{t("columns.school")}</th>
+                <th className="hidden px-4 py-3 text-left lg:table-cell">{t("columns.course")}</th>
                 <th className="hidden px-4 py-3 text-left md:table-cell">{t("columns.parent")}</th>
                 <th className="px-4 py-3 text-left">{t("columns.status")}</th>
                 <th className="px-4 py-3 text-right">{t("columns.actions")}</th>
@@ -353,12 +358,13 @@ export default function AdminStudentsPage() {
                 return (
                   <tr
                     key={student.id}
+                    onClick={() => { setEditStudent(student); setEditDialogOpen(true); }}
                     className={cn(
-                      "hover:bg-gray-50 transition-colors",
+                      "hover:bg-gray-50 transition-colors cursor-pointer",
                       isSelected && "bg-emerald-50"
                     )}
                   >
-                    <td className="px-3 py-3 text-center">
+                    <td className="px-3 py-3 text-center" onClick={(e) => e.stopPropagation()}>
                       <button
                         onClick={() => toggleSelect(student.id)}
                         className="text-gray-400 hover:text-emerald-600"
@@ -389,8 +395,28 @@ export default function AdminStudentsPage() {
                         <div className="text-xs text-gray-400">{student.school_class}</div>
                       )}
                     </td>
+                    <td className="hidden px-4 py-3 lg:table-cell">
+                      {(enrollmentMap[student.id] || []).length > 0 ? (
+                        <div className="flex flex-wrap gap-1">
+                          {(enrollmentMap[student.id] || []).map((e) => (
+                            <Badge key={e.courseId} className="bg-blue-100 text-blue-700 border-0 text-xs">
+                              {e.courseName}
+                            </Badge>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className="text-gray-400">—</span>
+                      )}
+                    </td>
                     <td className="hidden px-4 py-3 md:table-cell">
-                      <div className="text-gray-700">{parentDisplay}</div>
+                      {student.parent_id ? (
+                        <div className="text-emerald-700 font-medium">{student.parent_name || parentDisplay}</div>
+                      ) : (
+                        <div className="text-gray-700">{parentDisplay}</div>
+                      )}
+                      {student.parent_id && (
+                        <div className="text-xs text-emerald-500">{t("portalUser")}</div>
+                      )}
                       {student.parent_is_member && (
                         <div className="text-xs text-emerald-600">{t("parentIsMember")}</div>
                       )}
@@ -406,7 +432,7 @@ export default function AdminStudentsPage() {
                         {tL(`student.status.${student.status}`)}
                       </Badge>
                     </td>
-                    <td className="px-4 py-3 text-right">
+                    <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center justify-end gap-2">
                         <button
                           title={t("editTitle")}

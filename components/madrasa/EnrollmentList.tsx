@@ -157,7 +157,7 @@ export function EnrollmentList({ courseId, mosqueId, courseTitle }: EnrollmentLi
               </tr>
             </thead>
             <tbody className="divide-y">
-              {enrollments.map((enrollment) => (
+              {enrollments.filter((e) => e.status !== "dropped").map((enrollment) => (
                 <tr key={enrollment.id} className="hover:bg-gray-50">
                   <td className="px-3 py-2 font-medium text-gray-900">
                     {enrollment.student_name || enrollment.student_id}

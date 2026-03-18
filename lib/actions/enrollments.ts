@@ -279,6 +279,34 @@ export async function getStudentCandidates(
 }
 
 /**
+ * Kurs-Einschreibungen pro Schüler (Map: student_id -> [{courseId, courseName}]).
+ * Ersetzt getActiveEnrollmentStudentIds — liefert auch die Kursnamen.
+ */
+export async function getStudentEnrollmentsMap(
+  mosqueId: string
+): Promise<ActionResult<Record<string, { courseId: string; courseName: string }[]>>> {
+  try {
+    const pb = await getAdminPB();
+    const records = await pb.collection("course_enrollments").getFullList({
+      filter: `mosque_id = "${mosqueId}" && status = "enrolled"`,
+      expand: "course_id",
+    });
+    const map: Record<string, { courseId: string; courseName: string }[]> = {};
+    records.forEach((r) => {
+      const sid = r.student_id as string;
+      const course = r.expand?.course_id as RecordModel | undefined;
+      const courseName = course?.title || "—";
+      if (!map[sid]) map[sid] = [];
+      map[sid].push({ courseId: r.course_id, courseName });
+    });
+    return { success: true, data: map };
+  } catch (error) {
+    console.error("[Enrollments] Fehler beim Laden der Kurszuordnungen:", error);
+    return { success: false, error: "Kurszuordnungen konnten nicht geladen werden" };
+  }
+}
+
+/**
  * Alle student_ids mit aktiver Einschreibung einer Moschee zurückgeben.
  * Wird für den "Ohne Kurs"-Filter auf der Schülerliste verwendet.
  */
