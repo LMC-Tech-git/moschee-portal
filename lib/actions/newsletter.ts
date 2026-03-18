@@ -30,6 +30,8 @@ export async function sendNewsletter(
       filter += ` && status = "active"`;
     } else if (validated.to_segment === "admins") {
       filter += ` && role = "admin"`;
+    } else if (validated.to_segment === "teachers") {
+      filter += ` && role = "teacher"`;
     }
 
     const recipients = await pb.collection("users").getFullList({

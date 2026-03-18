@@ -84,16 +84,16 @@ export default function MemberProfilePage() {
   const [emailChangedSuccess, setEmailChangedSuccess] = useState(false);
   const [emailChangedError, setEmailChangedError] = useState("");
 
-  // URL-Params nach E-Mail-Bestätigung auswerten
+  // URL-Params auswerten (E-Mail-Bestätigung, Deep-Links aus Fee-Reminder etc.)
   useEffect(() => {
     const changed = searchParams.get("email_changed");
     const err = searchParams.get("email_error");
+    const tabParam = searchParams.get("tab");
+
     if (changed === "true") {
       setEmailChangedSuccess(true);
       setActiveTab("profile");
-      // Auth-State mit neuer Adresse aktualisieren
       refreshUser();
-      // Param aus URL entfernen
       window.history.replaceState({}, "", "/member/profile");
     } else if (err) {
       const msgs: Record<string, string> = {
@@ -105,6 +105,8 @@ export default function MemberProfilePage() {
       setEmailChangedError(msgs[err] || t("member.profile.emailChange.errorServer"));
       setActiveTab("profile");
       window.history.replaceState({}, "", "/member/profile");
+    } else if (tabParam && ["profile", "children", "donations", "events", "madrasa"].includes(tabParam)) {
+      setActiveTab(tabParam as Tab);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -247,7 +249,7 @@ export default function MemberProfilePage() {
         <EventHistory userId={user.id} mosqueId={mosqueId} />
       )}
       {activeTab === "madrasa" && (
-        <MadrasaFeeOverview userId={user.id} mosqueId={mosqueId} stripeEnabled={stripeEnabled} />
+        <MadrasaFeeOverview userId={user.id} mosqueId={mosqueId} stripeEnabled={stripeEnabled} initialMonth={searchParams.get("month") || undefined} />
       )}
     </div>
   );
@@ -886,14 +888,16 @@ function MadrasaFeeOverview({
   userId,
   mosqueId,
   stripeEnabled,
+  initialMonth,
 }: {
   userId: string;
   mosqueId: string;
   stripeEnabled: boolean;
+  initialMonth?: string;
 }) {
   const t = useTranslations();
   const locale = useLocale();
-  const [monthKey, setMonthKey] = useState(getCurrentMonthKey());
+  const [monthKey, setMonthKey] = useState(initialMonth && /^\d{4}-\d{2}$/.test(initialMonth) ? initialMonth : getCurrentMonthKey());
   const [rows, setRows] = useState<FeeOverviewRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [payingFeeId, setPayingFeeId] = useState<string | null>(null);

@@ -168,8 +168,22 @@ export function renderFeeReminder(data: {
   studentName: string;
   monthLabel: string;
   amountEur: string;
+  paymentUrl?: string;
   accentColor?: string;
 }): string {
+  const btnColor = data.accentColor || DEFAULT_COLOR;
+  const payButton = data.paymentUrl
+    ? `<table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
+        <tr>
+          <td align="center">
+            <a href="${data.paymentUrl}" target="_blank" style="display:inline-block;background:${btnColor};color:#ffffff;font-size:16px;font-weight:600;text-decoration:none;padding:14px 32px;border-radius:8px;">
+              Jetzt bezahlen
+            </a>
+          </td>
+        </tr>
+      </table>`
+    : "";
+
   const content = `
     <h2 style="margin:0 0 16px;color:#111827;font-size:22px;">Erinnerung: Offene Madrasa-Gebühr</h2>
     <p style="margin:0 0 24px;color:#374151;font-size:16px;line-height:1.6;">
@@ -191,6 +205,8 @@ export function renderFeeReminder(data: {
         </td>
       </tr>
     </table>
+
+    ${payButton}
 
     <p style="margin:0;color:#374151;font-size:15px;line-height:1.6;">
       Bitte begleichen Sie die Gebühr so bald wie möglich. Bei Fragen oder Zahlungsschwierigkeiten
@@ -240,9 +256,18 @@ export function renderAnnualDonationReceipt(data: {
     </tr>
   `).join("");
 
+  const accentHex = data.accentColor || DEFAULT_COLOR;
+  const mosqueAddressLine = [data.mosqueAddress, data.mosqueCity].filter(Boolean).join(", ");
+
   const content = `
-    <h2 style="margin:0 0 4px;color:#111827;font-size:22px;">Spendenbescheinigung ${data.year}</h2>
-    <p style="margin:0 0 24px;color:#6b7280;font-size:14px;">Ausgestellt am ${formatDate(new Date().toISOString())}</p>
+    <!-- Briefkopf -->
+    <div style="margin:0 0 24px;padding-bottom:16px;border-bottom:2px solid ${accentHex};">
+      <p style="margin:0 0 2px;color:#111827;font-size:18px;font-weight:700;">${data.mosqueName}</p>
+      ${mosqueAddressLine ? `<p style="margin:0;color:#6b7280;font-size:13px;">${mosqueAddressLine}</p>` : ""}
+    </div>
+
+    <h2 style="margin:0 0 4px;color:#111827;font-size:22px;text-align:center;">Spendenbescheinigung</h2>
+    <p style="margin:0 0 24px;color:#6b7280;font-size:14px;text-align:center;">für das Jahr ${data.year}</p>
 
     <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9fafb;border-radius:8px;border:1px solid #e5e7eb;margin:0 0 24px;">
       <tr>
@@ -278,6 +303,21 @@ export function renderAnnualDonationReceipt(data: {
         Bei Beträgen bis 300,00 EUR genügt als Nachweis der Kontoauszug zusammen mit dieser Bestätigung (§ 50 Abs. 4 EStDV).
       </p>
     </div>
+
+    <!-- Unterschriften-Block -->
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:32px;">
+      <tr>
+        <td style="vertical-align:bottom;">
+          <p style="margin:0;font-size:13px;color:#374151;">Ausgestellt am: <strong>${formatDate(new Date().toISOString())}</strong></p>
+        </td>
+        <td style="text-align:right;vertical-align:bottom;">
+          <div style="display:inline-block;text-align:center;">
+            <div style="border-top:1px solid #9ca3af;width:200px;margin-bottom:4px;"></div>
+            <p style="margin:0;font-size:12px;color:#6b7280;">${data.mosqueName}</p>
+          </div>
+        </td>
+      </tr>
+    </table>
   `;
   return baseTemplate(content, data.mosqueName, data.accentColor);
 }

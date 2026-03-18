@@ -910,6 +910,7 @@
     "segmentAll": "Alle Mitglieder",
     "segmentActive": "Nur aktive Mitglieder",
     "segmentAdmins": "Nur Admins",
+    "segmentTeachers": "Nur Lehrer",
     "queueButton": "In Warteschlange stellen",
     "sendButton": "Jetzt senden",
     "sending": "Wird gesendet...",

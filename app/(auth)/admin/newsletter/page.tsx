@@ -33,6 +33,7 @@ export default function AdminNewsletterPage() {
     { value: "all", label: t("segmentAll") },
     { value: "active", label: t("segmentActive") },
     { value: "admins", label: t("segmentAdmins") },
+    { value: "teachers", label: t("segmentTeachers") },
   ] as const;
 
   const loadStats = useCallback(async () => {

@@ -102,7 +102,7 @@ export type DonationCheckoutInput = z.infer<typeof donationCheckoutSchema>;
 export const newsletterSchema = z.object({
   subject: z.string().min(3, "Betreff muss mindestens 3 Zeichen lang sein"),
   body_html: z.string().min(10, "Inhalt muss mindestens 10 Zeichen lang sein"),
-  to_segment: z.enum(["all", "active", "admins"]).default("all"),
+  to_segment: z.enum(["all", "active", "admins", "teachers"]).default("all"),
 });
 export type NewsletterInput = z.infer<typeof newsletterSchema>;
 

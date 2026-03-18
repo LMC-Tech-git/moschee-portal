@@ -81,8 +81,8 @@ export default function SpendenbescheinigungPage() {
   return (
     <div className="mx-auto max-w-3xl py-8">
       {/* Toolbar — wird beim Drucken ausgeblendet */}
-      <div className="mb-6 flex items-center justify-between print:hidden">
-        <div className="flex items-center gap-3">
+      <div className="mb-6 print:hidden">
+        <div className="flex items-center gap-3 mb-3">
           <Link
             href="/member/profile"
             className="rounded-lg p-2 text-gray-500 hover:bg-gray-100"
@@ -90,15 +90,13 @@ export default function SpendenbescheinigungPage() {
           >
             <ArrowLeft className="h-5 w-5" />
           </Link>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
             Spendenbescheinigung
           </h1>
-        </div>
-        <div className="flex items-center gap-3">
           <select
             value={selectedYear}
             onChange={(e) => setSelectedYear(parseInt(e.target.value, 10))}
-            className="rounded-md border border-gray-200 bg-white px-3 py-2 text-sm"
+            className="ml-auto rounded-md border border-gray-200 bg-white px-3 py-2 text-sm"
           >
             {availableYears.map((y) => (
               <option key={y} value={y}>
@@ -106,8 +104,10 @@ export default function SpendenbescheinigungPage() {
               </option>
             ))}
           </select>
+        </div>
+        <div className="flex gap-2">
           {emailSent ? (
-            <span className="flex items-center gap-2 text-sm font-medium text-emerald-600">
+            <span className="flex items-center gap-2 text-sm font-medium text-emerald-600 px-3 py-2">
               <CheckCircle className="h-4 w-4" />
               E-Mail gesendet
             </span>
@@ -116,15 +116,16 @@ export default function SpendenbescheinigungPage() {
               onClick={handleSendEmail}
               disabled={!data || data.donations.length === 0 || isSendingEmail}
               variant="outline"
+              className="flex-1 sm:flex-none"
             >
               <Mail className="mr-2 h-4 w-4" />
-              {isSendingEmail ? "Sende..." : "Per E-Mail senden"}
+              {isSendingEmail ? "Sende..." : "Per E-Mail"}
             </Button>
           )}
           <Button
             onClick={() => window.print()}
             disabled={!data || data.donations.length === 0}
-            className="bg-emerald-600 hover:bg-emerald-700"
+            className="flex-1 sm:flex-none bg-emerald-600 hover:bg-emerald-700"
           >
             <Printer className="mr-2 h-4 w-4" />
             Drucken / PDF

@@ -910,6 +910,7 @@
     "segmentAll": "Tüm üyeler",
     "segmentActive": "Yalnızca aktif üyeler",
     "segmentAdmins": "Yalnızca yöneticiler",
+    "segmentTeachers": "Yalnızca öğretmenler",
     "queueButton": "Kuyruğa ekle",
     "sendButton": "Şimdi gönder",
     "sending": "Gönderiliyor...",

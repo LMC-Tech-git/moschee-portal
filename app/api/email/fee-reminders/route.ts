@@ -63,6 +63,11 @@ export async function POST(request: NextRequest) {
         // Moschee laden
         const mosque = await pb.collection("mosques").getOne(mosqueId);
 
+        // Base-URL für Payment-Links
+        const baseUrl = mosque.slug
+          ? `${process.env.NEXT_PUBLIC_BASE_URL || "https://moschee.app"}/member/profile`
+          : "";
+
         // Offene Gebühren ohne bisherige Mahnung
         const fees = await pb.collection("student_fees").getFullList({
           filter: `mosque_id = "${mosqueId}" && month_key = "${monthKey}" && status = "open" && reminder_sent_at = ""`,
@@ -97,13 +102,19 @@ export async function POST(request: NextRequest) {
 
             const amountEur = ((fee.amount_cents as number) / 100).toFixed(2).replace(".", ",");
 
+            // Deep-Link: Profil → Madrasa-Tab mit vorausgewähltem Monat
+            const paymentUrl = baseUrl
+              ? `${baseUrl}?tab=madrasa&month=${monthKey}`
+              : undefined;
+
             const html = renderFeeReminder({
               mosqueName: mosque.name,
               parentName: parent.name || undefined,
               studentName: `${student.first_name} ${student.last_name}`,
               monthLabel,
               amountEur,
-              accentColor: mosque.brand_primary_color || undefined,
+              paymentUrl,
+              accentColor: settings.brand_primary_color || mosque.brand_primary_color || undefined,
             });
 
             const sendResult = await sendEmailDirect({
