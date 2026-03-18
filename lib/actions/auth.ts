@@ -39,6 +39,10 @@ export async function loginAction(
   const authData = await pb
     .collection("users")
     .authWithPassword(email, password);
+
+  const status = (authData.record as unknown as Record<string, unknown>).status;
+  if (status === "inactive") throw new Error("ACCOUNT_INACTIVE");
+
   return {
     token: authData.token,
     record: serializeRecord(authData.record as unknown as Record<string, unknown>),
@@ -78,18 +82,19 @@ export async function registerAction(data: {
       response?: { data?: Record<string, unknown>; message?: string };
       message?: string;
     };
-    const data = pbErr?.response?.data as Record<string, { message?: string }> | undefined;
-    if (data?.email) {
+    const errData = pbErr?.response?.data as Record<string, { message?: string }> | undefined;
+    if (errData?.email) {
       throw new Error("EMAIL_EXISTS");
     }
-    if (data?.password) {
-      throw new Error("PASSWORD_INVALID: " + (data.password.message || "ungültig"));
+    if (errData?.password) {
+      throw new Error("PASSWORD_INVALID: " + (errData.password.message || "ungültig"));
     }
-    if (data?.passwordConfirm) {
+    if (errData?.passwordConfirm) {
       throw new Error("PASSWORD_MISMATCH");
     }
     throw new Error(pbErr?.response?.message || pbErr?.message || "Registrierung fehlgeschlagen");
   }
+  // Konto mit Status "pending" erstellt — direkt einloggen (Gate zeigt Wartestatus)
   return loginAction(data.email, data.password);
 }
 

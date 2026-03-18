@@ -165,7 +165,8 @@
     "success": "Başarıyla giriş yapıldı!",
     "error": {
       "wrongCredentials": "E-posta veya şifre hatalı.",
-      "generic": "Giriş başarısız. Lütfen tekrar deneyin."
+      "generic": "Giriş başarısız. Lütfen tekrar deneyin.",
+      "inactive": "Hesabınız devre dışı bırakılmıştır. Lütfen yöneticiyle iletişime geçin."
     }
   },
   "register": {
@@ -194,6 +195,8 @@
     "loginNow": "Şimdi giriş yapın",
     "inviteOnly": "Kayıt yalnızca davet bağlantısı üzerinden mümkündür.",
     "success": "Kayıt başarılı! Cami Portalı'na hoş geldiniz.",
+    "noMosqueTitle": "Cemaat bulunamadı",
+    "noMosqueDesc": "Kayıt yalnızca caminizin doğrudan bağlantısı üzerinden mümkündür. Lütfen cami yönetiminizle iletişime geçin.",
     "error": {
       "passwordMismatch": "Şifreler eşleşmiyor.",
       "passwordTooShort": "Şifre en az 8 karakter uzunluğunda olmalıdır.",
@@ -793,6 +796,9 @@
     }
   },
   "member": {
+    "pendingTitle": "Hesabınız inceleniyor",
+    "pendingDesc": "Hesabınız kaydedildi ve bir yönetici tarafından incelenecektir. Onaylandıktan sonra üye alanına tam erişiminiz olacak.",
+    "pendingLogout": "Çıkış Yap",
     "profile": {
       "title": "Profilim",
       "hint": {

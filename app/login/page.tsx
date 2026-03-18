@@ -48,7 +48,9 @@ export default function LoginPage() {
       const pbErr = err as { response?: { message?: string }; message?: string };
       const message =
         pbErr?.response?.message || pbErr?.message || "Login fehlgeschlagen";
-      if (message.includes("Failed to authenticate")) {
+      if (message === "ACCOUNT_INACTIVE") {
+        setError(t("login.error.inactive"));
+      } else if (message.includes("Failed to authenticate")) {
         setError(t("login.error.wrongCredentials"));
       } else {
         setError(t("login.error.generic"));

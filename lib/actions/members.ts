@@ -194,6 +194,8 @@ export async function updateMemberStatus(
       return { success: false, error: "Mitglied nicht gefunden" };
     }
 
+    const wasInactive = member.status === "inactive" || member.status === "pending";
+
     await pb.collection("users").update(memberId, { status: newStatus });
 
     await logAudit({
@@ -204,6 +206,36 @@ export async function updateMemberStatus(
       entityId: memberId,
       details: { old_status: member.status, new_status: newStatus },
     });
+
+    // Reaktivierungs-E-Mail senden
+    if (newStatus === "active" && wasInactive && member.email) {
+      try {
+        const mosque = await pb.collection("mosques").getOne(mosqueId);
+        const mosqueName = mosque.name || "Moschee-Portal";
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL || "";
+        const userName = (member.full_name || `${member.first_name || ""} ${member.last_name || ""}`.trim()) || undefined;
+
+        const { baseTemplate } = await import("@/lib/email/templates");
+        const greeting = userName ? `Liebe/r ${userName},` : "Guten Tag,";
+        const content = `
+          <p style="margin:0 0 16px;color:#111827;font-size:16px;font-weight:600;">${greeting}</p>
+          <p style="margin:0 0 12px;color:#374151;font-size:14px;line-height:1.6;">
+            Ihr Konto bei <strong>${mosqueName}</strong> wurde aktiviert. Sie können sich jetzt im Portal anmelden.
+          </p>
+          ${appUrl ? `<p style="margin:16px 0 0;"><a href="${appUrl}/login" style="display:inline-block;background:#059669;color:#fff;text-decoration:none;padding:10px 20px;border-radius:8px;font-size:14px;font-weight:600;">Jetzt anmelden</a></p>` : ""}
+        `;
+        const html = baseTemplate(content, mosqueName, mosque.brand_primary_color || undefined);
+
+        await sendEmailDirect({
+          to: member.email,
+          subject: `Ihr Konto wurde aktiviert — ${mosqueName}`,
+          html,
+        });
+      } catch (emailErr) {
+        console.error("[Members] Reaktivierungs-E-Mail fehlgeschlagen:", emailErr);
+        // Kein Fehler zurückgeben — Status-Update war erfolgreich
+      }
+    }
 
     return { success: true };
   } catch (error) {

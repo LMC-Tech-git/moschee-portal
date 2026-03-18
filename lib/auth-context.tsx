@@ -129,7 +129,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const register = useCallback(
     async (data: RegisterData) => {
-      // Server Action: Registrierung + Auto-Login server-seitig
+      // Server Action: Registrierung + Auto-Login (pending-User sehen Gate-Seite)
       const { token, record } = await registerAction(data);
       pb.authStore.save(token, record as unknown as RecordModel);
     },

@@ -13,6 +13,7 @@ import {
   User,
   Hash,
   AlertCircle,
+  Info,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
@@ -51,6 +52,26 @@ export default function RegisterPage() {
   function updateField(field: string, value: string) {
     setFormData((prev) => ({ ...prev, [field]: value }));
     setError("");
+  }
+
+  // Kein Moschee-Kontext → Registrierung ist sinnlos
+  if (!mosqueLoading && !mosqueId) {
+    return (
+      <section className="flex min-h-[80vh] items-center justify-center px-4 py-16">
+        <Card className="w-full max-w-md">
+          <CardContent className="flex flex-col items-center gap-4 p-8 text-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-blue-100">
+              <Info className="h-8 w-8 text-blue-600" />
+            </div>
+            <h2 className="text-xl font-bold text-gray-900">{t("register.noMosqueTitle")}</h2>
+            <p className="text-sm text-gray-600">{t("register.noMosqueDesc")}</p>
+            <Link href="/login" className="mt-2 text-sm font-medium text-emerald-600 hover:text-emerald-700">
+              {t("register.loginNow")}
+            </Link>
+          </CardContent>
+        </Card>
+      </section>
+    );
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -282,13 +303,7 @@ export default function RegisterPage() {
           </CardContent>
 
           <CardFooter className="flex flex-col gap-4">
-            {!mosqueLoading && !mosqueId && (
-              <div className="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-700 w-full">
-                <AlertCircle className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
-                {t("register.inviteOnly")}
-              </div>
-            )}
-            <Button type="submit" className="w-full" size="lg" disabled={isLoading || mosqueLoading || !mosqueId}>
+            <Button type="submit" className="w-full" size="lg" disabled={isLoading || mosqueLoading}>
               {isLoading ? (
                 <span className="flex items-center gap-2">
                   <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent motion-reduce:animate-none" />
