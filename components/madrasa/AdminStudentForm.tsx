@@ -12,6 +12,7 @@ interface ParentCandidate {
   id: string;
   name: string;
   phone: string;
+  address: string;
 }
 
 interface Props {
@@ -157,6 +158,9 @@ export function AdminStudentForm({ mosqueId, userId, student, onSuccess, onCance
       if (found.phone) {
         set("mother_phone", found.phone);
         set("father_phone", found.phone);
+      }
+      if (found.address) {
+        set("address", found.address);
       }
     }
   }

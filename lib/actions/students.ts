@@ -477,7 +477,7 @@ export async function importStudentsBulk(
  */
 export async function getParentCandidates(
   mosqueId: string
-): Promise<ActionResult<{ id: string; name: string; phone: string }[]>> {
+): Promise<ActionResult<{ id: string; name: string; phone: string; address: string }[]>> {
   try {
     const pb = await getAdminPB();
     const records = await pb.collection("users").getFullList({
@@ -488,6 +488,7 @@ export async function getParentCandidates(
       id: r.id,
       name: `${r.first_name || ""} ${r.last_name || ""}`.trim() || r.email || r.id,
       phone: r.phone || "",
+      address: r.address || "",
     }));
     return { success: true, data: parents };
   } catch (error) {
