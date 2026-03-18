@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { useMosque } from "@/lib/mosque-context";
 import { useAuth } from "@/lib/auth-context";
 import { getCourseById, updateCourse } from "@/lib/actions/courses";
@@ -14,6 +15,7 @@ import type { Course } from "@/types";
 import type { CourseInput } from "@/lib/validations";
 
 export default function EditCoursePage() {
+  const t = useTranslations("madrasa");
   const params = useParams();
   const courseId = params.id as string;
   const { mosqueId } = useMosque();
@@ -30,7 +32,7 @@ export default function EditCoursePage() {
       if (result.success && result.data) {
         setCourse(result.data);
       } else {
-        setError(result.error || "Kurs nicht gefunden");
+        setError(result.error || t("courseDetail.notFound"));
       }
       setIsLoading(false);
     }
@@ -38,7 +40,7 @@ export default function EditCoursePage() {
   }, [mosqueId, courseId]);
 
   async function handleUpdate(data: CourseInput) {
-    if (!user) return { success: false, error: "Nicht eingeloggt" };
+    if (!user) return { success: false, error: "" };
     return updateCourse(courseId, mosqueId, user.id, data);
   }
 
@@ -53,13 +55,13 @@ export default function EditCoursePage() {
   if (error || !course) {
     return (
       <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-center">
-        <p className="text-sm text-red-700">{error || "Kurs nicht gefunden"}</p>
+        <p className="text-sm text-red-700">{error || t("courseDetail.notFound")}</p>
         <Link
           href="/admin/madrasa"
           className="mt-3 inline-flex items-center gap-1 text-sm text-red-600 hover:underline"
         >
           <ChevronLeft className="h-4 w-4" />
-          Zurück zur Madrasa
+          {t("courseDetail.backLink")}
         </Link>
       </div>
     );
@@ -69,8 +71,8 @@ export default function EditCoursePage() {
     <div className="space-y-8">
       <DemoHint
         id="madrasa-enrollment"
-        title="Schüler einschreiben"
-        description="Fügen Sie Schüler direkt über das Formular hinzu oder importieren Sie mehrere per CSV-Datei (Excel-kompatibel)."
+        title={t("courseDetail.demoHintTitle")}
+        description={t("courseDetail.demoHintDesc")}
       />
       <div>
         <Link
@@ -78,10 +80,10 @@ export default function EditCoursePage() {
           className="mb-2 inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
         >
           <ChevronLeft className="h-4 w-4" />
-          Zurück zur Madrasa
+          {t("courseDetail.backLink")}
         </Link>
         <h1 className="text-2xl font-bold text-gray-900">
-          Kurs bearbeiten
+          {t("courseDetail.editTitle")}
         </h1>
       </div>
 

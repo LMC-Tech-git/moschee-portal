@@ -5,8 +5,24 @@ import { academicYearSchema, type AcademicYearInput } from "@/lib/validations";
 import { logAudit } from "@/lib/audit";
 import type { AcademicYear } from "@/types";
 import type { RecordModel } from "pocketbase";
+import PocketBase from "pocketbase";
 
 // --- Helpers ---
+
+async function archiveOtherActiveYears(
+  pb: PocketBase,
+  mosqueId: string,
+  exceptId?: string
+): Promise<void> {
+  const filterParts = [`mosque_id = "${mosqueId}"`, `status = "active"`];
+  if (exceptId) filterParts.push(`id != "${exceptId}"`);
+  const existing = await pb.collection("academic_years").getFullList({
+    filter: filterParts.join(" && "),
+  });
+  for (const yr of existing) {
+    await pb.collection("academic_years").update(yr.id, { status: "archived" });
+  }
+}
 
 function mapRecord(record: RecordModel): AcademicYear {
   return {
@@ -75,6 +91,10 @@ export async function createAcademicYear(
     const validated = academicYearSchema.parse(input);
     const pb = await getAdminPB();
 
+    if (validated.status === "active") {
+      await archiveOtherActiveYears(pb, mosqueId);
+    }
+
     const record = await pb.collection("academic_years").create({
       mosque_id: mosqueId,
       name: validated.name,
@@ -115,6 +135,10 @@ export async function updateAcademicYear(
     const existing = await pb.collection("academic_years").getOne(yearId);
     if (existing.mosque_id !== mosqueId) {
       return { success: false, error: "Schuljahr nicht gefunden" };
+    }
+
+    if (validated.status === "active") {
+      await archiveOtherActiveYears(pb, mosqueId, yearId);
     }
 
     const record = await pb.collection("academic_years").update(yearId, {
@@ -171,5 +195,40 @@ export async function archiveAcademicYear(
   } catch (error) {
     console.error("[AcademicYears] Fehler beim Archivieren:", error);
     return { success: false, error: "Schuljahr konnte nicht archiviert werden" };
+  }
+}
+
+/**
+ * Schuljahr aktivieren (archiviert alle anderen aktiven Jahre der Moschee).
+ */
+export async function activateAcademicYear(
+  yearId: string,
+  mosqueId: string,
+  userId: string
+): Promise<ActionResult> {
+  try {
+    const pb = await getAdminPB();
+
+    const existing = await pb.collection("academic_years").getOne(yearId);
+    if (existing.mosque_id !== mosqueId) {
+      return { success: false, error: "Schuljahr nicht gefunden" };
+    }
+
+    await archiveOtherActiveYears(pb, mosqueId, yearId);
+    await pb.collection("academic_years").update(yearId, { status: "active" });
+
+    await logAudit({
+      mosqueId,
+      userId,
+      action: "academic_year.activated",
+      entityType: "academic_year",
+      entityId: yearId,
+      details: { name: existing.name },
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("[AcademicYears] Fehler beim Aktivieren:", error);
+    return { success: false, error: "Schuljahr konnte nicht aktiviert werden" };
   }
 }

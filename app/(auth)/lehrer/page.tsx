@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
+import { useLocale } from "next-intl";
 import Link from "next/link";
 import { BookOpen, ClipboardList, Clock, Users, GraduationCap } from "lucide-react";
 import { useMosque } from "@/lib/mosque-context";
@@ -12,14 +13,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import {
-  courseCategoryLabels,
   courseCategoryColors,
-  dayOfWeekLabels,
 } from "@/lib/constants";
 import type { CourseWithStats, AcademicYear } from "@/types";
 
 export default function LehrerDashboard() {
   const t = useTranslations("lehrer");
+  const tL = useTranslations("labels");
+  const locale = useLocale();
   const { mosqueId } = useMosque();
   const { user } = useAuth();
   const [courses, setCourses] = useState<CourseWithStats[]>([]);
@@ -86,7 +87,7 @@ export default function LehrerDashboard() {
             ? t("schoolYear", { name: activeYear.name })
             : t("noActiveYear")}
           {" — "}
-          {today.toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long" })}
+          {today.toLocaleDateString(locale, { weekday: "long", day: "numeric", month: "long" })}
         </p>
       </div>
 
@@ -108,11 +109,11 @@ export default function LehrerDashboard() {
           {todayCourses.length > 0 && (
             <div>
               <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-emerald-700">
-                {t("today", { day: dayOfWeekLabels[todayDay as keyof typeof dayOfWeekLabels] })}
+                {t("today", { day: tL(`day.${todayDay}`) })}
               </h2>
               <div className="grid gap-4 sm:grid-cols-2">
                 {todayCourses.map((course) => (
-                  <CourseCard key={course.id} course={course} isToday t={t} />
+                  <CourseCard key={course.id} course={course} isToday t={t} tL={tL} />
                 ))}
               </div>
             </div>
@@ -126,7 +127,7 @@ export default function LehrerDashboard() {
               </h2>
               <div className="grid gap-4 sm:grid-cols-2">
                 {otherCourses.map((course) => (
-                  <CourseCard key={course.id} course={course} t={t} />
+                  <CourseCard key={course.id} course={course} t={t} tL={tL} />
                 ))}
               </div>
             </div>
@@ -137,7 +138,7 @@ export default function LehrerDashboard() {
   );
 }
 
-function CourseCard({ course, isToday, t }: { course: CourseWithStats; isToday?: boolean; t: (key: string, values?: Record<string, string | number>) => string }) {
+function CourseCard({ course, isToday, t, tL }: { course: CourseWithStats; isToday?: boolean; t: (key: string, values?: Record<string, string | number>) => string; tL: (key: string) => string }) {
   return (
     <Card className={cn(
       "transition-shadow hover:shadow-md",
@@ -153,7 +154,7 @@ function CourseCard({ course, isToday, t }: { course: CourseWithStats; isToday?:
                 courseCategoryColors[course.category]
               )}
             >
-              {courseCategoryLabels[course.category]}
+              {tL(`course.category.${course.category}`)}
             </span>
           </div>
         </div>
@@ -161,7 +162,7 @@ function CourseCard({ course, isToday, t }: { course: CourseWithStats; isToday?:
         <div className="mb-4 space-y-1 text-sm text-gray-600">
           <div className="flex items-center gap-2">
             <Clock className="h-3.5 w-3.5 text-gray-400" />
-            {dayOfWeekLabels[course.day_of_week]}, {course.start_time}
+            {tL(`day.${course.day_of_week}`)}, {course.start_time}
             {course.end_time ? `–${course.end_time}` : ""}
           </div>
           <div className="flex items-center gap-2">

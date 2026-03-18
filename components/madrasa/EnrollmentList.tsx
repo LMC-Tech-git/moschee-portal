@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Users, UserPlus, UserMinus, X, Pencil, Upload } from "lucide-react";
 import { StudentImportDialog } from "@/components/madrasa/StudentImportDialog";
 import { useAuth } from "@/lib/auth-context";
@@ -20,7 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import { enrollmentStatusLabels, enrollmentStatusColors } from "@/lib/constants";
+import { enrollmentStatusColors } from "@/lib/constants";
 import type { CourseEnrollment, Student } from "@/types";
 
 interface EnrollmentListProps {
@@ -69,6 +70,8 @@ function getParentInfo(e: EnrollmentWithStudent): { name: string; phone: string 
 }
 
 export function EnrollmentList({ courseId, mosqueId, courseTitle }: EnrollmentListProps) {
+  const t = useTranslations("enrollment");
+  const tL = useTranslations("labels");
   const { user } = useAuth();
   const [enrollments, setEnrollments] = useState<EnrollmentWithStudent[]>([]);
   const [existingStudents, setExistingStudents] = useState<Student[]>([]);
@@ -183,7 +186,7 @@ export function EnrollmentList({ courseId, mosqueId, courseTitle }: EnrollmentLi
       setNotes(s.notes || "");
       setEditStatus(s.status === "inactive" ? "inactive" : "active");
     } else {
-      setError("Schüler konnte nicht geladen werden");
+      setError(t("errorLoad"));
       setEditingStudentId(null);
     }
     setIsLoadingEdit(false);
@@ -239,7 +242,7 @@ export function EnrollmentList({ courseId, mosqueId, courseTitle }: EnrollmentLi
     });
 
     if (!studentResult.success || !studentResult.data) {
-      setError(studentResult.error || "Schüler konnte nicht erstellt werden");
+      setError(studentResult.error || t("errorCreate"));
       setIsAdding(false);
       return;
     }
@@ -256,7 +259,7 @@ export function EnrollmentList({ courseId, mosqueId, courseTitle }: EnrollmentLi
       resetForm();
       await loadData();
     } else {
-      setError(enrollResult.error || "Einschreibung fehlgeschlagen");
+      setError(enrollResult.error || t("errorEnroll"));
     }
     setIsAdding(false);
   }
@@ -278,7 +281,7 @@ export function EnrollmentList({ courseId, mosqueId, courseTitle }: EnrollmentLi
       resetForm();
       await loadData();
     } else {
-      setError(result.error || "Einschreibung fehlgeschlagen");
+      setError(result.error || t("errorEnroll"));
     }
     setIsAdding(false);
   }
@@ -314,7 +317,7 @@ export function EnrollmentList({ courseId, mosqueId, courseTitle }: EnrollmentLi
       resetForm();
       await loadData();
     } else {
-      setError(result.error || "Schüler konnte nicht aktualisiert werden");
+      setError(result.error || t("errorUpdate"));
     }
     setIsEditing(false);
   }
@@ -349,22 +352,22 @@ export function EnrollmentList({ courseId, mosqueId, courseTitle }: EnrollmentLi
         {/* Vorname + Nachname */}
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="space-y-1">
-            <Label htmlFor="form_first_name" className="text-xs">Vorname *</Label>
+            <Label htmlFor="form_first_name" className="text-xs">{t("firstName")} *</Label>
             <Input
               id="form_first_name"
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
-              placeholder="Vorname"
+              placeholder={t("firstName")}
               className="h-9"
             />
           </div>
           <div className="space-y-1">
-            <Label htmlFor="form_last_name" className="text-xs">Nachname *</Label>
+            <Label htmlFor="form_last_name" className="text-xs">{t("lastName")} *</Label>
             <Input
               id="form_last_name"
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
-              placeholder="Nachname"
+              placeholder={t("lastName")}
               className="h-9"
             />
           </div>
@@ -373,7 +376,7 @@ export function EnrollmentList({ courseId, mosqueId, courseTitle }: EnrollmentLi
         {/* Geburtstag + Geschlecht */}
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="space-y-1">
-            <Label htmlFor="form_dob" className="text-xs">Geburtstag *</Label>
+            <Label htmlFor="form_dob" className="text-xs">{t("birthDate")} *</Label>
             <Input
               id="form_dob"
               type="date"
@@ -383,16 +386,16 @@ export function EnrollmentList({ courseId, mosqueId, courseTitle }: EnrollmentLi
             />
           </div>
           <div className="space-y-1">
-            <Label htmlFor="form_gender" className="text-xs">Geschlecht</Label>
+            <Label htmlFor="form_gender" className="text-xs">{t("gender")}</Label>
             <select
               id="form_gender"
               value={gender}
               onChange={(e) => setGender(e.target.value as "" | "male" | "female")}
               className={selectClass}
             >
-              <option value="">— nicht angegeben —</option>
-              <option value="male">Männlich</option>
-              <option value="female">Weiblich</option>
+              <option value="">{t("genderNone")}</option>
+              <option value="male">{tL("gender.male")}</option>
+              <option value="female">{tL("gender.female")}</option>
             </select>
           </div>
         </div>
@@ -400,14 +403,14 @@ export function EnrollmentList({ courseId, mosqueId, courseTitle }: EnrollmentLi
         {/* Elternteil */}
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="space-y-1">
-            <Label htmlFor="form_parent" className="text-xs">Elternteil (Mitglied)</Label>
+            <Label htmlFor="form_parent" className="text-xs">{t("parentMember")}</Label>
             <select
               id="form_parent"
               value={parentId}
               onChange={(e) => setParentId(e.target.value)}
               className={selectClass}
             >
-              <option value="">— kein Mitglied —</option>
+              <option value="">{t("parentNone")}</option>
               {parentCandidates.map((p) => (
                 <option key={p.id} value={p.id}>{p.name}</option>
               ))}
@@ -415,13 +418,13 @@ export function EnrollmentList({ courseId, mosqueId, courseTitle }: EnrollmentLi
           </div>
           <div className="space-y-1">
             <Label htmlFor="form_parent_name" className="text-xs">
-              {parentId ? "oder" : ""} Name der Eltern
+              {parentId ? t("or") + " " : ""}{t("parentName")}
             </Label>
             <Input
               id="form_parent_name"
               value={parentName}
               onChange={(e) => setParentName(e.target.value)}
-              placeholder="Vollständiger Name"
+              placeholder={t("parentName")}
               className="h-9"
               disabled={!!parentId}
             />
@@ -430,7 +433,7 @@ export function EnrollmentList({ courseId, mosqueId, courseTitle }: EnrollmentLi
 
         {/* Telefon der Eltern (generisch) */}
         <div className="space-y-1">
-          <Label htmlFor="form_phone" className="text-xs">Telefon der Eltern (allgemein)</Label>
+          <Label htmlFor="form_phone" className="text-xs">{t("parentPhone")}</Label>
           <Input
             id="form_phone"
             type="tel"
@@ -443,12 +446,12 @@ export function EnrollmentList({ courseId, mosqueId, courseTitle }: EnrollmentLi
 
         {/* Adresse */}
         <div className="space-y-1">
-          <Label htmlFor="form_address" className="text-xs">Hausanschrift</Label>
+          <Label htmlFor="form_address" className="text-xs">{t("address")}</Label>
           <Input
             id="form_address"
             value={address}
             onChange={(e) => setAddress(e.target.value)}
-            placeholder="Straße, PLZ, Ort"
+            placeholder={t("address")}
             className="h-9"
           />
         </div>
@@ -456,22 +459,22 @@ export function EnrollmentList({ courseId, mosqueId, courseTitle }: EnrollmentLi
         {/* Schule + Klasse */}
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="space-y-1">
-            <Label htmlFor="form_school" className="text-xs">Besuchte Schule / KiTA</Label>
+            <Label htmlFor="form_school" className="text-xs">{t("school")}</Label>
             <Input
               id="form_school"
               value={schoolName}
               onChange={(e) => setSchoolName(e.target.value)}
-              placeholder="Name der Schule"
+              placeholder={t("school")}
               className="h-9"
             />
           </div>
           <div className="space-y-1">
-            <Label htmlFor="form_class" className="text-xs">Klasse</Label>
+            <Label htmlFor="form_class" className="text-xs">{t("grade")}</Label>
             <Input
               id="form_class"
               value={schoolClass}
               onChange={(e) => setSchoolClass(e.target.value)}
-              placeholder="z.B. 3a, Kita"
+              placeholder={t("grade")}
               className="h-9"
             />
           </div>
@@ -480,17 +483,17 @@ export function EnrollmentList({ courseId, mosqueId, courseTitle }: EnrollmentLi
         {/* Mutter */}
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="space-y-1">
-            <Label htmlFor="form_mother_name" className="text-xs">Name der Mutter</Label>
+            <Label htmlFor="form_mother_name" className="text-xs">{t("motherName")}</Label>
             <Input
               id="form_mother_name"
               value={motherName}
               onChange={(e) => setMotherName(e.target.value)}
-              placeholder="Vorname Nachname"
+              placeholder={t("motherName")}
               className="h-9"
             />
           </div>
           <div className="space-y-1">
-            <Label htmlFor="form_mother_phone" className="text-xs">Handy Mutter</Label>
+            <Label htmlFor="form_mother_phone" className="text-xs">{t("motherPhone")}</Label>
             <Input
               id="form_mother_phone"
               type="tel"
@@ -505,17 +508,17 @@ export function EnrollmentList({ courseId, mosqueId, courseTitle }: EnrollmentLi
         {/* Vater */}
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="space-y-1">
-            <Label htmlFor="form_father_name" className="text-xs">Name des Vaters</Label>
+            <Label htmlFor="form_father_name" className="text-xs">{t("fatherName")}</Label>
             <Input
               id="form_father_name"
               value={fatherName}
               onChange={(e) => setFatherName(e.target.value)}
-              placeholder="Vorname Nachname"
+              placeholder={t("fatherName")}
               className="h-9"
             />
           </div>
           <div className="space-y-1">
-            <Label htmlFor="form_father_phone" className="text-xs">Handy Vater</Label>
+            <Label htmlFor="form_father_phone" className="text-xs">{t("fatherPhone")}</Label>
             <Input
               id="form_father_phone"
               type="tel"
@@ -530,39 +533,39 @@ export function EnrollmentList({ courseId, mosqueId, courseTitle }: EnrollmentLi
         {/* Gesundheit + Mitgliedschaft */}
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="space-y-1">
-            <Label htmlFor="form_health" className="text-xs">Gesundheitliche Hinweise</Label>
+            <Label htmlFor="form_health" className="text-xs">{t("healthNotes")}</Label>
             <Input
               id="form_health"
               value={healthNotes}
               onChange={(e) => setHealthNotes(e.target.value)}
-              placeholder="z.B. Allergie, Asthma"
+              placeholder={t("healthNotes")}
               className="h-9"
             />
           </div>
           <div className="space-y-1">
-            <Label htmlFor="form_membership" className="text-xs">Familienmitgliedschaft</Label>
+            <Label htmlFor="form_membership" className="text-xs">{t("membership")}</Label>
             <select
               id="form_membership"
               value={membershipStatus}
               onChange={(e) => setMembershipStatus(e.target.value as "" | "active" | "none" | "planned")}
               className={selectClass}
             >
-              <option value="">— nicht angegeben —</option>
-              <option value="active">Vorhanden</option>
-              <option value="none">Nicht vorhanden</option>
-              <option value="planned">Wird beantragt</option>
+              <option value="">{t("genderNone")}</option>
+              <option value="active">{t("membershipYes")}</option>
+              <option value="none">{t("membershipNo")}</option>
+              <option value="planned">{t("membershipPending")}</option>
             </select>
           </div>
         </div>
 
         {/* Notizen */}
         <div className="space-y-1">
-          <Label htmlFor="form_notes" className="text-xs">Anmerkungen</Label>
+          <Label htmlFor="form_notes" className="text-xs">{t("notes")}</Label>
           <Input
             id="form_notes"
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            placeholder="Sonstige Hinweise"
+            placeholder={t("notes")}
             className="h-9"
           />
         </div>
@@ -575,7 +578,7 @@ export function EnrollmentList({ courseId, mosqueId, courseTitle }: EnrollmentLi
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
           <Users className="h-5 w-5 text-emerald-600" aria-hidden="true" />
-          Schülerliste ({enrollments.filter((e) => e.status === "enrolled").length})
+          {t("title")} ({enrollments.filter((e) => e.status === "enrolled").length})
         </h3>
         <div className="flex items-center gap-2">
           <Button
@@ -583,10 +586,10 @@ export function EnrollmentList({ courseId, mosqueId, courseTitle }: EnrollmentLi
             variant="outline"
             onClick={() => setShowImportDialog(true)}
             className="gap-1"
-            title="Schülerliste aus CSV/Excel importieren"
+            title={t("importTitle")}
           >
             <Upload className="h-4 w-4" />
-            <span className="hidden sm:inline">Importieren</span>
+            <span className="hidden sm:inline">{t("importBtn")}</span>
           </Button>
           <Button
             size="sm"
@@ -595,7 +598,7 @@ export function EnrollmentList({ courseId, mosqueId, courseTitle }: EnrollmentLi
             className="gap-1"
           >
             <UserPlus className="h-4 w-4" />
-            Schüler hinzufügen
+            {t("addBtn")}
           </Button>
         </div>
       </div>
@@ -620,13 +623,13 @@ export function EnrollmentList({ courseId, mosqueId, courseTitle }: EnrollmentLi
         <div className="rounded-lg border border-emerald-200 bg-emerald-50/50 p-4 space-y-4">
           <div className="flex items-center justify-between">
             <p className="text-sm font-semibold text-emerald-800">
-              Schüler zu &quot;{courseTitle}&quot; hinzufügen
+              {t("addTitle", { courseTitle })}
             </p>
             <button
               type="button"
               onClick={() => { setShowAddForm(false); setError(""); }}
               className="rounded p-1 text-gray-400 hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              aria-label="Formular schließen"
+              aria-label={t("closeForm")}
             >
               <X className="h-4 w-4" aria-hidden="true" />
             </button>
@@ -644,7 +647,7 @@ export function EnrollmentList({ courseId, mosqueId, courseTitle }: EnrollmentLi
                   : "bg-white text-gray-600 hover:bg-gray-100"
               )}
             >
-              Neuer Schüler
+              {t("modeNew")}
             </button>
             {existingStudents.length > 0 && (
               <button
@@ -657,7 +660,7 @@ export function EnrollmentList({ courseId, mosqueId, courseTitle }: EnrollmentLi
                     : "bg-white text-gray-600 hover:bg-gray-100"
                 )}
               >
-                Bestehender Schüler ({existingStudents.length})
+                {t("modeExisting")} ({existingStudents.length})
               </button>
             )}
           </div>
@@ -671,7 +674,7 @@ export function EnrollmentList({ courseId, mosqueId, courseTitle }: EnrollmentLi
                   onClick={handleEnrollNew}
                   disabled={!firstName || !lastName || !dateOfBirth || isAdding}
                 >
-                  {isAdding ? "Wird erstellt…" : "Schüler erstellen & einschreiben"}
+                  {isAdding ? t("creating") : t("createAndEnroll")}
                 </Button>
               </div>
             </>
@@ -682,7 +685,7 @@ export function EnrollmentList({ courseId, mosqueId, courseTitle }: EnrollmentLi
                 onChange={(e) => setSelectedStudentId(e.target.value)}
                 className={cn(selectClass, "flex-1")}
               >
-                <option value="">— Schüler auswählen —</option>
+                <option value="">{t("selectStudent")}</option>
                 {existingStudents.map((s) => (
                   <option key={s.id} value={s.id}>
                     {s.first_name} {s.last_name}
@@ -695,7 +698,7 @@ export function EnrollmentList({ courseId, mosqueId, courseTitle }: EnrollmentLi
                 onClick={handleEnrollExisting}
                 disabled={!selectedStudentId || isAdding}
               >
-                {isAdding ? "..." : "Einschreiben"}
+                {t("enroll")}
               </Button>
             </div>
           )}
@@ -708,13 +711,13 @@ export function EnrollmentList({ courseId, mosqueId, courseTitle }: EnrollmentLi
           <div className="flex items-center justify-between">
             <p className="text-sm font-semibold text-blue-800 flex items-center gap-2">
               <Pencil className="h-4 w-4" />
-              Schüler bearbeiten
+              {t("editTitle")}
             </p>
             <button
               type="button"
               onClick={() => { setEditingStudentId(null); resetForm(); setError(""); }}
               className="rounded p-1 text-gray-400 hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              aria-label="Bearbeiten schließen"
+              aria-label={t("closeEdit")}
             >
               <X className="h-4 w-4" aria-hidden="true" />
             </button>
@@ -730,15 +733,15 @@ export function EnrollmentList({ courseId, mosqueId, courseTitle }: EnrollmentLi
 
               {/* Status */}
               <div className="space-y-1">
-                <Label htmlFor="edit_status" className="text-xs">Status</Label>
+                <Label htmlFor="edit_status" className="text-xs">{t("statusLabel")}</Label>
                 <select
                   id="edit_status"
                   value={editStatus}
                   onChange={(e) => setEditStatus(e.target.value as "active" | "inactive")}
                   className={cn(selectClass, "w-40")}
                 >
-                  <option value="active">Aktiv</option>
-                  <option value="inactive">Inaktiv</option>
+                  <option value="active">{tL("student.status.active")}</option>
+                  <option value="inactive">{tL("student.status.inactive")}</option>
                 </select>
               </div>
 
@@ -749,14 +752,14 @@ export function EnrollmentList({ courseId, mosqueId, courseTitle }: EnrollmentLi
                   disabled={!firstName || !lastName || !dateOfBirth || isEditing}
                   className="bg-blue-600 hover:bg-blue-700"
                 >
-                  {isEditing ? "Wird gespeichert…" : "Änderungen speichern"}
+                  {isEditing ? t("saving") : t("saveChanges")}
                 </Button>
                 <Button
                   size="sm"
                   variant="outline"
                   onClick={() => { setEditingStudentId(null); resetForm(); setError(""); }}
                 >
-                  Abbrechen
+                  {t("cancel")}
                 </Button>
               </div>
             </>
@@ -771,19 +774,19 @@ export function EnrollmentList({ courseId, mosqueId, courseTitle }: EnrollmentLi
         </div>
       ) : enrollments.length === 0 ? (
         <div className="py-8 text-center text-sm text-gray-400">
-          Noch keine Schüler eingeschrieben.
+          {t("empty")}
         </div>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b bg-gray-50 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                <th className="px-3 py-2">Name</th>
-                <th className="px-3 py-2 hidden sm:table-cell">Alter</th>
-                <th className="px-3 py-2 hidden md:table-cell">Eltern</th>
-                <th className="px-3 py-2 hidden md:table-cell">Telefon</th>
-                <th className="px-3 py-2">Status</th>
-                <th className="px-3 py-2 text-right">Aktionen</th>
+                <th className="px-3 py-2">{t("colName")}</th>
+                <th className="px-3 py-2 hidden sm:table-cell">{t("colAge")}</th>
+                <th className="px-3 py-2 hidden md:table-cell">{t("colParent")}</th>
+                <th className="px-3 py-2 hidden md:table-cell">{t("colPhone")}</th>
+                <th className="px-3 py-2">{t("colStatus")}</th>
+                <th className="px-3 py-2 text-right">{t("colActions")}</th>
               </tr>
             </thead>
             <tbody className="divide-y">
@@ -821,7 +824,7 @@ export function EnrollmentList({ courseId, mosqueId, courseTitle }: EnrollmentLi
                         enrollmentStatusColors[enrollment.status] || "bg-gray-100 text-gray-600"
                       )}
                     >
-                      {enrollmentStatusLabels[enrollment.status] || enrollment.status}
+                      {tL(`enrollment.status.${enrollment.status}`) || enrollment.status}
                     </span>
                   </td>
                   <td className="px-3 py-2">
@@ -831,8 +834,8 @@ export function EnrollmentList({ courseId, mosqueId, courseTitle }: EnrollmentLi
                         type="button"
                         onClick={() => handleEditClick(enrollment)}
                         className="rounded p-1.5 text-blue-500 hover:bg-blue-50 hover:text-blue-700"
-                        title="Schülerdaten bearbeiten"
-                        aria-label="Schüler bearbeiten"
+                        title={t("editStudent")}
+                        aria-label={t("editStudent")}
                       >
                         <Pencil className="h-4 w-4" />
                       </button>
@@ -844,16 +847,16 @@ export function EnrollmentList({ courseId, mosqueId, courseTitle }: EnrollmentLi
                             type="button"
                             onClick={() => handleStatusChange(enrollment.id, "on_hold")}
                             className="rounded px-2 py-1 text-xs text-amber-600 hover:bg-amber-50"
-                            title="Pausieren"
+                            title={t("pause")}
                           >
-                            Pausieren
+                            {t("pause")}
                           </button>
                           <button
                             type="button"
                             onClick={() => handleStatusChange(enrollment.id, "dropped")}
                             className="rounded p-1.5 text-red-600 hover:bg-red-50"
-                            title="Abmelden"
-                            aria-label="Schüler abmelden"
+                            title={t("unenroll")}
+                            aria-label={t("unenroll")}
                           >
                             <UserMinus className="h-4 w-4" />
                           </button>
@@ -864,9 +867,9 @@ export function EnrollmentList({ courseId, mosqueId, courseTitle }: EnrollmentLi
                           type="button"
                           onClick={() => handleStatusChange(enrollment.id, "enrolled")}
                           className="rounded px-2 py-1 text-xs text-emerald-600 hover:bg-emerald-50"
-                          title="Wieder einschreiben"
+                          title={t("activate")}
                         >
-                          Aktivieren
+                          {t("activate")}
                         </button>
                       )}
                       {enrollment.status === "dropped" && (
@@ -874,9 +877,9 @@ export function EnrollmentList({ courseId, mosqueId, courseTitle }: EnrollmentLi
                           type="button"
                           onClick={() => handleStatusChange(enrollment.id, "enrolled")}
                           className="rounded px-2 py-1 text-xs text-emerald-600 hover:bg-emerald-50"
-                          title="Erneut einschreiben"
+                          title={t("reenroll")}
                         >
-                          Erneut einschreiben
+                          {t("reenroll")}
                         </button>
                       )}
                     </div>

@@ -29,13 +29,9 @@ import { DemoHint } from "@/components/demo/DemoHint";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import {
-  courseCategoryLabels,
   courseCategoryColors,
-  courseLevelLabels,
   courseLevelColors,
-  courseStatusLabels,
   courseStatusColors,
-  dayOfWeekLabels,
 } from "@/lib/constants";
 import type { CourseWithStats, AcademicYear } from "@/types";
 import { useTranslations } from "next-intl";
@@ -46,6 +42,7 @@ export default function AdminMadrasaPage() {
   const { user } = useAuth();
   const t = useTranslations("madrasa");
   const tCommon = useTranslations("common");
+  const tL = useTranslations("labels");
   const [courses, setCourses] = useState<CourseWithStats[]>([]);
   const [academicYears, setAcademicYears] = useState<AcademicYear[]>([]);
   const [selectedYearId, setSelectedYearId] = useState<string>("");
@@ -285,7 +282,7 @@ export default function AdminMadrasaPage() {
                             courseCategoryColors[course.category] || "bg-gray-100 text-gray-600"
                           )}
                         >
-                          {courseCategoryLabels[course.category] || course.category}
+                          {tL(`course.category.${course.category}`)}
                         </span>
                       </td>
                       <td className="px-4 py-3 hidden md:table-cell">
@@ -295,7 +292,7 @@ export default function AdminMadrasaPage() {
                             courseLevelColors[course.level] || "bg-gray-100 text-gray-600"
                           )}
                         >
-                          {courseLevelLabels[course.level] || course.level}
+                          {tL(`course.level.${course.level}`)}
                         </span>
                       </td>
                       <td className="px-4 py-3">
@@ -305,7 +302,7 @@ export default function AdminMadrasaPage() {
                             courseStatusColors[course.status] || "bg-gray-100 text-gray-600"
                           )}
                         >
-                          {courseStatusLabels[course.status] || course.status}
+                          {tL(`course.status.${course.status}`)}
                         </span>
                       </td>
                       <td className="px-4 py-3 hidden lg:table-cell text-gray-500 text-xs">
@@ -314,7 +311,7 @@ export default function AdminMadrasaPage() {
                       <td className="px-4 py-3 hidden lg:table-cell text-gray-500 text-xs whitespace-nowrap">
                         <span className="flex items-center gap-1">
                           <Clock className="h-3 w-3 flex-shrink-0" />
-                          {dayOfWeekLabels[course.day_of_week]}{" "}
+                          {tL(`day.${course.day_of_week}`)}{" "}
                           {course.start_time}
                           {course.end_time ? `–${course.end_time}` : ""}
                         </span>

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ChevronLeft, Plus, Calendar, Archive, Pencil, X } from "lucide-react";
+import { ChevronLeft, Plus, Calendar, Archive, Pencil, X, Play } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useMosque } from "@/lib/mosque-context";
 import { useAuth } from "@/lib/auth-context";
@@ -11,6 +11,7 @@ import {
   createAcademicYear,
   updateAcademicYear,
   archiveAcademicYear,
+  activateAcademicYear,
 } from "@/lib/actions/academic-years";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,7 +19,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import { academicYearStatusLabels, academicYearStatusColors } from "@/lib/constants";
+import { academicYearStatusColors } from "@/lib/constants";
 import type { AcademicYear } from "@/types";
 
 export default function SchuljahrePage() {
@@ -26,6 +27,7 @@ export default function SchuljahrePage() {
   const { user } = useAuth();
   const t = useTranslations("madrasa.schuljahre");
   const tCommon = useTranslations("common");
+  const tL = useTranslations("labels");
   const [years, setYears] = useState<AcademicYear[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -111,6 +113,16 @@ export default function SchuljahrePage() {
     if (!confirm(t("archiveConfirm"))) return;
 
     const result = await archiveAcademicYear(year.id, mosqueId, user.id);
+    if (result.success) {
+      await loadYears();
+    }
+  }
+
+  async function handleActivate(year: AcademicYear) {
+    if (!user) return;
+    if (!confirm(t("activateConfirm"))) return;
+
+    const result = await activateAcademicYear(year.id, mosqueId, user.id);
     if (result.success) {
       await loadYears();
     }
@@ -260,7 +272,7 @@ export default function SchuljahrePage() {
                         academicYearStatusColors[year.status]
                       )}
                     >
-                      {academicYearStatusLabels[year.status]}
+                      {tL(`academicYear.status.${year.status}`)}
                     </span>
                   </div>
                   <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
@@ -280,6 +292,16 @@ export default function SchuljahrePage() {
                         title={t("archiveTitle")}
                       >
                         <Archive className="h-4 w-4" />
+                      </button>
+                    )}
+                    {year.status === "archived" && (
+                      <button
+                        type="button"
+                        onClick={() => handleActivate(year)}
+                        className="rounded p-1.5 text-emerald-600 hover:bg-emerald-50"
+                        title={t("activateTitle")}
+                      >
+                        <Play className="h-4 w-4" />
                       </button>
                     )}
                   </div>

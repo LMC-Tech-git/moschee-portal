@@ -646,9 +646,18 @@
       "archiveConfirm": "Öğretim yılı gerçekten arşivlensin mi?",
       "editTitle": "Düzenle",
       "archiveTitle": "Arşivle",
+      "activateTitle": "Etkinleştir",
+      "activateConfirm": "Bu öğretim yılı etkinleştirilsin mi? Mevcut aktif öğretim yılı otomatik olarak arşivlenecek.",
       "emptyTitle": "Henüz öğretim yılı yok",
       "emptyHint": "Dersleri ilişkilendirmek için ilk öğretim yılınızı oluşturun.",
       "saveFailed": "Kaydetme başarısız"
+    },
+    "courseDetail": {
+      "notFound": "Ders bulunamadı",
+      "backLink": "Medreseye Dön",
+      "editTitle": "Dersi Düzenle",
+      "demoHintTitle": "Öğrenci Kaydet",
+      "demoHintDesc": "Öğrencileri doğrudan form üzerinden ekleyin veya CSV dosyasıyla (Excel uyumlu) toplu olarak içe aktarın."
     },
     "courseForm": {
       "academicYearLabel": "Öğretim Yılı *",
@@ -1327,7 +1336,91 @@
       "daily": "Günlük",
       "weekly": "Haftalık",
       "monthly": "Aylık"
+    },
+    "academicYear": {
+      "status": {
+        "active": "Aktif",
+        "archived": "Arşivlendi"
+      }
+    },
+    "enrollment": {
+      "status": {
+        "enrolled": "Kayıtlı",
+        "completed": "Tamamlandı",
+        "paused": "Duraklatıldı",
+        "cancelled": "İptal edildi"
+      }
+    },
+    "student": {
+      "status": {
+        "active": "Aktif",
+        "inactive": "Pasif"
+      }
+    },
+    "gender": {
+      "male": "Erkek",
+      "female": "Kız",
+      "unspecified": "Belirtilmedi"
     }
+  },
+  "enrollment": {
+    "title": "Öğrenci Listesi",
+    "importBtn": "İçe Aktar",
+    "importTitle": "CSV/Excel'den öğrenci listesi içe aktar",
+    "addBtn": "Öğrenci Ekle",
+    "addTitle": "\"{courseTitle}\" kursuna öğrenci ekle",
+    "closeForm": "Formu kapat",
+    "modeNew": "Yeni Öğrenci",
+    "modeExisting": "Mevcut Öğrenci",
+    "creating": "Oluşturuluyor…",
+    "createAndEnroll": "Öğrenci oluştur ve kaydet",
+    "selectStudent": "— Öğrenci seçin —",
+    "enroll": "Kaydet",
+    "editTitle": "Öğrenciyi Düzenle",
+    "closeEdit": "Düzenlemeyi kapat",
+    "saving": "Kaydediliyor…",
+    "saveChanges": "Değişiklikleri kaydet",
+    "cancel": "İptal",
+    "empty": "Henüz kayıtlı öğrenci yok.",
+    "colName": "Ad Soyad",
+    "colAge": "Yaş",
+    "colParent": "Veli",
+    "colPhone": "Telefon",
+    "colStatus": "Durum",
+    "colActions": "İşlemler",
+    "pause": "Durdur",
+    "activate": "Etkinleştir",
+    "reenroll": "Yeniden kaydet",
+    "unenroll": "Kaydı sil",
+    "editStudent": "Öğrenci bilgilerini düzenle",
+    "firstName": "Ad",
+    "lastName": "Soyad",
+    "birthDate": "Doğum Tarihi",
+    "gender": "Cinsiyet",
+    "genderNone": "— belirtilmedi —",
+    "parentMember": "Veli (Üye)",
+    "parentNone": "— üye değil —",
+    "or": "veya",
+    "parentName": "Veli Adı",
+    "parentPhone": "Veli Telefonu (genel)",
+    "address": "Ev Adresi",
+    "school": "Okul / Anaokulu",
+    "grade": "Sınıf",
+    "motherName": "Anne Adı",
+    "motherPhone": "Anne Cep Telefonu",
+    "fatherName": "Baba Adı",
+    "fatherPhone": "Baba Cep Telefonu",
+    "healthNotes": "Sağlık Notları",
+    "membership": "Aile Üyeliği",
+    "membershipYes": "Mevcut",
+    "membershipNo": "Mevcut Değil",
+    "membershipPending": "Başvuruldu",
+    "notes": "Notlar",
+    "statusLabel": "Durum",
+    "errorLoad": "Öğrenci yüklenemedi",
+    "errorCreate": "Öğrenci oluşturulamadı",
+    "errorEnroll": "Kayıt başarısız",
+    "errorUpdate": "Öğrenci güncellenemedi"
   },
   "legal": {
     "impressum": {

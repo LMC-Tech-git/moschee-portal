@@ -646,9 +646,18 @@
       "archiveConfirm": "Schuljahr wirklich archivieren?",
       "editTitle": "Bearbeiten",
       "archiveTitle": "Archivieren",
+      "activateTitle": "Aktivieren",
+      "activateConfirm": "Dieses Schuljahr aktivieren? Das aktuell aktive Schuljahr wird automatisch archiviert.",
       "emptyTitle": "Noch keine Schuljahre",
       "emptyHint": "Erstellen Sie Ihr erstes Schuljahr, um Kurse zuordnen zu können.",
       "saveFailed": "Speichern fehlgeschlagen"
+    },
+    "courseDetail": {
+      "notFound": "Kurs nicht gefunden",
+      "backLink": "Zurück zur Madrasa",
+      "editTitle": "Kurs bearbeiten",
+      "demoHintTitle": "Schüler einschreiben",
+      "demoHintDesc": "Fügen Sie Schüler direkt über das Formular hinzu oder importieren Sie mehrere per CSV-Datei (Excel-kompatibel)."
     },
     "courseForm": {
       "academicYearLabel": "Schuljahr *",
@@ -1327,7 +1336,91 @@
       "daily": "Täglich",
       "weekly": "Wöchentlich",
       "monthly": "Monatlich"
+    },
+    "academicYear": {
+      "status": {
+        "active": "Aktiv",
+        "archived": "Archiviert"
+      }
+    },
+    "enrollment": {
+      "status": {
+        "enrolled": "Eingeschrieben",
+        "completed": "Abgeschlossen",
+        "paused": "Pausiert",
+        "cancelled": "Abgemeldet"
+      }
+    },
+    "student": {
+      "status": {
+        "active": "Aktiv",
+        "inactive": "Inaktiv"
+      }
+    },
+    "gender": {
+      "male": "Männlich",
+      "female": "Weiblich",
+      "unspecified": "Nicht angegeben"
     }
+  },
+  "enrollment": {
+    "title": "Schülerliste",
+    "importBtn": "Importieren",
+    "importTitle": "Schülerliste aus CSV/Excel importieren",
+    "addBtn": "Schüler hinzufügen",
+    "addTitle": "Schüler zu \"{courseTitle}\" hinzufügen",
+    "closeForm": "Formular schließen",
+    "modeNew": "Neuer Schüler",
+    "modeExisting": "Bestehender Schüler",
+    "creating": "Wird erstellt…",
+    "createAndEnroll": "Schüler erstellen & einschreiben",
+    "selectStudent": "— Schüler auswählen —",
+    "enroll": "Einschreiben",
+    "editTitle": "Schüler bearbeiten",
+    "closeEdit": "Bearbeiten schließen",
+    "saving": "Wird gespeichert…",
+    "saveChanges": "Änderungen speichern",
+    "cancel": "Abbrechen",
+    "empty": "Noch keine Schüler eingeschrieben.",
+    "colName": "Name",
+    "colAge": "Alter",
+    "colParent": "Eltern",
+    "colPhone": "Telefon",
+    "colStatus": "Status",
+    "colActions": "Aktionen",
+    "pause": "Pausieren",
+    "activate": "Aktivieren",
+    "reenroll": "Erneut einschreiben",
+    "unenroll": "Abmelden",
+    "editStudent": "Schülerdaten bearbeiten",
+    "firstName": "Vorname",
+    "lastName": "Nachname",
+    "birthDate": "Geburtstag",
+    "gender": "Geschlecht",
+    "genderNone": "— nicht angegeben —",
+    "parentMember": "Elternteil (Mitglied)",
+    "parentNone": "— kein Mitglied —",
+    "or": "oder",
+    "parentName": "Name der Eltern",
+    "parentPhone": "Telefon der Eltern (allgemein)",
+    "address": "Hausanschrift",
+    "school": "Besuchte Schule / KiTA",
+    "grade": "Klasse",
+    "motherName": "Name der Mutter",
+    "motherPhone": "Handy Mutter",
+    "fatherName": "Name des Vaters",
+    "fatherPhone": "Handy Vater",
+    "healthNotes": "Gesundheitliche Hinweise",
+    "membership": "Familienmitgliedschaft",
+    "membershipYes": "Vorhanden",
+    "membershipNo": "Nicht vorhanden",
+    "membershipPending": "Wird beantragt",
+    "notes": "Anmerkungen",
+    "statusLabel": "Status",
+    "errorLoad": "Schüler konnte nicht geladen werden",
+    "errorCreate": "Schüler konnte nicht erstellt werden",
+    "errorEnroll": "Einschreibung fehlgeschlagen",
+    "errorUpdate": "Schüler konnte nicht aktualisiert werden"
   },
   "legal": {
     "impressum": {

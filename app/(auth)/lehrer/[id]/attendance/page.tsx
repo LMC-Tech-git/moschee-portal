@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { useParams } from "next/navigation";
 import { ChevronLeft, ClipboardList, Save, Check, X, Clock, AlertCircle, CheckCheck, Trash2 } from "lucide-react";
 import Link from "next/link";
@@ -25,7 +25,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import {
   attendanceStatusColors,
-  dayOfWeekLabels,
 } from "@/lib/constants";
 import type { Course, CourseEnrollment, Attendance } from "@/types";
 import AttendanceStats from "@/components/madrasa/AttendanceStats";
@@ -41,6 +40,8 @@ interface StudentRow {
 
 export default function LehrerAttendancePage() {
   const t = useTranslations("lehrer");
+  const tL = useTranslations("labels");
+  const locale = useLocale();
   const params = useParams();
   const courseId = params.id as string;
   const { mosqueId } = useMosque();
@@ -249,7 +250,7 @@ export default function LehrerAttendancePage() {
           {course.title}
         </h1>
         <p className="text-sm text-gray-500">
-          {dayOfWeekLabels[course.day_of_week]}, {course.start_time}
+          {tL(`day.${course.day_of_week}`)}, {course.start_time}
           {course.end_time ? `–${course.end_time}` : ""}
         </p>
       </div>
@@ -320,7 +321,7 @@ export default function LehrerAttendancePage() {
                                   : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                               )}
                             >
-                              {new Date(date).toLocaleDateString("de-DE", {
+                              {new Date(date).toLocaleDateString(locale, {
                                 day: "2-digit",
                                 month: "2-digit",
                               })}
