@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { toast } from "sonner";
 
 export function ServiceWorkerRegistration() {
   useEffect(() => {
@@ -14,17 +15,21 @@ export function ServiceWorkerRegistration() {
         .then((registration) => {
           console.log("[SW] Registriert:", registration.scope);
 
-          // Auto-Update: Bei neuem SW sofort aktivieren
           registration.addEventListener("updatefound", () => {
             const newWorker = registration.installing;
             if (!newWorker) return;
 
             newWorker.addEventListener("statechange", () => {
-              if (
-                newWorker.state === "activated" &&
-                navigator.serviceWorker.controller
-              ) {
-                console.log("[SW] Neuer Service Worker aktiviert");
+              if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
+                // Neuer SW wartet — User benachrichtigen
+                toast.info("App-Update verfügbar", {
+                  description: "Eine neue Version ist bereit.",
+                  duration: Infinity,
+                  action: {
+                    label: "Neu laden",
+                    onClick: () => window.location.reload(),
+                  },
+                });
               }
             });
           });
@@ -32,6 +37,15 @@ export function ServiceWorkerRegistration() {
         .catch((error) => {
           console.error("[SW] Registrierung fehlgeschlagen:", error);
         });
+
+      // Nach Controller-Wechsel (z.B. skipWaiting) automatisch neu laden
+      let refreshing = false;
+      navigator.serviceWorker.addEventListener("controllerchange", () => {
+        if (!refreshing) {
+          refreshing = true;
+          window.location.reload();
+        }
+      });
     }
   }, []);
 

@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
+import { PWAInstallPrompt } from "@/components/shared/PWAInstallPrompt";
 export default function AuthLayout({
   children,
 }: {
@@ -32,5 +33,10 @@ export default function AuthLayout({
     return null;
   }
 
-  return <>{children}</>;
+  return (
+    <>
+      {children}
+      <PWAInstallPrompt />
+    </>
+  );
 }

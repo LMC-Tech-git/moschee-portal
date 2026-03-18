@@ -58,7 +58,7 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
-    statusBarStyle: "default",
+    statusBarStyle: "black-translucent",
     title: "moschee.app",
   },
   formatDetection: {
@@ -66,10 +66,11 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
+      { url: "/icons/icon-192x192.png", sizes: "192x192", type: "image/png" },
       { url: "/icons/icon.png", sizes: "512x512", type: "image/png" },
     ],
     apple: [
-      { url: "/icons/icon.png", sizes: "512x512", type: "image/png" },
+      { url: "/icons/icon-180x180.png", sizes: "180x180", type: "image/png" },
     ],
   },
 };

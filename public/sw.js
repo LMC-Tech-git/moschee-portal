@@ -3,15 +3,16 @@
 // Strategie: Mandanten-sicher, kein Cache-Mixing
 // ============================================================
 
-const CACHE_VERSION = "v1";
+const CACHE_VERSION = "v2";
 const STATIC_CACHE = `moschee-static-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `moschee-runtime-${CACHE_VERSION}`;
 
 // Statische Assets die beim Install gecacht werden
 const PRECACHE_URLS = [
   "/offline",
-  "/icons/icon-192x192.svg",
-  "/icons/icon-512x512.svg",
+  "/icons/icon-192x192.png",
+  "/icons/icon-180x180.png",
+  "/icons/icon.png",
   "/manifest.json",
 ];
 
