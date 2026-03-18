@@ -238,7 +238,7 @@ export default function MemberProfilePage() {
       {/* Tab Content */}
       {activeTab === "profile" && <ProfileEditForm user={user} />}
       {activeTab === "children" && (
-        <ChildrenTab userId={user.id} userName={`${user.first_name} ${user.last_name}`.trim()} userPhone={user.phone} mosqueId={mosqueId} />
+        <ChildrenTab userId={user.id} userName={`${user.first_name} ${user.last_name}`.trim()} userPhone={user.phone} userAddress={user.address || ""} mosqueId={mosqueId} />
       )}
       {activeTab === "donations" && (
         <DonationHistory userId={user.id} mosqueId={mosqueId} />
@@ -538,11 +538,13 @@ function ChildrenTab({
   userId,
   userName,
   userPhone,
+  userAddress,
   mosqueId,
 }: {
   userId: string;
   userName: string;
   userPhone: string;
+  userAddress: string;
   mosqueId: string;
 }) {
   const t = useTranslations();
@@ -629,6 +631,7 @@ function ChildrenTab({
         parentId={userId}
         parentName={userName}
         parentPhone={userPhone}
+        parentAddress={userAddress}
         onClose={() => setShowDialog(false)}
         onSuccess={loadChildren}
       />
@@ -638,6 +641,7 @@ function ChildrenTab({
         parentId={userId}
         parentName={userName}
         parentPhone={userPhone}
+        parentAddress={userAddress}
         student={editChild}
         onClose={() => setEditChild(null)}
         onSuccess={loadChildren}

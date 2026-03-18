@@ -13,6 +13,7 @@ interface Props {
   parentId: string;
   parentName: string;
   parentPhone: string;
+  parentAddress?: string;
   student?: Student | null; // null/undefined = create mode
   onSuccess: () => void;
   onCancel: () => void;
@@ -83,12 +84,17 @@ function studentToFormData(s: Student): FormData {
   };
 }
 
-export function MemberStudentForm({ parentId, parentName, parentPhone, student, onSuccess, onCancel }: Props) {
+export function MemberStudentForm({ parentId, parentName, parentPhone, parentAddress, student, onSuccess, onCancel }: Props) {
   const t = useTranslations("memberStudent");
   const locale = useLocale();
   const { mosqueId } = useMosque();
   const isEdit = !!student;
-  const [form, setForm] = useState<FormData>(student ? studentToFormData(student) : initialForm);
+  const [form, setForm] = useState<FormData>(() => {
+    if (student) return studentToFormData(student);
+    // Create mode: pre-fill address from parent profile
+    if (parentAddress) return { ...initialForm, address: parentAddress };
+    return initialForm;
+  });
   const [teachers, setTeachers] = useState<User[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);

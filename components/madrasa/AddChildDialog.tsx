@@ -10,12 +10,13 @@ interface Props {
   parentId: string;
   parentName: string;
   parentPhone: string;
+  parentAddress?: string;
   student?: Student | null;
   onClose: () => void;
   onSuccess: () => void;
 }
 
-export function AddChildDialog({ open, parentId, parentName, parentPhone, student, onClose, onSuccess }: Props) {
+export function AddChildDialog({ open, parentId, parentName, parentPhone, parentAddress, student, onClose, onSuccess }: Props) {
   const t = useTranslations("memberStudent");
   const isEdit = !!student;
 
@@ -41,6 +42,7 @@ export function AddChildDialog({ open, parentId, parentName, parentPhone, studen
             parentId={parentId}
             parentName={parentName}
             parentPhone={parentPhone}
+            parentAddress={parentAddress}
             student={student}
             onSuccess={() => {
               onSuccess();
