@@ -213,7 +213,7 @@ export function AdminStudentForm({ mosqueId, userId, student, onSuccess, onCance
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Basisdaten */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">{t("firstName")} *</label>
           <input className={inputCls} value={form.first_name} onChange={(e) => set("first_name", e.target.value)} />
@@ -226,7 +226,7 @@ export function AdminStudentForm({ mosqueId, userId, student, onSuccess, onCance
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">{t("dateOfBirth")} *</label>
           <input type="date" className={inputCls} value={form.date_of_birth} onChange={(e) => set("date_of_birth", e.target.value)} />
@@ -243,7 +243,7 @@ export function AdminStudentForm({ mosqueId, userId, student, onSuccess, onCance
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">{t("school")}</label>
           <input className={inputCls} placeholder={t("schoolPlaceholder")} value={form.school_name} onChange={(e) => set("school_name", e.target.value)} />
@@ -315,7 +315,7 @@ export function AdminStudentForm({ mosqueId, userId, student, onSuccess, onCance
         </div>
         {fieldErr("whatsapp_contact")}
 
-        <div className="mt-3 grid grid-cols-2 gap-4">
+        <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">{t("motherName")}</label>
             <input className={inputCls} value={form.mother_name} onChange={(e) => set("mother_name", e.target.value)} />
@@ -327,7 +327,7 @@ export function AdminStudentForm({ mosqueId, userId, student, onSuccess, onCance
         </div>
 
         {(needsMotherPhone || needsFatherPhone) && (
-          <div className="mt-3 grid grid-cols-2 gap-4">
+          <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-4">
             {needsMotherPhone && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">{t("motherPhone")}</label>
@@ -425,7 +425,7 @@ export function AdminStudentForm({ mosqueId, userId, student, onSuccess, onCance
           )}
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">{tAdmin("address")}</label>
             <input className={inputCls} placeholder={tAdmin("addressPlaceholder")} value={form.address} onChange={(e) => set("address", e.target.value)} />
