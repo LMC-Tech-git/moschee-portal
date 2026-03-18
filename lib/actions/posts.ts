@@ -35,6 +35,7 @@ function mapRecordToPost(record: RecordModel): Post {
                 last_name: record.expand.created_by.last_name || "",
                 full_name: record.expand.created_by.full_name || "",
                 phone: record.expand.created_by.phone || "",
+                address: record.expand.created_by.address || "",
                 member_no: record.expand.created_by.member_no || "",
                 membership_number:
                   record.expand.created_by.membership_number || "",

@@ -20,6 +20,7 @@ function mapRecordToUser(record: RecordModel): User {
     last_name: record.last_name || "",
     full_name: record.full_name || `${record.first_name || ""} ${record.last_name || ""}`.trim(),
     phone: record.phone || "",
+    address: record.address || "",
     member_no: record.member_no || "",
     membership_number: record.membership_number || record.member_no || "",
     status: record.status || "pending",
@@ -284,7 +285,7 @@ export async function updateMemberRole(
  */
 export async function updateProfile(
   userId: string,
-  data: { first_name: string; last_name: string; phone: string }
+  data: { first_name: string; last_name: string; phone: string; address?: string }
 ): Promise<ActionResult> {
   try {
     const pb = await getAdminPB();
@@ -303,6 +304,7 @@ export async function updateProfile(
       last_name: data.last_name,
       full_name: `${data.first_name} ${data.last_name}`.trim(),
       phone: normalizedPhone,
+      address: data.address ?? "",
     });
 
     return { success: true };

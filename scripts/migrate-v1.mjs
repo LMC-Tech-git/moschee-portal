@@ -597,6 +597,7 @@ const USERS_NEW_FIELDS = [
   { name: "pending_email", type: "text" },
   { name: "email_change_token", type: "text" },
   { name: "email_change_expires_at", type: "text" },
+  { name: "address", type: "text", options: { max: 300 } },
 ];
 
 const CAMPAIGNS_NEW_FIELDS = [
@@ -1039,6 +1040,31 @@ async function main() {
       } else {
         console.log("   ⏭️  invites: role-Feld enthält bereits alle Rollen");
       }
+    }
+  }
+
+  // 11. students: neue Felder (v3)
+  if (collectionMap.students) {
+    const studentsCol = (await getExistingCollections()).find((c) => c.name === "students");
+    const existingFieldNames = (studentsCol?.schema || []).map((f) => f.name);
+    const studentsNewFields = [
+      { name: "last_year_attended", type: "bool", options: { default: false } },
+      { name: "last_year_teacher", type: "text", options: { max: 200 } },
+      {
+        name: "whatsapp_contact",
+        type: "select",
+        options: { values: ["mother", "father", "both"], maxSelect: 1 },
+      },
+      { name: "parent_is_member", type: "bool", options: { default: false } },
+      { name: "privacy_accepted_at", type: "date" },
+    ];
+    const fieldsToAdd = studentsNewFields.filter((f) => !existingFieldNames.includes(f.name));
+    if (fieldsToAdd.length > 0) {
+      const newSchema = [...(studentsCol?.schema || []), ...fieldsToAdd];
+      await updateCollection("students", { schema: newSchema });
+      console.log(`   ✅ students: ${fieldsToAdd.map((f) => f.name).join(", ")} hinzugefügt`);
+    } else {
+      console.log("   ⏭️  students: alle v3-Felder vorhanden");
     }
   }
 

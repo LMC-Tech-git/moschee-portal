@@ -339,6 +339,7 @@ export async function getTeachersByMosque(
       last_name: r.last_name || "",
       full_name: `${r.first_name || ""} ${r.last_name || ""}`.trim(),
       phone: r.phone || "",
+      address: r.address || "",
       member_no: r.member_no || "",
       membership_number: r.membership_number || r.member_no || "",
       status: r.status || "active",

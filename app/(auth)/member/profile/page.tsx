@@ -12,6 +12,9 @@ import {
   getMemberDonations,
   getMemberEventHistory,
 } from "@/lib/actions/members";
+import { getStudentsByParent } from "@/lib/actions/students";
+import { AddChildDialog } from "@/components/madrasa/AddChildDialog";
+import type { Student } from "@/types";
 import {
   getParentFeeOverview,
   createFeeStripeCheckout,
@@ -34,11 +37,14 @@ import {
   ChevronLeft,
   ChevronRight,
   AlertCircle,
+  Baby,
+  Plus,
+  MapPin,
 } from "lucide-react";
 import { formatCurrencyCents } from "@/lib/utils";
 import type { Donation, EventRegistration } from "@/types";
 
-type Tab = "profile" | "donations" | "events" | "madrasa";
+type Tab = "profile" | "children" | "donations" | "events" | "madrasa";
 
 function getCurrentMonthKey(): string {
   const now = new Date();
@@ -123,6 +129,7 @@ export default function MemberProfilePage() {
 
   const tabs: { key: Tab; label: string; icon: React.ReactNode }[] = [
     { key: "profile", label: t("member.profile.tab.profile"), icon: <User className="h-4 w-4" /> },
+    { key: "children", label: t("member.profile.tab.children"), icon: <Baby className="h-4 w-4" /> },
     {
       key: "donations",
       label: t("member.profile.tab.donations"),
@@ -229,6 +236,9 @@ export default function MemberProfilePage() {
 
       {/* Tab Content */}
       {activeTab === "profile" && <ProfileEditForm user={user} />}
+      {activeTab === "children" && (
+        <ChildrenTab userId={user.id} userName={`${user.first_name} ${user.last_name}`.trim()} userPhone={user.phone} mosqueId={mosqueId} />
+      )}
       {activeTab === "donations" && (
         <DonationHistory userId={user.id} mosqueId={mosqueId} />
       )}
@@ -250,6 +260,7 @@ function ProfileEditForm({ user }: { user: NonNullable<ReturnType<typeof useAuth
   const [firstName, setFirstName] = useState(user.first_name || "");
   const [lastName, setLastName] = useState(user.last_name || "");
   const [phone, setPhone] = useState(user.phone || "");
+  const [address, setAddress] = useState(user.address || "");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
@@ -259,10 +270,15 @@ function ProfileEditForm({ user }: { user: NonNullable<ReturnType<typeof useAuth
     setFirstName(user.first_name || "");
     setLastName(user.last_name || "");
     setPhone(user.phone || "");
-  }, [user.first_name, user.last_name, user.phone]);
+    setAddress(user.address || "");
+  }, [user.first_name, user.last_name, user.phone, user.address]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!phone.trim()) {
+      setError(t("member.profile.phone") + " ist erforderlich");
+      return;
+    }
     setError("");
     setSuccess(false);
     setIsSubmitting(true);
@@ -271,6 +287,7 @@ function ProfileEditForm({ user }: { user: NonNullable<ReturnType<typeof useAuth
       first_name: firstName,
       last_name: lastName,
       phone,
+      address,
     });
 
     if (result.success) {
@@ -352,6 +369,24 @@ function ProfileEditForm({ user }: { user: NonNullable<ReturnType<typeof useAuth
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             placeholder="+49 ..."
+            className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+          />
+        </div>
+
+        <div>
+          <label
+            htmlFor="address"
+            className="mb-1.5 block text-sm font-medium text-gray-700"
+          >
+            <MapPin className="mr-1 inline h-3.5 w-3.5" />
+            {t("member.profile.address")}
+          </label>
+          <textarea
+            id="address"
+            rows={2}
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
+            placeholder={t("member.profile.addressPlaceholder")}
             className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
           />
         </div>
@@ -492,6 +527,102 @@ function EmailChangeSection({
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+// --- Kinder-Tab ---
+
+function ChildrenTab({
+  userId,
+  userName,
+  userPhone,
+  mosqueId,
+}: {
+  userId: string;
+  userName: string;
+  userPhone: string;
+  mosqueId: string;
+}) {
+  const t = useTranslations();
+  const locale = useLocale();
+  const [children, setChildren] = useState<Student[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [showDialog, setShowDialog] = useState(false);
+
+  async function loadChildren() {
+    setIsLoading(true);
+    const result = await getStudentsByParent(userId, mosqueId);
+    if (result.success && result.data) setChildren(result.data);
+    setIsLoading(false);
+  }
+
+  useEffect(() => {
+    loadChildren();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId, mosqueId]);
+
+  const intlLocale = locale === "tr" ? "tr-TR" : "de-DE";
+
+  return (
+    <div className="rounded-xl border border-gray-200 bg-white p-6">
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="text-lg font-bold text-gray-900">{t("member.profile.children.title")}</h2>
+        <button
+          onClick={() => setShowDialog(true)}
+          className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-700 transition-colors"
+        >
+          <Plus className="h-4 w-4" />
+          {t("member.profile.children.addButton")}
+        </button>
+      </div>
+
+      {isLoading ? (
+        <div className="py-8 text-center text-sm text-gray-400">...</div>
+      ) : children.length === 0 ? (
+        <div className="py-8 text-center text-sm text-gray-500">
+          {t("member.profile.children.empty")}
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {children.map((child) => (
+            <div key={child.id} className="rounded-lg border border-gray-100 bg-gray-50 p-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-100">
+                  <Baby className="h-4 w-4 text-emerald-600" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-gray-900">
+                    {child.first_name} {child.last_name}
+                  </p>
+                  <div className="flex flex-wrap gap-x-3 text-xs text-gray-500">
+                    {child.date_of_birth && (
+                      <span>
+                        {t("member.profile.children.dob")}: {new Date(child.date_of_birth).toLocaleDateString(intlLocale)}
+                      </span>
+                    )}
+                    {child.school_name && (
+                      <span>{t("member.profile.children.school")}: {child.school_name}</span>
+                    )}
+                    {child.school_class && (
+                      <span>{t("member.profile.children.class")}: {child.school_class}</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <AddChildDialog
+        open={showDialog}
+        parentId={userId}
+        parentName={userName}
+        parentPhone={userPhone}
+        onClose={() => setShowDialog(false)}
+        onSuccess={loadChildren}
+      />
     </div>
   );
 }

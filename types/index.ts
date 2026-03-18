@@ -75,6 +75,7 @@ export interface User {
   last_name: string;
   full_name: string; // deprecated, Abwärtskompatibilität
   phone: string;
+  address: string;
   member_no: string;
   membership_number: string; // deprecated alias für member_no
   status: "pending" | "active" | "inactive" | "blocked";
@@ -271,6 +272,12 @@ export interface Student {
   father_name: string;
   father_phone: string;
   membership_status: "active" | "none" | "planned" | "";
+  // Neue Felder (v3)
+  last_year_attended: boolean;
+  last_year_teacher: string;
+  whatsapp_contact: "mother" | "father" | "both" | "";
+  parent_is_member: boolean;
+  privacy_accepted_at: string;
   notes: string;
   status: "active" | "inactive";
   created: string;

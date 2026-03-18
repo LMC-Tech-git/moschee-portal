@@ -799,6 +799,7 @@
     "pendingTitle": "Hesabınız inceleniyor",
     "pendingDesc": "Hesabınız kaydedildi ve bir yönetici tarafından incelenecektir. Onaylandıktan sonra üye alanına tam erişiminiz olacak.",
     "pendingLogout": "Çıkış Yap",
+    "pendingBanner": "Hesabınız henüz inceleniyor. Profilinizi doldurabilir ve çocuklarınızı kaydedebilirsiniz.",
     "profile": {
       "title": "Profilim",
       "hint": {
@@ -807,6 +808,7 @@
       },
       "tab": {
         "profile": "Profil",
+        "children": "Çocuklar",
         "donations": "Bağışlar",
         "events": "Etkinlikler",
         "madrasa": "Medrese"
@@ -814,10 +816,20 @@
       "editTitle": "Profili Düzenle",
       "firstName": "Ad",
       "lastName": "Soyad",
-      "phone": "Telefon",
+      "phone": "Telefon *",
+      "address": "Adres",
+      "addressPlaceholder": "Sokak, Numara, Posta Kodu, Şehir",
       "saveProfile": "Profili Kaydet",
       "saving": "Kaydediliyor...",
       "savedSuccess": "Profil başarıyla güncellendi",
+      "children": {
+        "title": "Çocuklarım",
+        "addButton": "Çocuk ekle",
+        "empty": "Henüz kayıtlı çocuk yok.",
+        "school": "Okul",
+        "class": "Sınıf",
+        "dob": "Doğum tarihi"
+      },
       "emailChange": {
         "title": "E-posta Adresi",
         "changeButton": "Değiştir",
@@ -1576,5 +1588,74 @@
         "sessionPresent": "{present} / {total} mevcut"
       }
     }
+  },
+  "memberStudent": {
+    "title": "Çocuk Kaydı",
+    "subtitle": "Çocuğunuzu medreseye kayıt ettirin.",
+    "firstName": "Ad",
+    "lastName": "Soyad",
+    "dateOfBirth": "Doğum Tarihi",
+    "gender": "Cinsiyet *",
+    "genderPlaceholder": "Lütfen seçin",
+    "genderMale": "Erkek",
+    "genderFemale": "Kız",
+    "school": "Devam Ettiği Okul / Anaokulu *",
+    "schoolPlaceholder": "Okul veya anaokulu adı",
+    "class": "Sınıf *",
+    "classPlaceholder": "Örn. 3a veya Okul öncesi",
+    "lastYearSection": "Geçen Yıl Medresede",
+    "lastYearAttended": "Çocuğunuz geçen yıl medreseye devam etti mi? *",
+    "lastYearYes": "Evet",
+    "lastYearNo": "Hayır",
+    "lastYearTeacher": "Geçen Yılki Öğretmen *",
+    "lastYearTeacherPlaceholder": "Öğretmen seçin",
+    "teacherNotInList": "Öğretmen listede yok",
+    "whatsappSection": "WhatsApp Grubu",
+    "whatsappContact": "Hangi numara gruba eklensin? *",
+    "whatsappMother": "Anne",
+    "whatsappFather": "Baba",
+    "whatsappBoth": "İkisi de",
+    "motherName": "Annenin Tam Adı",
+    "fatherName": "Babanın Tam Adı",
+    "motherPhone": "Annenin Cep Numarası *",
+    "fatherPhone": "Babanın Cep Numarası *",
+    "parentSection": "Ebeveyn Bilgileri",
+    "parentIsMember": "En az bir ebeveyn cami derneğine üye mi? *",
+    "parentIsMemberYes": "Evet",
+    "parentIsMemberNo": "Hayır",
+    "notes": "Notlar (isteğe bağlı)",
+    "notesPlaceholder": "Örn. alerjiler, özel durumlar...",
+    "privacySection": "Gizlilik",
+    "privacyLabel": "Çocuğumun verilerinin medrese yönetimi amacıyla cami derneği tarafından işlenmesine onay veriyorum.",
+    "privacyLinkText": "Gizlilik politikasını oku",
+    "submit": "Çocuğu Kaydet",
+    "submitting": "Kaydediliyor...",
+    "successTitle": "Çocuk başarıyla kaydedildi",
+    "successDesc": "Çocuğunuz sisteme eklendi. Medrese yönetimi sizinle iletişime geçecektir.",
+    "errorTitle": "Kayıt hatası"
+  },
+  "adminStudents": {
+    "title": "Öğrenci Yönetimi",
+    "subtitle": "Caminin tüm kayıtlı öğrencileri",
+    "searchPlaceholder": "İsim ara...",
+    "showInactive": "Pasif olanları göster",
+    "noStudents": "Öğrenci bulunamadı.",
+    "columns": {
+      "name": "İsim",
+      "dob": "Doğum Tarihi",
+      "school": "Okul / Sınıf",
+      "parent": "Ebeveyn",
+      "status": "Durum",
+      "actions": "İşlemler"
+    },
+    "editTitle": "Öğrenciyi Düzenle",
+    "deactivate": "Devre Dışı Bırak",
+    "activate": "Etkinleştir",
+    "deleteConfirm": "Öğrenci silinsin mi?",
+    "lastYearAttended": "Geçen yıl katıldı",
+    "whatsappContact": "WhatsApp",
+    "parentIsMember": "Ebeveyn üye",
+    "yes": "Evet",
+    "no": "Hayır"
   }
 }

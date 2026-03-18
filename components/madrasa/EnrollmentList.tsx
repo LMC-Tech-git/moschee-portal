@@ -237,6 +237,10 @@ export function EnrollmentList({ courseId, mosqueId, courseTitle }: EnrollmentLi
       father_name: fatherName,
       father_phone: fatherPhone,
       membership_status: membershipStatus,
+      last_year_attended: false,
+      last_year_teacher: "",
+      whatsapp_contact: "",
+      parent_is_member: false,
       notes,
       status: "active",
     });
@@ -308,6 +312,10 @@ export function EnrollmentList({ courseId, mosqueId, courseTitle }: EnrollmentLi
       father_name: fatherName,
       father_phone: fatherPhone,
       membership_status: membershipStatus,
+      last_year_attended: false,
+      last_year_teacher: "",
+      whatsapp_contact: "",
+      parent_is_member: false,
       notes,
       status: editStatus,
     });

@@ -799,6 +799,7 @@
     "pendingTitle": "Konto wird geprüft",
     "pendingDesc": "Ihr Konto wurde registriert und wird von einem Administrator geprüft. Nach der Freigabe haben Sie vollen Zugang zum Mitgliederbereich.",
     "pendingLogout": "Abmelden",
+    "pendingBanner": "Ihr Konto wird noch geprüft. Sie können Ihr Profil bereits ausfüllen und Ihre Kinder anmelden.",
     "profile": {
       "title": "Mein Profil",
       "hint": {
@@ -807,6 +808,7 @@
       },
       "tab": {
         "profile": "Profil",
+        "children": "Kinder",
         "donations": "Spenden",
         "events": "Veranstaltungen",
         "madrasa": "Madrasa"
@@ -814,10 +816,20 @@
       "editTitle": "Profil bearbeiten",
       "firstName": "Vorname",
       "lastName": "Nachname",
-      "phone": "Telefon",
+      "phone": "Telefon *",
+      "address": "Anschrift",
+      "addressPlaceholder": "Straße, Hausnummer, PLZ, Ort",
       "saveProfile": "Profil speichern",
       "saving": "Wird gespeichert...",
       "savedSuccess": "Profil erfolgreich aktualisiert",
+      "children": {
+        "title": "Meine Kinder",
+        "addButton": "Kind hinzufügen",
+        "empty": "Noch keine Kinder eingetragen.",
+        "school": "Schule",
+        "class": "Klasse",
+        "dob": "Geburtsdatum"
+      },
       "emailChange": {
         "title": "E-Mail-Adresse",
         "changeButton": "\u00c4ndern",
@@ -1576,5 +1588,74 @@
         "sessionPresent": "{present} / {total} anwesend"
       }
     }
+  },
+  "memberStudent": {
+    "title": "Kind anmelden",
+    "subtitle": "Tragen Sie Ihr Kind für die Madrasa ein.",
+    "firstName": "Vorname",
+    "lastName": "Nachname",
+    "dateOfBirth": "Geburtsdatum",
+    "gender": "Geschlecht *",
+    "genderPlaceholder": "Bitte wählen",
+    "genderMale": "Männlich",
+    "genderFemale": "Weiblich",
+    "school": "Besuchte Schule / KITA *",
+    "schoolPlaceholder": "Name der Schule oder KITA",
+    "class": "Klasse *",
+    "classPlaceholder": "z.B. 3a oder Vorschule",
+    "lastYearSection": "Letztes Schuljahr in der Madrasa",
+    "lastYearAttended": "Hat Ihr Kind die Madrasa im letzten Schuljahr besucht? *",
+    "lastYearYes": "Ja",
+    "lastYearNo": "Nein",
+    "lastYearTeacher": "Lehrer im letzten Schuljahr *",
+    "lastYearTeacherPlaceholder": "Lehrer auswählen",
+    "teacherNotInList": "Lehrer nicht in der Liste",
+    "whatsappSection": "WhatsApp-Gruppenbenachrichtigung",
+    "whatsappContact": "Über welche Nummer soll die Gruppe erreicht werden? *",
+    "whatsappMother": "Mama",
+    "whatsappFather": "Papa",
+    "whatsappBoth": "Beide",
+    "motherName": "Vollständiger Name der Mutter",
+    "fatherName": "Vollständiger Name des Vaters",
+    "motherPhone": "Handynummer Mama *",
+    "fatherPhone": "Handynummer Papa *",
+    "parentSection": "Elterninformationen",
+    "parentIsMember": "Ist mindestens ein Elternteil Mitglied bei der Gemeinde? *",
+    "parentIsMemberYes": "Ja",
+    "parentIsMemberNo": "Nein",
+    "notes": "Anmerkungen (optional)",
+    "notesPlaceholder": "z.B. Allergien, besondere Hinweise...",
+    "privacySection": "Datenschutz",
+    "privacyLabel": "Ich stimme zu, dass die Daten meines Kindes von der Moscheegemeinde zum Zweck der Madrasaverwaltung verarbeitet werden.",
+    "privacyLinkText": "Datenschutzerklärung lesen",
+    "submit": "Kind anmelden",
+    "submitting": "Wird gespeichert...",
+    "successTitle": "Kind erfolgreich angemeldet",
+    "successDesc": "Ihr Kind wurde eingetragen. Die Madrasa-Verwaltung wird sich bei Ihnen melden.",
+    "errorTitle": "Fehler beim Speichern"
+  },
+  "adminStudents": {
+    "title": "Schüler-Verwaltung",
+    "subtitle": "Alle eingetragenen Schüler der Moschee",
+    "searchPlaceholder": "Name suchen...",
+    "showInactive": "Inaktive anzeigen",
+    "noStudents": "Keine Schüler gefunden.",
+    "columns": {
+      "name": "Name",
+      "dob": "Geburtsdatum",
+      "school": "Schule / Klasse",
+      "parent": "Elternteil",
+      "status": "Status",
+      "actions": "Aktionen"
+    },
+    "editTitle": "Schüler bearbeiten",
+    "deactivate": "Deaktivieren",
+    "activate": "Aktivieren",
+    "deleteConfirm": "Schüler wirklich löschen?",
+    "lastYearAttended": "Letztes SJ besucht",
+    "whatsappContact": "WhatsApp",
+    "parentIsMember": "Elternteil Mitglied",
+    "yes": "Ja",
+    "no": "Nein"
   }
 }

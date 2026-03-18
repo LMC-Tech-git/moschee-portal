@@ -1,7 +1,7 @@
 "use server";
 
 import { getAdminPB } from "@/lib/pocketbase-admin";
-import { studentSchema, type StudentInput } from "@/lib/validations";
+import { studentSchema, memberStudentSchema, type StudentInput, type MemberStudentInput } from "@/lib/validations";
 import { logAudit } from "@/lib/audit";
 import { applyPhoneNorm, detectCountryFromMosque } from "@/lib/phone";
 import type { Student } from "@/types";
@@ -30,6 +30,11 @@ function mapRecord(record: RecordModel): Student {
     father_name: record.father_name || "",
     father_phone: record.father_phone || "",
     membership_status: record.membership_status || "",
+    last_year_attended: record.last_year_attended ?? false,
+    last_year_teacher: record.last_year_teacher || "",
+    whatsapp_contact: record.whatsapp_contact || "",
+    parent_is_member: record.parent_is_member ?? false,
+    privacy_accepted_at: record.privacy_accepted_at || "",
     notes: record.notes || "",
     status: record.status || "active",
     created: record.created || "",
@@ -63,6 +68,26 @@ export async function getStudentsByMosque(
   } catch (error) {
     console.error("[Students] Fehler beim Laden:", error);
     return { success: false, error: "Schüler konnten nicht geladen werden" };
+  }
+}
+
+/**
+ * Schüler eines bestimmten Elternteils laden (für Member-Profil).
+ */
+export async function getStudentsByParent(
+  parentId: string,
+  mosqueId: string
+): Promise<ActionResult<Student[]>> {
+  try {
+    const pb = await getAdminPB();
+    const records = await pb.collection("students").getFullList({
+      filter: `mosque_id = "${mosqueId}" && parent_id = "${parentId}" && status = "active"`,
+      sort: "last_name,first_name",
+    });
+    return { success: true, data: records.map(mapRecord) };
+  } catch (error) {
+    console.error("[Students] Fehler beim Laden der Kinder:", error);
+    return { success: false, error: "Kinder konnten nicht geladen werden" };
   }
 }
 
@@ -126,6 +151,10 @@ export async function createStudent(
       father_name: validated.father_name || "",
       father_phone: normalizedFatherPhone,
       membership_status: validated.membership_status || "",
+      last_year_attended: validated.last_year_attended ?? false,
+      last_year_teacher: validated.last_year_teacher || "",
+      whatsapp_contact: validated.whatsapp_contact || "",
+      parent_is_member: validated.parent_is_member ?? false,
       notes: validated.notes || "",
       status: validated.status,
     });
@@ -189,6 +218,10 @@ export async function updateStudent(
       father_name: validated.father_name || "",
       father_phone: normalizedFatherPhone,
       membership_status: validated.membership_status || "",
+      last_year_attended: validated.last_year_attended ?? false,
+      last_year_teacher: validated.last_year_teacher || "",
+      whatsapp_contact: validated.whatsapp_contact || "",
+      parent_is_member: validated.parent_is_member ?? false,
       notes: validated.notes || "",
       status: validated.status,
     });
@@ -206,6 +239,70 @@ export async function updateStudent(
   } catch (error) {
     console.error("[Students] Fehler beim Aktualisieren:", error);
     return { success: false, error: "Schüler konnte nicht aktualisiert werden" };
+  }
+}
+
+/**
+ * Kind anlegen (Eltern-Kontext): strengere Validierung, privacy_accepted_at wird gesetzt.
+ */
+export async function createStudentByParent(
+  mosqueId: string,
+  userId: string,
+  input: MemberStudentInput
+): Promise<ActionResult<Student>> {
+  try {
+    const validated = memberStudentSchema.parse(input);
+    const pb = await getAdminPB();
+
+    const demoCheck = await checkDemoLimit(mosqueId, "students");
+    if (!demoCheck.allowed) return { success: false, error: demoCheck.error };
+
+    const mosque = await pb.collection("mosques").getOne(mosqueId);
+    const country = detectCountryFromMosque(mosque as { timezone?: string; address?: string; city?: string });
+    const normalizedParentPhone = applyPhoneNorm(validated.parent_phone || "", country);
+    const normalizedMotherPhone = applyPhoneNorm(validated.mother_phone || "", country);
+    const normalizedFatherPhone = applyPhoneNorm(validated.father_phone || "", country);
+
+    const record = await pb.collection("students").create({
+      mosque_id: mosqueId,
+      first_name: validated.first_name,
+      last_name: validated.last_name,
+      date_of_birth: validated.date_of_birth,
+      gender: validated.gender,
+      parent_id: userId,
+      parent_name: validated.parent_name || "",
+      parent_phone: normalizedParentPhone,
+      address: validated.address || "",
+      school_name: validated.school_name,
+      school_class: validated.school_class,
+      health_notes: validated.health_notes || "",
+      mother_name: validated.mother_name || "",
+      mother_phone: normalizedMotherPhone,
+      father_name: validated.father_name || "",
+      father_phone: normalizedFatherPhone,
+      membership_status: "",
+      last_year_attended: validated.last_year_attended,
+      last_year_teacher: validated.last_year_teacher || "",
+      whatsapp_contact: validated.whatsapp_contact,
+      parent_is_member: validated.parent_is_member,
+      privacy_accepted_at: new Date().toISOString(),
+      notes: validated.notes || "",
+      status: "active",
+    });
+
+    await logAudit({
+      mosqueId,
+      userId,
+      action: "student.created_by_parent",
+      entityType: "student",
+      entityId: record.id,
+      details: { name: `${validated.first_name} ${validated.last_name}` },
+    });
+
+    return { success: true, data: mapRecord(record) };
+  } catch (error) {
+    console.error("[Students] Fehler beim Anlegen (Eltern):", error);
+    return { success: false, error: "Kind konnte nicht gespeichert werden" };
   }
 }
 

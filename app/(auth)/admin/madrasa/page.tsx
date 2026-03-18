@@ -131,11 +131,13 @@ export default function AdminMadrasaPage() {
       {/* KPI-Kacheln */}
       {kpis !== null && (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <KPITile
-            icon={<Users className="h-5 w-5 text-emerald-600" />}
-            label={t("kpiTotalStudents")}
-            value={kpis.totalStudents}
-          />
+          <Link href="/admin/madrasa/schueler" className="block">
+            <KPITile
+              icon={<Users className="h-5 w-5 text-emerald-600" />}
+              label={t("kpiTotalStudents")}
+              value={kpis.totalStudents}
+            />
+          </Link>
           <KPITile
             icon={<BookOpen className="h-5 w-5 text-blue-600" />}
             label={t("kpiEnrolledStudents")}

@@ -126,10 +126,64 @@ export const studentSchema = z.object({
   father_name: z.string().optional().default(""),
   father_phone: z.string().optional().default(""),
   membership_status: z.enum(["active", "none", "planned", ""]).default(""),
+  // Neue Felder (v3)
+  last_year_attended: z.boolean().default(false),
+  last_year_teacher: z.string().optional().default(""),
+  whatsapp_contact: z.enum(["mother", "father", "both", ""]).default(""),
+  parent_is_member: z.boolean().default(false),
   notes: z.string().optional().default(""),
   status: z.enum(["active", "inactive"]).default("active"),
 });
 export type StudentInput = z.infer<typeof studentSchema>;
+
+// --- Madrasa: Schüler (Eltern-Kontext — strengere Validierung) ---
+
+export const memberStudentSchema = studentSchema
+  .omit({ status: true })
+  .extend({
+    gender: z.enum(["male", "female"], { message: "Bitte Geschlecht angeben" }),
+    school_name: z.string().min(1, "Besuchte Schule / KITA ist erforderlich"),
+    school_class: z.string().min(1, "Klasse ist erforderlich"),
+    last_year_attended: z.boolean(),
+    last_year_teacher: z.string().optional().default(""),
+    whatsapp_contact: z.enum(["mother", "father", "both"], {
+      message: "Bitte WhatsApp-Kontakt angeben",
+    }),
+    parent_is_member: z.boolean(),
+    privacy_accepted: z.literal(true, {
+      message: "Datenschutzerklärung muss akzeptiert werden",
+    }),
+  })
+  .superRefine((data, ctx) => {
+    if (data.last_year_attended && !data.last_year_teacher) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["last_year_teacher"],
+        message: "Lehrer ist erforderlich",
+      });
+    }
+    if (
+      (data.whatsapp_contact === "mother" || data.whatsapp_contact === "both") &&
+      !data.mother_phone
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["mother_phone"],
+        message: "Handynummer der Mutter ist erforderlich",
+      });
+    }
+    if (
+      (data.whatsapp_contact === "father" || data.whatsapp_contact === "both") &&
+      !data.father_phone
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["father_phone"],
+        message: "Handynummer des Vaters ist erforderlich",
+      });
+    }
+  });
+export type MemberStudentInput = z.infer<typeof memberStudentSchema>;
 
 // --- Madrasa: Academic Year ---
 
