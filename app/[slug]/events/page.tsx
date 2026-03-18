@@ -1,8 +1,8 @@
 import { notFound } from "next/navigation";
-import { cookies } from "next/headers";
 import Link from "next/link";
 import { CalendarDays, ChevronLeft } from "lucide-react";
 import { resolveMosqueBySlug } from "@/lib/resolve-mosque";
+import { getAuthFromCookie } from "@/lib/auth-cookie";
 import { getTranslations } from "next-intl/server";
 import {
   getPublicEventsFiltered,
@@ -76,12 +76,10 @@ export default async function EventsPage({
     { value: "other",     label: tL("event.category.other") },
   ];
 
-  const cookieStore = cookies();
-  const isLoggedIn = !!cookieStore.get("pb_auth")?.value;
-
+  const { isActiveMember } = getAuthFromCookie();
   const category = searchParams.category || "";
 
-  const result = isLoggedIn
+  const result = isActiveMember
     ? await getMemberEventsFiltered(mosque.id, {
         category: category || undefined,
         limit: 100,

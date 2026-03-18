@@ -1,5 +1,4 @@
 import { notFound } from "next/navigation";
-import { cookies } from "next/headers";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -13,6 +12,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { resolveMosqueBySlug } from "@/lib/resolve-mosque";
+import { getAuthFromCookie } from "@/lib/auth-cookie";
 import {
   getEventById,
   getEventRegistrationCount,
@@ -81,26 +81,12 @@ export default async function PublicEventPage({
   // Nur veröffentlichte Events anzeigen
   if (event.status === "draft") notFound();
 
-  // Auth-Status prüfen
-  const cookieStore = cookies();
-  const authCookie = cookieStore.get("pb_auth");
-  let isLoggedIn = false;
-  let userId = "";
+  // Auth-Status prüfen (pending-User gelten nicht als aktive Mitglieder)
+  const { isActiveMember, userId } = getAuthFromCookie();
+  const isLoggedIn = isActiveMember;
 
-  if (authCookie?.value) {
-    try {
-      const parsed = JSON.parse(authCookie.value);
-      if (parsed.model?.id) {
-        isLoggedIn = true;
-        userId = parsed.model.id;
-      }
-    } catch {
-      // ungültiger Cookie
-    }
-  }
-
-  // Members-Only: Nur eingeloggte User
-  if (event.visibility === "members" && !isLoggedIn) {
+  // Members-Only: Nur aktive Mitglieder
+  if (event.visibility === "members" && !isActiveMember) {
     return (
       <div className="py-10">
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">

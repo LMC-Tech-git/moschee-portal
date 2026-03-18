@@ -1,8 +1,8 @@
 import { notFound } from "next/navigation";
-import { cookies } from "next/headers";
 import Link from "next/link";
 import { FileText, ChevronLeft, ChevronRight } from "lucide-react";
 import { resolveMosqueWithSettings } from "@/lib/resolve-mosque";
+import { getAuthFromCookie } from "@/lib/auth-cookie";
 import { getTranslations } from "next-intl/server";
 import {
   getPublicPostsFiltered,
@@ -35,14 +35,12 @@ export default async function PostsPage({
     { value: "youth",        label: tL("post.category.youth") },
   ];
 
-  const cookieStore = cookies();
-  const isLoggedIn = !!cookieStore.get("pb_auth")?.value;
-
+  const { isActiveMember } = getAuthFromCookie();
   const category = searchParams.category || "";
   const parsedPage = parseInt(searchParams.page || "1", 10);
   const page = Math.max(1, isNaN(parsedPage) ? 1 : parsedPage);
 
-  const postsResult = isLoggedIn
+  const postsResult = isActiveMember
     ? await getMemberPostsFiltered(mosque.id, {
         category: category || undefined,
         page,

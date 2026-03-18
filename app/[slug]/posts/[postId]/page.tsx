@@ -1,9 +1,9 @@
 import { notFound } from "next/navigation";
-import { cookies } from "next/headers";
 import Link from "next/link";
 import Image from "next/image";
 import { ChevronLeft, Calendar, User, Pin } from "lucide-react";
 import { resolveMosqueBySlug } from "@/lib/resolve-mosque";
+import { getAuthFromCookie } from "@/lib/auth-cookie";
 import { getAdminPB } from "@/lib/pocketbase-admin";
 import { getPostById } from "@/lib/actions/posts";
 import { formatDate } from "@/lib/utils";
@@ -43,16 +43,15 @@ export default async function PostDetailPage({
   const mosque = await resolveMosqueBySlug(params.slug);
   if (!mosque) notFound();
 
-  const cookieStore = cookies();
-  const isLoggedIn = !!cookieStore.get("pb_auth")?.value;
+  const { isActiveMember } = getAuthFromCookie();
 
   const result = await getPostById(params.postId, mosque.id);
   if (!result.success || !result.data) notFound();
 
   const post = result.data;
 
-  // Gäste dürfen keine members-only Posts sehen
-  if (post.visibility === "members" && !isLoggedIn) notFound();
+  // Nur aktive Mitglieder dürfen members-only Posts sehen
+  if (post.visibility === "members" && !isActiveMember) notFound();
 
   const authorName = post.expand?.created_by
     ? `${post.expand.created_by.first_name} ${post.expand.created_by.last_name}`.trim() ||

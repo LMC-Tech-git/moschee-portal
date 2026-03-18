@@ -1,5 +1,4 @@
 import { notFound } from "next/navigation";
-import { cookies } from "next/headers";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -14,6 +13,7 @@ import {
   Banknote,
 } from "lucide-react";
 import { resolveMosqueWithSettings } from "@/lib/resolve-mosque";
+import { getAuthFromCookie } from "@/lib/auth-cookie";
 import { getTranslations } from "next-intl/server";
 
 const PB_URL = process.env.NEXT_PUBLIC_POCKETBASE_URL || "";
@@ -54,10 +54,8 @@ export default async function MosqueDashboard({
   const { mosque, settings } = result;
   const t = await getTranslations("mosque.dashboard");
 
-  // Prüfe ob User eingeloggt ist (via Cookie)
-  const cookieStore = cookies();
-  const authCookie = cookieStore.get("pb_auth");
-  const isLoggedIn = !!authCookie?.value;
+  // Prüfe ob User eingeloggt UND aktiv ist (pending-User sehen nur öffentliche Inhalte)
+  const { isActiveMember } = getAuthFromCookie();
 
   const prayerConfig = buildPrayerConfig(mosque, settings);
 
@@ -65,10 +63,10 @@ export default async function MosqueDashboard({
   const [prayerTimes, postsResult, eventsResult, campaignsResult, stats] =
     await Promise.all([
       getPrayerTimesForDate(mosque.id, new Date(), prayerConfig),
-      isLoggedIn
+      isActiveMember
         ? getMemberPostsByMosque(mosque.id, 10)
         : getPublicPostsByMosque(mosque.id, 10),
-      isLoggedIn
+      isActiveMember
         ? getMemberUpcomingEvents(mosque.id, 5)
         : getPublicUpcomingEvents(mosque.id, 5),
       getPublicCampaigns(mosque.id, 3),
