@@ -4,15 +4,16 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useTranslations, useLocale } from "next-intl";
 import { useMosque } from "@/lib/mosque-context";
-import { createStudentByParent } from "@/lib/actions/students";
+import { createStudentByParent, updateStudentByParent } from "@/lib/actions/students";
 import { getTeachersByMosque } from "@/lib/actions/courses";
 import { memberStudentSchema } from "@/lib/validations";
-import type { User } from "@/types";
+import type { Student, User } from "@/types";
 
 interface Props {
   parentId: string;
   parentName: string;
   parentPhone: string;
+  student?: Student | null; // null/undefined = create mode
   onSuccess: () => void;
   onCancel: () => void;
 }
@@ -59,11 +60,35 @@ const initialForm: FormData = {
   privacy_accepted: false,
 };
 
-export function MemberStudentForm({ parentId, parentName, parentPhone, onSuccess, onCancel }: Props) {
+function studentToFormData(s: Student): FormData {
+  return {
+    first_name: s.first_name,
+    last_name: s.last_name,
+    date_of_birth: s.date_of_birth,
+    gender: (s.gender as "male" | "female" | "") || "",
+    school_name: s.school_name,
+    school_class: s.school_class,
+    last_year_attended: s.last_year_attended,
+    last_year_teacher: s.last_year_teacher,
+    whatsapp_contact: (s.whatsapp_contact as "mother" | "father" | "both" | "") || "",
+    mother_name: s.mother_name,
+    mother_phone: s.mother_phone,
+    father_name: s.father_name,
+    father_phone: s.father_phone,
+    parent_is_member: s.parent_is_member,
+    address: s.address || "",
+    health_notes: s.health_notes || "",
+    notes: s.notes,
+    privacy_accepted: !!s.privacy_accepted_at,
+  };
+}
+
+export function MemberStudentForm({ parentId, parentName, parentPhone, student, onSuccess, onCancel }: Props) {
   const t = useTranslations("memberStudent");
   const locale = useLocale();
   const { mosqueId } = useMosque();
-  const [form, setForm] = useState<FormData>(initialForm);
+  const isEdit = !!student;
+  const [form, setForm] = useState<FormData>(student ? studentToFormData(student) : initialForm);
   const [teachers, setTeachers] = useState<User[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -95,7 +120,7 @@ export function MemberStudentForm({ parentId, parentName, parentPhone, onSuccess
       parent_phone: parentPhone,
       last_year_attended: form.last_year_attended ?? false,
       parent_is_member: form.parent_is_member ?? false,
-      // not included in StudentInput, handled separately
+      privacy_accepted: isEdit ? true : form.privacy_accepted,
     });
 
     if (!parsed.success) {
@@ -111,12 +136,15 @@ export function MemberStudentForm({ parentId, parentName, parentPhone, onSuccess
     if (!mosqueId) return;
     setIsSubmitting(true);
     try {
-      const result = await createStudentByParent(mosqueId, parentId, {
+      const payload = {
         ...parsed.data,
         parent_id: parentId,
         parent_name: parentName,
         parent_phone: parentPhone,
-      });
+      };
+      const result = isEdit && student
+        ? await updateStudentByParent(student.id, mosqueId, parentId, payload)
+        : await createStudentByParent(mosqueId, parentId, payload);
       if (result.success) {
         setSuccess(true);
         setTimeout(() => {
@@ -133,8 +161,12 @@ export function MemberStudentForm({ parentId, parentName, parentPhone, onSuccess
   if (success) {
     return (
       <div className="py-8 text-center space-y-2">
-        <div className="text-emerald-600 font-semibold text-lg">{t("successTitle")}</div>
-        <p className="text-sm text-gray-500">{t("successDesc")}</p>
+        <div className="text-emerald-600 font-semibold text-lg">
+          {isEdit ? t("editSuccessTitle") : t("successTitle")}
+        </div>
+        <p className="text-sm text-gray-500">
+          {isEdit ? t("editSuccessDesc") : t("successDesc")}
+        </p>
       </div>
     );
   }
@@ -413,8 +445,8 @@ export function MemberStudentForm({ parentId, parentName, parentPhone, onSuccess
         />
       </div>
 
-      {/* Datenschutz */}
-      <div className="border-t pt-4 bg-gray-50 rounded-lg p-4">
+      {/* Datenschutz — nur beim Erstellen */}
+      {!isEdit && <div className="border-t pt-4 bg-gray-50 rounded-lg p-4">
         <p className="text-xs font-semibold text-gray-600 mb-2 uppercase tracking-wide">
           {t("privacySection")}
         </p>
@@ -435,7 +467,7 @@ export function MemberStudentForm({ parentId, parentName, parentPhone, onSuccess
         {errors.privacy_accepted && (
           <p className="text-xs text-red-600 mt-1">{errors.privacy_accepted}</p>
         )}
-      </div>
+      </div>}
 
       {submitError && (
         <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
@@ -456,7 +488,7 @@ export function MemberStudentForm({ parentId, parentName, parentPhone, onSuccess
           disabled={isSubmitting}
           className="flex-1 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50 transition-colors"
         >
-          {isSubmitting ? t("submitting") : t("submit")}
+          {isSubmitting ? t("submitting") : isEdit ? t("editSubmit") : t("submit")}
         </button>
       </div>
     </form>

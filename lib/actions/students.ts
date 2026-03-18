@@ -306,6 +306,69 @@ export async function createStudentByParent(
   }
 }
 
+/**
+ * Kind bearbeiten (Eltern-Kontext): Prüft ob parent_id === userId.
+ */
+export async function updateStudentByParent(
+  studentId: string,
+  mosqueId: string,
+  userId: string,
+  input: MemberStudentInput
+): Promise<ActionResult<Student>> {
+  try {
+    const validated = memberStudentSchema.parse(input);
+    const pb = await getAdminPB();
+
+    // Prüfen: Schüler gehört zu diesem Elternteil
+    const existing = await pb.collection("students").getOne(studentId);
+    if (existing.mosque_id !== mosqueId || existing.parent_id !== userId) {
+      return { success: false, error: "Schüler nicht gefunden" };
+    }
+
+    const mosque = await pb.collection("mosques").getOne(mosqueId);
+    const country = detectCountryFromMosque(mosque as { timezone?: string; address?: string; city?: string });
+    const normalizedParentPhone = applyPhoneNorm(validated.parent_phone || "", country);
+    const normalizedMotherPhone = applyPhoneNorm(validated.mother_phone || "", country);
+    const normalizedFatherPhone = applyPhoneNorm(validated.father_phone || "", country);
+
+    const record = await pb.collection("students").update(studentId, {
+      first_name: validated.first_name,
+      last_name: validated.last_name,
+      date_of_birth: validated.date_of_birth,
+      gender: validated.gender,
+      parent_name: validated.parent_name || "",
+      parent_phone: normalizedParentPhone,
+      address: validated.address || "",
+      school_name: validated.school_name,
+      school_class: validated.school_class,
+      health_notes: validated.health_notes || "",
+      mother_name: validated.mother_name || "",
+      mother_phone: normalizedMotherPhone,
+      father_name: validated.father_name || "",
+      father_phone: normalizedFatherPhone,
+      last_year_attended: validated.last_year_attended,
+      last_year_teacher: validated.last_year_teacher || "",
+      whatsapp_contact: validated.whatsapp_contact,
+      parent_is_member: validated.parent_is_member,
+      notes: validated.notes || "",
+    });
+
+    await logAudit({
+      mosqueId,
+      userId,
+      action: "student.updated_by_parent",
+      entityType: "student",
+      entityId: studentId,
+      details: { name: `${validated.first_name} ${validated.last_name}` },
+    });
+
+    return { success: true, data: mapRecord(record) };
+  } catch (error) {
+    console.error("[Students] Fehler beim Bearbeiten (Eltern):", error);
+    return { success: false, error: "Kind konnte nicht gespeichert werden" };
+  }
+}
+
 // ─── Bulk Import ────────────────────────────────────────────────────────────
 
 export interface ImportStudentRow {

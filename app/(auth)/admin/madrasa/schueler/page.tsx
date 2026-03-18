@@ -206,14 +206,14 @@ export default function AdminStudentsPage() {
             className="flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
           >
             <Upload className="h-4 w-4" />
-            <span>{tAdmin("importButton")}</span>
+            <span>{t("importButton")}</span>
           </button>
           <button
             onClick={() => setCreateDialogOpen(true)}
             className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700 transition-colors"
           >
             <Plus className="h-4 w-4" />
-            <span>{tAdmin("addButton")}</span>
+            <span>{t("addButton")}</span>
           </button>
         </div>
       </div>

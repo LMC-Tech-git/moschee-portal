@@ -826,6 +826,7 @@
       "children": {
         "title": "Çocuklarım",
         "addButton": "Çocuk ekle",
+        "editButton": "Düzenle",
         "empty": "Henüz kayıtlı çocuk yok.",
         "school": "Okul",
         "class": "Sınıf",
@@ -1634,6 +1635,10 @@
     "successTitle": "Çocuk başarıyla kaydedildi",
     "successDesc": "Çocuğunuz sisteme eklendi. Medrese yönetimi sizinle iletişime geçecektir.",
     "errorTitle": "Kayıt hatası",
+    "editTitle": "Çocuğu Düzenle",
+    "editSubmit": "Değişiklikleri Kaydet",
+    "editSuccessTitle": "Değişiklikler kaydedildi",
+    "editSuccessDesc": "Çocuğunuzun bilgileri güncellendi.",
     "address": "Adres",
     "addressPlaceholder": "Sokak, Posta Kodu, Şehir",
     "healthNotes": "Sağlık Notları",

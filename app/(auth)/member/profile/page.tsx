@@ -40,6 +40,7 @@ import {
   Baby,
   Plus,
   MapPin,
+  Pencil,
 } from "lucide-react";
 import { formatCurrencyCents } from "@/lib/utils";
 import type { Donation, EventRegistration } from "@/types";
@@ -549,6 +550,7 @@ function ChildrenTab({
   const [children, setChildren] = useState<Student[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showDialog, setShowDialog] = useState(false);
+  const [editChild, setEditChild] = useState<Student | null>(null);
 
   async function loadChildren() {
     setIsLoading(true);
@@ -609,6 +611,13 @@ function ChildrenTab({
                     )}
                   </div>
                 </div>
+                <button
+                  onClick={() => setEditChild(child)}
+                  className="rounded-lg p-2 text-gray-400 hover:bg-gray-200 hover:text-gray-600 transition-colors"
+                  title={t("member.profile.children.editButton")}
+                >
+                  <Pencil className="h-4 w-4" />
+                </button>
               </div>
             </div>
           ))}
@@ -621,6 +630,16 @@ function ChildrenTab({
         parentName={userName}
         parentPhone={userPhone}
         onClose={() => setShowDialog(false)}
+        onSuccess={loadChildren}
+      />
+
+      <AddChildDialog
+        open={!!editChild}
+        parentId={userId}
+        parentName={userName}
+        parentPhone={userPhone}
+        student={editChild}
+        onClose={() => setEditChild(null)}
         onSuccess={loadChildren}
       />
     </div>

@@ -826,6 +826,7 @@
       "children": {
         "title": "Meine Kinder",
         "addButton": "Kind hinzufügen",
+        "editButton": "Bearbeiten",
         "empty": "Noch keine Kinder eingetragen.",
         "school": "Schule",
         "class": "Klasse",
@@ -1634,6 +1635,10 @@
     "successTitle": "Kind erfolgreich angemeldet",
     "successDesc": "Ihr Kind wurde eingetragen. Die Madrasa-Verwaltung wird sich bei Ihnen melden.",
     "errorTitle": "Fehler beim Speichern",
+    "editTitle": "Kind bearbeiten",
+    "editSubmit": "Änderungen speichern",
+    "editSuccessTitle": "Änderungen gespeichert",
+    "editSuccessDesc": "Die Daten Ihres Kindes wurden aktualisiert.",
     "address": "Anschrift",
     "addressPlaceholder": "Straße, PLZ, Stadt",
     "healthNotes": "Gesundheitshinweise",
