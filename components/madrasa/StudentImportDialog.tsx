@@ -108,8 +108,8 @@ interface StudentImportDialogProps {
   open: boolean;
   onClose: () => void;
   mosqueId: string;
-  courseId: string;
-  courseTitle: string;
+  courseId?: string | null;
+  courseTitle?: string;
   onSuccess: () => void;
 }
 
@@ -117,7 +117,7 @@ export function StudentImportDialog({
   open,
   onClose,
   mosqueId,
-  courseId,
+  courseId = null,
   courseTitle,
   onSuccess,
 }: StudentImportDialogProps) {
@@ -292,8 +292,9 @@ export function StudentImportDialog({
         {step === "upload" && (
           <div className="space-y-4">
             <p className="text-sm text-gray-600">
-              Importieren Sie Schüler aus einer CSV- oder Excel-Datei in den Kurs{" "}
-              <strong>&quot;{courseTitle}&quot;</strong>.
+              {courseTitle
+                ? <>Importieren Sie Schüler aus einer CSV- oder Excel-Datei in den Kurs{" "}<strong>&quot;{courseTitle}&quot;</strong>.</>
+                : "Importieren Sie Schüler aus einer CSV- oder Excel-Datei in die Schülerliste."}
             </p>
 
             {/* Dropzone */}

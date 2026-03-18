@@ -414,7 +414,7 @@ export async function importStudentsBulk(
  */
 export async function getParentCandidates(
   mosqueId: string
-): Promise<ActionResult<{ id: string; name: string }[]>> {
+): Promise<ActionResult<{ id: string; name: string; phone: string }[]>> {
   try {
     const pb = await getAdminPB();
     const records = await pb.collection("users").getFullList({
@@ -424,10 +424,42 @@ export async function getParentCandidates(
     const parents = records.map((r) => ({
       id: r.id,
       name: `${r.first_name || ""} ${r.last_name || ""}`.trim() || r.email || r.id,
+      phone: r.phone || "",
     }));
     return { success: true, data: parents };
   } catch (error) {
     console.error("[Students] Fehler beim Laden der Eltern:", error);
     return { success: false, error: "Eltern konnten nicht geladen werden" };
+  }
+}
+
+/**
+ * Aktive Schüler einer Moschee, die noch NICHT in einem bestimmten Kurs eingeschrieben sind.
+ * Wird für den StudentLookup auf der Kurs-Seite verwendet.
+ */
+export async function getUnenrolledStudents(
+  courseId: string,
+  mosqueId: string
+): Promise<ActionResult<Student[]>> {
+  try {
+    const pb = await getAdminPB();
+    const [studentsResult, enrolledRecords] = await Promise.all([
+      pb.collection("students").getFullList({
+        filter: `mosque_id = "${mosqueId}" && status = "active"`,
+        sort: "first_name,last_name",
+      }),
+      pb.collection("course_enrollments").getFullList({
+        filter: `course_id = "${courseId}" && status != "dropped"`,
+        fields: "student_id",
+      }),
+    ]);
+    const enrolledIds = new Set(enrolledRecords.map((r) => r.student_id as string));
+    const unenrolled = studentsResult
+      .filter((r) => !enrolledIds.has(r.id))
+      .map(mapRecord);
+    return { success: true, data: unenrolled };
+  } catch (error) {
+    console.error("[Students] Fehler beim Laden der nicht-eingeschriebenen Schüler:", error);
+    return { success: false, error: "Schüler konnten nicht geladen werden" };
   }
 }

@@ -131,13 +131,11 @@ export default function AdminMadrasaPage() {
       {/* KPI-Kacheln */}
       {kpis !== null && (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Link href="/admin/madrasa/schueler" className="block">
-            <KPITile
-              icon={<Users className="h-5 w-5 text-emerald-600" />}
-              label={t("kpiTotalStudents")}
-              value={kpis.totalStudents}
-            />
-          </Link>
+          <KPITile
+            icon={<Users className="h-5 w-5 text-emerald-600" />}
+            label={t("kpiTotalStudents")}
+            value={kpis.totalStudents}
+          />
           <KPITile
             icon={<BookOpen className="h-5 w-5 text-blue-600" />}
             label={t("kpiEnrolledStudents")}
@@ -164,6 +162,13 @@ export default function AdminMadrasaPage() {
               {t("fees")}
             </Link>
           )}
+          <Link
+            href="/admin/madrasa/schueler"
+            className="inline-flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          >
+            <Users className="h-4 w-4" />
+            {t("students")}
+          </Link>
           <Link
             href="/admin/madrasa/schuljahre"
             className="inline-flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"

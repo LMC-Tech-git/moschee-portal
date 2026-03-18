@@ -277,3 +277,29 @@ export async function getStudentCandidates(
     return { success: false, error: "Schüler konnten nicht geladen werden" };
   }
 }
+
+/**
+ * Alle student_ids mit aktiver Einschreibung einer Moschee zurückgeben.
+ * Wird für den "Ohne Kurs"-Filter auf der Schülerliste verwendet.
+ */
+export async function getActiveEnrollmentStudentIds(
+  mosqueId: string
+): Promise<ActionResult<string[]>> {
+  try {
+    const pb = await getAdminPB();
+    const records = await pb.collection("course_enrollments").getFullList({
+      filter: `mosque_id = "${mosqueId}" && status = "enrolled"`,
+      fields: "student_id",
+    });
+    const seen = new Set<string>();
+    const ids: string[] = [];
+    records.forEach((r) => {
+      const sid = r.student_id as string;
+      if (!seen.has(sid)) { seen.add(sid); ids.push(sid); }
+    });
+    return { success: true, data: ids };
+  } catch (error) {
+    console.error("[Enrollments] Fehler beim Laden der Einschreibungs-IDs:", error);
+    return { success: false, error: "Einschreibungs-IDs konnten nicht geladen werden" };
+  }
+}
