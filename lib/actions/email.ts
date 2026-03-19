@@ -124,12 +124,17 @@ export async function sendFeeReminderEmail(
 
     const amountEur = ((fee.amount_cents as number) / 100).toFixed(2).replace(".", ",");
 
+    // Deep-Link: Profil → Madrasa-Tab mit vorausgewähltem Monat
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://moschee.app";
+    const paymentUrl = `${baseUrl}/member/profile?tab=madrasa&month=${fee.month_key}`;
+
     const html = renderFeeReminder({
       mosqueName: mosque.name,
       parentName: parent.name || undefined,
       studentName: `${student.first_name} ${student.last_name}`,
       monthLabel,
       amountEur,
+      paymentUrl,
       accentColor: mosque.brand_primary_color || undefined,
     });
 
@@ -226,12 +231,17 @@ export async function sendBulkFeeReminders(
 
         const amountEur = ((fee.amount_cents as number) / 100).toFixed(2).replace(".", ",");
 
+        // Deep-Link: Profil → Madrasa-Tab mit vorausgewähltem Monat
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://moschee.app";
+        const paymentUrl = `${baseUrl}/member/profile?tab=madrasa&month=${monthKey}`;
+
         const html = renderFeeReminder({
           mosqueName: mosque.name,
           parentName: parent.name || undefined,
           studentName: `${student.first_name} ${student.last_name}`,
           monthLabel,
           amountEur,
+          paymentUrl,
           accentColor: mosque.brand_primary_color || undefined,
         });
 
