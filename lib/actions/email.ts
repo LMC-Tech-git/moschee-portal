@@ -186,20 +186,20 @@ export async function sendBulkFeeReminders(
   mosqueId: string,
   userId: string,
   monthKey: string
-): Promise<{ success: boolean; sent: number; skipped: number; failed: number; error?: string }> {
+): Promise<{ success: boolean; sent: number; skippedNoContact: number; skippedAlreadyReminded: number; failed: number; error?: string }> {
   try {
     const pb = await getAdminPB();
 
     // Moschee laden
     const mosque = await pb.collection("mosques").getOne(mosqueId);
 
-    // Alle offenen Gebühren (unabhängig ob bereits gemahnt)
+    // Alle offenen Gebühren für diesen Monat
     const fees = await pb.collection("student_fees").getFullList({
       filter: `mosque_id = "${mosqueId}" && month_key = "${monthKey}" && status = "open"`,
     });
 
     if (fees.length === 0) {
-      return { success: true, sent: 0, skipped: 0, failed: 0 };
+      return { success: true, sent: 0, skippedNoContact: 0, skippedAlreadyReminded: 0, failed: 0 };
     }
 
     // Monat formatieren
@@ -208,24 +208,31 @@ export async function sendBulkFeeReminders(
       .toLocaleDateString("de-DE", { month: "long", year: "numeric" });
 
     let sent = 0;
-    let skipped = 0;
+    let skippedNoContact = 0;    // kein Elternteil / keine E-Mail
+    let skippedAlreadyReminded = 0; // bereits gemahnt
     let failed = 0;
 
     for (let i = 0; i < fees.length; i++) {
       const fee = fees[i];
 
       try {
+        // Bereits gemahnt → überspringen
+        if (fee.reminder_sent_at) {
+          skippedAlreadyReminded++;
+          continue;
+        }
+
         // Schüler laden
         const student = await pb.collection("students").getOne(fee.student_id);
         if (!student.parent_id) {
-          skipped++;
+          skippedNoContact++;
           continue;
         }
 
         // Elternteil laden
         const parent = await pb.collection("users").getOne(student.parent_id);
         if (!parent.email) {
-          skipped++;
+          skippedNoContact++;
           continue;
         }
 
@@ -276,13 +283,13 @@ export async function sendBulkFeeReminders(
       action: "fee_reminder.bulk_sent",
       entityType: "student_fees",
       entityId: "",
-      details: { month_key: monthKey, sent, skipped, failed },
+      details: { month_key: monthKey, sent, skippedNoContact, skippedAlreadyReminded, failed },
     });
 
-    return { success: true, sent, skipped, failed };
+    return { success: true, sent, skippedNoContact, skippedAlreadyReminded, failed };
   } catch (error) {
     console.error("[actions/email] sendBulkFeeReminders:", error);
-    return { success: false, sent: 0, skipped: 0, failed: 0, error: "Fehler beim Massen-Versand" };
+    return { success: false, sent: 0, skippedNoContact: 0, skippedAlreadyReminded: 0, failed: 0, error: "Fehler beim Massen-Versand" };
   }
 }
 

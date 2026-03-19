@@ -69,7 +69,7 @@ export default function AdminMadrasaGebuehrenPage() {
   const [reminderFeeId, setReminderFeeId] = useState<string | null>(null);
   const [reminderResult, setReminderResult] = useState<{ feeId: string; success: boolean; msg: string } | null>(null);
   const [isBulkReminding, setIsBulkReminding] = useState(false);
-  const [bulkReminderResult, setBulkReminderResult] = useState<{ sent: number; skipped: number; failed: number } | null>(null);
+  const [bulkReminderResult, setBulkReminderResult] = useState<{ sent: number; skippedNoContact: number; skippedAlreadyReminded: number; failed: number } | null>(null);
   const [error, setError] = useState("");
 
   // Kurs-Filter
@@ -197,7 +197,7 @@ export default function AdminMadrasaGebuehrenPage() {
     setIsBulkReminding(false);
     if (result.success) {
       await loadData(); // Zeilen mit reminder_sent_at aktualisieren
-      setBulkReminderResult({ sent: result.sent, skipped: result.skipped, failed: result.failed });
+      setBulkReminderResult({ sent: result.sent, skippedNoContact: result.skippedNoContact, skippedAlreadyReminded: result.skippedAlreadyReminded, failed: result.failed });
     } else {
       setError(result.error || tCommon("error"));
     }
@@ -374,9 +374,24 @@ export default function AdminMadrasaGebuehrenPage() {
 
       {/* Bulk-Mahnung Ergebnis */}
       {bulkReminderResult && (
-        <div className="flex items-center gap-2 rounded-lg border border-orange-200 bg-orange-50 p-3 text-sm text-orange-700">
-          <Bell className="h-4 w-4 shrink-0" />
-          {t("bulkReminderResult", { sent: bulkReminderResult.sent, skipped: bulkReminderResult.skipped, failed: bulkReminderResult.failed })}
+        <div className="rounded-lg border border-orange-200 bg-orange-50 p-3 text-sm text-orange-700">
+          <div className="flex items-center gap-2 font-medium">
+            <Bell className="h-4 w-4 shrink-0" />
+            {bulkReminderResult.sent === 0 && bulkReminderResult.skippedAlreadyReminded > 0
+              ? "Alle offenen Gebühren wurden für diesen Monat bereits gemahnt."
+              : `${bulkReminderResult.sent} Mahnung${bulkReminderResult.sent !== 1 ? "en" : ""} gesendet.`}
+          </div>
+          <ul className="mt-1.5 ml-6 space-y-0.5 text-xs text-orange-600 list-disc">
+            {bulkReminderResult.skippedAlreadyReminded > 0 && (
+              <li>{bulkReminderResult.skippedAlreadyReminded} bereits gemahnt (übersprungen)</li>
+            )}
+            {bulkReminderResult.skippedNoContact > 0 && (
+              <li>{bulkReminderResult.skippedNoContact} ohne Elternkonto oder E-Mail (übersprungen)</li>
+            )}
+            {bulkReminderResult.failed > 0 && (
+              <li>{bulkReminderResult.failed} fehlgeschlagen</li>
+            )}
+          </ul>
         </div>
       )}
 
