@@ -38,7 +38,7 @@ interface ActionResult<T = void> {
 
 // ─── Sichtbarkeits-Check (kanonisch) ─────────────────────────────────────────
 
-export function isSponsorVisible(sponsor: Sponsor): boolean {
+export async function isSponsorVisible(sponsor: Sponsor): Promise<boolean> {
   if (!sponsor.is_active || !sponsor.is_approved) return false;
   const now = new Date();
   if (sponsor.start_date) {
