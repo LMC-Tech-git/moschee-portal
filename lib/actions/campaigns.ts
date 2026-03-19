@@ -69,7 +69,7 @@ async function computeProgress(
  */
 function computeProgressFromDonations(
   campaignId: string,
-  allDonations: Array<{ campaign_id: string; status: string; amount_cents?: number; amount?: number; donor_email?: string }>
+  allDonations: RecordModel[]
 ): { raised_cents: number; donor_count: number } {
   const paid = allDonations.filter(
     (d) => d.campaign_id === campaignId && d.status === "paid"
