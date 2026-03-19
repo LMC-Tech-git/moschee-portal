@@ -1711,7 +1711,7 @@ function SponsorsTab({
   return (
     <div className="space-y-6">
       <StatusMessage status={status} />
-      <SectionCard title={t("sponsors.title")} desc={t("sponsors.desc")}>
+      <SectionCard title={t("sponsors.title")} description={t("sponsors.desc")}>
         <div className="space-y-4">
           <label className="flex cursor-pointer items-start gap-3">
             <div className="relative mt-0.5">
