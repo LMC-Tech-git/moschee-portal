@@ -141,8 +141,8 @@ export default function AdminMadrasaGebuehrenPage() {
     const result = await createMonthlyFees(mosqueId, user.id, monthKey, amount);
     setIsCreating(false);
     if (result.success && result.data) {
-      setCreateResult(result.data);
       await loadData();
+      setCreateResult(result.data);
     } else {
       setError(result.error || "Fehler beim Erstellen");
     }
