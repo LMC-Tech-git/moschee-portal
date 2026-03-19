@@ -38,6 +38,7 @@
     "home": "Startseite",
     "events": "Veranstaltungen",
     "donate": "Spenden",
+    "sponsors": "Förderpartner",
     "login": "Anmelden",
     "register": "Registrieren",
     "logout": "Abmelden",
@@ -1833,8 +1834,10 @@
     "noSponsors": "Aktuell keine Förderpartner vorhanden.",
     "visitWebsite": "Zur Website",
     "filterAll": "Alle",
+    "backToHome": "\u2190 Zur\u00fcck zur Startseite",
     "admin": {
       "title": "Förderpartner verwalten",
+      "subtitle": "Verwalten Sie Förderpartner und Sponsoren Ihrer Moschee.",
       "add": "Neuer Sponsor",
       "empty": "Noch keine Förderpartner angelegt.",
       "name": "Name",

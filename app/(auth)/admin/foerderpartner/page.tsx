@@ -8,7 +8,6 @@ import {
   createSponsor,
   updateSponsor,
   deleteSponsor,
-  approveSponsor,
   toggleSponsorActive,
   markSponsorPaid,
   uploadSponsorLogo,
@@ -23,7 +22,6 @@ import {
   Plus,
   Pencil,
   Trash2,
-  CheckCircle,
   XCircle,
   Upload,
   Globe,
@@ -116,7 +114,6 @@ export default function AdminFoerderpartnerPage() {
   const [isPaying, setIsPaying] = useState(false);
 
   // In-flight action trackers
-  const [approvingId, setApprovingId] = useState<string | null>(null);
   const [togglingId, setTogglingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [uploadingId, setUploadingId] = useState<string | null>(null);
@@ -235,21 +232,6 @@ export default function AdminFoerderpartnerPage() {
     setDeletingId(null);
   }
 
-  // ─── Approve ──────────────────────────────────────────────────────────────
-
-  async function handleApprove(sponsor: Sponsor, approved: boolean) {
-    if (!user || !mosqueId) return;
-    setApprovingId(sponsor.id);
-    const result = await approveSponsor(mosqueId, user.id, sponsor.id, approved);
-    if (result.success) {
-      await loadData();
-      showSuccess(t("approveSuccess"));
-    } else {
-      setError(result.error ?? "Fehler beim Speichern.");
-    }
-    setApprovingId(null);
-  }
-
   // ─── Toggle Active ─────────────────────────────────────────────────────────
 
   async function handleToggleActive(sponsor: Sponsor) {
@@ -322,7 +304,7 @@ export default function AdminFoerderpartnerPage() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">{t("title")}</h1>
           <p className="text-sm text-gray-500">
-            Verwalten Sie Förderpartner und Sponsoren Ihrer Moschee.
+            {t("subtitle")}
           </p>
         </div>
         <button
@@ -477,29 +459,17 @@ export default function AdminFoerderpartnerPage() {
                         ) : null}
                       </td>
 
-                      {/* Approval + Active badges */}
+                      {/* Active badge */}
                       <td className="px-4 py-3 hidden sm:table-cell">
-                        <div className="flex flex-col gap-1">
-                          {sponsor.is_approved ? (
-                            <span className="inline-flex w-fit items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">
-                              <CheckCircle className="h-3 w-3" />
-                              {t("approved")}
-                            </span>
-                          ) : (
-                            <span className="inline-flex w-fit rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500">
-                              {t("pendingApproval")}
-                            </span>
-                          )}
-                          {sponsor.is_active ? (
-                            <span className="inline-flex w-fit rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
-                              {t("active")}
-                            </span>
-                          ) : (
-                            <span className="inline-flex w-fit rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500">
-                              {t("inactive")}
-                            </span>
-                          )}
-                        </div>
+                        {sponsor.is_active ? (
+                          <span className="inline-flex w-fit rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
+                            {t("active")}
+                          </span>
+                        ) : (
+                          <span className="inline-flex w-fit rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500">
+                            {t("inactive")}
+                          </span>
+                        )}
                       </td>
 
                       {/* Period + expiry */}
@@ -542,30 +512,6 @@ export default function AdminFoerderpartnerPage() {
                               <Upload className="h-3 w-3" />
                             )}
                             <span className="hidden sm:inline">{t("uploadLogo")}</span>
-                          </button>
-
-                          {/* Approve / Unapprove */}
-                          <button
-                            type="button"
-                            onClick={() => handleApprove(sponsor, !sponsor.is_approved)}
-                            disabled={approvingId === sponsor.id}
-                            title={sponsor.is_approved ? t("unapprove") : t("approve")}
-                            className={`inline-flex items-center gap-1 rounded px-2 py-1 text-xs font-medium disabled:opacity-50 ${
-                              sponsor.is_approved
-                                ? "text-gray-600 hover:bg-gray-100"
-                                : "text-emerald-700 hover:bg-emerald-50"
-                            }`}
-                          >
-                            {approvingId === sponsor.id ? (
-                              <span className="h-3 w-3 inline-block animate-spin rounded-full border-2 border-emerald-400 border-t-transparent" />
-                            ) : sponsor.is_approved ? (
-                              <XCircle className="h-3 w-3" />
-                            ) : (
-                              <CheckCircle className="h-3 w-3" />
-                            )}
-                            <span className="hidden md:inline">
-                              {sponsor.is_approved ? t("unapprove") : t("approve")}
-                            </span>
                           </button>
 
                           {/* Activate / Deactivate */}

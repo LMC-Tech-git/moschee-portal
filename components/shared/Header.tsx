@@ -24,6 +24,7 @@ import {
   Settings,
   Crown,
   Edit3,
+  Handshake,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useAuth } from "@/lib/auth-context";
@@ -152,6 +153,13 @@ export default function Header() {
               >
                 <Heart className="h-4 w-4" aria-hidden="true" />
                 {t("nav.donate")}
+              </Link>
+              <Link
+                href={`/${slug}/foerderpartner`}
+                className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-emerald-50 hover:text-emerald-600"
+              >
+                <Handshake className="h-4 w-4" aria-hidden="true" />
+                {t("nav.sponsors")}
               </Link>
             </>
           )}
@@ -297,6 +305,14 @@ export default function Header() {
               >
                 <Heart className="h-4 w-4" />
                 {t("nav.donate")}
+              </Link>
+              <Link
+                href={`/${slug}/foerderpartner`}
+                className="flex items-center gap-2 rounded-lg px-4 py-3 text-sm font-medium text-gray-700 hover:bg-emerald-50 hover:text-emerald-600"
+                onClick={closeMobileMenu}
+              >
+                <Handshake className="h-4 w-4" />
+                {t("nav.sponsors")}
               </Link>
             </>
           ) : (

@@ -303,6 +303,7 @@ export async function toggleSponsorActive(
 
     const record = await pb.collection("sponsors").update(sponsorId, {
       is_active: active,
+      is_approved: active,
     });
 
     await logAudit({
@@ -311,7 +312,7 @@ export async function toggleSponsorActive(
       action: active ? "sponsor.activated" : "sponsor.deactivated",
       entityType: "sponsors",
       entityId: sponsorId,
-      after: { name: existing.name, is_active: active },
+      after: { name: existing.name, is_active: active, is_approved: active },
     });
 
     return { success: true, data: mapRecord(record) };

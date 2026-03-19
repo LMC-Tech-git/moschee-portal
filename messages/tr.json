@@ -38,6 +38,7 @@
     "home": "Ana Sayfa",
     "events": "Etkinlikler",
     "donate": "Bağış",
+    "sponsors": "Destek Ortakları",
     "login": "Giriş Yap",
     "register": "Kayıt Ol",
     "logout": "Çıkış Yap",
@@ -1833,8 +1834,10 @@
     "noSponsors": "Şu anda destek ortağı bulunmamaktadır.",
     "visitWebsite": "Web Sitesi",
     "filterAll": "Tümü",
+    "backToHome": "\u2190 Ana Sayfaya D\u00f6n",
     "admin": {
       "title": "Destek Ortaklarını Yönet",
+      "subtitle": "Caminizin destek ortaklarını ve sponsorlarını yönetin.",
       "add": "Yeni Ortak",
       "empty": "Henüz destek ortağı eklenmemiş.",
       "name": "Ad",
