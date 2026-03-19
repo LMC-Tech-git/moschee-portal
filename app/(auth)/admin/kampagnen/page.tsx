@@ -251,6 +251,9 @@ export default function AdminCampaignsPage() {
                               {Math.round(progressPct)}%
                             </span>
                           </div>
+                          <div className="mt-0.5 text-xs text-gray-400 whitespace-nowrap">
+                            {formatCurrencyCents(campaign.raised_cents || 0)}
+                          </div>
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center justify-end gap-1">
