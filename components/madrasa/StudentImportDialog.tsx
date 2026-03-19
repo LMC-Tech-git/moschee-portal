@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth-context";
+import { useTranslations, useLocale } from "next-intl";
 import { importStudentsBulk } from "@/lib/actions/students";
 import type { ImportStudentRow, ImportStudentsResult } from "@/lib/actions/students";
 import { cn } from "@/lib/utils";
@@ -24,13 +25,21 @@ import { cn } from "@/lib/utils";
 // ─── Column patterns for auto-detection ──────────────────────────────────────
 
 const COL_PATTERNS = {
-  first_name: ["vorname", "firstname", "first_name", "givenname", "vname"],
-  last_name: ["nachname", "lastname", "last_name", "surname", "familienname", "nname"],
-  date_of_birth: ["geburtstag", "geburtsdatum", "dateofbirth", "date_of_birth", "dob", "geb"],
-  gender: ["geschlecht", "gender", "sex"],
-  parent_name: ["elternname", "eltern_name", "parentname", "parent_name", "elternteil", "eltern"],
-  parent_phone: ["telefon", "phone", "parent_phone", "tel", "handy", "mobilnummer"],
-  notes: ["notizen", "notes", "anmerkungen", "bemerkungen", "hinweise"],
+  first_name: ["vorname", "firstname", "first_name", "givenname", "vname", "adi", "ad"],
+  last_name: ["nachname", "lastname", "last_name", "surname", "familienname", "nname", "soyadi", "soyad"],
+  date_of_birth: ["geburtstag", "geburtsdatum", "dateofbirth", "date_of_birth", "dob", "geb", "dogumtarihi", "dogum"],
+  gender: ["geschlecht", "gender", "sex", "cinsiyet"],
+  address: ["adresse", "address", "anschrift", "adres"],
+  school_name: ["schule", "school", "schulname", "okul"],
+  school_class: ["klasse", "class", "schulklasse", "sinif", "sınıf"],
+  parent_name: ["elternname", "eltern_name", "parentname", "parent_name", "elternteil", "eltern", "veliadi", "veliad"],
+  parent_phone: ["telefon", "phone", "parent_phone", "tel", "handy", "mobilnummer", "velitelefon"],
+  mother_name: ["muttername", "mother_name", "mutti", "anneadi", "anne"],
+  mother_phone: ["muttertelefon", "mother_phone", "annetelefon"],
+  father_name: ["vatername", "father_name", "vati", "babaadi", "baba"],
+  father_phone: ["vatertelefon", "father_phone", "babatelefon"],
+  health_notes: ["gesundheitshinweise", "health_notes", "health", "gesundheit", "saglık", "saglik", "sağlık"],
+  notes: ["notizen", "notes", "anmerkungen", "bemerkungen", "hinweise", "notlar"],
 } as const;
 
 type ColKey = keyof typeof COL_PATTERNS;
@@ -38,7 +47,10 @@ type ColKey = keyof typeof COL_PATTERNS;
 function findColIndex(headers: string[], key: ColKey): number {
   const patterns = COL_PATTERNS[key];
   for (let i = 0; i < headers.length; i++) {
-    const h = (headers[i] || "").toLowerCase().replace(/[\s_-]/g, "");
+    const h = (headers[i] || "").toLowerCase().replace(/[\s_\-ığüşöçİĞÜŞÖÇ]/g, (c) => {
+      const map: Record<string, string> = { ı: "i", ğ: "g", ü: "u", ş: "s", ö: "o", ç: "c", İ: "i", Ğ: "g", Ü: "u", Ş: "s", Ö: "o", Ç: "c", " ": "", "_": "", "-": "" };
+      return map[c] ?? "";
+    });
     for (const p of patterns) {
       if (h === p.replace(/[\s_-]/g, "")) return i;
     }
@@ -72,23 +84,33 @@ function normalizeDate(value: unknown): string {
 function normalizeGender(value: unknown): string {
   if (!value) return "";
   const v = String(value).toLowerCase().trim();
-  if (["m", "male", "männlich", "mann", "junge", "knabe"].includes(v)) return "male";
-  if (["w", "f", "female", "weiblich", "frau", "mädchen", "girl"].includes(v)) return "female";
+  if (["m", "e", "male", "männlich", "mann", "junge", "knabe", "erkek"].includes(v)) return "male";
+  if (["w", "k", "f", "female", "weiblich", "frau", "mädchen", "girl", "kız", "kadın"].includes(v)) return "female";
   return "";
 }
 
-// ─── CSV Template download ───────────────────────────────────────────────────
+// ─── CSV Template ─────────────────────────────────────────────────────────────
 
-const CSV_TEMPLATE =
-  "Vorname,Nachname,Geburtstag,Geschlecht,Eltern_Name,Telefon,Notizen\n" +
-  "Max,Mustermann,15.03.2010,m,Erika Mustermann,+49 731 123456,\n";
+function buildCsvTemplate(locale: string): string {
+  if (locale === "tr") {
+    return (
+      "Adı,Soyadı,Doğum_Tarihi,Cinsiyet,Adres,Okul,Sınıf,Veli_Adı,Telefon,Anne_Adı,Anne_Telefon,Baba_Adı,Baba_Telefon,Sağlık_Notları,Notlar\n" +
+      "Ahmet,Yılmaz,15.03.2010,e,Blumenstr. 5 89073 Ulm,Schiller-Gymnasium,5a,Fatma Yılmaz,+49 731 123456,Fatma Yılmaz,+49 731 123456,Mehmet Yılmaz,+49 731 654321,,\n"
+    );
+  }
+  return (
+    "Vorname,Nachname,Geburtstag,Geschlecht,Adresse,Schule,Klasse,Eltern_Name,Telefon,Mutter_Name,Mutter_Telefon,Vater_Name,Vater_Telefon,Gesundheitshinweise,Notizen\n" +
+    "Max,Mustermann,15.03.2010,m,Blumenstr. 5 89073 Ulm,Schiller-Gymnasium,5a,Erika Mustermann,+49 731 123456,Erika Mustermann,+49 731 123456,Hans Mustermann,+49 731 654321,,\n"
+  );
+}
 
-function downloadTemplate() {
-  const blob = new Blob(["\uFEFF" + CSV_TEMPLATE], { type: "text/csv;charset=utf-8;" });
+function downloadTemplate(locale: string) {
+  const csv = buildCsvTemplate(locale);
+  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = "schueler-vorlage.csv";
+  a.download = locale === "tr" ? "ogrenci-sablonu.csv" : "schueler-vorlage.csv";
   a.click();
   URL.revokeObjectURL(url);
 }
@@ -122,6 +144,8 @@ export function StudentImportDialog({
   onSuccess,
 }: StudentImportDialogProps) {
   const { user } = useAuth();
+  const t = useTranslations("studentImport");
+  const locale = useLocale();
   const fileRef = useRef<HTMLInputElement>(null);
   const [step, setStep] = useState<Step>("upload");
   const [fileName, setFileName] = useState("");
@@ -156,9 +180,7 @@ export function StudentImportDialog({
       });
 
       if (!raw || raw.length < 2) {
-        setParseError(
-          "Die Datei enthält keine Daten. Mindestens eine Kopfzeile und eine Datenzeile werden benötigt."
-        );
+        setParseError(t("errorNoData"));
         return;
       }
 
@@ -169,17 +191,21 @@ export function StudentImportDialog({
         last_name: findColIndex(headers, "last_name"),
         date_of_birth: findColIndex(headers, "date_of_birth"),
         gender: findColIndex(headers, "gender"),
+        address: findColIndex(headers, "address"),
+        school_name: findColIndex(headers, "school_name"),
+        school_class: findColIndex(headers, "school_class"),
         parent_name: findColIndex(headers, "parent_name"),
         parent_phone: findColIndex(headers, "parent_phone"),
+        mother_name: findColIndex(headers, "mother_name"),
+        mother_phone: findColIndex(headers, "mother_phone"),
+        father_name: findColIndex(headers, "father_name"),
+        father_phone: findColIndex(headers, "father_phone"),
+        health_notes: findColIndex(headers, "health_notes"),
         notes: findColIndex(headers, "notes"),
       };
 
       if (colIdx.first_name === -1 || colIdx.last_name === -1) {
-        setParseError(
-          `Spalten "Vorname" und "Nachname" konnten nicht gefunden werden.\n` +
-            `Erkannte Spalten: ${headers.filter(Boolean).join(", ")}.\n` +
-            `Bitte verwenden Sie die Vorlage.`
-        );
+        setParseError(t("errorNoColumns", { cols: headers.filter(Boolean).join(", ") }));
         return;
       }
 
@@ -200,19 +226,27 @@ export function StudentImportDialog({
 
         parsed.push({
           _rowNum: i + 1,
-          _warn: !dob ? "Geburtstag fehlt oder unbekanntes Format" : undefined,
+          _warn: !dob ? t("warnDobMissing") : undefined,
           first_name: firstName,
           last_name: lastName,
           date_of_birth: dob,
           gender: normalizeGender(get(colIdx.gender)),
+          address: get(colIdx.address),
+          school_name: get(colIdx.school_name),
+          school_class: get(colIdx.school_class),
           parent_name: get(colIdx.parent_name),
           parent_phone: get(colIdx.parent_phone),
+          mother_name: get(colIdx.mother_name),
+          mother_phone: get(colIdx.mother_phone),
+          father_name: get(colIdx.father_name),
+          father_phone: get(colIdx.father_phone),
+          health_notes: get(colIdx.health_notes),
           notes: get(colIdx.notes),
         });
       }
 
       if (parsed.length === 0) {
-        setParseError("Keine Datenzeilen gefunden.");
+        setParseError(t("errorEmpty"));
         return;
       }
 
@@ -220,9 +254,7 @@ export function StudentImportDialog({
       setStep("preview");
     } catch (err: unknown) {
       console.error(err);
-      setParseError(
-        "Datei konnte nicht gelesen werden. Bitte stellen Sie sicher, dass es sich um eine gültige CSV- oder Excel-Datei handelt."
-      );
+      setParseError(t("errorParse"));
     }
   }
 
@@ -249,8 +281,16 @@ export function StudentImportDialog({
         last_name: r.last_name,
         date_of_birth: r.date_of_birth,
         gender: r.gender,
+        address: r.address,
+        school_name: r.school_name,
+        school_class: r.school_class,
         parent_name: r.parent_name,
         parent_phone: r.parent_phone,
+        mother_name: r.mother_name,
+        mother_phone: r.mother_phone,
+        father_name: r.father_name,
+        father_phone: r.father_phone,
+        health_notes: r.health_notes,
         notes: r.notes,
       }));
 
@@ -261,7 +301,7 @@ export function StudentImportDialog({
       setStep("result");
       onSuccess();
     } else {
-      setParseError(actionResult.error || "Import fehlgeschlagen");
+      setParseError(actionResult.error || t("errorImport"));
       setIsImporting(false);
     }
     setIsImporting(false);
@@ -284,7 +324,7 @@ export function StudentImportDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FileSpreadsheet className="h-5 w-5 text-emerald-600" />
-            Schüler importieren
+            {t("title")}
           </DialogTitle>
         </DialogHeader>
 
@@ -292,9 +332,14 @@ export function StudentImportDialog({
         {step === "upload" && (
           <div className="space-y-4">
             <p className="text-sm text-gray-600">
-              {courseTitle
-                ? <>Importieren Sie Schüler aus einer CSV- oder Excel-Datei in den Kurs{" "}<strong>&quot;{courseTitle}&quot;</strong>.</>
-                : "Importieren Sie Schüler aus einer CSV- oder Excel-Datei in die Schülerliste."}
+              {courseTitle ? (
+                <>
+                  {t("descriptionCourse")}{" "}
+                  <strong>&quot;{courseTitle}&quot;</strong>.
+                </>
+              ) : (
+                t("description")
+              )}
             </p>
 
             {/* Dropzone */}
@@ -317,13 +362,11 @@ export function StudentImportDialog({
               onKeyDown={(e) => {
                 if (e.key === "Enter" || e.key === " ") fileRef.current?.click();
               }}
-              aria-label="Datei hochladen"
+              aria-label={t("dropzone")}
             >
               <Upload className="mx-auto mb-3 h-10 w-10 text-gray-400" />
-              <p className="font-medium text-gray-700">Datei hierher ziehen oder klicken</p>
-              <p className="mt-1 text-sm text-gray-500">
-                Unterstützte Formate: .csv, .xlsx, .xls
-              </p>
+              <p className="font-medium text-gray-700">{t("dropzone")}</p>
+              <p className="mt-1 text-sm text-gray-500">{t("formats")}</p>
               <input
                 ref={fileRef}
                 type="file"
@@ -343,30 +386,29 @@ export function StudentImportDialog({
             {/* Template download */}
             <div className="flex items-center gap-2 rounded-lg bg-gray-50 p-3">
               <Download className="h-4 w-4 shrink-0 text-gray-500" />
-              <span className="text-sm text-gray-600">Noch keine Vorlage?&nbsp;</span>
+              <span className="text-sm text-gray-600">{t("noTemplate")}&nbsp;</span>
               <button
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
-                  downloadTemplate();
+                  downloadTemplate(locale);
                 }}
                 className="text-sm font-medium text-emerald-600 hover:underline"
               >
-                CSV-Vorlage herunterladen
+                {t("downloadTemplate")}
               </button>
             </div>
 
             {/* Column hints */}
             <div className="rounded-lg bg-blue-50 p-3 text-xs text-blue-700">
-              <p className="mb-1 font-medium">Erwartete Spalten:</p>
+              <p className="mb-1 font-medium">{t("expectedColumns")}</p>
               <p>
-                <span className="font-medium">Pflicht:</span> Vorname, Nachname, Geburtstag
+                <span className="font-medium">{t("required")}</span> {t("requiredFields")}
               </p>
               <p>
-                <span className="font-medium">Optional:</span> Geschlecht (m/w), Eltern_Name,
-                Telefon, Notizen
+                <span className="font-medium">{t("optional")}</span> {t("optionalFields")}
               </p>
-              <p className="mt-1">Datumsformat: TT.MM.JJJJ oder JJJJ-MM-TT</p>
+              <p className="mt-1">{t("dateFormat")}</p>
             </div>
           </div>
         )}
@@ -378,9 +420,11 @@ export function StudentImportDialog({
               <div className="flex items-center gap-2 text-sm">
                 <CheckCircle className="h-4 w-4 text-emerald-600" />
                 <span className="font-medium text-gray-800">
-                  {rows.length} {rows.length === 1 ? "Schüler" : "Schüler"} erkannt
+                  {rows.length} {t("recognized")}
                 </span>
-                <span className="truncate text-gray-500">aus {fileName}</span>
+                <span className="truncate text-gray-500">
+                  {t("from")} {fileName}
+                </span>
               </div>
               <button
                 type="button"
@@ -388,17 +432,14 @@ export function StudentImportDialog({
                 className="flex items-center gap-1 rounded px-2 py-1 text-xs text-gray-500 hover:bg-gray-100"
               >
                 <X className="h-3.5 w-3.5" />
-                Datei wechseln
+                {t("changeFile")}
               </button>
             </div>
 
             {warnRowCount > 0 && (
               <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-700">
                 <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-                <span>
-                  {warnRowCount} {warnRowCount === 1 ? "Zeile hat" : "Zeilen haben"} fehlende
-                  Daten und {warnRowCount === 1 ? "wird" : "werden"} übersprungen.
-                </span>
+                <span>{t("warnRows", { count: warnRowCount })}</span>
               </div>
             )}
 
@@ -407,11 +448,11 @@ export function StudentImportDialog({
               <table className="w-full text-xs">
                 <thead className="sticky top-0 bg-gray-50">
                   <tr className="border-b text-left font-medium text-gray-500">
-                    <th className="px-3 py-2">Vorname</th>
-                    <th className="px-3 py-2">Nachname</th>
-                    <th className="px-3 py-2">Geburtstag</th>
-                    <th className="hidden px-3 py-2 sm:table-cell">Geschlecht</th>
-                    <th className="hidden px-3 py-2 md:table-cell">Eltern</th>
+                    <th className="px-3 py-2">{t("colFirstName")}</th>
+                    <th className="px-3 py-2">{t("colLastName")}</th>
+                    <th className="px-3 py-2">{t("colDob")}</th>
+                    <th className="hidden px-3 py-2 sm:table-cell">{t("colGender")}</th>
+                    <th className="hidden px-3 py-2 md:table-cell">{t("colParent")}</th>
                     <th className="w-6 px-2 py-2"></th>
                   </tr>
                 </thead>
@@ -427,11 +468,15 @@ export function StudentImportDialog({
                         {row.date_of_birth ? (
                           row.date_of_birth
                         ) : (
-                          <span className="text-red-500">fehlt</span>
+                          <span className="text-red-500">{t("dobMissing")}</span>
                         )}
                       </td>
                       <td className="hidden px-3 py-2 text-gray-500 sm:table-cell">
-                        {row.gender === "male" ? "M" : row.gender === "female" ? "W" : "—"}
+                        {row.gender === "male"
+                          ? t("genderMale")
+                          : row.gender === "female"
+                          ? t("genderFemale")
+                          : "—"}
                       </td>
                       <td className="hidden max-w-[120px] truncate px-3 py-2 text-gray-500 md:table-cell">
                         {row.parent_name || "—"}
@@ -451,7 +496,7 @@ export function StudentImportDialog({
 
             {rows.length > 8 && (
               <p className="text-center text-xs text-gray-400">
-                {rows.length} Einträge werden importiert
+                {t("moreEntries", { count: rows.length })}
               </p>
             )}
 
@@ -460,10 +505,10 @@ export function StudentImportDialog({
                 {isImporting ? (
                   <>
                     <span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white motion-reduce:animate-none" />
-                    Importiere…
+                    {t("importing")}
                   </>
                 ) : (
-                  `${validRowCount} ${validRowCount === 1 ? "Schüler" : "Schüler"} importieren`
+                  t("importBtn", { count: validRowCount })
                 )}
               </Button>
               <Button
@@ -473,7 +518,7 @@ export function StudentImportDialog({
                   onClose();
                 }}
               >
-                Abbrechen
+                {t("cancel")}
               </Button>
             </div>
           </div>
@@ -484,19 +529,19 @@ export function StudentImportDialog({
           <div className="space-y-4">
             <div className="rounded-xl bg-emerald-50 p-5 text-center">
               <CheckCircle className="mx-auto mb-3 h-10 w-10 text-emerald-600" />
-              <p className="text-lg font-semibold text-emerald-800">Import abgeschlossen</p>
+              <p className="text-lg font-semibold text-emerald-800">{t("resultTitle")}</p>
               <div className="mt-3 flex justify-center gap-8 text-sm">
                 <div>
                   <p className="text-2xl font-bold tabular-nums text-emerald-700">
                     {result.created}
                   </p>
-                  <p className="text-emerald-600">Schüler erstellt</p>
+                  <p className="text-emerald-600">{t("resultCreated")}</p>
                 </div>
                 <div>
                   <p className="text-2xl font-bold tabular-nums text-emerald-700">
                     {result.enrolled}
                   </p>
-                  <p className="text-emerald-600">Eingeschrieben</p>
+                  <p className="text-emerald-600">{t("resultEnrolled")}</p>
                 </div>
               </div>
             </div>
@@ -505,7 +550,7 @@ export function StudentImportDialog({
               <div className="rounded-lg border border-amber-200 bg-amber-50 p-3">
                 <p className="mb-2 flex items-center gap-1.5 text-sm font-medium text-amber-800">
                   <AlertCircle className="h-4 w-4" />
-                  {result.errors.length} Fehler beim Import
+                  {t("resultErrors", { count: result.errors.length })}
                 </p>
                 <ul className="max-h-40 space-y-0.5 overflow-auto">
                   {result.errors.map((e, i) => (
@@ -524,7 +569,7 @@ export function StudentImportDialog({
                   onClose();
                 }}
               >
-                Fertig
+                {t("done")}
               </Button>
             </div>
           </div>

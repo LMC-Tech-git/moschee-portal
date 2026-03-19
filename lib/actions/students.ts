@@ -376,8 +376,16 @@ export interface ImportStudentRow {
   last_name: string;
   date_of_birth: string; // YYYY-MM-DD
   gender?: string;
+  address?: string;
+  school_name?: string;
+  school_class?: string;
   parent_name?: string;
   parent_phone?: string;
+  mother_name?: string;
+  mother_phone?: string;
+  father_name?: string;
+  father_phone?: string;
+  health_notes?: string;
   notes?: string;
 }
 
@@ -424,14 +432,25 @@ export async function importStudentsBulk(
       try {
         const normalizedParentPhone = applyPhoneNorm(row.parent_phone || "", country);
 
+        const normalizedMotherPhone = applyPhoneNorm(row.mother_phone || "", country);
+        const normalizedFatherPhone = applyPhoneNorm(row.father_phone || "", country);
+
         const record = await pb.collection("students").create({
           mosque_id: mosqueId,
           first_name: row.first_name.trim(),
           last_name: row.last_name.trim(),
           date_of_birth: row.date_of_birth,
           gender: row.gender || "",
+          address: (row.address || "").trim(),
+          school_name: (row.school_name || "").trim(),
+          school_class: (row.school_class || "").trim(),
           parent_name: (row.parent_name || "").trim(),
           parent_phone: normalizedParentPhone,
+          mother_name: (row.mother_name || "").trim(),
+          mother_phone: normalizedMotherPhone,
+          father_name: (row.father_name || "").trim(),
+          father_phone: normalizedFatherPhone,
+          health_notes: (row.health_notes || "").trim(),
           notes: (row.notes || "").trim(),
           status: "active",
         });
