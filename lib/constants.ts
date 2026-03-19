@@ -1,4 +1,4 @@
-import type { Post, Event, Campaign, Course, CourseEnrollment, Attendance, AcademicYear, Student } from "@/types";
+import type { Post, Event, Campaign, Course, CourseEnrollment, Attendance, AcademicYear, Student, SponsorCategory } from "@/types";
 
 // =========================================
 // Post-Kategorien
@@ -399,6 +399,55 @@ export const ROLE_LABELS_TR: Record<string, string> = {
   secretary:     'Sekreterya',
   member:        'Üye',
 };
+
+// =========================================
+// Förderpartner - Sponsor-Kategorien
+// =========================================
+
+export const sponsorCategoryLabels: Record<SponsorCategory, string> = {
+  gastronomie:    "Gastronomie",
+  lebensmittel:   "Lebensmittel",
+  automobil:      "Automobil",
+  handwerk:       "Handwerk",
+  gesundheit:     "Gesundheit & Medizin",
+  bildung:        "Bildung",
+  reise:          "Reise & Tourismus",
+  mode:           "Mode & Bekleidung",
+  immobilien:     "Immobilien",
+  it_technik:     "IT & Technik",
+  dienstleistungen: "Dienstleistungen",
+  sonstiges:      "Sonstiges",
+};
+
+export const sponsorCategoryColors: Record<SponsorCategory, string> = {
+  gastronomie:    "bg-orange-100 text-orange-700",
+  lebensmittel:   "bg-green-100 text-green-700",
+  automobil:      "bg-slate-100 text-slate-700",
+  handwerk:       "bg-amber-100 text-amber-700",
+  gesundheit:     "bg-rose-100 text-rose-700",
+  bildung:        "bg-blue-100 text-blue-700",
+  reise:          "bg-sky-100 text-sky-700",
+  mode:           "bg-purple-100 text-purple-700",
+  immobilien:     "bg-teal-100 text-teal-700",
+  it_technik:     "bg-indigo-100 text-indigo-700",
+  dienstleistungen: "bg-cyan-100 text-cyan-700",
+  sonstiges:      "bg-gray-100 text-gray-700",
+};
+
+export const sponsorCategoryOptions = [
+  { value: "gastronomie",     label: "Gastronomie" },
+  { value: "lebensmittel",    label: "Lebensmittel" },
+  { value: "automobil",       label: "Automobil" },
+  { value: "handwerk",        label: "Handwerk" },
+  { value: "gesundheit",      label: "Gesundheit & Medizin" },
+  { value: "bildung",         label: "Bildung" },
+  { value: "reise",           label: "Reise & Tourismus" },
+  { value: "mode",            label: "Mode & Bekleidung" },
+  { value: "immobilien",      label: "Immobilien" },
+  { value: "it_technik",      label: "IT & Technik" },
+  { value: "dienstleistungen",label: "Dienstleistungen" },
+  { value: "sonstiges",       label: "Sonstiges" },
+] as const;
 
 export const ROLE_OPTIONS = [
   { value: 'member',        label: 'Mitglied' },

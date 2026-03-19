@@ -430,3 +430,54 @@ export function renderEmailChangeConfirmation(data: {
   `;
   return baseTemplate(content, data.mosqueName, data.accentColor);
 }
+
+// =========================================
+// Förderpartner: Ablauf-Erinnerung an Moschee-Admin
+// =========================================
+
+export function renderSponsorExpiryReminder(data: {
+  mosqueName: string;
+  sponsorName: string;
+  endDate: string;
+  manageUrl: string;
+  accentColor?: string;
+}): string {
+  const btnColor = data.accentColor || DEFAULT_COLOR;
+
+  const content = `
+    <h2 style="margin:0 0 16px;color:#111827;font-size:22px;">Förderpartnerschaft läuft bald ab</h2>
+    <p style="margin:0 0 24px;color:#374151;font-size:16px;line-height:1.6;">
+      Guten Tag,<br/>
+      die Förderpartnerschaft mit dem folgenden Unternehmen läuft in Kürze ab.
+      Eine Verlängerung ist jederzeit im Admin-Bereich möglich.
+    </p>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="background:#fff7ed;border-radius:8px;border:1px solid #fed7aa;margin:0 0 24px;">
+      <tr>
+        <td style="padding:20px 24px;">
+          <p style="margin:0 0 4px;color:#c2410c;font-size:12px;text-transform:uppercase;letter-spacing:0.05em;">Förderpartner</p>
+          <p style="margin:0 0 16px;color:#111827;font-size:20px;font-weight:700;">${data.sponsorName}</p>
+
+          <p style="margin:0 0 4px;color:#6b7280;font-size:12px;text-transform:uppercase;letter-spacing:0.05em;">Läuft ab am</p>
+          <p style="margin:0;color:#c2410c;font-size:18px;font-weight:600;">${data.endDate}</p>
+        </td>
+      </tr>
+    </table>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
+      <tr>
+        <td align="center">
+          <a href="${data.manageUrl}" target="_blank" style="display:inline-block;background:${btnColor};color:#ffffff;font-size:16px;font-weight:600;text-decoration:none;padding:14px 32px;border-radius:8px;">
+            Förderpartner verwalten
+          </a>
+        </td>
+      </tr>
+    </table>
+
+    <p style="margin:0;color:#374151;font-size:15px;line-height:1.6;">
+      Mit freundlichen Grüßen,<br/>
+      <strong>${data.mosqueName} — Portal</strong>
+    </p>
+  `;
+  return baseTemplate(content, data.mosqueName, data.accentColor);
+}

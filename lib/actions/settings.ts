@@ -250,6 +250,7 @@ export async function getPortalSettings(mosqueId: string): Promise<{
         madrasa_default_fee_cents: 1000,
         fee_reminder_enabled: false,
         fee_reminder_day: 15,
+        sponsors_enabled: false,
         created: "",
         updated: "",
       };
@@ -427,5 +428,51 @@ export async function updatePbSmtpSettings(
   } catch (error) {
     console.error("[settings] updatePbSmtpSettings:", error);
     return { success: false, error: "SMTP-Einstellungen konnten nicht gespeichert werden." };
+  }
+}
+
+// =========================================
+// Förderpartner-Einstellungen
+// =========================================
+
+export async function updateSponsorsSettings(
+  mosqueId: string,
+  userId: string,
+  data: { sponsors_enabled: boolean }
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const pb = await getAdminPB();
+
+    let settingsId: string | null = null;
+    try {
+      const record = await pb
+        .collection("settings")
+        .getFirstListItem(`mosque_id = "${mosqueId}"`);
+      settingsId = record.id;
+    } catch {
+      // Kein Settings-Record
+    }
+
+    const payload = { mosque_id: mosqueId, ...data };
+
+    if (settingsId) {
+      await pb.collection("settings").update(settingsId, payload);
+    } else {
+      await pb.collection("settings").create(payload);
+    }
+
+    await logAudit({
+      mosqueId,
+      userId,
+      action: "update_sponsors_settings",
+      entityType: "settings",
+      entityId: settingsId || mosqueId,
+      after: data,
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("[settings] updateSponsorsSettings:", error);
+    return { success: false, error: "Förderpartner-Einstellungen konnten nicht gespeichert werden." };
   }
 }

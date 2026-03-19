@@ -50,6 +50,11 @@ const envSchema = z.object({
   RESEND_FROM_EMAIL: z.string().optional(),
 
   // -------------------------------------------------------
+  // Cron-Jobs (Bearer-Token zum Schutz interner Endpunkte)
+  // -------------------------------------------------------
+  CRON_SECRET: z.string().optional(),
+
+  // -------------------------------------------------------
   // Node-Umgebung (wird von Next.js automatisch gesetzt)
   // -------------------------------------------------------
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),

@@ -397,6 +397,10 @@
         "title": "Medrese",
         "desc": "Dersler, öğrenciler, devamsızlık ve ücretleri yönetin."
       },
+      "sponsors": {
+        "title": "Destek Ortakları",
+        "desc": "Yerel işletmeleri destek ortağı olarak yönetin."
+      },
       "newsletter": {
         "title": "Bülten",
         "desc": "Tüm üyelere mesaj gönderin."
@@ -1194,7 +1198,17 @@
       "prayer": "Namaz Vakitleri",
       "defaults": "Varsayılanlar",
       "madrasa": "Medrese",
+      "sponsors": "Destek Ortakları",
       "email": "E-posta"
+    },
+    "sponsors": {
+      "title": "Destek Ortakları Modülü",
+      "desc": "Yerel işletmelerin destek ortağı olarak halka açık bir sayfada gösterilmesini sağlar.",
+      "enabledLabel": "Destek Ortakları modülünü etkinleştir",
+      "enabledHint": "Etkinleştirildiğinde, onaylanmış tüm sponsorların yer aldığı halka açık bir \"Destek Ortakları\" sayfası görünür.",
+      "save": "Ayarları Kaydet",
+      "saving": "Kaydediliyor...",
+      "manageLink": "Sponsorları yönet →"
     },
     "loadError": "Ayarlar yüklenemedi.",
     "branding": {
@@ -1811,5 +1825,82 @@
     "hint": "Öğrenci arayın ve tıklayarak bu kursa kaydedin",
     "loading": "Öğrenciler yükleniyor...",
     "loadError": "Öğrenciler yüklenemedi"
+  },
+  "sponsors": {
+    "title": "Destek Ortakları",
+    "subtitle": "Destek Ortaklarımız",
+    "intro": "Aşağıdaki işletmeler topluluğumuzu mali olarak desteklemekte ve hizmetlerimizin sürdürülmesine ve geliştirilmesine değerli katkılarda bulunmaktadır. Katılımları sayesinde dini, sosyal ve toplumsal faaliyetlerin sürdürülebilir biçimde güvence altına alınmasına yardımcı olmaktadırlar.\n\nBu sayfadaki sunum bilinçli olarak sade tutulmuştur. Bu bir reklam değil, topluluğumuza verilen desteğin bir takdiridir.\n\nTüm destek ortaklarımıza güvenleri ve destekleri için teşekkür ederiz.",
+    "noSponsors": "Şu anda destek ortağı bulunmamaktadır.",
+    "visitWebsite": "Web Sitesi",
+    "filterAll": "Tümü",
+    "admin": {
+      "title": "Destek Ortaklarını Yönet",
+      "add": "Yeni Ortak",
+      "empty": "Henüz destek ortağı eklenmemiş.",
+      "name": "Ad",
+      "namePlaceholder": "İşletme adı",
+      "description": "Açıklama",
+      "descriptionPlaceholder": "Kısa açıklama (max. 300 karakter)",
+      "website": "Web Sitesi",
+      "websitePlaceholder": "https://...",
+      "logo": "Logo",
+      "category": "Kategori",
+      "categoryNone": "Kategori yok",
+      "amount": "Kararlaştırılan Katkı (€)",
+      "amountPlaceholder": "örn. 50",
+      "approve": "Onayla",
+      "unapprove": "Onayı Geri Al",
+      "approved": "Onaylandı",
+      "pendingApproval": "Beklemede",
+      "active": "Aktif",
+      "inactive": "Pasif",
+      "activate": "Etkinleştir",
+      "deactivate": "Devre Dışı Bırak",
+      "delete": "Sil",
+      "edit": "Düzenle",
+      "markPaid": "Ödendi Olarak İşaretle",
+      "paymentCash": "Nakit",
+      "paymentTransfer": "Havale/EFT",
+      "paymentOpen": "Bekliyor",
+      "paymentPaid": "Ödendi",
+      "durationMonths": "Süre",
+      "duration1": "1 Ay",
+      "duration3": "3 Ay",
+      "duration6": "6 Ay",
+      "duration12": "12 Ay",
+      "expiresIn": "{days} gün içinde sona eriyor",
+      "expiredLabel": "Süresi Doldu",
+      "confirmDelete": "Bu destek ortağını silmek istediğinize emin misiniz?",
+      "createSuccess": "Destek ortağı oluşturuldu.",
+      "updateSuccess": "Destek ortağı güncellendi.",
+      "deleteSuccess": "Destek ortağı silindi.",
+      "approveSuccess": "Onay kaydedildi.",
+      "paidSuccess": "Ödeme kaydedildi. Süre {end} tarihine kadar.",
+      "uploadLogo": "Logo Yükle",
+      "noLogo": "Logo yok",
+      "periodLabel": "{start} – {end}",
+      "expiryWarning": "{days} gün içinde sona eriyor"
+    },
+    "categories": {
+      "gastronomie": "Gastronomi",
+      "lebensmittel": "Gıda",
+      "automobil": "Otomobil",
+      "handwerk": "El Sanatları & Yapı",
+      "gesundheit": "Sağlık & Tıp",
+      "bildung": "Eğitim",
+      "reise": "Seyahat & Turizm",
+      "mode": "Moda & Giyim",
+      "immobilien": "Emlak",
+      "it_technik": "BT & Teknoloji",
+      "dienstleistungen": "Hizmetler",
+      "sonstiges": "Diğer"
+    },
+    "email": {
+      "expirySubject": "Destek ortaklığı yakında sona eriyor – {sponsorName}",
+      "expiryTitle": "Destek Ortaklığı Sona Eriyor",
+      "expiryBody": "{sponsorName} ile destek ortaklığı {endDate} tarihinde sona erecek.",
+      "expiryAction": "Uzatma işlemi her zaman yönetici panelinden yapılabilir.",
+      "expiryButton": "Destek Ortaklarını Yönet"
+    }
   }
 }

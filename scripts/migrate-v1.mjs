@@ -652,6 +652,57 @@ const SETTINGS_MADRASA_FIELDS = [
   { name: "fee_reminder_day", type: "number", options: { min: 1, max: 28, default: 15 } },
 ];
 
+const SETTINGS_SPONSORS_FIELDS = [
+  { name: "sponsors_enabled", type: "bool", options: { default: false } },
+];
+
+const SPONSORS_COLLECTION = {
+  name: "sponsors",
+  type: "base",
+  schema: [
+    { name: "mosque_id", type: "relation", required: true, options: { collectionId: "", maxSelect: 1 } },
+    { name: "name", type: "text", required: true, options: { min: 1, max: 100 } },
+    { name: "logo", type: "file", options: { maxSelect: 1, maxSize: 5242880 } },
+    { name: "description", type: "text", options: { max: 300 } },
+    { name: "website_url", type: "url" },
+    {
+      name: "category",
+      type: "select",
+      options: {
+        values: [
+          "gastronomie", "lebensmittel", "automobil", "handwerk",
+          "gesundheit", "bildung", "reise", "mode",
+          "immobilien", "it_technik", "dienstleistungen", "sonstiges",
+        ],
+        maxSelect: 1,
+      },
+    },
+    { name: "start_date", type: "date" },
+    { name: "end_date", type: "date" },
+    { name: "is_active", type: "bool", options: { default: false } },
+    { name: "is_approved", type: "bool", options: { default: false } },
+    { name: "notification_sent", type: "bool", options: { default: false } },
+    { name: "sort_order", type: "number", options: { min: 0, default: 0 } },
+    {
+      name: "payment_status",
+      type: "select",
+      required: true,
+      options: { values: ["open", "paid"], maxSelect: 1 },
+    },
+    {
+      name: "payment_method",
+      type: "select",
+      options: { values: ["cash", "transfer"], maxSelect: 1 },
+    },
+    { name: "amount_cents", type: "number", options: { min: 0 } },
+    { name: "created_by", type: "relation", options: { collectionId: "", maxSelect: 1 } },
+  ],
+  indexes: [
+    "CREATE INDEX idx_sponsors_mosque ON sponsors (mosque_id)",
+    "CREATE INDEX idx_sponsors_active ON sponsors (is_active, is_approved, end_date)",
+  ],
+};
+
 const EVENTS_RECURRING_FIELDS = [
   { name: "is_recurring", type: "bool", options: { default: false } },
   {
@@ -766,6 +817,7 @@ async function main() {
     INVITES_COLLECTION,
     PRAYER_TIMES_CACHE_COLLECTION,
     STUDENT_FEES_COLLECTION,
+    SPONSORS_COLLECTION,
   ];
 
   for (const colDef of newCollections) {
@@ -1010,7 +1062,21 @@ async function main() {
     }
   }
 
-  // 9b. student_fees: reminder_sent_at hinzufügen
+  // 9b. settings: Förderpartner-Felder hinzufügen
+  if (collectionMap.settings) {
+    const settingsCol = (await getExistingCollections()).find((c) => c.name === "settings");
+    const existingFieldNames = (settingsCol?.schema || []).map((f) => f.name);
+    const fieldsToAdd = SETTINGS_SPONSORS_FIELDS.filter((f) => !existingFieldNames.includes(f.name));
+    if (fieldsToAdd.length > 0) {
+      const newSchema = [...(settingsCol?.schema || []), ...fieldsToAdd];
+      await updateCollection("settings", { schema: newSchema });
+      console.log(`   ✅ settings (sponsors): ${fieldsToAdd.map((f) => f.name).join(", ")} hinzugefügt`);
+    } else {
+      console.log("   ⏭️  settings: alle Förderpartner-Felder vorhanden");
+    }
+  }
+
+  // 9c. student_fees: reminder_sent_at hinzufügen
   if (collectionMap.student_fees) {
     const feesCol = (await getExistingCollections()).find((c) => c.name === "student_fees");
     const existingFieldNames = (feesCol?.schema || []).map((f) => f.name);

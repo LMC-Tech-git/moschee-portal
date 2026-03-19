@@ -20,6 +20,7 @@ import {
   Globe,
   Crown,
   Edit3,
+  Handshake,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useMosque } from "@/lib/mosque-context";
@@ -125,6 +126,12 @@ export default function AdminLayout({
       href: "/admin/madrasa",
       icon: BookOpen,
       roles: ["admin", "super_admin", "madrasa_admin"],
+    },
+    {
+      label: t("quickAccess.sponsors.title"),
+      href: "/admin/foerderpartner",
+      icon: Handshake,
+      roles: ["admin", "super_admin"],
     },
     {
       label: t("quickAccess.newsletter.title"),

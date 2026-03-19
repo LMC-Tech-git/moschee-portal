@@ -2,7 +2,7 @@
 
 import { getAdminPB } from "@/lib/pocketbase-admin";
 import { processEmailQueue, sendEmailDirect } from "@/lib/email";
-import { renderFeeReminder } from "@/lib/email/templates";
+import { renderFeeReminder, renderSponsorExpiryReminder } from "@/lib/email/templates";
 import { logAudit } from "@/lib/audit";
 
 // =========================================
@@ -290,6 +290,56 @@ export async function sendBulkFeeReminders(
   } catch (error) {
     console.error("[actions/email] sendBulkFeeReminders:", error);
     return { success: false, sent: 0, skippedNoContact: 0, skippedAlreadyReminded: 0, failed: 0, error: "Fehler beim Massen-Versand" };
+  }
+}
+
+// =========================================
+// Förderpartner: Ablauf-Erinnerung
+// =========================================
+
+export async function sendSponsorExpiryReminder(
+  mosqueId: string,
+  sponsorId: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const pb = await getAdminPB();
+    const sponsor = await pb.collection("sponsors").getOne(sponsorId);
+    const mosque = await pb.collection("mosques").getOne(mosqueId);
+
+    if (sponsor.mosque_id !== mosqueId) {
+      return { success: false, error: "Nicht gefunden." };
+    }
+    if (!mosque.email) {
+      return { success: false, error: "Moschee hat keine E-Mail-Adresse hinterlegt." };
+    }
+
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://moschee.app";
+    const manageUrl = `${baseUrl}/admin/foerderpartner`;
+
+    const endDateFormatted = sponsor.end_date
+      ? new Date(sponsor.end_date).toLocaleDateString("de-DE", {
+          day: "2-digit", month: "long", year: "numeric",
+        })
+      : "—";
+
+    const html = renderSponsorExpiryReminder({
+      mosqueName: mosque.name,
+      sponsorName: sponsor.name,
+      endDate: endDateFormatted,
+      manageUrl,
+      accentColor: mosque.brand_primary_color || undefined,
+    });
+
+    const result = await sendEmailDirect({
+      to: mosque.email,
+      subject: `Förderpartner läuft bald ab – ${sponsor.name}`,
+      html,
+    });
+
+    return result;
+  } catch (error) {
+    console.error("[actions/email] sendSponsorExpiryReminder:", error);
+    return { success: false, error: "E-Mail konnte nicht gesendet werden." };
   }
 }
 

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Settings, Palette, Clock, Sliders, Save, RotateCcw, Upload, X, Check, ChevronDown, ChevronUp, GraduationCap, Mail, CheckCircle, AlertCircle, Send } from "lucide-react";
+import { Settings, Palette, Clock, Sliders, Save, RotateCcw, Upload, X, Check, ChevronDown, ChevronUp, GraduationCap, Mail, CheckCircle, AlertCircle, Send, Handshake } from "lucide-react";
 import { useMosque } from "@/lib/mosque-context";
 import { useAuth } from "@/lib/auth-context";
 import {
@@ -14,6 +14,7 @@ import {
   updateMadrasaFeeSettings,
   getPbSmtpSettings,
   updatePbSmtpSettings,
+  updateSponsorsSettings,
 } from "@/lib/actions/settings";
 import type { PbSmtpSettings } from "@/lib/actions/settings";
 import { sendTestEmailAction } from "@/lib/actions/email";
@@ -30,6 +31,7 @@ const TABS = [
   { id: "prayer", icon: Clock },
   { id: "defaults", icon: Sliders },
   { id: "madrasa", icon: GraduationCap },
+  { id: "sponsors", icon: Handshake },
   { id: "email", icon: Mail },
 ] as const;
 
@@ -97,6 +99,8 @@ export default function AdminSettingsPage() {
   const [mosque, setMosque] = useState<Mosque | null>(null);
   const [settings, setSettings] = useState<SettingsType | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [sponsorsEnabled, setSponsorsEnabled] = useState(false);
+
   const [madrasaFeeSettings, setMadrasaFeeSettings] = useState<{
     madrasa_fees_enabled: boolean;
     madrasa_default_fee_cents: number;
@@ -114,6 +118,7 @@ export default function AdminSettingsPage() {
       if (portalResult.success && portalResult.mosque && portalResult.settings) {
         setMosque(portalResult.mosque);
         setSettings(portalResult.settings);
+        setSponsorsEnabled(portalResult.settings.sponsors_enabled ?? false);
       }
       if (feeResult.success && feeResult.data) {
         setMadrasaFeeSettings(feeResult.data);
@@ -214,6 +219,14 @@ export default function AdminSettingsPage() {
           feeSettings={madrasaFeeSettings}
           donationProvider={mosque.donation_provider}
           onSaved={(updated) => setMadrasaFeeSettings({ ...madrasaFeeSettings, ...updated })}
+        />
+      )}
+      {activeTab === "sponsors" && (
+        <SponsorsTab
+          mosqueId={mosqueId}
+          userId={user?.id || ""}
+          sponsorsEnabled={sponsorsEnabled}
+          onSaved={(val) => setSponsorsEnabled(val)}
         />
       )}
       {activeTab === "email" && (
@@ -1657,6 +1670,90 @@ RESEND_FROM_EMAIL=Moschee Portal <noreply@deine-domain.de>`}
             </div>
           </div>
         )}
+      </SectionCard>
+    </div>
+  );
+}
+
+// =========================================
+// Tab: Förderpartner
+// =========================================
+
+function SponsorsTab({
+  mosqueId,
+  userId,
+  sponsorsEnabled,
+  onSaved,
+}: {
+  mosqueId: string;
+  userId: string;
+  sponsorsEnabled: boolean;
+  onSaved: (val: boolean) => void;
+}) {
+  const t = useTranslations("settings");
+  const [enabled, setEnabled] = useState(sponsorsEnabled);
+  const [isSaving, setIsSaving] = useState(false);
+  const [status, setStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
+
+  async function handleSave() {
+    setIsSaving(true);
+    setStatus(null);
+    const result = await updateSponsorsSettings(mosqueId, userId, { sponsors_enabled: enabled });
+    if (result.success) {
+      onSaved(enabled);
+      setStatus({ type: "success", message: t("saveSuccess") });
+    } else {
+      setStatus({ type: "error", message: result.error || t("saveError") });
+    }
+    setIsSaving(false);
+  }
+
+  return (
+    <div className="space-y-6">
+      <StatusMessage status={status} />
+      <SectionCard title={t("sponsors.title")} desc={t("sponsors.desc")}>
+        <div className="space-y-4">
+          <label className="flex cursor-pointer items-start gap-3">
+            <div className="relative mt-0.5">
+              <input
+                type="checkbox"
+                className="sr-only"
+                checked={enabled}
+                onChange={(e) => setEnabled(e.target.checked)}
+              />
+              <div
+                className={`h-5 w-10 rounded-full transition-colors ${enabled ? "bg-emerald-600" : "bg-gray-200"}`}
+              >
+                <div
+                  className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${enabled ? "translate-x-5" : "translate-x-0.5"}`}
+                />
+              </div>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-900">{t("sponsors.enabledLabel")}</p>
+              <p className="text-xs text-gray-500">{t("sponsors.enabledHint")}</p>
+            </div>
+          </label>
+
+          {enabled && (
+            <p className="text-sm text-emerald-700">
+              <a href="/admin/foerderpartner" className="underline hover:no-underline">
+                {t("sponsors.manageLink")}
+              </a>
+            </p>
+          )}
+        </div>
+
+        <div className="flex justify-end border-t border-gray-100 pt-4">
+          <button
+            onClick={handleSave}
+            disabled={isSaving}
+            className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+          >
+            <Save className="h-4 w-4" />
+            {isSaving ? t("sponsors.saving") : t("sponsors.save")}
+          </button>
+        </div>
       </SectionCard>
     </div>
   );

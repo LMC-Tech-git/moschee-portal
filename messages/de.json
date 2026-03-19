@@ -397,6 +397,10 @@
         "title": "Madrasa",
         "desc": "Kurse, Schüler, Anwesenheit und Gebühren verwalten."
       },
+      "sponsors": {
+        "title": "Förderpartner",
+        "desc": "Lokale Unternehmen als Förderpartner verwalten."
+      },
       "newsletter": {
         "title": "Newsletter",
         "desc": "Nachrichten an alle Mitglieder versenden."
@@ -1194,7 +1198,17 @@
       "prayer": "Gebetszeiten",
       "defaults": "Defaults",
       "madrasa": "Madrasa",
+      "sponsors": "Förderpartner",
       "email": "E-Mail"
+    },
+    "sponsors": {
+      "title": "Förderpartner-Modul",
+      "desc": "Ermöglicht es, lokale Unternehmen als Förderpartner auf einer öffentlichen Seite darzustellen.",
+      "enabledLabel": "Förderpartner-Modul aktivieren",
+      "enabledHint": "Bei Aktivierung erscheint eine öffentliche Seite \"Förderpartner\" mit allen genehmigten Sponsoren.",
+      "save": "Einstellungen speichern",
+      "saving": "Wird gespeichert...",
+      "manageLink": "Sponsoren verwalten →"
     },
     "loadError": "Einstellungen konnten nicht geladen werden.",
     "branding": {
@@ -1811,5 +1825,82 @@
     "hint": "Schüler suchen und per Klick in diesen Kurs einschreiben",
     "loading": "Lade Schüler...",
     "loadError": "Schüler konnten nicht geladen werden"
+  },
+  "sponsors": {
+    "title": "Förderpartner",
+    "subtitle": "Unsere Förderpartner",
+    "intro": "Die folgenden Unternehmen unterstützen unsere Gemeinde finanziell und leisten damit einen wertvollen Beitrag zur Aufrechterhaltung und Weiterentwicklung unserer Angebote. Durch ihr Engagement helfen sie, religiöse, soziale und gemeinschaftliche Aktivitäten nachhaltig zu sichern.\n\nDie Darstellung auf dieser Seite erfolgt bewusst zurückhaltend. Es handelt sich nicht um Werbung, sondern um eine Anerkennung für die Unterstützung unserer Gemeinde.\n\nWir danken allen Förderpartnern für ihr Vertrauen und ihre Unterstützung.",
+    "noSponsors": "Aktuell keine Förderpartner vorhanden.",
+    "visitWebsite": "Zur Website",
+    "filterAll": "Alle",
+    "admin": {
+      "title": "Förderpartner verwalten",
+      "add": "Neuer Sponsor",
+      "empty": "Noch keine Förderpartner angelegt.",
+      "name": "Name",
+      "namePlaceholder": "Name des Unternehmens",
+      "description": "Beschreibung",
+      "descriptionPlaceholder": "Kurze Beschreibung (max. 300 Zeichen)",
+      "website": "Website",
+      "websitePlaceholder": "https://...",
+      "logo": "Logo",
+      "category": "Kategorie",
+      "categoryNone": "Keine Kategorie",
+      "amount": "Vereinbarter Beitrag (€)",
+      "amountPlaceholder": "z.B. 50",
+      "approve": "Freigeben",
+      "unapprove": "Freigabe entziehen",
+      "approved": "Freigegeben",
+      "pendingApproval": "Ausstehend",
+      "active": "Aktiv",
+      "inactive": "Inaktiv",
+      "activate": "Aktivieren",
+      "deactivate": "Deaktivieren",
+      "delete": "Löschen",
+      "edit": "Bearbeiten",
+      "markPaid": "Als bezahlt markieren",
+      "paymentCash": "Barzahlung",
+      "paymentTransfer": "Überweisung",
+      "paymentOpen": "Offen",
+      "paymentPaid": "Bezahlt",
+      "durationMonths": "Laufzeit",
+      "duration1": "1 Monat",
+      "duration3": "3 Monate",
+      "duration6": "6 Monate",
+      "duration12": "12 Monate",
+      "expiresIn": "Läuft ab in {days} Tagen",
+      "expiredLabel": "Abgelaufen",
+      "confirmDelete": "Diesen Förderpartner wirklich löschen?",
+      "createSuccess": "Förderpartner wurde erstellt.",
+      "updateSuccess": "Förderpartner wurde aktualisiert.",
+      "deleteSuccess": "Förderpartner wurde gelöscht.",
+      "approveSuccess": "Freigabe gespeichert.",
+      "paidSuccess": "Zahlung gespeichert. Laufzeit bis {end}.",
+      "uploadLogo": "Logo hochladen",
+      "noLogo": "Kein Logo",
+      "periodLabel": "{start} – {end}",
+      "expiryWarning": "Läuft in {days} Tagen ab"
+    },
+    "categories": {
+      "gastronomie": "Gastronomie",
+      "lebensmittel": "Lebensmittel",
+      "automobil": "Automobil",
+      "handwerk": "Handwerk",
+      "gesundheit": "Gesundheit & Medizin",
+      "bildung": "Bildung",
+      "reise": "Reise & Tourismus",
+      "mode": "Mode & Bekleidung",
+      "immobilien": "Immobilien",
+      "it_technik": "IT & Technik",
+      "dienstleistungen": "Dienstleistungen",
+      "sonstiges": "Sonstiges"
+    },
+    "email": {
+      "expirySubject": "Förderpartner läuft bald ab – {sponsorName}",
+      "expiryTitle": "Förderpartnerschaft läuft ab",
+      "expiryBody": "Die Förderpartnerschaft mit {sponsorName} endet am {endDate}.",
+      "expiryAction": "Eine Verlängerung ist jederzeit im Admin-Bereich möglich.",
+      "expiryButton": "Förderpartner verwalten"
+    }
   }
 }

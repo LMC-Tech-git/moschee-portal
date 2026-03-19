@@ -62,6 +62,35 @@ export interface Settings {
   madrasa_default_fee_cents: number;  // z.B. 1000 = 10 €
   fee_reminder_enabled: boolean;      // Automatische Gebühren-Erinnerung
   fee_reminder_day: number;           // Tag im Monat (1-28)
+  // Förderpartner
+  sponsors_enabled: boolean;
+  created: string;
+  updated: string;
+}
+
+// --- 2b. Förderpartner (Sponsors) ---
+export type SponsorCategory =
+  | "gastronomie" | "lebensmittel" | "automobil" | "handwerk"
+  | "gesundheit" | "bildung" | "reise" | "mode"
+  | "immobilien" | "it_technik" | "dienstleistungen" | "sonstiges";
+
+export interface Sponsor {
+  id: string;
+  mosque_id: string;
+  name: string;
+  logo?: string;
+  description?: string;
+  website_url?: string;
+  category?: SponsorCategory;
+  start_date?: string;
+  end_date?: string;
+  is_active: boolean;
+  is_approved: boolean;
+  notification_sent: boolean;
+  sort_order: number;
+  payment_status: "open" | "paid";
+  payment_method?: "cash" | "transfer";
+  amount_cents?: number;
   created: string;
   updated: string;
 }
