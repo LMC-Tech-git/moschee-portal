@@ -551,14 +551,14 @@ export default function AdminSpendenPage() {
                           onClick={() => handleStatusChange(d.id, "paid")}
                           disabled={updatingId === d.id}
                           className="flex items-center gap-1 rounded-lg bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700 hover:bg-emerald-100 disabled:opacity-50"
-                          title={t("markPaid" as Parameters<typeof t>[0])}
+                          title={t("markAsPaid" as Parameters<typeof t>[0])}
                         >
                           {updatingId === d.id ? (
                             <RefreshCw className="h-3 w-3 animate-spin" />
                           ) : (
                             <CheckCircle className="h-3 w-3" />
                           )}
-                          {t("status.paid")}
+                          {t("paid")}
                         </button>
                       )}
                       {d.status === "paid" && (
@@ -567,10 +567,10 @@ export default function AdminSpendenPage() {
                           onClick={() => handleStatusChange(d.id, "refunded")}
                           disabled={updatingId === d.id}
                           className="flex items-center gap-1 rounded-lg bg-purple-50 px-2.5 py-1 text-xs font-medium text-purple-700 hover:bg-purple-100 disabled:opacity-50"
-                          title={t("markRefunded" as Parameters<typeof t>[0])}
+                          title={t("markAsRefunded" as Parameters<typeof t>[0])}
                         >
                           <RefreshCw className="h-3 w-3" />
-                          {t("status.refunded")}
+                          {t("refund")}
                         </button>
                       )}
                     </td>
