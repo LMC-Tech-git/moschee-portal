@@ -178,6 +178,9 @@ export default function AdminMadrasaGebuehrenPage() {
     setReminderResult(null);
     const result = await sendFeeReminderEmail(mosqueId, user.id, feeId);
     setReminderFeeId(null);
+    if (result.success) {
+      await loadData(); // Zeile mit reminder_sent_at aktualisieren
+    }
     setReminderResult({
       feeId,
       success: result.success,
@@ -193,8 +196,8 @@ export default function AdminMadrasaGebuehrenPage() {
     const result = await sendBulkFeeReminders(mosqueId, user.id, monthKey);
     setIsBulkReminding(false);
     if (result.success) {
+      await loadData(); // Zeilen mit reminder_sent_at aktualisieren
       setBulkReminderResult({ sent: result.sent, skipped: result.skipped, failed: result.failed });
-      await loadData();
     } else {
       setError(result.error || tCommon("error"));
     }
