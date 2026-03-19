@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useTranslations, useLocale } from "next-intl";
-import { Search, Plus, Upload, UserCheck, UserX, Baby, CheckSquare, Square, X } from "lucide-react";
+import { Search, Plus, Upload, UserCheck, UserX, Baby, CheckSquare, Square, X, ChevronLeft } from "lucide-react";
+import Link from "next/link";
 import { useMosque } from "@/lib/mosque-context";
 import { useAuth } from "@/lib/auth-context";
 import { getStudentsByMosque, updateStudent } from "@/lib/actions/students";
@@ -193,14 +194,14 @@ export default function AdminStudentsPage() {
   const allSelected = filtered.length > 0 && selectedIds.size === filtered.length;
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">{t("title")}</h1>
           <p className="mt-1 text-sm text-gray-500">{t("subtitle")}</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setImportDialogOpen(true)}
             className="flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
@@ -215,6 +216,13 @@ export default function AdminStudentsPage() {
             <Plus className="h-4 w-4" />
             <span>{t("addButton")}</span>
           </button>
+          <Link
+            href="/admin/madrasa"
+            className="flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+          >
+            <ChevronLeft className="h-4 w-4" />
+            Zur Madrasa-Übersicht
+          </Link>
         </div>
       </div>
 

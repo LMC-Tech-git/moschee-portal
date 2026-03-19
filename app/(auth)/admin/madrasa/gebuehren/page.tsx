@@ -246,7 +246,7 @@ export default function AdminMadrasaGebuehrenPage() {
     const headers = [
       "Nachname", "Vorname",
       ...(selectedCourseId !== "all" ? ["Kurs"] : []),
-      "Betrag (€)", "Status", "Zahlungsart", "Bezahlt am", "Notiz",
+      "Betrag (€)", "Status", "Zahlungsart", "Bezahlt am", "Mahnung gesendet am", "Notiz",
     ];
 
     const dataRows = filteredRows.map((r) => {
@@ -258,6 +258,7 @@ export default function AdminMadrasaGebuehrenPage() {
         statusLabel(r.fee),
         methodLabel(r.fee),
         formatDate(r.fee?.paid_at ?? ""),
+        formatDate(r.fee?.reminder_sent_at ?? ""),
         r.fee?.notes ?? "",
       ];
       return row.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(sep);
