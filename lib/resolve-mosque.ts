@@ -53,6 +53,7 @@ export async function resolveMosqueSettings(
     madrasa_default_fee_cents: 1000,
     fee_reminder_enabled: false,
     fee_reminder_day: 15,
+    sponsors_enabled: false,
     created: "",
     updated: "",
   };
