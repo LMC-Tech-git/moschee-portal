@@ -29,23 +29,27 @@ function mapRecordToCampaign(record: RecordModel): Campaign {
 
 /**
  * Fortschritt einer Kampagne berechnen.
- * Progress = SUM(donations.amount_cents WHERE status = 'paid')
+ * Progress = SUM(donations.amount_cents WHERE status = 'paid' AND campaign_id = campaignId)
+ *
+ * Wichtig: campaign_id ist ein Relation-Feld in PocketBase. Relation-Feld-Filter sind in
+ * älteren PB-Versionen (< 0.23) unzuverlässig. Deshalb wird nach mosque_id (plain string)
+ * gefiltert und campaign_id + status werden in JS gefiltert.
  */
 async function computeProgress(
-  campaignId: string
+  campaignId: string,
+  mosqueId: string
 ): Promise<{ raised_cents: number; donor_count: number }> {
   try {
     const pb = await getAdminPB();
 
-    // Alle Spenden der Kampagne laden, Status-Filter in JS.
-    // Workaround für ältere PocketBase-Versionen: kombinierte Relation+Status-Filter
-    // können unzuverlässig sein. Außerdem: campaign_id kann String oder Array sein.
-    const allForCampaign = await pb.collection("donations").getFullList({
-      filter: `campaign_id = "${campaignId}"`,
-      fields: "amount,amount_cents,status,donor_email",
+    const allForMosque = await pb.collection("donations").getFullList({
+      filter: `mosque_id = "${mosqueId}"`,
+      fields: "amount,amount_cents,status,campaign_id,donor_email",
     });
 
-    const paid = allForCampaign.filter((d) => d.status === "paid");
+    const paid = allForMosque.filter(
+      (d) => d.campaign_id === campaignId && d.status === "paid"
+    );
 
     const raised_cents = paid.reduce(
       (sum, d) => sum + (d.amount_cents || Math.round((d.amount || 0) * 100)),
@@ -57,6 +61,25 @@ async function computeProgress(
   } catch {
     return { raised_cents: 0, donor_count: 0 };
   }
+}
+
+/**
+ * Hilfsfunktion: Fortschritt für eine Liste von Kampagnen aus vorgeladenen Spenden berechnen.
+ * Vermeidet N+1 Queries bei mehreren Kampagnen.
+ */
+function computeProgressFromDonations(
+  campaignId: string,
+  allDonations: Array<{ campaign_id: string; status: string; amount_cents?: number; amount?: number; donor_email?: string }>
+): { raised_cents: number; donor_count: number } {
+  const paid = allDonations.filter(
+    (d) => d.campaign_id === campaignId && d.status === "paid"
+  );
+  const raised_cents = paid.reduce(
+    (sum, d) => sum + (d.amount_cents || Math.round((d.amount || 0) * 100)),
+    0
+  );
+  const uniqueDonors = new Set(paid.map((d) => d.donor_email || ""));
+  return { raised_cents, donor_count: uniqueDonors.size };
 }
 
 // --- Server Actions ---
@@ -89,28 +112,33 @@ export async function getCampaignsByMosque(
       sort: "-created",
     });
 
-    const campaigns: CampaignWithProgress[] = await Promise.all(
-      records.items.map(async (record) => {
-        const campaign = mapRecordToCampaign(record);
-        const progress = await computeProgress(campaign.id);
-        const progressPercent =
-          campaign.goal_amount_cents > 0
-            ? Math.min(
-                100,
-                Math.round(
-                  (progress.raised_cents / campaign.goal_amount_cents) * 100
-                )
-              )
-            : 0;
+    // Alle Moschee-Spenden einmalig laden (mosque_id ist plain string → zuverlässig).
+    // Fortschritt per Kampagne dann in JS berechnen — vermeidet N+1 Queries.
+    const allDonations = await pb.collection("donations").getFullList({
+      filter: `mosque_id = "${mosqueId}"`,
+      fields: "amount,amount_cents,status,campaign_id,donor_email",
+    });
 
-        return {
-          ...campaign,
-          raised_cents: progress.raised_cents,
-          donor_count: progress.donor_count,
-          progress_percent: progressPercent,
-        };
-      })
-    );
+    const campaigns: CampaignWithProgress[] = records.items.map((record) => {
+      const campaign = mapRecordToCampaign(record);
+      const progress = computeProgressFromDonations(campaign.id, allDonations);
+      const progressPercent =
+        campaign.goal_amount_cents > 0
+          ? Math.min(
+              100,
+              Math.round(
+                (progress.raised_cents / campaign.goal_amount_cents) * 100
+              )
+            )
+          : 0;
+
+      return {
+        ...campaign,
+        raised_cents: progress.raised_cents,
+        donor_count: progress.donor_count,
+        progress_percent: progressPercent,
+      };
+    });
 
     return {
       success: true,
@@ -139,28 +167,31 @@ export async function getPublicCampaigns(
       sort: "-created",
     });
 
-    const campaigns: CampaignWithProgress[] = await Promise.all(
-      records.items.map(async (record) => {
-        const campaign = mapRecordToCampaign(record);
-        const progress = await computeProgress(campaign.id);
-        const progressPercent =
-          campaign.goal_amount_cents > 0
-            ? Math.min(
-                100,
-                Math.round(
-                  (progress.raised_cents / campaign.goal_amount_cents) * 100
-                )
-              )
-            : 0;
+    const allDonations = await pb.collection("donations").getFullList({
+      filter: `mosque_id = "${mosqueId}"`,
+      fields: "amount,amount_cents,status,campaign_id,donor_email",
+    });
 
-        return {
-          ...campaign,
-          raised_cents: progress.raised_cents,
-          donor_count: progress.donor_count,
-          progress_percent: progressPercent,
-        };
-      })
-    );
+    const campaigns: CampaignWithProgress[] = records.items.map((record) => {
+      const campaign = mapRecordToCampaign(record);
+      const progress = computeProgressFromDonations(campaign.id, allDonations);
+      const progressPercent =
+        campaign.goal_amount_cents > 0
+          ? Math.min(
+              100,
+              Math.round(
+                (progress.raised_cents / campaign.goal_amount_cents) * 100
+              )
+            )
+          : 0;
+
+      return {
+        ...campaign,
+        raised_cents: progress.raised_cents,
+        donor_count: progress.donor_count,
+        progress_percent: progressPercent,
+      };
+    });
 
     return { success: true, data: campaigns };
   } catch (error) {
@@ -185,7 +216,7 @@ export async function getCampaignById(
     }
 
     const campaign = mapRecordToCampaign(record);
-    const progress = await computeProgress(campaign.id);
+    const progress = await computeProgress(campaign.id, mosqueId);
     const progressPercent =
       campaign.goal_amount_cents > 0
         ? Math.min(
