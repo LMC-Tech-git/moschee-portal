@@ -193,9 +193,9 @@ export async function sendBulkFeeReminders(
     // Moschee laden
     const mosque = await pb.collection("mosques").getOne(mosqueId);
 
-    // Alle offenen Gebühren ohne bisherige Mahnung
+    // Alle offenen Gebühren (unabhängig ob bereits gemahnt)
     const fees = await pb.collection("student_fees").getFullList({
-      filter: `mosque_id = "${mosqueId}" && month_key = "${monthKey}" && status = "open" && reminder_sent_at = ""`,
+      filter: `mosque_id = "${mosqueId}" && month_key = "${monthKey}" && status = "open"`,
     });
 
     if (fees.length === 0) {

@@ -408,7 +408,20 @@ export default function AdminMadrasaGebuehrenPage() {
             {isCreating ? t("btnCreating") : t("btnCreate")}
           </button>
         </div>
-        {createResult && (
+        {createResult && createResult.created === 0 && createResult.skipped > 0 && (
+          <div className="mt-3 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+            <span>
+              Für diesen Monat existieren bereits Gebühren. Bestehende Einträge werden nicht überschrieben.
+            </span>
+          </div>
+        )}
+        {createResult && createResult.created > 0 && createResult.skipped > 0 && (
+          <p className="mt-3 text-sm text-emerald-700">
+            {createResult.created} neu erstellt. {createResult.skipped} Schüler hatten bereits einen Eintrag und wurden übersprungen.
+          </p>
+        )}
+        {createResult && createResult.created > 0 && createResult.skipped === 0 && (
           <p className="mt-3 text-sm text-emerald-700">
             {t("createResultMsg", { created: createResult.created, skipped: createResult.skipped })}
           </p>
@@ -521,10 +534,16 @@ export default function AdminMadrasaGebuehrenPage() {
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex flex-col items-end gap-1">
-                          {/* Mahnung-Ergebnis */}
+                          {/* Mahnung-Ergebnis (Session-State, verschwindet bei Reload) */}
                           {reminderResult?.feeId === row.fee?.id && (
                             <span className={`text-xs ${reminderResult?.success ? "text-emerald-600" : "text-red-600"}`}>
                               {reminderResult?.msg}
+                            </span>
+                          )}
+                          {/* Persistenter Mahnung-Status (aus DB, bleibt nach Reload) */}
+                          {row.fee?.reminder_sent_at && (
+                            <span className="text-xs text-gray-400">
+                              🔔 Mahnung: {new Date(row.fee.reminder_sent_at).toLocaleDateString("de-DE")}
                             </span>
                           )}
                           <div className="flex items-center justify-end gap-1">
