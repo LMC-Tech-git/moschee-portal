@@ -22,6 +22,7 @@ import {
   Plus,
   Pencil,
   Trash2,
+  CheckCircle,
   XCircle,
   Upload,
   Globe,
