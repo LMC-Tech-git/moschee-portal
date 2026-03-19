@@ -343,8 +343,8 @@ export async function markSponsorPaid(
     }
 
     const startDate = new Date();
-    const endDate = new Date(startDate);
-    endDate.setMonth(endDate.getMonth() + durationMonths);
+    // end_date immer auf letzten Tag des Endmonats setzen
+    const endDate = new Date(startDate.getFullYear(), startDate.getMonth() + durationMonths + 1, 0);
 
     const startStr = startDate.toISOString().split("T")[0];
     const endStr = endDate.toISOString().split("T")[0];
@@ -407,20 +407,25 @@ export async function uploadSponsorLogo(
 }
 
 // ─── Cron: Ablaufende Sponsoren prüfen (interner Aufruf) ─────────────────────
+// Wird am 21. jedes Monats aufgerufen. Findet Sponsoren deren end_date
+// im aktuellen Monat liegt (= am Monatsende abläuft).
 
 export async function checkExpiringSponsors(mosqueId: string): Promise<{
   expiring: Sponsor[];
 }> {
   const pb = await getAdminPB();
 
-  // Sponsoren die in 7 Tagen ablaufen und noch keine Erinnerung erhalten haben
-  const in7Days = new Date();
-  in7Days.setDate(in7Days.getDate() + 7);
-  const in7Str = in7Days.toISOString().split("T")[0];
-  const todayStr = new Date().toISOString().split("T")[0];
+  // Sponsoren deren end_date im aktuellen Monat liegt und noch keine Erinnerung erhalten haben
+  const now = new Date();
+  const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+    .toISOString()
+    .split("T")[0];
+  const lastOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+    .toISOString()
+    .split("T")[0];
 
   const records = await pb.collection("sponsors").getFullList({
-    filter: `mosque_id = "${mosqueId}" && is_active = true && notification_sent = false && end_date >= "${todayStr}" && end_date <= "${in7Str}"`,
+    filter: `mosque_id = "${mosqueId}" && is_active = true && notification_sent = false && end_date >= "${firstOfMonth}" && end_date <= "${lastOfMonth}"`,
   });
 
   return { expiring: records.map(mapRecord) };

@@ -445,11 +445,11 @@ export function renderSponsorExpiryReminder(data: {
   const btnColor = data.accentColor || DEFAULT_COLOR;
 
   const content = `
-    <h2 style="margin:0 0 16px;color:#111827;font-size:22px;">Förderpartnerschaft läuft bald ab</h2>
+    <h2 style="margin:0 0 16px;color:#111827;font-size:22px;">Förderpartnerschaft läuft Ende des Monats ab</h2>
     <p style="margin:0 0 24px;color:#374151;font-size:16px;line-height:1.6;">
       Guten Tag,<br/>
-      die Förderpartnerschaft mit dem folgenden Unternehmen läuft in Kürze ab.
-      Eine Verlängerung ist jederzeit im Admin-Bereich möglich.
+      die Förderpartnerschaft mit dem folgenden Unternehmen läuft am Ende dieses Monats ab.
+      Möchten Sie die Partnerschaft verlängern? Das geht jederzeit über den Admin-Bereich.
     </p>
 
     <table width="100%" cellpadding="0" cellspacing="0" style="background:#fff7ed;border-radius:8px;border:1px solid #fed7aa;margin:0 0 24px;">

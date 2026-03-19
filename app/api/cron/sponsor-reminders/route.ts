@@ -6,10 +6,12 @@ import { sendSponsorExpiryReminder } from "@/lib/actions/email";
 export const dynamic = "force-dynamic";
 
 /**
- * Täglicher Cron-Job: Ablaufende Sponsoren prüfen und Erinnerungen senden.
+ * Monatlicher Cron-Job: Ablaufende Sponsoren prüfen und Erinnerungen senden.
+ * Wird am 21. jedes Monats aufgerufen — Sponsoren die am Monatsende ablaufen
+ * bekommen eine Erinnerung ob sie verlängern möchten.
  *
  * Aufruf per VPS-Crontab:
- *   0 8 * * * curl -H "Authorization: Bearer $CRON_SECRET" https://moschee.app/api/cron/sponsor-reminders
+ *   0 8 21 * * curl -H "Authorization: Bearer $CRON_SECRET" https://moschee.app/api/cron/sponsor-reminders
  */
 export async function GET(request: NextRequest) {
   // Bearer-Token prüfen
