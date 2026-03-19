@@ -1688,7 +1688,8 @@
     "selectAll": "Alle auswählen",
     "deselectAll": "Auswahl aufheben",
     "count": "{count} Schüler",
-    "filtered": "{filtered} von {total}"
+    "filtered": "{filtered} von {total}",
+    "backLink": "Zur Madrasa-Übersicht"
   },
   "adminStudent": {
     "createTitle": "Schüler anlegen",

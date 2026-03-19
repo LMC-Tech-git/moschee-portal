@@ -137,7 +137,7 @@ export default function SchuljahrePage() {
           <p className="text-sm text-gray-500">{t("subtitle")}</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button onClick={openCreateForm} className="gap-2">
+          <Button onClick={openCreateForm} className="gap-2 bg-emerald-600 hover:bg-emerald-700">
             <Plus className="h-4 w-4" />
             {t("newBtn")}
           </Button>
@@ -146,7 +146,7 @@ export default function SchuljahrePage() {
             className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
           >
             <ChevronLeft className="h-4 w-4" />
-            Zur Madrasa-Übersicht
+            {t("backLink")}
           </Link>
         </div>
       </div>
@@ -209,6 +209,7 @@ export default function SchuljahrePage() {
                 onClick={handleSave}
                 disabled={isSaving || !name || !startDate || !endDate}
                 size="sm"
+                className="bg-emerald-600 hover:bg-emerald-700"
               >
                 {isSaving ? tCommon("saving") : editingYear ? tCommon("update") : tCommon("create")}
               </Button>
@@ -242,7 +243,7 @@ export default function SchuljahrePage() {
               <p className="mb-4 text-xs text-gray-400">
                 {t("emptyHint")}
               </p>
-              <Button onClick={openCreateForm} size="sm" className="gap-2">
+              <Button onClick={openCreateForm} size="sm" className="gap-2 bg-emerald-600 hover:bg-emerald-700">
                 <Plus className="h-4 w-4" />
                 {t("newBtn")}
               </Button>

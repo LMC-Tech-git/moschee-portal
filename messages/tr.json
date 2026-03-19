@@ -1688,7 +1688,8 @@
     "selectAll": "Tümünü seç",
     "deselectAll": "Seçimi kaldır",
     "count": "{count} öğrenci",
-    "filtered": "{filtered} / {total}"
+    "filtered": "{filtered} / {total}",
+    "backLink": "Medrese Modülü"
   },
   "adminStudent": {
     "createTitle": "Öğrenci Ekle",
