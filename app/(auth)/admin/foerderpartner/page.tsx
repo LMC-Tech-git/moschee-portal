@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
+import { useMosque } from "@/lib/mosque-context";
 import {
   getSponsors,
   createSponsor,
@@ -93,7 +94,8 @@ interface PaidDialogState {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function AdminFoerderpartnerPage() {
-  const { user, mosqueId } = useAuth();
+  const { user } = useAuth();
+  const { mosqueId } = useMosque();
   const t = useTranslations("sponsors.admin");
 
   // Data
