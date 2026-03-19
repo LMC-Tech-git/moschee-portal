@@ -1178,7 +1178,13 @@
       "skipped": "Atlandı",
       "skippedNoContact": "Atlandı (iletişim yok)",
       "skippedAlreadyReminded": "Atlandı (zaten hatırlatıldı)",
-      "failed": "Başarısız"
+      "failed": "Başarısız",
+      "created": "Oluşturuldu",
+      "old_status": "Eski Durum",
+      "new_status": "Yeni Durum",
+      "new_role": "Yeni Rol",
+      "new_name": "Yeni Ad",
+      "student_name": "Öğrenci"
     }
   },
   "settings": {

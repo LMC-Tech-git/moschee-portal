@@ -1178,7 +1178,13 @@
       "skipped": "Übersprungen",
       "skippedNoContact": "Übersprungen (kein Kontakt)",
       "skippedAlreadyReminded": "Übersprungen (bereits erinnert)",
-      "failed": "Fehlgeschlagen"
+      "failed": "Fehlgeschlagen",
+      "created": "Erstellt",
+      "old_status": "Alter Status",
+      "new_status": "Neuer Status",
+      "new_role": "Neue Rolle",
+      "new_name": "Neuer Name",
+      "student_name": "Schüler"
     }
   },
   "settings": {

@@ -171,13 +171,19 @@ export async function markFeePaid(
       created_by: userId,
     });
 
+    let studentName = "";
+    try {
+      const student = await pb.collection("students").getOne(existing.student_id, { fields: "first_name,last_name" });
+      studentName = `${student.first_name} ${student.last_name}`.trim();
+    } catch { /* ignore */ }
+
     await logAudit({
       mosqueId,
       userId,
       action: "student_fee.marked_paid",
       entityType: "student_fees",
       entityId: feeId,
-      details: { payment_method: paymentMethod, month_key: existing.month_key },
+      details: { student_name: studentName, payment_method: paymentMethod, month_key: existing.month_key },
     });
 
     return { success: true, data: mapRecordToFee(record) };
@@ -212,13 +218,19 @@ export async function markFeeWaived(
       created_by: userId,
     });
 
+    let studentName = "";
+    try {
+      const student = await pb.collection("students").getOne(existing.student_id, { fields: "first_name,last_name" });
+      studentName = `${student.first_name} ${student.last_name}`.trim();
+    } catch { /* ignore */ }
+
     await logAudit({
       mosqueId,
       userId,
       action: "student_fee.waived",
       entityType: "student_fees",
       entityId: feeId,
-      details: { month_key: existing.month_key },
+      details: { student_name: studentName, month_key: existing.month_key },
     });
 
     return { success: true, data: mapRecordToFee(record) };
