@@ -1075,51 +1075,83 @@
       "mosques": "Cami"
     },
     "action": {
-      "post.created": "Haber oluşturuldu",
-      "post.updated": "Haber düzenlendi",
-      "post.deleted": "Haber silindi",
-      "event.created": "Etkinlik oluşturuldu",
-      "event.updated": "Etkinlik düzenlendi",
-      "event.deleted": "Etkinlik silindi",
-      "event_registration.guest_created": "Misafir kaydı",
-      "event_registration.member_created": "Üye kaydı",
-      "event_registration.cancelled": "Kayıt iptal edildi",
-      "campaign.created": "Kampanya oluşturuldu",
-      "campaign.updated": "Kampanya düzenlendi",
-      "campaign.deleted": "Kampanya silindi",
-      "donation.created": "Bağış oluşturuldu",
-      "donation.status_changed": "Bağış durumu değiştirildi",
-      "donation.paid": "Bağış ödendi",
-      "donation.failed": "Bağış başarısız",
-      "donation.refunded": "Bağış iade edildi",
-      "member.status_changed": "Durum değiştirildi",
-      "member.role_changed": "Rol değiştirildi",
-      "member.updated": "Üye düzenlendi",
-      "invite.created": "Davet oluşturuldu",
-      "invite.revoked": "Davet iptal edildi",
-      "invite.deleted": "Davet silindi",
-      "invite.consumed": "Davet kabul edildi",
-      "course.created": "Ders oluşturuldu",
-      "course.updated": "Ders düzenlendi",
-      "course.deleted": "Ders silindi",
-      "student.created": "Öğrenci oluşturuldu",
-      "student.updated": "Öğrenci düzenlendi",
-      "student.imported": "Öğrenci içe aktarıldı",
-      "enrollment.created": "Kayıt oluşturuldu",
-      "attendance.saved": "Yoklama kaydedildi",
-      "attendance.session_deleted": "Yoklama oturumu silindi",
-      "academic_year.created": "Öğretim yılı oluşturuldu",
-      "academic_year.updated": "Öğretim yılı düzenlendi",
-      "academic_year.archived": "Öğretim yılı arşivlendi",
-      "student_fees.bulk_created": "Ücretler oluşturuldu",
-      "student_fee.marked_paid": "Ücret ödendi (Nakit/Havale)",
-      "student_fee.paid_stripe": "Ücret ödendi (Stripe)",
-      "student_fee.waived": "Ücret muaf tutuldu",
-      "newsletter.queued": "Bülten kuyruğa eklendi",
-      "newsletter.sent": "Bülten gönderildi",
-      "fee_reminder.sent": "Ücret hatırlatması gönderildi",
-      "fee_reminder.bulk_sent": "Ücret hatırlatmaları (Toplu) gönderildi",
-      "fee_reminder.auto_sent": "Ücret hatırlatmaları (Otomatik) gönderildi",
+      "post": {
+        "created": "Haber oluşturuldu",
+        "updated": "Haber düzenlendi",
+        "deleted": "Haber silindi"
+      },
+      "event": {
+        "created": "Etkinlik oluşturuldu",
+        "updated": "Etkinlik düzenlendi",
+        "deleted": "Etkinlik silindi"
+      },
+      "event_registration": {
+        "guest_created": "Misafir kaydı",
+        "member_created": "Üye kaydı",
+        "cancelled": "Kayıt iptal edildi"
+      },
+      "campaign": {
+        "created": "Kampanya oluşturuldu",
+        "updated": "Kampanya düzenlendi",
+        "deleted": "Kampanya silindi"
+      },
+      "donation": {
+        "created": "Bağış oluşturuldu",
+        "status_changed": "Bağış durumu değiştirildi",
+        "paid": "Bağış ödendi",
+        "failed": "Bağış başarısız",
+        "refunded": "Bağış iade edildi"
+      },
+      "member": {
+        "status_changed": "Durum değiştirildi",
+        "role_changed": "Rol değiştirildi",
+        "updated": "Üye düzenlendi"
+      },
+      "invite": {
+        "created": "Davet oluşturuldu",
+        "revoked": "Davet iptal edildi",
+        "deleted": "Davet silindi",
+        "consumed": "Davet kabul edildi"
+      },
+      "course": {
+        "created": "Ders oluşturuldu",
+        "updated": "Ders düzenlendi",
+        "deleted": "Ders silindi"
+      },
+      "student": {
+        "created": "Öğrenci oluşturuldu",
+        "updated": "Öğrenci düzenlendi",
+        "imported": "Öğrenci içe aktarıldı"
+      },
+      "enrollment": {
+        "created": "Kayıt oluşturuldu"
+      },
+      "attendance": {
+        "saved": "Yoklama kaydedildi",
+        "session_deleted": "Yoklama oturumu silindi"
+      },
+      "academic_year": {
+        "created": "Öğretim yılı oluşturuldu",
+        "updated": "Öğretim yılı düzenlendi",
+        "archived": "Öğretim yılı arşivlendi"
+      },
+      "student_fees": {
+        "bulk_created": "Ücretler oluşturuldu"
+      },
+      "student_fee": {
+        "marked_paid": "Ücret ödendi (Nakit/Havale)",
+        "paid_stripe": "Ücret ödendi (Stripe)",
+        "waived": "Ücret muaf tutuldu"
+      },
+      "newsletter": {
+        "queued": "Bülten kuyruğa eklendi",
+        "sent": "Bülten gönderildi"
+      },
+      "fee_reminder": {
+        "sent": "Ücret hatırlatması gönderildi",
+        "bulk_sent": "Ücret hatırlatmaları (Toplu) gönderildi",
+        "auto_sent": "Ücret hatırlatmaları (Otomatik) gönderildi"
+      },
       "update_branding": "Marka güncellendi",
       "update_prayer_settings": "Namaz vakti ayarları güncellendi",
       "update_default_settings": "Varsayılan ayarlar güncellendi",
@@ -1141,7 +1173,12 @@
       "donor_type": "Bağış Türü",
       "visibility": "Görünürlük",
       "payment_method": "Ödeme Yöntemi",
-      "month_key": "Ay"
+      "month_key": "Ay",
+      "sent": "Gönderildi",
+      "skipped": "Atlandı",
+      "skippedNoContact": "Atlandı (iletişim yok)",
+      "skippedAlreadyReminded": "Atlandı (zaten hatırlatıldı)",
+      "failed": "Başarısız"
     }
   },
   "settings": {

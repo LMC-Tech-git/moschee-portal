@@ -1075,51 +1075,83 @@
       "mosques": "Moschee"
     },
     "action": {
-      "post.created": "Post erstellt",
-      "post.updated": "Post bearbeitet",
-      "post.deleted": "Post gelöscht",
-      "event.created": "Event erstellt",
-      "event.updated": "Event bearbeitet",
-      "event.deleted": "Event gelöscht",
-      "event_registration.guest_created": "Gast-Anmeldung",
-      "event_registration.member_created": "Mitglieder-Anmeldung",
-      "event_registration.cancelled": "Abmeldung",
-      "campaign.created": "Kampagne erstellt",
-      "campaign.updated": "Kampagne bearbeitet",
-      "campaign.deleted": "Kampagne gelöscht",
-      "donation.created": "Spende erstellt",
-      "donation.status_changed": "Spenden-Status geändert",
-      "donation.paid": "Spende bezahlt",
-      "donation.failed": "Spende fehlgeschlagen",
-      "donation.refunded": "Spende erstattet",
-      "member.status_changed": "Status geändert",
-      "member.role_changed": "Rolle geändert",
-      "member.updated": "Mitglied bearbeitet",
-      "invite.created": "Einladung erstellt",
-      "invite.revoked": "Einladung widerrufen",
-      "invite.deleted": "Einladung gelöscht",
-      "invite.consumed": "Einladung angenommen",
-      "course.created": "Kurs erstellt",
-      "course.updated": "Kurs bearbeitet",
-      "course.deleted": "Kurs gelöscht",
-      "student.created": "Schüler erstellt",
-      "student.updated": "Schüler bearbeitet",
-      "student.imported": "Schüler importiert",
-      "enrollment.created": "Einschreibung erstellt",
-      "attendance.saved": "Anwesenheit gespeichert",
-      "attendance.session_deleted": "Anwesenheits-Session gelöscht",
-      "academic_year.created": "Schuljahr erstellt",
-      "academic_year.updated": "Schuljahr bearbeitet",
-      "academic_year.archived": "Schuljahr archiviert",
-      "student_fees.bulk_created": "Gebühren erstellt",
-      "student_fee.marked_paid": "Gebühr bezahlt (Bar/Überweisung)",
-      "student_fee.paid_stripe": "Gebühr bezahlt (Stripe)",
-      "student_fee.waived": "Gebühr erlassen",
-      "newsletter.queued": "Newsletter eingereiht",
-      "newsletter.sent": "Newsletter gesendet",
-      "fee_reminder.sent": "Gebühren-Erinnerung gesendet",
-      "fee_reminder.bulk_sent": "Gebühren-Erinnerungen (Sammel) gesendet",
-      "fee_reminder.auto_sent": "Gebühren-Erinnerungen (Automatisch) gesendet",
+      "post": {
+        "created": "Post erstellt",
+        "updated": "Post bearbeitet",
+        "deleted": "Post gelöscht"
+      },
+      "event": {
+        "created": "Event erstellt",
+        "updated": "Event bearbeitet",
+        "deleted": "Event gelöscht"
+      },
+      "event_registration": {
+        "guest_created": "Gast-Anmeldung",
+        "member_created": "Mitglieder-Anmeldung",
+        "cancelled": "Abmeldung"
+      },
+      "campaign": {
+        "created": "Kampagne erstellt",
+        "updated": "Kampagne bearbeitet",
+        "deleted": "Kampagne gelöscht"
+      },
+      "donation": {
+        "created": "Spende erstellt",
+        "status_changed": "Spenden-Status geändert",
+        "paid": "Spende bezahlt",
+        "failed": "Spende fehlgeschlagen",
+        "refunded": "Spende erstattet"
+      },
+      "member": {
+        "status_changed": "Status geändert",
+        "role_changed": "Rolle geändert",
+        "updated": "Mitglied bearbeitet"
+      },
+      "invite": {
+        "created": "Einladung erstellt",
+        "revoked": "Einladung widerrufen",
+        "deleted": "Einladung gelöscht",
+        "consumed": "Einladung angenommen"
+      },
+      "course": {
+        "created": "Kurs erstellt",
+        "updated": "Kurs bearbeitet",
+        "deleted": "Kurs gelöscht"
+      },
+      "student": {
+        "created": "Schüler erstellt",
+        "updated": "Schüler bearbeitet",
+        "imported": "Schüler importiert"
+      },
+      "enrollment": {
+        "created": "Einschreibung erstellt"
+      },
+      "attendance": {
+        "saved": "Anwesenheit gespeichert",
+        "session_deleted": "Anwesenheits-Session gelöscht"
+      },
+      "academic_year": {
+        "created": "Schuljahr erstellt",
+        "updated": "Schuljahr bearbeitet",
+        "archived": "Schuljahr archiviert"
+      },
+      "student_fees": {
+        "bulk_created": "Gebühren erstellt"
+      },
+      "student_fee": {
+        "marked_paid": "Gebühr bezahlt (Bar/Überweisung)",
+        "paid_stripe": "Gebühr bezahlt (Stripe)",
+        "waived": "Gebühr erlassen"
+      },
+      "newsletter": {
+        "queued": "Newsletter eingereiht",
+        "sent": "Newsletter gesendet"
+      },
+      "fee_reminder": {
+        "sent": "Gebühren-Erinnerung gesendet",
+        "bulk_sent": "Gebühren-Erinnerungen (Sammel) gesendet",
+        "auto_sent": "Gebühren-Erinnerungen (Automatisch) gesendet"
+      },
       "update_branding": "Branding aktualisiert",
       "update_prayer_settings": "Gebetszeiten aktualisiert",
       "update_default_settings": "Standardeinstellungen aktualisiert",
@@ -1141,7 +1173,12 @@
       "donor_type": "Spendentyp",
       "visibility": "Sichtbarkeit",
       "payment_method": "Zahlungsart",
-      "month_key": "Monat"
+      "month_key": "Monat",
+      "sent": "Gesendet",
+      "skipped": "Übersprungen",
+      "skippedNoContact": "Übersprungen (kein Kontakt)",
+      "skippedAlreadyReminded": "Übersprungen (bereits erinnert)",
+      "failed": "Fehlgeschlagen"
     }
   },
   "settings": {
