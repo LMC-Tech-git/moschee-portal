@@ -116,7 +116,7 @@ export default function MemberProfilePage() {
   }, []);
 
   useEffect(() => {
-    if (!mosqueId) return;
+    if (!mosqueId || !user) return;
     async function checkSettings() {
       const [feeResult, portalResult] = await Promise.all([
         getMadrasaFeeSettings(mosqueId),
@@ -126,11 +126,14 @@ export default function MemberProfilePage() {
         setFeesEnabled(true);
       }
       if (portalResult.success && portalResult.settings?.sponsors_enabled) {
-        setSponsorsEnabled(true);
+        const sponsorResult = await getSponsorsByContact(mosqueId, user.id);
+        if (sponsorResult.success && sponsorResult.data && sponsorResult.data.length > 0) {
+          setSponsorsEnabled(true);
+        }
       }
     }
     checkSettings();
-  }, [mosqueId]);
+  }, [mosqueId, user]);
 
   useEffect(() => {
     if (mosque?.donation_provider === "stripe") {
@@ -1099,7 +1102,7 @@ function SponsorPaymentOverview({
       {sponsorPaidSuccess && (
         <div className="flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700">
           <CheckCircle className="h-4 w-4 shrink-0" />
-          {t("member.profile.sponsor.paidSuccess")}
+          {t("member.sponsor.paidSuccess")}
         </div>
       )}
 
@@ -1118,7 +1121,7 @@ function SponsorPaymentOverview({
         ) : sponsors.length === 0 ? (
           <div className="py-12 text-center">
             <Handshake className="mx-auto mb-3 h-10 w-10 text-gray-300" />
-            <p className="text-sm text-gray-500">{t("member.profile.sponsor.empty")}</p>
+            <p className="text-sm text-gray-500">{t("member.sponsor.empty")}</p>
           </div>
         ) : (
           <div className="divide-y divide-gray-100">
@@ -1132,7 +1135,7 @@ function SponsorPaymentOverview({
                     <span className="font-medium text-gray-900">{sponsor.name}</span>
                     {endDate && (
                       <span className="text-xs text-gray-400">
-                        {t("member.profile.sponsor.until")} {endDate}
+                        {t("member.sponsor.until")} {endDate}
                       </span>
                     )}
                     {sponsor.amount_cents && sponsor.amount_cents > 0 ? (
@@ -1146,12 +1149,12 @@ function SponsorPaymentOverview({
                     {sponsor.payment_status === "paid" ? (
                       <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-700">
                         <CheckCircle className="h-3 w-3" />
-                        {t("member.profile.sponsor.paid")}
+                        {t("member.sponsor.paid")}
                       </span>
                     ) : (
                       <>
                         <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-700">
-                          {t("member.profile.sponsor.open")}
+                          {t("member.sponsor.open")}
                         </span>
                         {stripeEnabled && sponsor.amount_cents && sponsor.amount_cents > 0 && (
                           <button
@@ -1160,7 +1163,7 @@ function SponsorPaymentOverview({
                             disabled={payingId === sponsor.id}
                             className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-700 disabled:opacity-60"
                           >
-                            {payingId === sponsor.id ? "Weiterleiten..." : t("member.profile.sponsor.payOnline")}
+                            {payingId === sponsor.id ? "Weiterleiten..." : t("member.sponsor.payOnline")}
                           </button>
                         )}
                       </>
