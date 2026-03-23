@@ -30,6 +30,7 @@ function mapRecord(r: RecordModel): Sponsor {
     contact_email: r.contact_email || undefined,
     provider_ref: r.provider_ref || undefined,
     paid_at: r.paid_at || undefined,
+    months_paid: r.months_paid || undefined,
     created: r.created || "",
     updated: r.updated || "",
   };

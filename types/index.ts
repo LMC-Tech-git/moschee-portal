@@ -95,6 +95,7 @@ export interface Sponsor {
   contact_email?: string;
   provider_ref?: string;
   paid_at?: string;
+  months_paid?: number;
   created: string;
   updated: string;
 }

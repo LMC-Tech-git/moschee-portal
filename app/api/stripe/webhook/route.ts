@@ -65,11 +65,13 @@ export async function POST(request: NextRequest) {
             break;
           }
           if (session.payment_status === "paid") {
+            const sponsorMonths = parseInt(session.metadata?.months || "1", 10);
             await pb.collection("sponsors").update(sponsorId, {
               payment_status: "paid",
               paid_at: new Date().toISOString(),
               payment_method: "stripe",
               is_active: true,
+              months_paid: sponsorMonths,
             });
             console.log(`[Stripe Webhook] Sponsor ${sponsorId} als bezahlt markiert`);
             if (mosqueId) {

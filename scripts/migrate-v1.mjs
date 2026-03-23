@@ -661,6 +661,7 @@ const SPONSORS_NEW_FIELDS = [
   { name: "contact_email", type: "email", options: {} },
   { name: "provider_ref", type: "text", options: { max: 255 } },
   { name: "paid_at", type: "text", options: { max: 50 } },
+  { name: "months_paid", type: "number", options: { min: 1 } },
 ];
 
 const SPONSORS_COLLECTION = {

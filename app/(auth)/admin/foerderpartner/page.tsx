@@ -476,8 +476,33 @@ export default function AdminFoerderpartnerPage() {
                               style: "currency",
                               currency: "EUR",
                             })}
+                            {" / Monat"}
                           </p>
                         ) : null}
+                        {sponsor.payment_status === "paid" && (
+                          <div className="mt-1 flex flex-col gap-0.5">
+                            {sponsor.payment_method && (
+                              <span className="text-xs text-gray-500">
+                                {sponsor.payment_method === "stripe"
+                                  ? "Stripe"
+                                  : sponsor.payment_method === "cash"
+                                    ? "Bar"
+                                    : "Überweisung"}
+                                {sponsor.months_paid && sponsor.months_paid > 1
+                                  ? ` · ${sponsor.months_paid} Monate`
+                                  : ""}
+                                {sponsor.months_paid && sponsor.amount_cents
+                                  ? ` · ${((sponsor.amount_cents * sponsor.months_paid) / 100).toLocaleString("de-DE", { style: "currency", currency: "EUR" })}`
+                                  : ""}
+                              </span>
+                            )}
+                            {sponsor.paid_at && (
+                              <span className="text-xs text-gray-400">
+                                {new Date(sponsor.paid_at).toLocaleDateString("de-DE")}
+                              </span>
+                            )}
+                          </div>
+                        )}
                       </td>
 
                       {/* Active badge */}
@@ -555,16 +580,18 @@ export default function AdminFoerderpartnerPage() {
                             </span>
                           </button>
 
-                          {/* Mark Paid */}
-                          <button
-                            type="button"
-                            onClick={() => openPaidDialog(sponsor)}
-                            className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-emerald-700 hover:bg-emerald-50"
-                            title={t("markPaid")}
-                          >
-                            <Banknote className="h-3 w-3" />
-                            <span className="hidden md:inline">{t("markPaid")}</span>
-                          </button>
+                          {/* Mark Paid — nur wenn noch offen */}
+                          {sponsor.payment_status !== "paid" && (
+                            <button
+                              type="button"
+                              onClick={() => openPaidDialog(sponsor)}
+                              className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-emerald-700 hover:bg-emerald-50"
+                              title={t("markPaid")}
+                            >
+                              <Banknote className="h-3 w-3" />
+                              <span className="hidden md:inline">{t("markPaid")}</span>
+                            </button>
+                          )}
 
                           {/* Edit */}
                           <button
