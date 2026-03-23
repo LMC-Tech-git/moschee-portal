@@ -222,22 +222,24 @@ export default function MemberProfilePage() {
       </div>
 
       {/* Tabs */}
-      <div className="mb-6 flex gap-1 rounded-lg border border-gray-200 bg-gray-50 p-1">
-        {tabs.map((tab) => (
-          <button
-            key={tab.key}
-            type="button"
-            onClick={() => setActiveTab(tab.key)}
-            className={`flex flex-1 items-center justify-center gap-1 rounded-md px-1 py-2 text-xs font-medium transition-colors sm:gap-2 sm:px-3 sm:text-sm ${
-              activeTab === tab.key
-                ? "bg-white text-emerald-700 shadow-sm"
-                : "text-gray-500 hover:text-gray-700"
-            }`}
-          >
-            {tab.icon}
-            <span className="hidden sm:inline">{tab.label}</span>
-          </button>
-        ))}
+      <div className="mb-6 overflow-x-auto rounded-lg border border-gray-200 bg-gray-50 p-1">
+        <div className="flex min-w-max gap-1">
+          {tabs.map((tab) => (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => setActiveTab(tab.key)}
+              className={`flex items-center justify-center gap-1 rounded-md px-2 py-2 text-xs font-medium transition-colors sm:gap-2 sm:px-3 sm:text-sm ${
+                activeTab === tab.key
+                  ? "bg-white text-emerald-700 shadow-sm"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              {tab.icon}
+              <span className="sm:inline">{tab.label}</span>
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* E-Mail-Änderung Rückmeldungen */}
