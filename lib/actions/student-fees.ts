@@ -411,7 +411,7 @@ export async function createFeeStripeCheckout(
  * Berechnet eine Liste von Monat-Keys ab einem Startmonat.
  * z.B. getMonthRange("2026-03", 3) → ["2026-03", "2026-04", "2026-05"]
  */
-export function getMonthRange(startKey: string, count: number): string[] {
+function getMonthRange(startKey: string, count: number): string[] {
   const [y, m] = startKey.split("-").map(Number);
   const result: string[] = [];
   for (let i = 0; i < count; i++) {
