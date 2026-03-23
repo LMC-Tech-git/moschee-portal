@@ -54,6 +54,7 @@ export async function resolveMosqueSettings(
     fee_reminder_enabled: false,
     fee_reminder_day: 15,
     sponsors_enabled: false,
+    sponsors_visibility: "public",
     team_enabled: false,
     team_visibility: "public",
     created: "",

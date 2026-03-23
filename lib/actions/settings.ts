@@ -251,6 +251,7 @@ export async function getPortalSettings(mosqueId: string): Promise<{
         fee_reminder_enabled: false,
         fee_reminder_day: 15,
         sponsors_enabled: false,
+        sponsors_visibility: "public",
         team_enabled: false,
         team_visibility: "public",
         created: "",
@@ -440,7 +441,7 @@ export async function updatePbSmtpSettings(
 export async function updateSponsorsSettings(
   mosqueId: string,
   userId: string,
-  data: { sponsors_enabled: boolean }
+  data: { sponsors_enabled: boolean; sponsors_visibility: "public" | "members" }
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const pb = await getAdminPB();

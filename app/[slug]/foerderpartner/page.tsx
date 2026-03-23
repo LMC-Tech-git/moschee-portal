@@ -7,6 +7,7 @@ import { resolveMosqueBySlug } from "@/lib/resolve-mosque";
 import { getTranslations } from "next-intl/server";
 import { getActiveSponsors } from "@/lib/actions/sponsors";
 import { getPortalSettings } from "@/lib/actions/settings";
+import { getAuthFromCookie } from "@/lib/auth-cookie";
 import SponsorGrid from "@/components/sponsors/SponsorGrid";
 
 export async function generateMetadata({ params }: { params: { slug: string } }) {
@@ -30,8 +31,14 @@ export default async function FoerderpartnerPage({
 
   // Check if sponsors module is enabled
   const settingsResult = await getPortalSettings(mosque.id);
-  const sponsorsEnabled = settingsResult.settings?.sponsors_enabled ?? false;
-  if (!sponsorsEnabled) notFound();
+  const settings = settingsResult.settings;
+  if (!settings?.sponsors_enabled) notFound();
+
+  // Visibility guard
+  if (settings.sponsors_visibility === "members") {
+    const { isActiveMember } = getAuthFromCookie();
+    if (!isActiveMember) notFound();
+  }
 
   // Load active sponsors
   const sponsorsResult = await getActiveSponsors(mosque.id);

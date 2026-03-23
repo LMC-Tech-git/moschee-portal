@@ -654,6 +654,11 @@ const SETTINGS_MADRASA_FIELDS = [
 
 const SETTINGS_SPONSORS_FIELDS = [
   { name: "sponsors_enabled", type: "bool", options: { default: false } },
+  {
+    name: "sponsors_visibility",
+    type: "select",
+    options: { values: ["public", "members"], maxSelect: 1 },
+  },
 ];
 
 const SETTINGS_TEAM_FIELDS = [

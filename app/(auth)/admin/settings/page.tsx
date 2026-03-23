@@ -102,6 +102,7 @@ export default function AdminSettingsPage() {
   const [settings, setSettings] = useState<SettingsType | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [sponsorsEnabled, setSponsorsEnabled] = useState(false);
+  const [sponsorsVisibility, setSponsorsVisibility] = useState<"public" | "members">("public");
   const [teamEnabled, setTeamEnabled] = useState(false);
   const [teamVisibility, setTeamVisibility] = useState<"public" | "members">("public");
 
@@ -123,6 +124,7 @@ export default function AdminSettingsPage() {
         setMosque(portalResult.mosque);
         setSettings(portalResult.settings);
         setSponsorsEnabled(portalResult.settings.sponsors_enabled ?? false);
+        setSponsorsVisibility(portalResult.settings.sponsors_visibility ?? "public");
         setTeamEnabled(portalResult.settings.team_enabled ?? false);
         setTeamVisibility(portalResult.settings.team_visibility ?? "public");
       }
@@ -232,7 +234,8 @@ export default function AdminSettingsPage() {
           mosqueId={mosqueId}
           userId={user?.id || ""}
           sponsorsEnabled={sponsorsEnabled}
-          onSaved={(val) => { setSponsorsEnabled(val); setSponsorsEnabledCtx(val); }}
+          sponsorsVisibility={sponsorsVisibility}
+          onSaved={(enabled, visibility) => { setSponsorsEnabled(enabled); setSponsorsVisibility(visibility); setSponsorsEnabledCtx(enabled); }}
         />
       )}
       {activeTab === "team" && (
@@ -1702,24 +1705,27 @@ function SponsorsTab({
   mosqueId,
   userId,
   sponsorsEnabled,
+  sponsorsVisibility,
   onSaved,
 }: {
   mosqueId: string;
   userId: string;
   sponsorsEnabled: boolean;
-  onSaved: (val: boolean) => void;
+  sponsorsVisibility: "public" | "members";
+  onSaved: (enabled: boolean, visibility: "public" | "members") => void;
 }) {
   const t = useTranslations("settings");
   const [enabled, setEnabled] = useState(sponsorsEnabled);
+  const [visibility, setVisibility] = useState<"public" | "members">(sponsorsVisibility);
   const [isSaving, setIsSaving] = useState(false);
   const [status, setStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
   async function handleSave() {
     setIsSaving(true);
     setStatus(null);
-    const result = await updateSponsorsSettings(mosqueId, userId, { sponsors_enabled: enabled });
+    const result = await updateSponsorsSettings(mosqueId, userId, { sponsors_enabled: enabled, sponsors_visibility: visibility });
     if (result.success) {
-      onSaved(enabled);
+      onSaved(enabled, visibility);
       setStatus({ type: "success", message: t("sponsors.saved") });
     } else {
       setStatus({ type: "error", message: result.error || t("saveError") });
@@ -1754,12 +1760,45 @@ function SponsorsTab({
             </div>
           </label>
 
+          {/* Sichtbarkeit */}
           {enabled && (
-            <p className="text-sm text-emerald-700">
-              <a href="/admin/foerderpartner" className="underline hover:no-underline">
-                {t("sponsors.manageLink")}
-              </a>
-            </p>
+            <div className="space-y-2 rounded-lg border border-gray-200 bg-gray-50 p-4">
+              <p className="text-sm font-medium text-gray-700">{t("sponsors.visibilityLabel")}</p>
+              <div className="space-y-2">
+                <label className="flex cursor-pointer items-center gap-3">
+                  <input
+                    type="radio"
+                    name="sponsors_visibility"
+                    value="public"
+                    checked={visibility === "public"}
+                    onChange={() => setVisibility("public")}
+                    className="h-4 w-4 text-emerald-600"
+                  />
+                  <span className="text-sm text-gray-700">{t("sponsors.visibilityPublic")}</span>
+                </label>
+                <label className="flex cursor-pointer items-center gap-3">
+                  <input
+                    type="radio"
+                    name="sponsors_visibility"
+                    value="members"
+                    checked={visibility === "members"}
+                    onChange={() => setVisibility("members")}
+                    className="h-4 w-4 text-emerald-600"
+                  />
+                  <span className="text-sm text-gray-700">{t("sponsors.visibilityMembers")}</span>
+                </label>
+              </div>
+            </div>
+          )}
+
+          {enabled && (
+            <a
+              href="/admin/foerderpartner"
+              className="flex items-center justify-center gap-2 rounded-lg border border-emerald-600 bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-700 hover:bg-emerald-100 transition-colors"
+            >
+              <Handshake className="h-4 w-4" />
+              {t("sponsors.manageLink")}
+            </a>
           )}
         </div>
 

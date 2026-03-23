@@ -64,6 +64,7 @@ export interface Settings {
   fee_reminder_day: number;           // Tag im Monat (1-28)
   // Förderpartner
   sponsors_enabled: boolean;
+  sponsors_visibility: "public" | "members";
   // Leitung & Team
   team_enabled: boolean;
   team_visibility: "public" | "members";
