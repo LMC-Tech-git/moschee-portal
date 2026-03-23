@@ -39,6 +39,7 @@
     "events": "Veranstaltungen",
     "donate": "Spenden",
     "sponsors": "Förderpartner",
+    "team": "Leitung & Team",
     "login": "Anmelden",
     "register": "Registrieren",
     "logout": "Abmelden",
@@ -401,6 +402,10 @@
       "sponsors": {
         "title": "Förderpartner",
         "desc": "Lokale Unternehmen als Förderpartner verwalten."
+      },
+      "team": {
+        "title": "Leitung & Team",
+        "desc": "Vorstand, Imame und Mitarbeiter verwalten."
       },
       "newsletter": {
         "title": "Newsletter",
@@ -1220,7 +1225,22 @@
       "defaults": "Defaults",
       "madrasa": "Madrasa",
       "sponsors": "Förderpartner",
+      "team": "Leitung & Team",
       "email": "E-Mail"
+    },
+    "team": {
+      "title": "Leitung & Team",
+      "desc": "Stellen Sie Ihren Vorstand, Imame und Mitarbeiter auf einer öffentlichen Seite vor.",
+      "enabledLabel": "Leitung & Team aktivieren",
+      "enabledHint": "Bei Aktivierung erscheint eine Seite mit allen aktiven Team-Mitgliedern.",
+      "visibilityLabel": "Sichtbarkeit",
+      "visibilityPublic": "Für alle sichtbar",
+      "visibilityMembers": "Nur für Mitglieder",
+      "save": "Einstellungen speichern",
+      "saving": "Wird gespeichert...",
+      "saved": "Gespeichert.",
+      "saveError": "Einstellungen konnten nicht gespeichert werden.",
+      "manageLink": "Team verwalten →"
     },
     "sponsors": {
       "title": "Förderpartner-Modul",
@@ -1934,6 +1954,49 @@
       "expiryBody": "Die Förderpartnerschaft mit {sponsorName} endet am {endDate}.",
       "expiryAction": "Eine Verlängerung ist jederzeit im Admin-Bereich möglich.",
       "expiryButton": "Förderpartner verwalten"
+    }
+  },
+  "team": {
+    "pageTitle": "Leitung & Team",
+    "ungrouped": "Team",
+    "noMembers": "Aktuell keine Mitglieder vorhanden.",
+    "backToHome": "← Zurück zur Startseite",
+    "emailContact": "Kontakt aufnehmen",
+    "membersOnly": "Diese Seite ist nur für Mitglieder zugänglich.",
+    "admin": {
+      "title": "Leitung & Team verwalten",
+      "subtitle": "Verwalten Sie Vorstandsmitglieder, Imame und Mitarbeiter.",
+      "add": "Neues Mitglied",
+      "empty": "Noch keine Mitglieder angelegt.",
+      "name": "Name",
+      "namePlaceholder": "Vollständiger Name",
+      "role": "Rolle / Titel",
+      "rolePlaceholder": "z.B. Imam, Vorsitzender, Kassenwart",
+      "group": "Gruppe",
+      "groupPlaceholder": "z.B. Vorstand, Imame, Team",
+      "bio": "Kurzbeschreibung",
+      "bioPlaceholder": "Kurze Beschreibung (max. 500 Zeichen)",
+      "email": "E-Mail / Kontakt",
+      "emailPlaceholder": "kontakt@beispiel.de",
+      "sortOrder": "Reihenfolge",
+      "photo": "Foto",
+      "active": "Aktiv",
+      "inactive": "Inaktiv",
+      "activate": "Aktivieren",
+      "deactivate": "Deaktivieren",
+      "confirmDelete": "Dieses Mitglied wirklich löschen?",
+      "saved": "Gespeichert.",
+      "saveError": "Fehler beim Speichern.",
+      "deleteError": "Fehler beim Löschen.",
+      "deleteSuccess": "Mitglied wurde gelöscht.",
+      "createTitle": "Neues Mitglied",
+      "editTitle": "Mitglied bearbeiten",
+      "uploadPhoto": "Foto hochladen",
+      "removePhoto": "Foto entfernen",
+      "moveUp": "Nach oben",
+      "moveDown": "Nach unten",
+      "noGroup": "Ohne Gruppe",
+      "chars": "{count}/500"
     }
   }
 }

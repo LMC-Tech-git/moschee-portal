@@ -251,6 +251,8 @@ export async function getPortalSettings(mosqueId: string): Promise<{
         fee_reminder_enabled: false,
         fee_reminder_day: 15,
         sponsors_enabled: false,
+        team_enabled: false,
+        team_visibility: "public",
         created: "",
         updated: "",
       };
@@ -474,5 +476,51 @@ export async function updateSponsorsSettings(
   } catch (error) {
     console.error("[settings] updateSponsorsSettings:", error);
     return { success: false, error: "Förderpartner-Einstellungen konnten nicht gespeichert werden." };
+  }
+}
+
+// =========================================
+// Leitung & Team-Einstellungen
+// =========================================
+
+export async function updateTeamSettings(
+  mosqueId: string,
+  userId: string,
+  data: { team_enabled: boolean; team_visibility: "public" | "members" }
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const pb = await getAdminPB();
+
+    let settingsId: string | null = null;
+    try {
+      const record = await pb
+        .collection("settings")
+        .getFirstListItem(`mosque_id = "${mosqueId}"`);
+      settingsId = record.id;
+    } catch {
+      // Kein Settings-Record
+    }
+
+    const payload = { mosque_id: mosqueId, ...data };
+
+    if (settingsId) {
+      await pb.collection("settings").update(settingsId, payload);
+    } else {
+      await pb.collection("settings").create(payload);
+    }
+
+    await logAudit({
+      mosqueId,
+      userId,
+      action: "update_team_settings",
+      entityType: "settings",
+      entityId: settingsId || mosqueId,
+      after: data,
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("[settings] updateTeamSettings:", error);
+    return { success: false, error: "Team-Einstellungen konnten nicht gespeichert werden." };
   }
 }

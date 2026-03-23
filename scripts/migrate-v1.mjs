@@ -656,6 +656,15 @@ const SETTINGS_SPONSORS_FIELDS = [
   { name: "sponsors_enabled", type: "bool", options: { default: false } },
 ];
 
+const SETTINGS_TEAM_FIELDS = [
+  { name: "team_enabled", type: "bool", options: { default: false } },
+  {
+    name: "team_visibility",
+    type: "select",
+    options: { values: ["public", "members"], maxSelect: 1 },
+  },
+];
+
 const SPONSORS_NEW_FIELDS = [
   { name: "contact_user_id", type: "relation", options: { collectionId: "", maxSelect: 1 } },
   { name: "contact_email", type: "email", options: {} },
@@ -663,6 +672,27 @@ const SPONSORS_NEW_FIELDS = [
   { name: "paid_at", type: "text", options: { max: 50 } },
   { name: "months_paid", type: "number", options: { min: 1 } },
 ];
+
+const TEAM_MEMBERS_COLLECTION = {
+  name: "team_members",
+  type: "base",
+  schema: [
+    { name: "mosque_id", type: "relation", required: true, options: { collectionId: "", maxSelect: 1 } },
+    { name: "name", type: "text", required: true, options: { min: 1, max: 100 } },
+    { name: "role", type: "text", required: true, options: { min: 1, max: 100 } },
+    { name: "bio", type: "text", options: { max: 500 } },
+    { name: "photo", type: "file", options: { maxSelect: 1, maxSize: 3145728 } },
+    { name: "email", type: "email" },
+    { name: "group", type: "text", options: { max: 80 } },
+    { name: "sort_order", type: "number", options: { min: 0, default: 0 } },
+    { name: "is_active", type: "bool", options: { default: true } },
+    { name: "created_by", type: "relation", options: { collectionId: "", maxSelect: 1 } },
+  ],
+  indexes: [
+    "CREATE INDEX idx_team_mosque ON team_members (mosque_id)",
+    "CREATE INDEX idx_team_active ON team_members (mosque_id, is_active, sort_order)",
+  ],
+};
 
 const SPONSORS_COLLECTION = {
   name: "sponsors",
@@ -826,6 +856,7 @@ async function main() {
     PRAYER_TIMES_CACHE_COLLECTION,
     STUDENT_FEES_COLLECTION,
     SPONSORS_COLLECTION,
+    TEAM_MEMBERS_COLLECTION,
   ];
 
   for (const colDef of newCollections) {
@@ -1081,6 +1112,20 @@ async function main() {
       console.log(`   ✅ settings (sponsors): ${fieldsToAdd.map((f) => f.name).join(", ")} hinzugefügt`);
     } else {
       console.log("   ⏭️  settings: alle Förderpartner-Felder vorhanden");
+    }
+  }
+
+  // 9d. settings: Team-Felder hinzufügen
+  if (collectionMap.settings) {
+    const settingsCol = (await getExistingCollections()).find((c) => c.name === "settings");
+    const existingFieldNames = (settingsCol?.schema || []).map((f) => f.name);
+    const fieldsToAdd = SETTINGS_TEAM_FIELDS.filter((f) => !existingFieldNames.includes(f.name));
+    if (fieldsToAdd.length > 0) {
+      const newSchema = [...(settingsCol?.schema || []), ...fieldsToAdd];
+      await updateCollection("settings", { schema: newSchema });
+      console.log(`   ✅ settings (team): ${fieldsToAdd.map((f) => f.name).join(", ")} hinzugefügt`);
+    } else {
+      console.log("   ⏭️  settings: alle Team-Felder vorhanden");
     }
   }
 

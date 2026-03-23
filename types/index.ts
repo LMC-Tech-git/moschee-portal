@@ -64,6 +64,9 @@ export interface Settings {
   fee_reminder_day: number;           // Tag im Monat (1-28)
   // Förderpartner
   sponsors_enabled: boolean;
+  // Leitung & Team
+  team_enabled: boolean;
+  team_visibility: "public" | "members";
   created: string;
   updated: string;
 }
@@ -96,6 +99,23 @@ export interface Sponsor {
   provider_ref?: string;
   paid_at?: string;
   months_paid?: number;
+  created: string;
+  updated: string;
+}
+
+// --- 2c. Team Members (Leitung & Team) ---
+export interface TeamMember {
+  id: string;
+  mosque_id: string;
+  name: string;
+  role: string;
+  bio?: string;
+  photo?: string;
+  email?: string;
+  group?: string;
+  sort_order: number;
+  is_active: boolean;
+  created_by?: string;
   created: string;
   updated: string;
 }

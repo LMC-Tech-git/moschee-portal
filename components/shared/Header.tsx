@@ -68,7 +68,7 @@ export default function Header() {
   const isTeacher = user?.role === "teacher";
   const isImam = user?.role === "imam";
   // URL-Slug hat Vorrang auf öffentlichen Moschee-Seiten (verhindert falsche Links bei eingeloggten Usern)
-  const HEADER_RESERVED = ['admin','member','lehrer','imam','login','register','api','invite','impressum','datenschutz','agb'];
+  const HEADER_RESERVED = ['admin','member','lehrer','imam','login','register','api','invite','impressum','datenschutz','agb','leitung'];
   const pathParts = pathname.split('/').filter(Boolean);
   const urlSlug = pathParts.length > 0 && !HEADER_RESERVED.includes(pathParts[0]) ? pathParts[0] : null;
   // mosque?.slug hat Vorrang: Kommt vom MosqueProvider (initialMosque = sofort verfügbar),
@@ -160,6 +160,13 @@ export default function Header() {
               >
                 <Handshake className="h-4 w-4" aria-hidden="true" />
                 {t("nav.sponsors")}
+              </Link>
+              <Link
+                href={`/${slug}/leitung`}
+                className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-emerald-50 hover:text-emerald-600"
+              >
+                <Users className="h-4 w-4" aria-hidden="true" />
+                {t("nav.team")}
               </Link>
             </>
           )}
@@ -313,6 +320,14 @@ export default function Header() {
               >
                 <Handshake className="h-4 w-4" />
                 {t("nav.sponsors")}
+              </Link>
+              <Link
+                href={`/${slug}/leitung`}
+                className="flex items-center gap-2 rounded-lg px-4 py-3 text-sm font-medium text-gray-700 hover:bg-emerald-50 hover:text-emerald-600"
+                onClick={closeMobileMenu}
+              >
+                <Users className="h-4 w-4" />
+                {t("nav.team")}
               </Link>
             </>
           ) : (

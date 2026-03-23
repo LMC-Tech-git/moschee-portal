@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Settings, Palette, Clock, Sliders, Save, RotateCcw, Upload, X, Check, ChevronDown, ChevronUp, GraduationCap, Mail, CheckCircle, AlertCircle, Send, Handshake } from "lucide-react";
+import { Settings, Palette, Clock, Sliders, Save, RotateCcw, Upload, X, Check, ChevronDown, ChevronUp, GraduationCap, Mail, CheckCircle, AlertCircle, Send, Handshake, Users } from "lucide-react";
 import { useMosque } from "@/lib/mosque-context";
 import { useAuth } from "@/lib/auth-context";
 import {
@@ -15,6 +15,7 @@ import {
   getPbSmtpSettings,
   updatePbSmtpSettings,
   updateSponsorsSettings,
+  updateTeamSettings,
 } from "@/lib/actions/settings";
 import type { PbSmtpSettings } from "@/lib/actions/settings";
 import { sendTestEmailAction } from "@/lib/actions/email";
@@ -32,6 +33,7 @@ const TABS = [
   { id: "defaults", icon: Sliders },
   { id: "madrasa", icon: GraduationCap },
   { id: "sponsors", icon: Handshake },
+  { id: "team", icon: Users },
   { id: "email", icon: Mail },
 ] as const;
 
@@ -100,6 +102,8 @@ export default function AdminSettingsPage() {
   const [settings, setSettings] = useState<SettingsType | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [sponsorsEnabled, setSponsorsEnabled] = useState(false);
+  const [teamEnabled, setTeamEnabled] = useState(false);
+  const [teamVisibility, setTeamVisibility] = useState<"public" | "members">("public");
 
   const [madrasaFeeSettings, setMadrasaFeeSettings] = useState<{
     madrasa_fees_enabled: boolean;
@@ -119,6 +123,8 @@ export default function AdminSettingsPage() {
         setMosque(portalResult.mosque);
         setSettings(portalResult.settings);
         setSponsorsEnabled(portalResult.settings.sponsors_enabled ?? false);
+        setTeamEnabled(portalResult.settings.team_enabled ?? false);
+        setTeamVisibility(portalResult.settings.team_visibility ?? "public");
       }
       if (feeResult.success && feeResult.data) {
         setMadrasaFeeSettings(feeResult.data);
@@ -227,6 +233,18 @@ export default function AdminSettingsPage() {
           userId={user?.id || ""}
           sponsorsEnabled={sponsorsEnabled}
           onSaved={(val) => setSponsorsEnabled(val)}
+        />
+      )}
+      {activeTab === "team" && (
+        <TeamTab
+          mosqueId={mosqueId}
+          userId={user?.id || ""}
+          teamEnabled={teamEnabled}
+          teamVisibility={teamVisibility}
+          onSaved={(enabled, visibility) => {
+            setTeamEnabled(enabled);
+            setTeamVisibility(visibility);
+          }}
         />
       )}
       {activeTab === "email" && (
@@ -1752,6 +1770,128 @@ function SponsorsTab({
           >
             <Save className="h-4 w-4" />
             {isSaving ? t("sponsors.saving") : t("sponsors.save")}
+          </button>
+        </div>
+      </SectionCard>
+    </div>
+  );
+}
+
+// =========================================
+// Tab: Leitung & Team
+// =========================================
+
+function TeamTab({
+  mosqueId,
+  userId,
+  teamEnabled,
+  teamVisibility,
+  onSaved,
+}: {
+  mosqueId: string;
+  userId: string;
+  teamEnabled: boolean;
+  teamVisibility: "public" | "members";
+  onSaved: (enabled: boolean, visibility: "public" | "members") => void;
+}) {
+  const t = useTranslations("settings");
+  const [enabled, setEnabled] = useState(teamEnabled);
+  const [visibility, setVisibility] = useState<"public" | "members">(teamVisibility);
+  const [isSaving, setIsSaving] = useState(false);
+  const [status, setStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
+
+  async function handleSave() {
+    setIsSaving(true);
+    setStatus(null);
+    const result = await updateTeamSettings(mosqueId, userId, {
+      team_enabled: enabled,
+      team_visibility: visibility,
+    });
+    if (result.success) {
+      onSaved(enabled, visibility);
+      setStatus({ type: "success", message: t("saveSuccess") });
+    } else {
+      setStatus({ type: "error", message: result.error || t("saveError") });
+    }
+    setIsSaving(false);
+  }
+
+  return (
+    <div className="space-y-6">
+      <StatusMessage status={status} />
+      <SectionCard title={t("team.title")} description={t("team.desc")}>
+        <div className="space-y-4">
+          {/* Toggle */}
+          <label className="flex cursor-pointer items-start gap-3">
+            <div className="relative mt-0.5">
+              <input
+                type="checkbox"
+                className="sr-only"
+                checked={enabled}
+                onChange={(e) => setEnabled(e.target.checked)}
+              />
+              <div
+                className={`h-5 w-10 rounded-full transition-colors ${enabled ? "bg-emerald-600" : "bg-gray-200"}`}
+              >
+                <div
+                  className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${enabled ? "translate-x-5" : "translate-x-0.5"}`}
+                />
+              </div>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-900">{t("team.enabledLabel")}</p>
+              <p className="text-xs text-gray-500">{t("team.enabledHint")}</p>
+            </div>
+          </label>
+
+          {/* Sichtbarkeit */}
+          {enabled && (
+            <div className="space-y-2 rounded-lg border border-gray-200 bg-gray-50 p-4">
+              <p className="text-sm font-medium text-gray-700">{t("team.visibilityLabel")}</p>
+              <div className="space-y-2">
+                <label className="flex cursor-pointer items-center gap-3">
+                  <input
+                    type="radio"
+                    name="team_visibility"
+                    value="public"
+                    checked={visibility === "public"}
+                    onChange={() => setVisibility("public")}
+                    className="h-4 w-4 text-emerald-600"
+                  />
+                  <span className="text-sm text-gray-700">{t("team.visibilityPublic")}</span>
+                </label>
+                <label className="flex cursor-pointer items-center gap-3">
+                  <input
+                    type="radio"
+                    name="team_visibility"
+                    value="members"
+                    checked={visibility === "members"}
+                    onChange={() => setVisibility("members")}
+                    className="h-4 w-4 text-emerald-600"
+                  />
+                  <span className="text-sm text-gray-700">{t("team.visibilityMembers")}</span>
+                </label>
+              </div>
+            </div>
+          )}
+
+          {enabled && (
+            <p className="text-sm text-emerald-700">
+              <a href="/admin/leitung" className="underline hover:no-underline">
+                {t("team.manageLink")}
+              </a>
+            </p>
+          )}
+        </div>
+
+        <div className="flex justify-end border-t border-gray-100 pt-4">
+          <button
+            onClick={handleSave}
+            disabled={isSaving}
+            className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+          >
+            <Save className="h-4 w-4" />
+            {isSaving ? t("team.saving") : t("team.save")}
           </button>
         </div>
       </SectionCard>

@@ -39,6 +39,7 @@
     "events": "Etkinlikler",
     "donate": "Bağış",
     "sponsors": "Destek Ortakları",
+    "team": "Yönetim & Ekip",
     "login": "Giriş Yap",
     "register": "Kayıt Ol",
     "logout": "Çıkış Yap",
@@ -401,6 +402,10 @@
       "sponsors": {
         "title": "Destek Ortakları",
         "desc": "Yerel işletmeleri destek ortağı olarak yönetin."
+      },
+      "team": {
+        "title": "Yönetim & Ekip",
+        "desc": "Yönetim kurulu, imamlar ve personeli yönetin."
       },
       "newsletter": {
         "title": "Bülten",
@@ -1220,7 +1225,22 @@
       "defaults": "Varsayılanlar",
       "madrasa": "Medrese",
       "sponsors": "Destek Ortakları",
+      "team": "Yönetim & Ekip",
       "email": "E-posta"
+    },
+    "team": {
+      "title": "Yönetim & Ekip",
+      "desc": "Yönetim kurulunuzu, imamlarınızı ve çalışanlarınızı halka açık bir sayfada tanıtın.",
+      "enabledLabel": "Yönetim & Ekip modülünü etkinleştir",
+      "enabledHint": "Etkinleştirildiğinde ekibinizi gösteren halka açık bir sayfa oluşturulur.",
+      "visibilityLabel": "Görünürlük",
+      "visibilityPublic": "Herkese açık",
+      "visibilityMembers": "Yalnızca üyeler için",
+      "save": "Ayarları kaydet",
+      "saving": "Kaydediliyor...",
+      "saved": "Kaydedildi.",
+      "saveError": "Ayarlar kaydedilemedi.",
+      "manageLink": "Ekibi yönet →"
     },
     "sponsors": {
       "title": "Destek Ortakları Modülü",
@@ -1934,6 +1954,49 @@
       "expiryBody": "{sponsorName} ile destek ortaklığı {endDate} tarihinde sona erecek.",
       "expiryAction": "Uzatma işlemi her zaman yönetici panelinden yapılabilir.",
       "expiryButton": "Destek Ortaklarını Yönet"
+    }
+  },
+  "team": {
+    "pageTitle": "Yönetim & Ekip",
+    "ungrouped": "Ekip",
+    "noMembers": "Henüz üye bulunmamaktadır.",
+    "backToHome": "← Ana sayfaya dön",
+    "emailContact": "İletişime geçin",
+    "membersOnly": "Bu sayfa yalnızca üyeler için erişilebilir.",
+    "admin": {
+      "title": "Yönetim & Ekip",
+      "subtitle": "Yönetim kurulu üyelerini, imamları ve personeli yönetin.",
+      "add": "Yeni Üye",
+      "empty": "Henüz üye eklenmedi.",
+      "name": "Ad Soyad",
+      "namePlaceholder": "Tam adı",
+      "role": "Görev / Unvan",
+      "rolePlaceholder": "Örn. İmam, Başkan, Sekreter",
+      "group": "Grup",
+      "groupPlaceholder": "Örn. Yönetim, İmamlar, Ekip",
+      "bio": "Kısa Biyografi",
+      "bioPlaceholder": "Kısa açıklama (maks. 500 karakter)",
+      "email": "E-posta / İletişim",
+      "emailPlaceholder": "ornek@site.com",
+      "sortOrder": "Sıra",
+      "photo": "Fotoğraf",
+      "active": "Aktif",
+      "inactive": "Pasif",
+      "activate": "Etkinleştir",
+      "deactivate": "Devre dışı bırak",
+      "confirmDelete": "Bu üyeyi silmek istediğinizden emin misiniz?",
+      "saved": "Kaydedildi.",
+      "saveError": "Kaydetme hatası.",
+      "deleteError": "Silme hatası.",
+      "deleteSuccess": "Üye silindi.",
+      "createTitle": "Yeni Üye",
+      "editTitle": "Üyeyi düzenle",
+      "uploadPhoto": "Fotoğraf yükle",
+      "removePhoto": "Fotoğrafı kaldır",
+      "moveUp": "Yukarı taşı",
+      "moveDown": "Aşağı taşı",
+      "noGroup": "Grupsuz",
+      "chars": "{count}/500"
     }
   }
 }
