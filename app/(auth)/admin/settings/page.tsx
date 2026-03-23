@@ -1876,11 +1876,13 @@ function TeamTab({
           )}
 
           {enabled && (
-            <p className="text-sm text-emerald-700">
-              <a href="/admin/leitung" className="underline hover:no-underline">
-                {t("team.manageLink")}
-              </a>
-            </p>
+            <a
+              href="/admin/leitung"
+              className="flex items-center justify-center gap-2 rounded-lg border border-emerald-600 bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-700 hover:bg-emerald-100 transition-colors"
+            >
+              <Users className="h-4 w-4" />
+              {t("team.manageLink")}
+            </a>
           )}
         </div>
 

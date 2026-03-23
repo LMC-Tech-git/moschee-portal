@@ -75,7 +75,7 @@ export default async function SlugLayout({
       <Suspense fallback={null}>
         <TokenReceiver />
       </Suspense>
-      <MosqueInitializer mosque={mosque} />
+      <MosqueInitializer mosque={mosque} settings={settings} />
       {children}
     </div>
   );

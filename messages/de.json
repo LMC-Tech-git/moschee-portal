@@ -39,7 +39,7 @@
     "events": "Veranstaltungen",
     "donate": "Spenden",
     "sponsors": "Förderpartner",
-    "team": "Leitung & Team",
+    "team": "Team",
     "login": "Anmelden",
     "register": "Registrieren",
     "logout": "Abmelden",
@@ -404,7 +404,7 @@
         "desc": "Lokale Unternehmen als Förderpartner verwalten."
       },
       "team": {
-        "title": "Leitung & Team",
+        "title": "Team",
         "desc": "Vorstand, Imame und Mitarbeiter verwalten."
       },
       "newsletter": {
@@ -1225,13 +1225,13 @@
       "defaults": "Defaults",
       "madrasa": "Madrasa",
       "sponsors": "Förderpartner",
-      "team": "Leitung & Team",
+      "team": "Team",
       "email": "E-Mail"
     },
     "team": {
-      "title": "Leitung & Team",
+      "title": "Team",
       "desc": "Stellen Sie Ihren Vorstand, Imame und Mitarbeiter auf einer öffentlichen Seite vor.",
-      "enabledLabel": "Leitung & Team aktivieren",
+      "enabledLabel": "Team-Seite aktivieren",
       "enabledHint": "Bei Aktivierung erscheint eine Seite mit allen aktiven Team-Mitgliedern.",
       "visibilityLabel": "Sichtbarkeit",
       "visibilityPublic": "Für alle sichtbar",
@@ -1957,14 +1957,14 @@
     }
   },
   "team": {
-    "pageTitle": "Leitung & Team",
+    "pageTitle": "Team",
     "ungrouped": "Team",
     "noMembers": "Aktuell keine Mitglieder vorhanden.",
     "backToHome": "← Zurück zur Startseite",
     "emailContact": "Kontakt aufnehmen",
     "membersOnly": "Diese Seite ist nur für Mitglieder zugänglich.",
     "admin": {
-      "title": "Leitung & Team verwalten",
+      "title": "Team verwalten",
       "subtitle": "Verwalten Sie Vorstandsmitglieder, Imame und Mitarbeiter.",
       "add": "Neues Mitglied",
       "empty": "Noch keine Mitglieder angelegt.",

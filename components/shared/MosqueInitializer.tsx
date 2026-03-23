@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useMosque } from "@/lib/mosque-context";
-import type { Mosque } from "@/types";
+import type { Mosque, Settings } from "@/types";
 
 /**
  * MosqueInitializer — übergibt die server-seitig aufgelöste Moschee an den
@@ -11,16 +11,24 @@ import type { Mosque } from "@/types";
  *
  * Wird im Slug-Layout eingebunden.
  */
-export function MosqueInitializer({ mosque }: { mosque: Mosque }) {
-  const { setMosqueData } = useMosque();
+export function MosqueInitializer({
+  mosque,
+  settings,
+}: {
+  mosque: Mosque;
+  settings?: Settings | null;
+}) {
+  const { setMosqueData, setTeamEnabled } = useMosque();
 
   useEffect(() => {
     setMosqueData(mosque);
+    setTeamEnabled(settings?.team_enabled ?? false);
     // Cleanup: Moschee zurücksetzen wenn Slug-Seite verlassen wird
     return () => {
       setMosqueData(null);
+      setTeamEnabled(false);
     };
-  }, [mosque.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [mosque.id, settings?.team_enabled]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return null;
 }

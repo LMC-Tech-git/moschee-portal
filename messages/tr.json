@@ -39,7 +39,7 @@
     "events": "Etkinlikler",
     "donate": "Bağış",
     "sponsors": "Destek Ortakları",
-    "team": "Yönetim & Ekip",
+    "team": "Ekip",
     "login": "Giriş Yap",
     "register": "Kayıt Ol",
     "logout": "Çıkış Yap",
@@ -404,7 +404,7 @@
         "desc": "Yerel işletmeleri destek ortağı olarak yönetin."
       },
       "team": {
-        "title": "Yönetim & Ekip",
+        "title": "Ekip",
         "desc": "Yönetim kurulu, imamlar ve personeli yönetin."
       },
       "newsletter": {
@@ -1225,13 +1225,13 @@
       "defaults": "Varsayılanlar",
       "madrasa": "Medrese",
       "sponsors": "Destek Ortakları",
-      "team": "Yönetim & Ekip",
+      "team": "Ekip",
       "email": "E-posta"
     },
     "team": {
-      "title": "Yönetim & Ekip",
+      "title": "Ekip",
       "desc": "Yönetim kurulunuzu, imamlarınızı ve çalışanlarınızı halka açık bir sayfada tanıtın.",
-      "enabledLabel": "Yönetim & Ekip modülünü etkinleştir",
+      "enabledLabel": "Ekip sayfasını etkinleştir",
       "enabledHint": "Etkinleştirildiğinde ekibinizi gösteren halka açık bir sayfa oluşturulur.",
       "visibilityLabel": "Görünürlük",
       "visibilityPublic": "Herkese açık",
@@ -1957,14 +1957,14 @@
     }
   },
   "team": {
-    "pageTitle": "Yönetim & Ekip",
+    "pageTitle": "Ekip",
     "ungrouped": "Ekip",
     "noMembers": "Henüz üye bulunmamaktadır.",
     "backToHome": "← Ana sayfaya dön",
     "emailContact": "İletişime geçin",
     "membersOnly": "Bu sayfa yalnızca üyeler için erişilebilir.",
     "admin": {
-      "title": "Yönetim & Ekip",
+      "title": "Ekip",
       "subtitle": "Yönetim kurulu üyelerini, imamları ve personeli yönetin.",
       "add": "Yeni Üye",
       "empty": "Henüz üye eklenmedi.",

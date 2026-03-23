@@ -23,6 +23,9 @@ interface MosqueContextType {
   refreshMosque: () => void;
   /** Setzt Moschee-Daten direkt (z.B. von server-seitig aufgelöster Moschee in Slug-Layout) */
   setMosqueData: (mosque: Mosque | null) => void;
+  /** Feature-Flags aus Settings (vom Slug-Layout befüllt) */
+  teamEnabled: boolean;
+  setTeamEnabled: (val: boolean) => void;
 }
 
 const MosqueContext = createContext<MosqueContextType | null>(null);
@@ -51,6 +54,7 @@ export function MosqueProvider({ children, initialMosque }: MosqueProviderProps)
   });
 
   const [refreshKey, setRefreshKey] = useState(0);
+  const [teamEnabled, setTeamEnabled] = useState(false);
 
   const refreshMosque = useCallback(() => setRefreshKey(k => k + 1), []);
 
@@ -123,7 +127,7 @@ export function MosqueProvider({ children, initialMosque }: MosqueProviderProps)
   }, [initialMosque, authLoading, isAuthenticated, user?.mosque_id, user?.role, overrideMosqueId, refreshKey, pathname]);
 
   return (
-    <MosqueContext.Provider value={{ mosque, mosqueId: mosque?.id || user?.mosque_id || "", isLoading, setMosqueOverride, overrideMosqueId, refreshMosque, setMosqueData }}>
+    <MosqueContext.Provider value={{ mosque, mosqueId: mosque?.id || user?.mosque_id || "", isLoading, setMosqueOverride, overrideMosqueId, refreshMosque, setMosqueData, teamEnabled, setTeamEnabled }}>
       {children}
     </MosqueContext.Provider>
   );

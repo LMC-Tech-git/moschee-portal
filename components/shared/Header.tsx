@@ -60,7 +60,7 @@ export default function Header() {
   const t = useTranslations();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { user, isAuthenticated, logout } = useAuth();
-  const { mosque } = useMosque();
+  const { mosque, teamEnabled } = useMosque();
   const pathname = usePathname();
   const isAdmin = user?.role === "admin" || user?.role === "super_admin" || user?.role === "editor";
   const isSuperAdmin = user?.role === "super_admin";
@@ -161,13 +161,15 @@ export default function Header() {
                 <Handshake className="h-4 w-4" aria-hidden="true" />
                 {t("nav.sponsors")}
               </Link>
-              <Link
-                href={`/${slug}/leitung`}
-                className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-emerald-50 hover:text-emerald-600"
-              >
-                <Users className="h-4 w-4" aria-hidden="true" />
-                {t("nav.team")}
-              </Link>
+              {teamEnabled && (
+                <Link
+                  href={`/${slug}/leitung`}
+                  className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-emerald-50 hover:text-emerald-600"
+                >
+                  <Users className="h-4 w-4" aria-hidden="true" />
+                  {t("nav.team")}
+                </Link>
+              )}
             </>
           )}
 
@@ -321,14 +323,16 @@ export default function Header() {
                 <Handshake className="h-4 w-4" />
                 {t("nav.sponsors")}
               </Link>
-              <Link
-                href={`/${slug}/leitung`}
-                className="flex items-center gap-2 rounded-lg px-4 py-3 text-sm font-medium text-gray-700 hover:bg-emerald-50 hover:text-emerald-600"
-                onClick={closeMobileMenu}
-              >
-                <Users className="h-4 w-4" />
-                {t("nav.team")}
-              </Link>
+              {teamEnabled && (
+                <Link
+                  href={`/${slug}/leitung`}
+                  className="flex items-center gap-2 rounded-lg px-4 py-3 text-sm font-medium text-gray-700 hover:bg-emerald-50 hover:text-emerald-600"
+                  onClick={closeMobileMenu}
+                >
+                  <Users className="h-4 w-4" />
+                  {t("nav.team")}
+                </Link>
+              )}
             </>
           ) : (
             <Link
