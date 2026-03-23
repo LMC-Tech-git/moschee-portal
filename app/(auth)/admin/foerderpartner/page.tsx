@@ -17,7 +17,8 @@ import {
   sponsorCategoryColors,
   sponsorCategoryOptions,
 } from "@/lib/constants";
-import type { Sponsor, SponsorCategory } from "@/types";
+import { getMembersByMosque } from "@/lib/actions/members";
+import type { Sponsor, SponsorCategory, User } from "@/types";
 import {
   Plus,
   Pencil,
@@ -65,6 +66,8 @@ interface SponsorFormState {
   website_url: string;
   category: SponsorCategory | "";
   amount_cents_eur: string; // user types EUR
+  contact_user_id: string;
+  contact_email: string;
 }
 
 const emptyForm: SponsorFormState = {
@@ -73,6 +76,8 @@ const emptyForm: SponsorFormState = {
   website_url: "",
   category: "",
   amount_cents_eur: "",
+  contact_user_id: "",
+  contact_email: "",
 };
 
 function formToAmountCents(eur: string): number | undefined {
@@ -114,6 +119,9 @@ export default function AdminFoerderpartnerPage() {
   const [paidDialog, setPaidDialog] = useState<PaidDialogState | null>(null);
   const [isPaying, setIsPaying] = useState(false);
 
+  // Members for contact dropdown
+  const [members, setMembers] = useState<User[]>([]);
+
   // In-flight action trackers
   const [togglingId, setTogglingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -149,11 +157,18 @@ export default function AdminFoerderpartnerPage() {
 
   // ─── Create / Edit Dialog ──────────────────────────────────────────────────
 
+  async function loadMembers() {
+    if (!mosqueId || members.length > 0) return;
+    const result = await getMembersByMosque(mosqueId, { status: "active", limit: 200 });
+    if (result.success && result.data) setMembers(result.data);
+  }
+
   function openCreateDialog() {
     setEditSponsor(null);
     setForm(emptyForm);
     setFormError("");
     setDialogOpen(true);
+    loadMembers();
   }
 
   function openEditDialog(sponsor: Sponsor) {
@@ -164,9 +179,12 @@ export default function AdminFoerderpartnerPage() {
       website_url: sponsor.website_url ?? "",
       category: sponsor.category ?? "",
       amount_cents_eur: sponsor.amount_cents ? (sponsor.amount_cents / 100).toFixed(2) : "",
+      contact_user_id: sponsor.contact_user_id ?? "",
+      contact_email: sponsor.contact_email ?? "",
     });
     setFormError("");
     setDialogOpen(true);
+    loadMembers();
   }
 
   function closeDialog() {
@@ -197,6 +215,8 @@ export default function AdminFoerderpartnerPage() {
       website_url: form.website_url.trim() || undefined,
       category: (form.category || undefined) as SponsorCategory | undefined,
       amount_cents,
+      contact_user_id: form.contact_user_id || undefined,
+      contact_email: form.contact_email.trim() || undefined,
     };
 
     let result;
@@ -698,6 +718,55 @@ export default function AdminFoerderpartnerPage() {
                       €
                     </span>
                   </div>
+                </div>
+              </div>
+
+              {/* Contact — separator */}
+              <div className="border-t pt-3">
+                <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-400">
+                  {t("contactSection")}
+                </p>
+
+                {/* Portal member dropdown */}
+                <div className="mb-3">
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
+                    {t("contactUser")}
+                  </label>
+                  <select
+                    value={form.contact_user_id}
+                    onChange={(e) => {
+                      const uid = e.target.value;
+                      const member = members.find((m) => m.id === uid);
+                      setForm((f) => ({
+                        ...f,
+                        contact_user_id: uid,
+                        contact_email: member ? member.email : f.contact_email,
+                      }));
+                    }}
+                    className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  >
+                    <option value="">{t("contactUserPlaceholder")}</option>
+                    {members.map((m) => (
+                      <option key={m.id} value={m.id}>
+                        {m.first_name} {m.last_name} ({m.email})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Contact email */}
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
+                    {t("contactEmail")}
+                  </label>
+                  <input
+                    type="email"
+                    value={form.contact_email}
+                    onChange={(e) => setForm((f) => ({ ...f, contact_email: e.target.value }))}
+                    placeholder={t("contactEmailPlaceholder")}
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  />
+                  <p className="mt-1 text-xs text-gray-400">{t("contactEmailHint")}</p>
                 </div>
               </div>
             </div>

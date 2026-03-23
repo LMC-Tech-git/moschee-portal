@@ -89,8 +89,12 @@ export interface Sponsor {
   notification_sent: boolean;
   sort_order: number;
   payment_status: "open" | "paid";
-  payment_method?: "cash" | "transfer";
+  payment_method?: "cash" | "transfer" | "stripe";
   amount_cents?: number;
+  contact_user_id?: string;
+  contact_email?: string;
+  provider_ref?: string;
+  paid_at?: string;
   created: string;
   updated: string;
 }

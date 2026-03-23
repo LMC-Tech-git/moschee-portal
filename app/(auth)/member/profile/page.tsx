@@ -20,7 +20,9 @@ import {
   createFeeStripeCheckout,
   type FeeOverviewRow,
 } from "@/lib/actions/student-fees";
-import { getMadrasaFeeSettings } from "@/lib/actions/settings";
+import { getMadrasaFeeSettings, getPortalSettings } from "@/lib/actions/settings";
+import { getSponsorsByContact, createSponsorStripeCheckout } from "@/lib/actions/sponsors";
+import type { Sponsor } from "@/types";
 import { DemoHint } from "@/components/demo/DemoHint";
 import {
   User,
@@ -34,6 +36,7 @@ import {
   XCircle,
   FileText,
   GraduationCap,
+  Handshake,
   ChevronLeft,
   ChevronRight,
   AlertCircle,
@@ -45,7 +48,7 @@ import {
 import { formatCurrencyCents } from "@/lib/utils";
 import type { Donation, EventRegistration } from "@/types";
 
-type Tab = "profile" | "children" | "donations" | "events" | "madrasa";
+type Tab = "profile" | "children" | "donations" | "events" | "madrasa" | "sponsor";
 
 function getCurrentMonthKey(): string {
   const now = new Date();
@@ -80,6 +83,7 @@ export default function MemberProfilePage() {
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<Tab>("profile");
   const [feesEnabled, setFeesEnabled] = useState(false);
+  const [sponsorsEnabled, setSponsorsEnabled] = useState(false);
   const [stripeEnabled, setStripeEnabled] = useState(false);
   const [emailChangedSuccess, setEmailChangedSuccess] = useState(false);
   const [emailChangedError, setEmailChangedError] = useState("");
@@ -105,7 +109,7 @@ export default function MemberProfilePage() {
       setEmailChangedError(msgs[err] || t("member.profile.emailChange.errorServer"));
       setActiveTab("profile");
       window.history.replaceState({}, "", "/member/profile");
-    } else if (tabParam && ["profile", "children", "donations", "events", "madrasa"].includes(tabParam)) {
+    } else if (tabParam && ["profile", "children", "donations", "events", "madrasa", "sponsor"].includes(tabParam)) {
       setActiveTab(tabParam as Tab);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -113,13 +117,19 @@ export default function MemberProfilePage() {
 
   useEffect(() => {
     if (!mosqueId) return;
-    async function checkFeeSettings() {
-      const result = await getMadrasaFeeSettings(mosqueId);
-      if (result.success && result.data?.madrasa_fees_enabled) {
+    async function checkSettings() {
+      const [feeResult, portalResult] = await Promise.all([
+        getMadrasaFeeSettings(mosqueId),
+        getPortalSettings(mosqueId),
+      ]);
+      if (feeResult.success && feeResult.data?.madrasa_fees_enabled) {
         setFeesEnabled(true);
       }
+      if (portalResult.success && portalResult.settings?.sponsors_enabled) {
+        setSponsorsEnabled(true);
+      }
     }
-    checkFeeSettings();
+    checkSettings();
   }, [mosqueId]);
 
   useEffect(() => {
@@ -145,6 +155,9 @@ export default function MemberProfilePage() {
     },
     ...(feesEnabled
       ? [{ key: "madrasa" as Tab, label: t("member.profile.tab.madrasa"), icon: <GraduationCap className="h-4 w-4" /> }]
+      : []),
+    ...(sponsorsEnabled
+      ? [{ key: "sponsor" as Tab, label: t("member.profile.tab.sponsor"), icon: <Handshake className="h-4 w-4" /> }]
       : []),
   ];
 
@@ -250,6 +263,9 @@ export default function MemberProfilePage() {
       )}
       {activeTab === "madrasa" && (
         <MadrasaFeeOverview userId={user.id} mosqueId={mosqueId} stripeEnabled={stripeEnabled} initialMonth={searchParams.get("month") || undefined} />
+      )}
+      {activeTab === "sponsor" && (
+        <SponsorPaymentOverview userId={user.id} mosqueId={mosqueId} stripeEnabled={stripeEnabled} sponsorPaidSuccess={searchParams.get("sponsor_paid") === "true"} />
       )}
     </div>
   );
@@ -1025,6 +1041,134 @@ function MadrasaFeeOverview({
                 </div>
               </div>
             ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// --- Förderpartner-Zahlung ---
+
+function SponsorPaymentOverview({
+  userId,
+  mosqueId,
+  stripeEnabled,
+  sponsorPaidSuccess,
+}: {
+  userId: string;
+  mosqueId: string;
+  stripeEnabled: boolean;
+  sponsorPaidSuccess?: boolean;
+}) {
+  const t = useTranslations();
+  const [sponsors, setSponsors] = useState<Sponsor[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [payingId, setPayingId] = useState<string | null>(null);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    async function load() {
+      setIsLoading(true);
+      const result = await getSponsorsByContact(mosqueId, userId);
+      if (result.success && result.data) {
+        setSponsors(result.data);
+      } else {
+        setError(result.error || "Fehler beim Laden");
+      }
+      setIsLoading(false);
+    }
+    load();
+  }, [userId, mosqueId]);
+
+  async function handleOnlinePay(sponsorId: string) {
+    setPayingId(sponsorId);
+    setError("");
+    const baseUrl = window.location.origin;
+    const result = await createSponsorStripeCheckout(mosqueId, userId, sponsorId, baseUrl);
+    if (result.success && result.data?.checkout_url) {
+      window.location.href = result.data.checkout_url;
+    } else {
+      setError(result.error || "Zahlung konnte nicht gestartet werden");
+      setPayingId(null);
+    }
+  }
+
+  return (
+    <div className="space-y-4">
+      {sponsorPaidSuccess && (
+        <div className="flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700">
+          <CheckCircle className="h-4 w-4 shrink-0" />
+          {t("member.profile.sponsor.paidSuccess")}
+        </div>
+      )}
+
+      {error && (
+        <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          <AlertCircle className="h-4 w-4 shrink-0" />
+          {error}
+        </div>
+      )}
+
+      <div className="rounded-xl border border-gray-200 bg-white">
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="h-5 w-5 animate-spin rounded-full border-4 border-emerald-200 border-t-emerald-600" />
+          </div>
+        ) : sponsors.length === 0 ? (
+          <div className="py-12 text-center">
+            <Handshake className="mx-auto mb-3 h-10 w-10 text-gray-300" />
+            <p className="text-sm text-gray-500">{t("member.profile.sponsor.empty")}</p>
+          </div>
+        ) : (
+          <div className="divide-y divide-gray-100">
+            {sponsors.map((sponsor) => {
+              const endDate = sponsor.end_date
+                ? new Date(sponsor.end_date).toLocaleDateString("de-DE")
+                : null;
+              return (
+                <div key={sponsor.id} className="flex items-center justify-between gap-4 px-5 py-4">
+                  <div className="flex flex-col gap-0.5">
+                    <span className="font-medium text-gray-900">{sponsor.name}</span>
+                    {endDate && (
+                      <span className="text-xs text-gray-400">
+                        {t("member.profile.sponsor.until")} {endDate}
+                      </span>
+                    )}
+                    {sponsor.amount_cents && sponsor.amount_cents > 0 ? (
+                      <span className="text-xs text-gray-500">
+                        {(sponsor.amount_cents / 100).toLocaleString("de-DE", { style: "currency", currency: "EUR" })}
+                      </span>
+                    ) : null}
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    {sponsor.payment_status === "paid" ? (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-700">
+                        <CheckCircle className="h-3 w-3" />
+                        {t("member.profile.sponsor.paid")}
+                      </span>
+                    ) : (
+                      <>
+                        <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-700">
+                          {t("member.profile.sponsor.open")}
+                        </span>
+                        {stripeEnabled && sponsor.amount_cents && sponsor.amount_cents > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => handleOnlinePay(sponsor.id)}
+                            disabled={payingId === sponsor.id}
+                            className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-700 disabled:opacity-60"
+                          >
+                            {payingId === sponsor.id ? "Weiterleiten..." : t("member.profile.sponsor.payOnline")}
+                          </button>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>

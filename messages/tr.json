@@ -817,7 +817,8 @@
         "children": "Çocuklar",
         "donations": "Bağışlar",
         "events": "Etkinlikler",
-        "madrasa": "Medrese"
+        "madrasa": "Medrese",
+        "sponsor": "Destek Ortakları"
       },
       "editTitle": "Profili Düzenle",
       "firstName": "Ad",
@@ -902,6 +903,14 @@
       "prevMonth": "Önceki Ay",
       "nextMonth": "Sonraki Ay",
       "monthYear": "{month} {year}"
+    },
+    "sponsor": {
+      "empty": "Destek ortaklığı kaydı bulunamadı.",
+      "paid": "Ödendi",
+      "open": "Bekliyor",
+      "payOnline": "Online Öde",
+      "paidSuccess": "Ödeme başarıyla alındı!",
+      "until": "son"
     }
   },
   "newsletter": {
@@ -1882,7 +1891,13 @@
       "uploadLogo": "Logo Yükle",
       "noLogo": "Logo yok",
       "periodLabel": "{start} – {end}",
-      "expiryWarning": "{days} gün içinde sona eriyor"
+      "expiryWarning": "{days} gün içinde sona eriyor",
+      "contactSection": "İletişim (E-posta Hatırlatmaları için)",
+      "contactUser": "Portal Üyesi (İletişim)",
+      "contactUserPlaceholder": "Üye seçin (isteğe bağlı)",
+      "contactEmail": "İletişim E-postası",
+      "contactEmailPlaceholder": "iletisim@ornek.com",
+      "contactEmailHint": "Sona erme hatırlatmaları için kullanılır"
     },
     "categories": {
       "gastronomie": "Gastronomi",

@@ -656,6 +656,13 @@ const SETTINGS_SPONSORS_FIELDS = [
   { name: "sponsors_enabled", type: "bool", options: { default: false } },
 ];
 
+const SPONSORS_NEW_FIELDS = [
+  { name: "contact_user_id", type: "relation", options: { collectionId: "", maxSelect: 1 } },
+  { name: "contact_email", type: "email", options: {} },
+  { name: "provider_ref", type: "text", options: { max: 255 } },
+  { name: "paid_at", type: "text", options: { max: 50 } },
+];
+
 const SPONSORS_COLLECTION = {
   name: "sponsors",
   type: "base",
@@ -763,7 +770,7 @@ function patchRelations(schema, collectionMap) {
 
       if (name === "mosque_id") targetCollection = "mosques";
       else if (name === "event_id") targetCollection = "events";
-      else if (name === "user_id" || name === "created_by" || name === "actor_user_id" || name === "teacher_id" || name === "marked_by" || name === "parent_id")
+      else if (name === "user_id" || name === "created_by" || name === "actor_user_id" || name === "teacher_id" || name === "marked_by" || name === "parent_id" || name === "contact_user_id")
         targetCollection = "users";
       else if (name === "student_id") targetCollection = "students";
       else if (name === "campaign_id") targetCollection = "campaigns";
@@ -1149,6 +1156,42 @@ async function main() {
       console.log(`   ✅ audit_logs: ${fieldsToAdd.map((f) => f.name).join(", ")} hinzugefügt`);
     } else {
       console.log("   ⏭️  audit_logs: before_json/after_json bereits vorhanden");
+    }
+  }
+
+  // 12. sponsors: neue Felder hinzufügen (contact_user_id, contact_email, provider_ref, paid_at)
+  if (collectionMap.sponsors) {
+    const sponsorsCol = (await getExistingCollections()).find((c) => c.name === "sponsors");
+    const existingFieldNames = (sponsorsCol?.schema || []).map((f) => f.name);
+    const fieldsToAdd = SPONSORS_NEW_FIELDS.filter((f) => !existingFieldNames.includes(f.name)).map((f) => {
+      if (f.type === "relation" && f.options?.collectionId === "") {
+        return { ...f, options: { ...f.options, collectionId: collectionMap["users"] || "" } };
+      }
+      return f;
+    });
+    if (fieldsToAdd.length > 0) {
+      const newSchema = [...(sponsorsCol?.schema || []), ...fieldsToAdd];
+      await updateCollection("sponsors", { schema: newSchema });
+      console.log(`   ✅ sponsors: ${fieldsToAdd.map((f) => f.name).join(", ")} hinzugefügt`);
+    } else {
+      console.log("   ⏭️  sponsors: alle neuen Felder vorhanden");
+    }
+
+    // payment_method um "stripe" erweitern
+    const sponsorsColCurrent = (await getExistingCollections()).find((c) => c.name === "sponsors");
+    const pmField = (sponsorsColCurrent?.schema || []).find((f) => f.name === "payment_method");
+    if (pmField && pmField.options?.values) {
+      const currentValues = pmField.options.values;
+      if (!currentValues.includes("stripe")) {
+        const newValues = [...currentValues, "stripe"];
+        const updatedSchema = (sponsorsColCurrent.schema || []).map((f) =>
+          f.name === "payment_method" ? { ...f, options: { ...f.options, values: newValues } } : f
+        );
+        await updateCollection("sponsors", { schema: updatedSchema });
+        console.log("   ✅ sponsors.payment_method: 'stripe' hinzugefügt");
+      } else {
+        console.log("   ⏭️  sponsors.payment_method: 'stripe' bereits vorhanden");
+      }
     }
   }
 

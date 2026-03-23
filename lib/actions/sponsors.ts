@@ -4,6 +4,7 @@ import { getAdminPB } from "@/lib/pocketbase-admin";
 import { logAudit } from "@/lib/audit";
 import type { Sponsor, SponsorCategory } from "@/types";
 import type { RecordModel } from "pocketbase";
+import Stripe from "stripe";
 
 // --- Helper ---
 
@@ -25,6 +26,10 @@ function mapRecord(r: RecordModel): Sponsor {
     payment_status: r.payment_status || "open",
     payment_method: r.payment_method || undefined,
     amount_cents: r.amount_cents || undefined,
+    contact_user_id: r.contact_user_id || undefined,
+    contact_email: r.contact_email || undefined,
+    provider_ref: r.provider_ref || undefined,
+    paid_at: r.paid_at || undefined,
     created: r.created || "",
     updated: r.updated || "",
   };
@@ -100,6 +105,8 @@ export interface CreateSponsorInput {
   category?: SponsorCategory;
   amount_cents?: number;
   sort_order?: number;
+  contact_user_id?: string;
+  contact_email?: string;
 }
 
 export async function createSponsor(
@@ -128,6 +135,8 @@ export async function createSponsor(
       is_approved: false,
       notification_sent: false,
       payment_status: "open",
+      contact_user_id: input.contact_user_id || "",
+      contact_email: input.contact_email?.trim() || "",
       created_by: userId,
     });
 
@@ -159,6 +168,8 @@ export interface UpdateSponsorInput {
   amount_cents?: number;
   sort_order?: number;
   end_date?: string;
+  contact_user_id?: string;
+  contact_email?: string;
 }
 
 export async function updateSponsor(
@@ -187,6 +198,8 @@ export async function updateSponsor(
     if (input.category !== undefined) updateData.category = input.category;
     if (input.amount_cents !== undefined) updateData.amount_cents = input.amount_cents;
     if (input.sort_order !== undefined) updateData.sort_order = input.sort_order;
+    if (input.contact_user_id !== undefined) updateData.contact_user_id = input.contact_user_id;
+    if (input.contact_email !== undefined) updateData.contact_email = input.contact_email.trim();
 
     // Bei Verlängerung: notification_sent zurücksetzen
     if (input.end_date !== undefined) {
@@ -355,6 +368,7 @@ export async function markSponsorPaid(
       payment_method: method,
       start_date: startStr,
       end_date: endStr,
+      paid_at: new Date().toISOString(),
       is_active: true,
       // notification_sent bleibt false (neue Laufzeit → neue Erinnerung möglich)
       notification_sent: false,
@@ -437,4 +451,98 @@ export async function markSponsorNotificationSent(
 ): Promise<void> {
   const pb = await getAdminPB();
   await pb.collection("sponsors").update(sponsorId, { notification_sent: true });
+}
+
+// ─── Mitglied: Eigene Sponsoren laden (als Kontakt verlinkt) ─────────────────
+
+export async function getSponsorsByContact(
+  mosqueId: string,
+  userId: string
+): Promise<ActionResult<Sponsor[]>> {
+  try {
+    const pb = await getAdminPB();
+    const records = await pb.collection("sponsors").getFullList({
+      filter: `mosque_id = "${mosqueId}" && contact_user_id = "${userId}"`,
+      sort: "-created",
+    });
+    return { success: true, data: records.map(mapRecord) };
+  } catch (error) {
+    console.error("[sponsors] getSponsorsByContact:", error);
+    return { success: false, error: "Förderpartner konnten nicht geladen werden." };
+  }
+}
+
+// ─── Mitglied: Stripe-Checkout für Förderpartner-Zahlung ─────────────────────
+
+export async function createSponsorStripeCheckout(
+  mosqueId: string,
+  userId: string,
+  sponsorId: string,
+  baseUrl: string
+): Promise<ActionResult<{ checkout_url: string }>> {
+  try {
+    const stripeKey = process.env.STRIPE_SECRET_KEY;
+    if (!stripeKey) {
+      return { success: false, error: "Stripe ist nicht konfiguriert." };
+    }
+
+    const pb = await getAdminPB();
+    const sponsorRecord = await pb.collection("sponsors").getOne(sponsorId);
+
+    if (sponsorRecord.mosque_id !== mosqueId) {
+      return { success: false, error: "Nicht gefunden." };
+    }
+    if (sponsorRecord.contact_user_id !== userId) {
+      return { success: false, error: "Nicht berechtigt." };
+    }
+    if (sponsorRecord.payment_status !== "open") {
+      return { success: false, error: "Dieser Beitrag wurde bereits bezahlt." };
+    }
+    if (!sponsorRecord.amount_cents || sponsorRecord.amount_cents <= 0) {
+      return { success: false, error: "Kein Betrag hinterlegt." };
+    }
+
+    // Kontakt-E-Mail ermitteln
+    let contactEmail: string | undefined;
+    try {
+      const user = await pb.collection("users").getOne(userId, { fields: "email" });
+      contactEmail = user.email || undefined;
+    } catch { /* E-Mail nicht verfügbar */ }
+
+    const stripe = new Stripe(stripeKey, { apiVersion: "2024-06-20" });
+    const session = await stripe.checkout.sessions.create({
+      mode: "payment",
+      payment_method_types: ["card"],
+      customer_email: contactEmail,
+      line_items: [
+        {
+          price_data: {
+            currency: "eur",
+            product_data: {
+              name: sponsorRecord.name,
+              description: "Förderpartner-Beitrag",
+            },
+            unit_amount: sponsorRecord.amount_cents,
+          },
+          quantity: 1,
+        },
+      ],
+      metadata: {
+        mosque_id: mosqueId,
+        sponsor_id: sponsorId,
+        payment_type: "sponsor",
+        contact_user_id: userId,
+      },
+      success_url: `${baseUrl}/member/profile?sponsor_paid=true`,
+      cancel_url: `${baseUrl}/member/profile`,
+    });
+
+    // Session-ID speichern
+    await pb.collection("sponsors").update(sponsorId, { provider_ref: session.id });
+
+    return { success: true, data: { checkout_url: session.url || "" } };
+  } catch (error) {
+    console.error("[sponsors] createSponsorStripeCheckout:", error);
+    return { success: false, error: "Zahlung konnte nicht gestartet werden." };
+  }
 }

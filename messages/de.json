@@ -817,7 +817,8 @@
         "children": "Kinder",
         "donations": "Spenden",
         "events": "Veranstaltungen",
-        "madrasa": "Madrasa"
+        "madrasa": "Madrasa",
+        "sponsor": "Förderpartner"
       },
       "editTitle": "Profil bearbeiten",
       "firstName": "Vorname",
@@ -902,6 +903,14 @@
       "prevMonth": "Vorheriger Monat",
       "nextMonth": "Nächster Monat",
       "monthYear": "{month} {year}"
+    },
+    "sponsor": {
+      "empty": "Keine Förderpartnerschaften hinterlegt.",
+      "paid": "Bezahlt",
+      "open": "Ausstehend",
+      "payOnline": "Online bezahlen",
+      "paidSuccess": "Zahlung erfolgreich eingegangen!",
+      "until": "bis"
     }
   },
   "newsletter": {
@@ -1882,7 +1891,13 @@
       "uploadLogo": "Logo hochladen",
       "noLogo": "Kein Logo",
       "periodLabel": "{start} – {end}",
-      "expiryWarning": "Läuft in {days} Tagen ab"
+      "expiryWarning": "Läuft in {days} Tagen ab",
+      "contactSection": "Kontakt (für E-Mail-Erinnerungen)",
+      "contactUser": "Portal-Mitglied (Kontakt)",
+      "contactUserPlaceholder": "Mitglied auswählen (optional)",
+      "contactEmail": "Kontakt-E-Mail",
+      "contactEmailPlaceholder": "kontakt@beispiel.de",
+      "contactEmailHint": "Für Ablauf-Erinnerungen an den Sponsor"
     },
     "categories": {
       "gastronomie": "Gastronomie",

@@ -309,8 +309,20 @@ export async function sendSponsorExpiryReminder(
     if (sponsor.mosque_id !== mosqueId) {
       return { success: false, error: "Nicht gefunden." };
     }
-    if (!mosque.email) {
-      return { success: false, error: "Moschee hat keine E-Mail-Adresse hinterlegt." };
+
+    // Kontakt-E-Mail ermitteln: contact_user_id → user.email hat Vorrang, sonst contact_email
+    let toEmail: string | null = null;
+    if (sponsor.contact_user_id) {
+      try {
+        const user = await pb.collection("users").getOne(sponsor.contact_user_id, { fields: "email" });
+        toEmail = user.email || null;
+      } catch { /* User nicht gefunden */ }
+    }
+    if (!toEmail && sponsor.contact_email) {
+      toEmail = sponsor.contact_email;
+    }
+    if (!toEmail) {
+      return { success: false, error: "Sponsor hat keine Kontakt-E-Mail hinterlegt." };
     }
 
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://moschee.app";
@@ -331,8 +343,8 @@ export async function sendSponsorExpiryReminder(
     });
 
     const result = await sendEmailDirect({
-      to: mosque.email,
-      subject: `Förderpartner läuft bald ab – ${sponsor.name}`,
+      to: toEmail,
+      subject: `Ihre Förderpartnerschaft läuft bald ab – ${mosque.name}`,
       html,
     });
 

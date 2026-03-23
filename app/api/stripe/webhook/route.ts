@@ -57,6 +57,34 @@ export async function POST(request: NextRequest) {
         const paymentType = session.metadata?.payment_type;
         const mosqueId = session.metadata?.mosque_id;
 
+        if (paymentType === "sponsor") {
+          // --- Förderpartner-Beitrag ---
+          const sponsorId = session.metadata?.sponsor_id;
+          if (!sponsorId) {
+            console.warn("[Stripe Webhook] Keine sponsor_id in Metadata");
+            break;
+          }
+          if (session.payment_status === "paid") {
+            await pb.collection("sponsors").update(sponsorId, {
+              payment_status: "paid",
+              paid_at: new Date().toISOString(),
+              payment_method: "stripe",
+              is_active: true,
+            });
+            console.log(`[Stripe Webhook] Sponsor ${sponsorId} als bezahlt markiert`);
+            if (mosqueId) {
+              logAudit({
+                mosqueId,
+                action: "sponsor.paid_stripe",
+                entityType: "sponsors",
+                entityId: sponsorId,
+                details: { amount_cents: session.amount_total, provider: "stripe" },
+              });
+            }
+          }
+          break;
+        }
+
         if (paymentType === "fee") {
           // --- Madrasa-Gebühr ---
           const feeId = session.metadata?.fee_id;
