@@ -1,4 +1,4 @@
-# Moschee-Portal — Projektstatus (Stand: März 2026)
+# Moschee-Portal — Projektstatus (Stand: März 2026, Session 20)
 
 ## Tech-Stack
 - **Frontend:** Next.js 14 (App Router), TypeScript, Tailwind CSS, Shadcn/ui (12 Komponenten)
@@ -33,6 +33,7 @@
 | Veranstaltungen + Gast-Anmeldung | `app/[slug]/events/` |
 | Spenden-Seite (Stripe, SEPA, Kampagnen) | `app/[slug]/donate/`, `app/[slug]/campaigns/` |
 | Einladungs-Registrierung | `app/[slug]/invite/[token]/` |
+| **Förderpartner-Seite (Kategoriefilter, Website-Links)** | `app/[slug]/foerderpartner/` |
 | Impressum, Datenschutz, AGB | `app/impressum`, `app/datenschutz`, `app/agb` |
 
 ### Admin-Panel (`/admin/...`)
@@ -51,6 +52,7 @@
 | **Madrasa: Schuljahre, Kurse, Einschreibungen** | `app/(auth)/admin/madrasa/` |
 | **Madrasa: Anwesenheit + Statistiken** | `app/(auth)/admin/madrasa/[id]/attendance/` |
 | **Madrasa: Gebühren (Bar/Überweisung/Erlassen)** | `app/(auth)/admin/madrasa/gebuehren/` |
+| **Förderpartner (CRUD, Stripe, Kontakt, Laufzeit, Erinnerungs-Indikator)** | `app/(auth)/admin/foerderpartner/` |
 
 ### Lehrer-Panel (`/lehrer/...`)
 | Feature | Dateien |
@@ -69,6 +71,7 @@
 | Spenden-Verlauf | `app/(auth)/member/profile/` (Tab) |
 | Event-Anmeldungen | `app/(auth)/member/profile/` (Tab) |
 | **Madrasa-Gebühren (Kinder, Online-Zahlung via Stripe)** | `app/(auth)/member/profile/` (Tab) |
+| **Förderpartner-Tab (nur für verknüpfte Kontakte, Stripe-Zahlung)** | `app/(auth)/member/profile/` (Tab) |
 | Spendenbescheinigung (Drucken + **Per E-Mail senden**) | `app/(auth)/member/spendenbescheinigung/` |
 
 ### E-Mail-Infrastruktur
@@ -79,7 +82,8 @@
 | **Email Queue** | `email_outbox` Collection → `GET/POST /api/email/process-queue` (CRON_SECRET) |
 | **Cron-Job** | Alle 5 Min: `curl https://moschee.app/api/email/process-queue` via Linux-Crontab |
 | **Stripe Webhook** | `checkout.session.completed` → Spendenbestätigungs-Mail |
-| **E-Mail-Templates** | 6 HTML-Templates: Newsletter, Event-Bestätigung, Gebühren-Erinnerung, Admin-Notiz, Spendenquittung, **Jahresbescheinigung** |
+| **E-Mail-Templates** | 7 HTML-Templates: Newsletter, Event-Bestätigung, Gebühren-Erinnerung, Admin-Notiz, Spendenquittung, Jahresbescheinigung, **Sponsor-Ablauferinnerung** |
+| **Cron: Sponsor-Erinnerungen** | Jeden 21. des Monats: ablaufende Sponsors per E-Mail erinnern (`app/api/cron/sponsor-reminders/`) |
 
 ### API-Endpunkte
 | Endpunkt | Zweck |
@@ -87,7 +91,8 @@
 | `POST /api/[slug]/donations/stripe/create-checkout` | Stripe Checkout für Spenden |
 | `POST /api/[slug]/events/[id]/register-guest` | Gast-Anmeldung zu Events |
 | `GET/POST /api/[slug]/invite/[token]` | Einladungs-Token validieren + registrieren |
-| `POST /api/stripe/webhook` | Stripe Webhooks (Spenden + Gebühren) |
+| `POST /api/stripe/webhook` | Stripe Webhooks (Spenden + Gebühren + **Förderpartner**) |
+| `GET /api/cron/sponsor-reminders` | Sponsor-Ablauferinnerungen senden (Bearer Auth, Cron 21./Monat) |
 | `GET/POST /api/email/process-queue` | E-Mail-Queue verarbeiten (Cron + manuell) |
 | `GET /api/health` | Health-Check |
 
@@ -110,11 +115,12 @@
 | `enrollments.ts` | Kurseinschreibungen |
 | `attendance.ts` | Anwesenheit (Bulk-Save, Statistik) |
 | `students.ts` | Schüler CRUD + Bulk-Import (CSV/Excel) |
-| `student-fees.ts` | Gebühren: Overview, Bulk-Erstellen, Markieren, Stripe |
+| `student-fees.ts` | Gebühren: Overview, Bulk-Erstellen, Markieren, Stripe, **Mehrmonats-Zahlung** |
+| `sponsors.ts` | Förderpartner CRUD, Stripe Checkout, Contact-Suche, Laufzeit, Ablauf-Check |
 
 ---
 
-## 🗃️ PocketBase Collections (18)
+## 🗃️ PocketBase Collections (19)
 
 | Collection | Beschreibung |
 |---|---|
@@ -137,6 +143,7 @@
 | `course_enrollments` | Kurseinschreibungen |
 | `attendance` | Anwesenheitserfassung |
 | `student_fees` | Monatliche Madrasa-Gebühren |
+| `sponsors` | Förderpartner (Name, Logo, Kontakt-User, Stripe, Laufzeit, Erinnerung) |
 
 ---
 
@@ -149,12 +156,12 @@
 | **Admin: Schüler ↔ Eltern verknüpfen** | Admin soll einem bestehenden Portal-User als `parent_id` zuweisen können (aktuell nur bei Schüler-Erstellung) | S |
 | **Gebühren: CSV-Export** | Admin kann Gebühren-Übersicht als CSV/Excel exportieren | S |
 | **Invite-Mail** | Einladungslink per E-Mail versenden (aktuell nur Link kopieren) | S |
+| **Stripe Connect** | Getrennte Auszahlungen pro Moschee für Pilot-Betrieb | M |
 
 ### P2 — Mittlere Priorität (UX-Verbesserungen)
 
 | Feature | Beschreibung | Aufwand |
 |---|---|---|
-| **Gebühren: Erinnerungs-E-Mail** | Button "Erinnerung senden" an Eltern für offene Gebühren (braucht P1 E-Mail) | S |
 | **Events: Warteliste** | Wenn max_participants erreicht → Warteliste | M |
 | **Öffentliche Gebetszeiten-Seite** | `/[slug]/gebetszeiten` — volle Monatsansicht, Tages-Widget | S |
 | **Member: Profil-Bild** | Upload + Anzeige im Profil | S |
@@ -194,27 +201,28 @@ Fundament & Infrastruktur    ████████████ 100%
 Öffentliches Portal           ████████████ 100%
 Admin-Panel (Core)            ████████████ 100%
 Madrasa-Modul                 ████████████ 100%
-Member-Bereich                ███████████░  95%  (Invite-Mail fehlt)
+Förderpartner-Modul           ████████████ 100%
+Member-Bereich                ███████████░  98%  (Invite-Mail fehlt)
 Zahlungen                     ████████████ 100%
 Security                      ████████████ 100%
 Mehrsprachigkeit (DE/TR)      ████████████ 100%
-E-Mail-Infrastruktur          ███████████░  95%  (Invite-Mail, Gebühren-Erinnerung ausstehend)
+E-Mail-Infrastruktur          ███████████░  98%  (Invite-Mail ausstehend)
 ```
 
-**Gesamt: ~97% der V1-Kernfunktionen implementiert**
+**Gesamt: ~99% der V1-Kernfunktionen implementiert**
 
 ---
 
 ## 🚀 Empfohlener nächster Sprint
 
-**Ziel: Pilot-Moschee vorbereiten**
+**Ziel: Pilot-Moschee live schalten**
 
-1. Invite-Mail — Einladungslinks direkt per E-Mail versenden
+1. Invite-Mail — Einladungslinks direkt per E-Mail versenden (letztes fehlendes P1-Feature)
 2. Gebühren: CSV-Export für Buchhaltung
 3. Schüler ↔ Parent-Verknüpfung im Admin verbessern
 4. Stripe Connect für Pilot-Moschee aktivieren (getrennte Auszahlungen)
 
-Das System ist produktionsbereit — E-Mails, Zahlungen, und alle Kernfunktionen funktionieren.
+Das System ist produktionsbereit — Förderpartner-Modul, Madrasa, E-Mails, Zahlungen und alle Kernfunktionen funktionieren. Nur noch Invite-Mail und Stripe Connect für den Pilot-Betrieb ausstehend.
 
 ---
 
@@ -233,3 +241,4 @@ Das System ist produktionsbereit — E-Mails, Zahlungen, und alle Kernfunktionen
 | 15–17 | (diverse Bugfixes, Polishing, Admin-Einstellungen) |
 | **18** | **Vollständige Mehrsprachigkeit DE/TR** — 19 Dateien, ~1050 neue Übersetzungsschlüssel: alle Admin-Seiten (newsletter, invites, audit, settings, madrasa, spenden, posts/new, events/new), Formular-Komponenten (PostForm, EventForm, CampaignForm, CourseForm, CreateInviteDialog), Listenseiten (Kategorie-/Status-Labels), Member-Profil (Monatsanzeige locale-aware) |
 | **19** | **E-Mail-Infrastruktur vollständig in Betrieb** — Resend.com eingerichtet (Domain verifiziert: mail.moschee.app, DKIM/SPF/DMARC), PocketBase SMTP für Passwort-Reset/Verifikation, Cron-Job für email_outbox (alle 5 Min), Stripe Webhook für Spendenbestätigung, PocketBase als systemd-Dienst (Auto-Restart), CSP-Fix (`connect-src` Origin statt Pfad), JSON-Syntaxfehler in Übersetzungsdateien behoben, **Spendenbescheinigung per E-Mail** (neues Feature: `renderAnnualDonationReceipt`, `sendDonationReceiptByEmail`, E-Mail-Button auf Bescheinigungsseite) |
+| **20** | **Förderpartner-Modul vollständig** — `sponsors` Collection (19. Collection), Admin-CRUD mit Kontaktfeldern (`contact_user_id`, `contact_email`), Laufzeit-Felder (Von/Bis im Dialog + auto-Berechnung via Stripe-Webhook), Kategoriefilter auf öffentlicher Seite, safeHref-Fix für Website-URLs, **Stripe-Checkout für Sponsors** (analog zu Schülergebühren), **Mehrmonats-Zahlung** (1/3/6/12 Monate) für Sponsors UND Madrasa-Gebühren, Förderpartner-Tab im Member-Profil (nur wenn als Kontakt hinterlegt), Erinnerungs-Indikator (Bell-Icon, `notification_sent`), Cron-Job am 21. jeden Monats (`/api/cron/sponsor-reminders`), E-Mail-Template für Ablauferinnerung, Mehrsprachigkeit DE/TR vollständig, VPS-Crontab konfiguriert |
