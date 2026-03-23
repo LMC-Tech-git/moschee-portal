@@ -15,6 +15,12 @@ function displayUrl(url: string): string {
     .replace(/\/$/, "");
 }
 
+/** Ensure URL has a protocol for use as href */
+function safeHref(url: string): string {
+  if (!url) return "";
+  return /^https?:\/\//i.test(url) ? url : `https://${url}`;
+}
+
 export default function SponsorGrid({ sponsors }: { sponsors: Sponsor[] }) {
   const t = useTranslations("sponsors");
   const [activeCategory, setActiveCategory] = useState<SponsorCategory | null>(null);
@@ -122,7 +128,7 @@ export default function SponsorGrid({ sponsors }: { sponsors: Sponsor[] }) {
 
                   {sponsor.website_url && (
                     <a
-                      href={sponsor.website_url}
+                      href={safeHref(sponsor.website_url)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="mt-auto inline-flex items-center gap-1.5 text-sm font-medium text-emerald-600 hover:text-emerald-700 hover:underline"

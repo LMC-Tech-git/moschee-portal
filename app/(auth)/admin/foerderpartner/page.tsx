@@ -446,7 +446,7 @@ export default function AdminFoerderpartnerPage() {
                           )}
                           {sponsor.website_url && (
                             <a
-                              href={sponsor.website_url}
+                              href={/^https?:\/\//i.test(sponsor.website_url) ? sponsor.website_url : `https://${sponsor.website_url}`}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="flex items-center gap-1 text-xs text-blue-600 hover:underline"
