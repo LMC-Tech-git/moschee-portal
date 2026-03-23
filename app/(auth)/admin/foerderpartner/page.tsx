@@ -30,6 +30,7 @@ import {
   AlertCircle,
   X,
   Banknote,
+  Bell,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 
@@ -68,6 +69,8 @@ interface SponsorFormState {
   amount_cents_eur: string; // user types EUR
   contact_user_id: string;
   contact_email: string;
+  start_date: string;
+  end_date: string;
 }
 
 const emptyForm: SponsorFormState = {
@@ -78,6 +81,8 @@ const emptyForm: SponsorFormState = {
   amount_cents_eur: "",
   contact_user_id: "",
   contact_email: "",
+  start_date: "",
+  end_date: "",
 };
 
 function formToAmountCents(eur: string): number | undefined {
@@ -181,6 +186,8 @@ export default function AdminFoerderpartnerPage() {
       amount_cents_eur: sponsor.amount_cents ? (sponsor.amount_cents / 100).toFixed(2) : "",
       contact_user_id: sponsor.contact_user_id ?? "",
       contact_email: sponsor.contact_email ?? "",
+      start_date: sponsor.start_date ? sponsor.start_date.split("T")[0] : "",
+      end_date: sponsor.end_date ? sponsor.end_date.split("T")[0] : "",
     });
     setFormError("");
     setDialogOpen(true);
@@ -217,6 +224,8 @@ export default function AdminFoerderpartnerPage() {
       amount_cents,
       contact_user_id: form.contact_user_id || undefined,
       contact_email: form.contact_email.trim() || undefined,
+      start_date: form.start_date || undefined,
+      end_date: form.end_date || undefined,
     };
 
     let result;
@@ -535,6 +544,12 @@ export default function AdminFoerderpartnerPage() {
                                 {t("expiresIn", { days: daysUntil })}
                               </span>
                             )}
+                            {sponsor.notification_sent && (
+                              <span className="inline-flex items-center gap-1 w-fit rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-600">
+                                <Bell className="h-3 w-3" />
+                                {t("reminderSent")}
+                              </span>
+                            )}
                           </div>
                         ) : (
                           <span className="text-gray-400">—</span>
@@ -794,6 +809,37 @@ export default function AdminFoerderpartnerPage() {
                     className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                   />
                   <p className="mt-1 text-xs text-gray-400">{t("contactEmailHint")}</p>
+                </div>
+              </div>
+
+              {/* Laufzeit */}
+              <div className="border-t pt-3">
+                <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-400">
+                  {t("durationSection")}
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="mb-1 block text-sm font-medium text-gray-700">
+                      {t("startDate")}
+                    </label>
+                    <input
+                      type="date"
+                      value={form.start_date}
+                      onChange={(e) => setForm((f) => ({ ...f, start_date: e.target.value }))}
+                      className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-sm font-medium text-gray-700">
+                      {t("endDate")}
+                    </label>
+                    <input
+                      type="date"
+                      value={form.end_date}
+                      onChange={(e) => setForm((f) => ({ ...f, end_date: e.target.value }))}
+                      className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                    />
+                  </div>
                 </div>
               </div>
             </div>

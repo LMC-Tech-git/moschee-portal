@@ -1908,7 +1908,11 @@
       "contactUserPlaceholder": "Üye seçin (isteğe bağlı)",
       "contactEmail": "İletişim E-postası",
       "contactEmailPlaceholder": "iletisim@ornek.com",
-      "contactEmailHint": "Sona erme hatırlatmaları için kullanılır"
+      "contactEmailHint": "Sona erme hatırlatmaları için kullanılır",
+      "durationSection": "Süre",
+      "startDate": "Başlangıç",
+      "endDate": "Bitiş",
+      "reminderSent": "Hatırlatma gönderildi"
     },
     "categories": {
       "gastronomie": "Gastronomi",

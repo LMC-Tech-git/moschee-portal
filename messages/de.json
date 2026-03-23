@@ -1908,7 +1908,11 @@
       "contactUserPlaceholder": "Mitglied auswählen (optional)",
       "contactEmail": "Kontakt-E-Mail",
       "contactEmailPlaceholder": "kontakt@beispiel.de",
-      "contactEmailHint": "Für Ablauf-Erinnerungen an den Sponsor"
+      "contactEmailHint": "Für Ablauf-Erinnerungen an den Sponsor",
+      "durationSection": "Laufzeit",
+      "startDate": "Von",
+      "endDate": "Bis",
+      "reminderSent": "Erinnerung gesendet"
     },
     "categories": {
       "gastronomie": "Gastronomie",

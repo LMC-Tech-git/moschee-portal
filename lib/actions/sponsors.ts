@@ -108,6 +108,8 @@ export interface CreateSponsorInput {
   sort_order?: number;
   contact_user_id?: string;
   contact_email?: string;
+  start_date?: string;
+  end_date?: string;
 }
 
 export async function createSponsor(
@@ -138,6 +140,8 @@ export async function createSponsor(
       payment_status: "open",
       contact_user_id: input.contact_user_id || "",
       contact_email: input.contact_email?.trim() || "",
+      start_date: input.start_date || "",
+      end_date: input.end_date || "",
       created_by: userId,
     });
 
@@ -168,6 +172,7 @@ export interface UpdateSponsorInput {
   category?: SponsorCategory | "";
   amount_cents?: number;
   sort_order?: number;
+  start_date?: string;
   end_date?: string;
   contact_user_id?: string;
   contact_email?: string;
@@ -201,6 +206,7 @@ export async function updateSponsor(
     if (input.sort_order !== undefined) updateData.sort_order = input.sort_order;
     if (input.contact_user_id !== undefined) updateData.contact_user_id = input.contact_user_id;
     if (input.contact_email !== undefined) updateData.contact_email = input.contact_email.trim();
+    if (input.start_date !== undefined) updateData.start_date = input.start_date;
 
     // Bei Verlängerung: notification_sent zurücksetzen
     if (input.end_date !== undefined) {
