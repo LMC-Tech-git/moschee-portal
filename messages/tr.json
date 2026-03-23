@@ -902,7 +902,15 @@
       },
       "prevMonth": "Önceki Ay",
       "nextMonth": "Sonraki Ay",
-      "monthYear": "{month} {year}"
+      "monthYear": "{month} {year}",
+      "prepay": {
+        "title": "Ön Ödeme",
+        "button": "Şimdi Öde",
+        "1": "1 Ay",
+        "3": "3 Ay",
+        "6": "6 Ay",
+        "12": "12 Ay (yıllık)"
+      }
     },
     "sponsor": {
       "empty": "Destek ortaklığı kaydı bulunamadı.",
@@ -910,7 +918,10 @@
       "open": "Bekliyor",
       "payOnline": "Online Öde",
       "paidSuccess": "Ödeme başarıyla alındı!",
-      "until": "son"
+      "until": "son",
+      "months": {
+        "label": "Ay seç"
+      }
     }
   },
   "newsletter": {

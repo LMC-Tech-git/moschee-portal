@@ -2,6 +2,7 @@
 
 import { getAdminPB } from "@/lib/pocketbase-admin";
 import { logAudit } from "@/lib/audit";
+import { getMadrasaFeeSettings } from "@/lib/actions/settings";
 import type { StudentFee, Student } from "@/types";
 import type { RecordModel } from "pocketbase";
 import Stripe from "stripe";
@@ -402,6 +403,129 @@ export async function createFeeStripeCheckout(
     return { success: true, data: { checkout_url: session.url || "" } };
   } catch (error) {
     console.error("[StudentFees] createFeeStripeCheckout:", error);
+    return { success: false, error: "Zahlung konnte nicht gestartet werden" };
+  }
+}
+
+/**
+ * Berechnet eine Liste von Monat-Keys ab einem Startmonat.
+ * z.B. getMonthRange("2026-03", 3) → ["2026-03", "2026-04", "2026-05"]
+ */
+export function getMonthRange(startKey: string, count: number): string[] {
+  const [y, m] = startKey.split("-").map(Number);
+  const result: string[] = [];
+  for (let i = 0; i < count; i++) {
+    const d = new Date(y, m - 1 + i, 1);
+    result.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`);
+  }
+  return result;
+}
+
+/**
+ * Mehrmonatige Vorauszahlung für alle Kinder eines Elternteils.
+ * Erstellt fehlende student_fees-Records und startet einen Stripe-Checkout.
+ */
+export async function createMultiMonthFeeCheckout(
+  mosqueId: string,
+  parentUserId: string,
+  startMonthKey: string,
+  months: number,
+  baseUrl: string
+): Promise<ActionResult<{ checkout_url: string }>> {
+  try {
+    const stripeKey = process.env.STRIPE_SECRET_KEY;
+    if (!stripeKey) return { success: false, error: "Stripe nicht konfiguriert" };
+
+    const pb = await getAdminPB();
+
+    // Standardbetrag aus Settings laden
+    const settingsResult = await getMadrasaFeeSettings(mosqueId);
+    const defaultAmountCents =
+      settingsResult.success && settingsResult.data?.madrasa_default_fee_cents
+        ? settingsResult.data.madrasa_default_fee_cents
+        : 1000;
+
+    // Aktive Kinder laden
+    const students = await pb.collection("students").getFullList({
+      filter: `mosque_id = "${mosqueId}" && parent_id = "${parentUserId}" && status = "active"`,
+      sort: "first_name",
+    });
+
+    if (students.length === 0) {
+      return { success: false, error: "Keine aktiven Kinder gefunden" };
+    }
+
+    const monthKeys = getMonthRange(startMonthKey, months);
+    let totalCents = 0;
+
+    // Für jedes Kind × Monat: Record sicherstellen
+    for (const student of students) {
+      for (const monthKey of monthKeys) {
+        const existing = await pb.collection("student_fees").getFullList({
+          filter: `mosque_id = "${mosqueId}" && student_id = "${student.id}" && month_key = "${monthKey}"`,
+        });
+        if (existing.length === 0) {
+          await pb.collection("student_fees").create({
+            mosque_id: mosqueId,
+            student_id: student.id,
+            month_key: monthKey,
+            amount_cents: defaultAmountCents,
+            status: "open",
+            created_by: parentUserId,
+          });
+          totalCents += defaultAmountCents;
+        } else {
+          const fee = existing[0];
+          if (fee.status === "open") {
+            totalCents += fee.amount_cents || defaultAmountCents;
+          }
+        }
+      }
+    }
+
+    if (totalCents <= 0) {
+      return { success: false, error: "Alle Gebühren für diesen Zeitraum sind bereits bezahlt" };
+    }
+
+    // E-Mail des Elternteils
+    let parentEmail: string | undefined;
+    try {
+      const parent = await pb.collection("users").getOne(parentUserId, { fields: "email" });
+      parentEmail = parent.email || undefined;
+    } catch { /* ignore */ }
+
+    const stripe = new Stripe(stripeKey, { apiVersion: "2024-06-20" });
+    const session = await stripe.checkout.sessions.create({
+      mode: "payment",
+      payment_method_types: ["card"],
+      customer_email: parentEmail,
+      line_items: [
+        {
+          price_data: {
+            currency: "eur",
+            product_data: {
+              name: `Madrasa-Gebühren ${months === 1 ? monthKeys[0] : `${monthKeys[0]} – ${monthKeys[monthKeys.length - 1]}`}`,
+              description: `${students.length} Schüler × ${months} Monate`,
+            },
+            unit_amount: totalCents,
+          },
+          quantity: 1,
+        },
+      ],
+      metadata: {
+        mosque_id: mosqueId,
+        payment_type: "fee_multi",
+        parent_user_id: parentUserId,
+        start_month_key: startMonthKey,
+        months: months.toString(),
+      },
+      success_url: `${baseUrl}/member/profile?fees_success=true`,
+      cancel_url: `${baseUrl}/member/profile`,
+    });
+
+    return { success: true, data: { checkout_url: session.url || "" } };
+  } catch (error) {
+    console.error("[StudentFees] createMultiMonthFeeCheckout:", error);
     return { success: false, error: "Zahlung konnte nicht gestartet werden" };
   }
 }

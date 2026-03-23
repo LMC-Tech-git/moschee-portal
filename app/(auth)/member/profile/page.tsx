@@ -18,6 +18,7 @@ import type { Student } from "@/types";
 import {
   getParentFeeOverview,
   createFeeStripeCheckout,
+  createMultiMonthFeeCheckout,
   type FeeOverviewRow,
 } from "@/lib/actions/student-fees";
 import { getMadrasaFeeSettings, getPortalSettings } from "@/lib/actions/settings";
@@ -923,6 +924,8 @@ function MadrasaFeeOverview({
   const [rows, setRows] = useState<FeeOverviewRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [payingFeeId, setPayingFeeId] = useState<string | null>(null);
+  const [prepayMonths, setPrepayMonths] = useState(1);
+  const [isPrePaying, setIsPrePaying] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -950,6 +953,19 @@ function MadrasaFeeOverview({
     } else {
       setError(result.error || "Zahlung konnte nicht gestartet werden");
       setPayingFeeId(null);
+    }
+  }
+
+  async function handlePrepay() {
+    setIsPrePaying(true);
+    setError("");
+    const baseUrl = window.location.origin;
+    const result = await createMultiMonthFeeCheckout(mosqueId, userId, monthKey, prepayMonths, baseUrl);
+    if (result.success && result.data?.checkout_url) {
+      window.location.href = result.data.checkout_url;
+    } else {
+      setError(result.error || "Zahlung konnte nicht gestartet werden");
+      setIsPrePaying(false);
     }
   }
 
@@ -1050,6 +1066,33 @@ function MadrasaFeeOverview({
           </div>
         )}
       </div>
+
+      {/* Vorauszahlung */}
+      {stripeEnabled && rows.length > 0 && (
+        <div className="rounded-xl border border-emerald-100 bg-emerald-50 p-4">
+          <p className="mb-3 text-sm font-semibold text-emerald-800">{t("member.madrasa.prepay.title")}</p>
+          <div className="flex flex-wrap items-center gap-3">
+            <select
+              value={prepayMonths}
+              onChange={(e) => setPrepayMonths(Number(e.target.value))}
+              className="rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+            >
+              <option value={1}>{t("member.madrasa.prepay.1")}</option>
+              <option value={3}>{t("member.madrasa.prepay.3")}</option>
+              <option value={6}>{t("member.madrasa.prepay.6")}</option>
+              <option value={12}>{t("member.madrasa.prepay.12")}</option>
+            </select>
+            <button
+              type="button"
+              onClick={handlePrepay}
+              disabled={isPrePaying}
+              className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-60"
+            >
+              {isPrePaying ? "Weiterleiten..." : t("member.madrasa.prepay.button")}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1071,6 +1114,7 @@ function SponsorPaymentOverview({
   const [sponsors, setSponsors] = useState<Sponsor[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [payingId, setPayingId] = useState<string | null>(null);
+  const [sponsorMonths, setSponsorMonths] = useState<Record<string, number>>({});
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -1090,8 +1134,9 @@ function SponsorPaymentOverview({
   async function handleOnlinePay(sponsorId: string) {
     setPayingId(sponsorId);
     setError("");
+    const months = sponsorMonths[sponsorId] || 1;
     const baseUrl = window.location.origin;
-    const result = await createSponsorStripeCheckout(mosqueId, userId, sponsorId, baseUrl);
+    const result = await createSponsorStripeCheckout(mosqueId, userId, sponsorId, baseUrl, months);
     if (result.success && result.data?.checkout_url) {
       window.location.href = result.data.checkout_url;
     } else {
@@ -1160,14 +1205,29 @@ function SponsorPaymentOverview({
                           {t("member.sponsor.open")}
                         </span>
                         {stripeEnabled && sponsor.amount_cents && sponsor.amount_cents > 0 && (
-                          <button
-                            type="button"
-                            onClick={() => handleOnlinePay(sponsor.id)}
-                            disabled={payingId === sponsor.id}
-                            className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-700 disabled:opacity-60"
-                          >
-                            {payingId === sponsor.id ? "Weiterleiten..." : t("member.sponsor.payOnline")}
-                          </button>
+                          <>
+                            <select
+                              value={sponsorMonths[sponsor.id] || 1}
+                              onChange={(e) => setSponsorMonths((prev) => ({ ...prev, [sponsor.id]: Number(e.target.value) }))}
+                              className="rounded-md border border-gray-300 bg-white px-2 py-1.5 text-xs text-gray-700 focus:outline-none focus:ring-1 focus:ring-emerald-400"
+                              aria-label={t("member.sponsor.months.label")}
+                            >
+                              <option value={1}>{t("member.madrasa.prepay.1")}</option>
+                              <option value={3}>{t("member.madrasa.prepay.3")}</option>
+                              <option value={6}>{t("member.madrasa.prepay.6")}</option>
+                              <option value={12}>{t("member.madrasa.prepay.12")}</option>
+                            </select>
+                            <button
+                              type="button"
+                              onClick={() => handleOnlinePay(sponsor.id)}
+                              disabled={payingId === sponsor.id}
+                              className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-700 disabled:opacity-60"
+                            >
+                              {payingId === sponsor.id
+                                ? "Weiterleiten..."
+                                : `${t("member.sponsor.payOnline")} · ${((sponsor.amount_cents * (sponsorMonths[sponsor.id] || 1)) / 100).toLocaleString("de-DE", { style: "currency", currency: "EUR" })}`}
+                            </button>
+                          </>
                         )}
                       </>
                     )}

@@ -902,7 +902,15 @@
       },
       "prevMonth": "Vorheriger Monat",
       "nextMonth": "Nächster Monat",
-      "monthYear": "{month} {year}"
+      "monthYear": "{month} {year}",
+      "prepay": {
+        "title": "Vorauszahlung",
+        "button": "Jetzt bezahlen",
+        "1": "1 Monat",
+        "3": "3 Monate",
+        "6": "6 Monate",
+        "12": "12 Monate (jährlich)"
+      }
     },
     "sponsor": {
       "empty": "Keine Förderpartnerschaften hinterlegt.",
@@ -910,7 +918,10 @@
       "open": "Ausstehend",
       "payOnline": "Online bezahlen",
       "paidSuccess": "Zahlung erfolgreich eingegangen!",
-      "until": "bis"
+      "until": "bis",
+      "months": {
+        "label": "Monate wählen"
+      }
     }
   },
   "newsletter": {

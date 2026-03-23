@@ -85,8 +85,58 @@ export async function POST(request: NextRequest) {
           break;
         }
 
+        if (paymentType === "fee_multi") {
+          // --- Mehrmonatige Madrasa-Vorauszahlung ---
+          const parentUserId = session.metadata?.parent_user_id;
+          const startMonthKey = session.metadata?.start_month_key;
+          const months = parseInt(session.metadata?.months || "1", 10);
+          if (!parentUserId || !startMonthKey || !mosqueId) {
+            console.warn("[Stripe Webhook] fee_multi: fehlende Metadata");
+            break;
+          }
+          if (session.payment_status === "paid") {
+            // Monatsliste berechnen
+            const monthKeys: string[] = [];
+            const [sy, sm] = startMonthKey.split("-").map(Number);
+            for (let i = 0; i < months; i++) {
+              const d = new Date(sy, sm - 1 + i, 1);
+              monthKeys.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`);
+            }
+            // Aktive Kinder laden
+            const students = await pb.collection("students").getFullList({
+              filter: `mosque_id = "${mosqueId}" && parent_id = "${parentUserId}" && status = "active"`,
+            });
+            const paidNow = new Date().toISOString();
+            for (const student of students) {
+              for (const monthKey of monthKeys) {
+                const fees = await pb.collection("student_fees").getFullList({
+                  filter: `mosque_id = "${mosqueId}" && student_id = "${student.id}" && month_key = "${monthKey}"`,
+                });
+                for (const fee of fees) {
+                  if (fee.status === "open") {
+                    await pb.collection("student_fees").update(fee.id, {
+                      status: "paid",
+                      paid_at: paidNow,
+                      payment_method: "stripe",
+                    });
+                  }
+                }
+              }
+            }
+            console.log(`[Stripe Webhook] fee_multi: ${students.length} Schüler × ${months} Monate bezahlt`);
+            logAudit({
+              mosqueId,
+              action: "student_fee.multi_paid_stripe",
+              entityType: "student_fees",
+              entityId: parentUserId,
+              details: { months, start_month_key: startMonthKey, amount_cents: session.amount_total },
+            });
+          }
+          break;
+        }
+
         if (paymentType === "fee") {
-          // --- Madrasa-Gebühr ---
+          // --- Einzelne Madrasa-Gebühr ---
           const feeId = session.metadata?.fee_id;
           if (!feeId) {
             console.warn("[Stripe Webhook] Keine fee_id in Metadata");

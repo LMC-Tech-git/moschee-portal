@@ -478,7 +478,8 @@ export async function createSponsorStripeCheckout(
   mosqueId: string,
   userId: string,
   sponsorId: string,
-  baseUrl: string
+  baseUrl: string,
+  months: number = 1
 ): Promise<ActionResult<{ checkout_url: string }>> {
   try {
     const stripeKey = process.env.STRIPE_SECRET_KEY;
@@ -509,6 +510,9 @@ export async function createSponsorStripeCheckout(
       contactEmail = user.email || undefined;
     } catch { /* E-Mail nicht verfügbar */ }
 
+    const totalCents = sponsorRecord.amount_cents * months;
+    const monthsLabel = months === 1 ? "1 Monat" : `${months} Monate`;
+
     const stripe = new Stripe(stripeKey, { apiVersion: "2024-06-20" });
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
@@ -520,9 +524,9 @@ export async function createSponsorStripeCheckout(
             currency: "eur",
             product_data: {
               name: sponsorRecord.name,
-              description: "Förderpartner-Beitrag",
+              description: `Förderpartner-Beitrag (${monthsLabel})`,
             },
-            unit_amount: sponsorRecord.amount_cents,
+            unit_amount: totalCents,
           },
           quantity: 1,
         },
@@ -532,6 +536,7 @@ export async function createSponsorStripeCheckout(
         sponsor_id: sponsorId,
         payment_type: "sponsor",
         contact_user_id: userId,
+        months: months.toString(),
       },
       success_url: `${baseUrl}/member/profile?sponsor_paid=true`,
       cancel_url: `${baseUrl}/member/profile`,
