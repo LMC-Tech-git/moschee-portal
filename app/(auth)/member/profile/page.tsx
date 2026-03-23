@@ -117,6 +117,7 @@ export default function MemberProfilePage() {
 
   useEffect(() => {
     if (!mosqueId || !user) return;
+    const userId = user.id;
     async function checkSettings() {
       const [feeResult, portalResult] = await Promise.all([
         getMadrasaFeeSettings(mosqueId),
@@ -126,7 +127,7 @@ export default function MemberProfilePage() {
         setFeesEnabled(true);
       }
       if (portalResult.success && portalResult.settings?.sponsors_enabled) {
-        const sponsorResult = await getSponsorsByContact(mosqueId, user.id);
+        const sponsorResult = await getSponsorsByContact(mosqueId, userId);
         if (sponsorResult.success && sponsorResult.data && sponsorResult.data.length > 0) {
           setSponsorsEnabled(true);
         }
