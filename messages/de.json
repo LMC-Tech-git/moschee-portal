@@ -1249,6 +1249,7 @@
       "enabledHint": "Bei Aktivierung erscheint eine öffentliche Seite \"Förderpartner\" mit allen genehmigten Sponsoren.",
       "save": "Einstellungen speichern",
       "saving": "Wird gespeichert...",
+      "saved": "Einstellungen gespeichert.",
       "manageLink": "Sponsoren verwalten →"
     },
     "loadError": "Einstellungen konnten nicht geladen werden.",
@@ -1997,6 +1998,26 @@
       "moveDown": "Nach unten",
       "noGroup": "Ohne Gruppe",
       "chars": "{count}/500"
+    },
+    "groups": {
+      "vorstand": "Vorstand",
+      "imame": "Imame",
+      "mitarbeiter": "Mitarbeiter",
+      "ausschuss": "Ausschuss",
+      "jugend": "Jugend",
+      "sonstiges": "Sonstiges"
+    },
+    "roles": {
+      "imam": "Imam",
+      "vorsitzender": "Vorsitzender",
+      "vize_vorsitzender": "Vize-Vorsitzender",
+      "kassenwart": "Kassenwart",
+      "schriftfuehrer": "Schriftführer",
+      "jugendleiter": "Jugendleiter",
+      "sozialdienst": "Sozialdienst",
+      "bildung": "Bildung & Beratung",
+      "mitarbeiter": "Mitarbeiter",
+      "sonstiges": "Sonstiges"
     }
   }
 }

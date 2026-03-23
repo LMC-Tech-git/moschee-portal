@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/dialog";
 import TeamMemberForm from "@/components/team/TeamMemberForm";
 import type { CreateTeamMemberInput, UpdateTeamMemberInput } from "@/lib/actions/team";
+import { TEAM_GROUP_KEYS, TEAM_ROLE_KEYS } from "@/lib/constants";
 
 const pbUrl = process.env.NEXT_PUBLIC_POCKETBASE_URL ?? "";
 
@@ -54,6 +55,21 @@ export default function AdminLeitungPage() {
   const { user } = useAuth();
   const { mosqueId } = useMosque();
   const t = useTranslations("team.admin");
+  const tTeam = useTranslations("team");
+
+  function getRoleLabel(key: string): string {
+    if ((TEAM_ROLE_KEYS as readonly string[]).includes(key)) {
+      return tTeam(`roles.${key}` as Parameters<typeof tTeam>[0]);
+    }
+    return key;
+  }
+
+  function getGroupLabel(key: string): string {
+    if ((TEAM_GROUP_KEYS as readonly string[]).includes(key)) {
+      return tTeam(`groups.${key}` as Parameters<typeof tTeam>[0]);
+    }
+    return key;
+  }
 
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -165,7 +181,8 @@ export default function AdminLeitungPage() {
   const groups: { name: string; items: { member: TeamMember; index: number }[] }[] = [];
   const groupMap: Record<string, { member: TeamMember; index: number }[]> = {};
   members.forEach((member, index) => {
-    const key = member.group?.trim() || t("noGroup");
+    const rawKey = member.group?.trim() || "";
+    const key = rawKey || t("noGroup");
     if (!groupMap[key]) groupMap[key] = [];
     groupMap[key].push({ member, index });
   });
@@ -232,7 +249,7 @@ export default function AdminLeitungPage() {
             <div key={name}>
               {groups.length > 1 && (
                 <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-gray-500">
-                  {name}
+                  {getGroupLabel(name)}
                 </h2>
               )}
               <div className="divide-y divide-gray-100 rounded-xl border border-gray-200 bg-white">
@@ -283,7 +300,7 @@ export default function AdminLeitungPage() {
                       {/* Info */}
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-sm font-semibold text-gray-900">{member.name}</p>
-                        <p className="truncate text-xs text-gray-500">{member.role}</p>
+                        <p className="truncate text-xs text-gray-500">{getRoleLabel(member.role)}</p>
                         {member.email && (
                           <p className="truncate text-xs text-gray-400">{member.email}</p>
                         )}

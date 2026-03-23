@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import type { CreateTeamMemberInput, UpdateTeamMemberInput } from "@/lib/actions/team";
 import type { TeamMember } from "@/types";
+import { TEAM_GROUP_OPTIONS, TEAM_ROLE_OPTIONS } from "@/lib/constants";
 
 interface TeamMemberFormProps {
   initial?: TeamMember;
@@ -21,6 +22,7 @@ export default function TeamMemberForm({
   isLoading,
 }: TeamMemberFormProps) {
   const t = useTranslations("team.admin");
+  const tTeam = useTranslations("team");
 
   const [name, setName] = useState(initial?.name ?? "");
   const [role, setRole] = useState(initial?.role ?? "");
@@ -30,8 +32,6 @@ export default function TeamMemberForm({
   const [sortOrder, setSortOrder] = useState(initial?.sort_order ?? 0);
   const [isActive, setIsActive] = useState(initial?.is_active ?? true);
   const [error, setError] = useState<string | null>(null);
-
-  const uniqueGroups = Array.from(new Set(existingGroups.filter(Boolean)));
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -52,8 +52,8 @@ export default function TeamMemberForm({
 
     await onSubmit({
       name: name.trim(),
-      role: role.trim(),
-      group: group.trim(),
+      role: role,
+      group: group,
       bio: bio.trim(),
       email: email.trim(),
       sort_order: sortOrder,
@@ -90,36 +90,36 @@ export default function TeamMemberForm({
         <label className="mb-1 block text-sm font-medium text-gray-700">
           {t("role")} <span className="text-red-500">*</span>
         </label>
-        <input
-          type="text"
+        <select
           value={role}
           onChange={(e) => setRole(e.target.value)}
-          placeholder={t("rolePlaceholder")}
-          maxLength={100}
           required
           className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-        />
+        >
+          <option value="">{t("rolePlaceholder")}</option>
+          {TEAM_ROLE_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {tTeam(opt.labelKey as Parameters<typeof tTeam>[0])}
+            </option>
+          ))}
+        </select>
       </div>
 
       {/* Gruppe */}
       <div>
         <label className="mb-1 block text-sm font-medium text-gray-700">{t("group")}</label>
-        <input
-          type="text"
-          list="team-groups-list"
+        <select
           value={group}
           onChange={(e) => setGroup(e.target.value)}
-          placeholder={t("groupPlaceholder")}
-          maxLength={80}
           className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-        />
-        {uniqueGroups.length > 0 && (
-          <datalist id="team-groups-list">
-            {uniqueGroups.map((g) => (
-              <option key={g} value={g} />
-            ))}
-          </datalist>
-        )}
+        >
+          <option value="">{t("groupPlaceholder")}</option>
+          {TEAM_GROUP_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {tTeam(opt.labelKey as Parameters<typeof tTeam>[0])}
+            </option>
+          ))}
+        </select>
       </div>
 
       {/* Bio */}

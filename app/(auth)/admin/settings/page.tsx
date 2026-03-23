@@ -94,7 +94,7 @@ function SectionCard({
 // =========================================
 
 export default function AdminSettingsPage() {
-  const { mosqueId } = useMosque();
+  const { mosqueId, setTeamEnabled: setTeamEnabledCtx, setSponsorsEnabled: setSponsorsEnabledCtx } = useMosque();
   const { user } = useAuth();
   const t = useTranslations("settings");
   const [activeTab, setActiveTab] = useState<TabId>("branding");
@@ -232,7 +232,7 @@ export default function AdminSettingsPage() {
           mosqueId={mosqueId}
           userId={user?.id || ""}
           sponsorsEnabled={sponsorsEnabled}
-          onSaved={(val) => setSponsorsEnabled(val)}
+          onSaved={(val) => { setSponsorsEnabled(val); setSponsorsEnabledCtx(val); }}
         />
       )}
       {activeTab === "team" && (
@@ -244,6 +244,7 @@ export default function AdminSettingsPage() {
           onSaved={(enabled, visibility) => {
             setTeamEnabled(enabled);
             setTeamVisibility(visibility);
+            setTeamEnabledCtx(enabled);
           }}
         />
       )}
@@ -1719,7 +1720,7 @@ function SponsorsTab({
     const result = await updateSponsorsSettings(mosqueId, userId, { sponsors_enabled: enabled });
     if (result.success) {
       onSaved(enabled);
-      setStatus({ type: "success", message: t("saveSuccess") });
+      setStatus({ type: "success", message: t("sponsors.saved") });
     } else {
       setStatus({ type: "error", message: result.error || t("saveError") });
     }
@@ -1809,7 +1810,7 @@ function TeamTab({
     });
     if (result.success) {
       onSaved(enabled, visibility);
-      setStatus({ type: "success", message: t("saveSuccess") });
+      setStatus({ type: "success", message: t("team.saved") });
     } else {
       setStatus({ type: "error", message: result.error || t("saveError") });
     }

@@ -18,17 +18,19 @@ export function MosqueInitializer({
   mosque: Mosque;
   settings?: Settings | null;
 }) {
-  const { setMosqueData, setTeamEnabled } = useMosque();
+  const { setMosqueData, setTeamEnabled, setSponsorsEnabled } = useMosque();
 
   useEffect(() => {
     setMosqueData(mosque);
     setTeamEnabled(settings?.team_enabled ?? false);
+    setSponsorsEnabled(settings?.sponsors_enabled ?? false);
     // Cleanup: Moschee zurücksetzen wenn Slug-Seite verlassen wird
     return () => {
       setMosqueData(null);
       setTeamEnabled(false);
+      setSponsorsEnabled(false);
     };
-  }, [mosque.id, settings?.team_enabled]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [mosque.id, settings?.team_enabled, settings?.sponsors_enabled]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return null;
 }

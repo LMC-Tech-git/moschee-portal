@@ -1249,6 +1249,7 @@
       "enabledHint": "Etkinleştirildiğinde, onaylanmış tüm sponsorların yer aldığı halka açık bir \"Destek Ortakları\" sayfası görünür.",
       "save": "Ayarları Kaydet",
       "saving": "Kaydediliyor...",
+      "saved": "Ayarlar kaydedildi.",
       "manageLink": "Sponsorları yönet →"
     },
     "loadError": "Ayarlar yüklenemedi.",
@@ -1997,6 +1998,26 @@
       "moveDown": "Aşağı taşı",
       "noGroup": "Grupsuz",
       "chars": "{count}/500"
+    },
+    "groups": {
+      "vorstand": "Yönetim Kurulu",
+      "imame": "İmamlar",
+      "mitarbeiter": "Personel",
+      "ausschuss": "Komisyon",
+      "jugend": "Gençlik",
+      "sonstiges": "Diğer"
+    },
+    "roles": {
+      "imam": "İmam",
+      "vorsitzender": "Başkan",
+      "vize_vorsitzender": "Başkan Yardımcısı",
+      "kassenwart": "Sayman",
+      "schriftfuehrer": "Sekreter",
+      "jugendleiter": "Gençlik Sorumlusu",
+      "sozialdienst": "Sosyal Hizmetler",
+      "bildung": "Eğitim & Danışmanlık",
+      "mitarbeiter": "Çalışan",
+      "sonstiges": "Diğer"
     }
   }
 }

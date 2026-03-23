@@ -459,3 +459,18 @@ export const ROLE_OPTIONS = [
   { value: 'treasurer',     label: 'Kassenwart (Spenden + Kampagnen)' },
   { value: 'secretary',     label: 'Sekretariat (Mitglieder, Events, Newsletter, Einladungen)' },
 ] as const;
+
+
+export const TEAM_GROUP_KEYS = [
+  "vorstand", "imame", "mitarbeiter", "ausschuss", "jugend", "sonstiges",
+] as const;
+export type TeamGroupKey = typeof TEAM_GROUP_KEYS[number];
+export const TEAM_GROUP_OPTIONS = TEAM_GROUP_KEYS.map((k) => ({ value: k, labelKey: `groups.${k}` as const }));
+
+export const TEAM_ROLE_KEYS = [
+  "imam", "vorsitzender", "vize_vorsitzender", "kassenwart",
+  "schriftfuehrer", "jugendleiter", "sozialdienst", "bildung",
+  "mitarbeiter", "sonstiges",
+] as const;
+export type TeamRoleKey = typeof TEAM_ROLE_KEYS[number];
+export const TEAM_ROLE_OPTIONS = TEAM_ROLE_KEYS.map((k) => ({ value: k, labelKey: `roles.${k}` as const }));

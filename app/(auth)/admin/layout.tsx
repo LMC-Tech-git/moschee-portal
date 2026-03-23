@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useMosque } from "@/lib/mosque-context";
+import { getPortalSettings } from "@/lib/actions/settings";
 import { MoscheeSelektor } from "@/components/admin/MoscheeSelektor";
 import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
 import { cn } from "@/lib/utils";
@@ -65,7 +66,7 @@ export default function AdminLayout({
 }) {
   const t = useTranslations("admin");
   const { user, isAuthenticated, isLoading } = useAuth();
-  const { mosque } = useMosque();
+  const { mosque, mosqueId, teamEnabled, setTeamEnabled, sponsorsEnabled, setSponsorsEnabled } = useMosque();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -132,6 +133,14 @@ export default function AdminLayout({
       href: "/admin/foerderpartner",
       icon: Handshake,
       roles: ["admin", "super_admin"],
+      feature: "sponsors" as const,
+    },
+    {
+      label: t("quickAccess.team.title"),
+      href: "/admin/leitung",
+      icon: Users,
+      roles: ["admin", "super_admin"],
+      feature: "team" as const,
     },
     {
       label: t("quickAccess.newsletter.title"),
@@ -165,6 +174,17 @@ export default function AdminLayout({
       router.push("/");
     }
   }, [isAuthenticated, isLoading, canAccess, router]);
+
+  // Feature-Flags aus Settings laden (für Sidebar-Sichtbarkeit)
+  useEffect(() => {
+    if (!mosqueId) return;
+    getPortalSettings(mosqueId).then((result) => {
+      if (result.success && result.settings) {
+        setTeamEnabled(result.settings.team_enabled ?? false);
+        setSponsorsEnabled(result.settings.sponsors_enabled ?? false);
+      }
+    });
+  }, [mosqueId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Eingeschränkte Rollen: Weiterleitung bei unerlaubten Routen
   useEffect(() => {
@@ -200,10 +220,13 @@ export default function AdminLayout({
     return null;
   }
 
-  // Nav-Items nach Rolle filtern
-  const visibleNav = adminNav.filter((item) =>
-    (item.roles as string[]).includes(role ?? "")
-  );
+  // Nav-Items nach Rolle und Feature-Flag filtern
+  const visibleNav = adminNav.filter((item) => {
+    if (!(item.roles as string[]).includes(role ?? "")) return false;
+    if ("feature" in item && item.feature === "team" && !teamEnabled) return false;
+    if ("feature" in item && item.feature === "sponsors" && !sponsorsEnabled) return false;
+    return true;
+  });
 
   return (
     <div className="flex min-h-[calc(100vh-73px)]">

@@ -9,6 +9,7 @@ import { getActiveTeamMembers } from "@/lib/actions/team";
 import { getAuthFromCookie } from "@/lib/auth-cookie";
 import { getTranslations } from "next-intl/server";
 import type { TeamMember } from "@/types";
+import { TEAM_GROUP_KEYS, TEAM_ROLE_KEYS } from "@/lib/constants";
 
 const PB_URL = process.env.NEXT_PUBLIC_POCKETBASE_URL || "";
 
@@ -60,12 +61,26 @@ export default async function LeitungPage({
   const membersResult = await getActiveTeamMembers(mosque.id);
   const members = membersResult.data ?? [];
 
+  function getRoleLabel(key: string): string {
+    if ((TEAM_ROLE_KEYS as readonly string[]).includes(key)) {
+      return t(`roles.${key}` as Parameters<typeof t>[0]);
+    }
+    return key;
+  }
+
+  function getGroupLabel(key: string): string {
+    if ((TEAM_GROUP_KEYS as readonly string[]).includes(key)) {
+      return t(`groups.${key}` as Parameters<typeof t>[0]);
+    }
+    return key || t("ungrouped");
+  }
+
   // Group members (preserve sort_order within groups, order groups by first member's sort_order)
   const groupOrder: string[] = [];
   const groupMap: Record<string, TeamMember[]> = {};
 
   members.forEach((member) => {
-    const key = member.group?.trim() || t("ungrouped");
+    const key = member.group?.trim() || "";
     if (!groupMap[key]) {
       groupMap[key] = [];
       groupOrder.push(key);
@@ -103,7 +118,7 @@ export default async function LeitungPage({
               <section key={name}>
                 {showGroupHeaders && (
                   <h2 className="mb-4 text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2">
-                    {name}
+                    {getGroupLabel(name)}
                   </h2>
                 )}
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -136,7 +151,7 @@ export default async function LeitungPage({
                         <div className="flex-1 text-center">
                           <p className="text-base font-semibold text-gray-900">{member.name}</p>
                           <span className="mt-1 inline-block rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-700">
-                            {member.role}
+                            {getRoleLabel(member.role)}
                           </span>
                           {member.bio && (
                             <p className="mt-3 text-sm text-gray-600 line-clamp-3 leading-relaxed">
