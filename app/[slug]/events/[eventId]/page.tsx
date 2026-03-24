@@ -85,8 +85,8 @@ export default async function PublicEventPage({
   const { isLoggedIn: cookieLoggedIn, isActiveMember, userId } = getAuthFromCookie();
   const isLoggedIn = cookieLoggedIn && !!userId;
 
-  // Members-Only: Nur aktive Mitglieder
-  if (event.visibility === "members" && !isActiveMember) {
+  // Members-Only: Für eingeloggte User (inkl. Admins) und aktive Mitglieder
+  if (event.visibility === "members" && !isLoggedIn) {
     return (
       <div className="py-10">
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
