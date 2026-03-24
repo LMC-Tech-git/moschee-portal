@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { DatePicker } from "@/components/ui/date-picker";
 
 const SELECT_CLASS =
   "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2";
@@ -315,17 +316,11 @@ export function EventForm({ initialData, onSubmit, isEdit, defaultVisibility }: 
         ) : (
           <div className="flex flex-wrap items-center gap-2">
             <div>
-              <Input
-                type="date"
+              <DatePicker
                 value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="w-44"
+                onChange={setStartDate}
+                className="w-64"
               />
-              {startDate && (
-                <p className="mt-1 text-xs text-gray-500">
-                  {new Date(startDate + "T12:00:00").toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
-                </p>
-              )}
             </div>
             <span className="shrink-0 text-sm text-gray-500">{tE("afterPrayer")}</span>
             <select
@@ -557,11 +552,10 @@ export function EventForm({ initialData, onSubmit, isEdit, defaultVisibility }: 
             {/* Enddatum */}
             <div className="space-y-1.5">
               <Label className="text-xs text-gray-500">{tE("recurringEndLabel")}</Label>
-              <Input
-                type="date"
+              <DatePicker
                 value={recurrenceEndDate}
-                onChange={(e) => setRecurrenceEndDate(e.target.value)}
-                className="w-48"
+                onChange={setRecurrenceEndDate}
+                className="w-64"
               />
             </div>
           </div>

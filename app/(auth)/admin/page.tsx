@@ -18,6 +18,7 @@ import {
   Link2,
   ClipboardList,
   Settings,
+  Handshake,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useMosque } from "@/lib/mosque-context";
@@ -28,7 +29,7 @@ import { DemoHint } from "@/components/demo/DemoHint";
 
 export default function AdminDashboard() {
   const t = useTranslations();
-  const { mosqueId, isLoading: mosqueLoading } = useMosque();
+  const { mosqueId, isLoading: mosqueLoading, teamEnabled, sponsorsEnabled } = useMosque();
   const { user } = useAuth();
   const router = useRouter();
   const [stats, setStats] = useState<DashboardStats>({
@@ -216,6 +217,36 @@ export default function AdminDashboard() {
             </Link>
           );
         })}
+        {sponsorsEnabled && (
+          <Link
+            href="/admin/foerderpartner"
+            className="group rounded-xl border border-gray-200 bg-white p-5 transition-shadow hover:shadow-md"
+          >
+            <div className="mb-3 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Handshake className="h-5 w-5 text-emerald-600" />
+                <h3 className="font-bold text-gray-900">{t("admin.quickAccess.sponsors.title")}</h3>
+              </div>
+              <ArrowRight className="h-4 w-4 text-gray-400 transition-transform group-hover:translate-x-0.5" />
+            </div>
+            <p className="text-sm text-gray-600">{t("admin.quickAccess.sponsors.desc")}</p>
+          </Link>
+        )}
+        {teamEnabled && (
+          <Link
+            href="/admin/leitung"
+            className="group rounded-xl border border-gray-200 bg-white p-5 transition-shadow hover:shadow-md"
+          >
+            <div className="mb-3 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Users className="h-5 w-5 text-blue-600" />
+                <h3 className="font-bold text-gray-900">{t("admin.quickAccess.team.title")}</h3>
+              </div>
+              <ArrowRight className="h-4 w-4 text-gray-400 transition-transform group-hover:translate-x-0.5" />
+            </div>
+            <p className="text-sm text-gray-600">{t("admin.quickAccess.team.desc")}</p>
+          </Link>
+        )}
       </div>
     </div>
   );

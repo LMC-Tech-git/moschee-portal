@@ -76,10 +76,11 @@ export default async function EventsPage({
     { value: "other",     label: tL("event.category.other") },
   ];
 
-  const { isActiveMember } = getAuthFromCookie();
+  const { isLoggedIn, isActiveMember, userId } = getAuthFromCookie();
+  const showMemberEvents = (isLoggedIn && !!userId) || isActiveMember;
   const category = searchParams.category || "";
 
-  const result = isActiveMember
+  const result = showMemberEvents
     ? await getMemberEventsFiltered(mosque.id, {
         category: category || undefined,
         limit: 100,
