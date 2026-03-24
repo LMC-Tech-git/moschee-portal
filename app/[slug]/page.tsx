@@ -193,7 +193,7 @@ export default async function MosqueDashboard({
       {/* KPI-Kacheln */}
       <section aria-label={t("communityStats")} className="border-b border-gray-100 bg-white py-6">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 items-stretch">
             <Link
               href={`/${params.slug}/campaigns`}
               className="block rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"

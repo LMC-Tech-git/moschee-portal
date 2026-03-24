@@ -58,6 +58,9 @@ export const eventSchema = z.object({
   recurrence_type: z.string().optional().default(""),
   recurrence_day_of_week: z.string().optional().default(""),
   recurrence_day_of_month: z.number().int().min(0).max(31).optional().default(0),
+  recurrence_month_mode: z.enum(["day", "weekday"]).optional().default("day"),
+  recurrence_month_week: z.number().int().min(-1).max(4).optional().default(1),
+  recurrence_month_weekday: z.string().optional().default(""),
   recurrence_end_date: z.string().optional().default(""),
 });
 export type EventInput = z.infer<typeof eventSchema>;

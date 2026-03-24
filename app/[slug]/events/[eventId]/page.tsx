@@ -81,9 +81,9 @@ export default async function PublicEventPage({
   // Nur veröffentlichte Events anzeigen
   if (event.status === "draft") notFound();
 
-  // Auth-Status prüfen (pending-User gelten nicht als aktive Mitglieder)
-  const { isActiveMember, userId } = getAuthFromCookie();
-  const isLoggedIn = isActiveMember;
+  // Auth-Status prüfen
+  const { isLoggedIn: cookieLoggedIn, isActiveMember, userId } = getAuthFromCookie();
+  const isLoggedIn = cookieLoggedIn && !!userId;
 
   // Members-Only: Nur aktive Mitglieder
   if (event.visibility === "members" && !isActiveMember) {

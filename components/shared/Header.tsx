@@ -60,7 +60,7 @@ export default function Header() {
   const t = useTranslations();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { user, isAuthenticated, logout } = useAuth();
-  const { mosque, teamEnabled } = useMosque();
+  const { mosque, teamEnabled, sponsorsEnabled } = useMosque();
   const pathname = usePathname();
   const isAdmin = user?.role === "admin" || user?.role === "super_admin" || user?.role === "editor";
   const isSuperAdmin = user?.role === "super_admin";
@@ -154,13 +154,15 @@ export default function Header() {
                 <Heart className="h-4 w-4" aria-hidden="true" />
                 {t("nav.donate")}
               </Link>
-              <Link
-                href={`/${slug}/foerderpartner`}
-                className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-emerald-50 hover:text-emerald-600"
-              >
-                <Handshake className="h-4 w-4" aria-hidden="true" />
-                {t("nav.sponsors")}
-              </Link>
+              {sponsorsEnabled && (
+                <Link
+                  href={`/${slug}/foerderpartner`}
+                  className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-emerald-50 hover:text-emerald-600"
+                >
+                  <Handshake className="h-4 w-4" aria-hidden="true" />
+                  {t("nav.sponsors")}
+                </Link>
+              )}
               {teamEnabled && (
                 <Link
                   href={`/${slug}/leitung`}
@@ -315,14 +317,16 @@ export default function Header() {
                 <Heart className="h-4 w-4" />
                 {t("nav.donate")}
               </Link>
-              <Link
-                href={`/${slug}/foerderpartner`}
-                className="flex items-center gap-2 rounded-lg px-4 py-3 text-sm font-medium text-gray-700 hover:bg-emerald-50 hover:text-emerald-600"
-                onClick={closeMobileMenu}
-              >
-                <Handshake className="h-4 w-4" />
-                {t("nav.sponsors")}
-              </Link>
+              {sponsorsEnabled && (
+                <Link
+                  href={`/${slug}/foerderpartner`}
+                  className="flex items-center gap-2 rounded-lg px-4 py-3 text-sm font-medium text-gray-700 hover:bg-emerald-50 hover:text-emerald-600"
+                  onClick={closeMobileMenu}
+                >
+                  <Handshake className="h-4 w-4" />
+                  {t("nav.sponsors")}
+                </Link>
+              )}
               {teamEnabled && (
                 <Link
                   href={`/${slug}/leitung`}

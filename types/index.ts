@@ -183,6 +183,9 @@ export interface Event {
   recurrence_type?: "daily" | "weekly" | "monthly" | "";
   recurrence_day_of_week?: string; // "monday" … "sunday"
   recurrence_day_of_month?: number; // 1–31
+  recurrence_month_mode?: "day" | "weekday"; // "day" = fester Tag, "weekday" = N. Wochentag
+  recurrence_month_week?: number; // 1–4 oder -1 (letzter)
+  recurrence_month_weekday?: string; // "monday"–"sunday"
   recurrence_end_date?: string;
   expand?: {
     created_by?: User;

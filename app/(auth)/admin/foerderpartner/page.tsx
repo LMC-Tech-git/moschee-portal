@@ -558,21 +558,21 @@ export default function AdminFoerderpartnerPage() {
 
                       {/* Actions */}
                       <td className="px-4 py-3">
-                        <div className="flex flex-wrap items-center justify-end gap-1">
+                        <div className="flex flex-wrap items-center justify-end gap-2">
                           {/* Logo upload */}
                           <button
                             type="button"
                             onClick={() => fileInputRefs.current[sponsor.id]?.click()}
                             disabled={uploadingId === sponsor.id}
                             title={t("uploadLogo")}
-                            className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-gray-600 hover:bg-gray-100 disabled:opacity-50"
+                            className="inline-flex min-h-[36px] items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium text-gray-600 hover:bg-gray-100 disabled:opacity-50"
                           >
                             {uploadingId === sponsor.id ? (
-                              <span className="h-3 w-3 inline-block animate-spin rounded-full border-2 border-gray-400 border-t-transparent" />
+                              <span className="h-3.5 w-3.5 inline-block animate-spin rounded-full border-2 border-gray-400 border-t-transparent" />
                             ) : (
-                              <Upload className="h-3 w-3" />
+                              <Upload className="h-3.5 w-3.5" />
                             )}
-                            <span className="hidden sm:inline">{t("uploadLogo")}</span>
+                            <span>{t("uploadLogo")}</span>
                           </button>
 
                           {/* Activate / Deactivate */}
@@ -581,18 +581,16 @@ export default function AdminFoerderpartnerPage() {
                             onClick={() => handleToggleActive(sponsor)}
                             disabled={togglingId === sponsor.id}
                             title={sponsor.is_active ? t("deactivate") : t("activate")}
-                            className={`inline-flex items-center gap-1 rounded px-2 py-1 text-xs font-medium disabled:opacity-50 ${
+                            className={`inline-flex min-h-[36px] items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium disabled:opacity-50 ${
                               sponsor.is_active
                                 ? "text-orange-600 hover:bg-orange-50"
                                 : "text-blue-700 hover:bg-blue-50"
                             }`}
                           >
                             {togglingId === sponsor.id ? (
-                              <span className="h-3 w-3 inline-block animate-spin rounded-full border-2 border-blue-400 border-t-transparent" />
+                              <span className="h-3.5 w-3.5 inline-block animate-spin rounded-full border-2 border-blue-400 border-t-transparent" />
                             ) : null}
-                            <span className="hidden md:inline">
-                              {sponsor.is_active ? t("deactivate") : t("activate")}
-                            </span>
+                            <span>{sponsor.is_active ? t("deactivate") : t("activate")}</span>
                           </button>
 
                           {/* Mark Paid — nur wenn noch offen */}
@@ -600,11 +598,11 @@ export default function AdminFoerderpartnerPage() {
                             <button
                               type="button"
                               onClick={() => openPaidDialog(sponsor)}
-                              className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-emerald-700 hover:bg-emerald-50"
+                              className="inline-flex min-h-[36px] items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium text-emerald-700 hover:bg-emerald-50"
                               title={t("markPaid")}
                             >
-                              <Banknote className="h-3 w-3" />
-                              <span className="hidden md:inline">{t("markPaid")}</span>
+                              <Banknote className="h-3.5 w-3.5" />
+                              <span>{t("markPaid")}</span>
                             </button>
                           )}
 
@@ -612,11 +610,11 @@ export default function AdminFoerderpartnerPage() {
                           <button
                             type="button"
                             onClick={() => openEditDialog(sponsor)}
-                            className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-gray-600 hover:bg-gray-100"
+                            className="inline-flex min-h-[36px] items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium text-gray-600 hover:bg-gray-100"
                             title={t("edit")}
                           >
-                            <Pencil className="h-3 w-3" />
-                            <span className="hidden md:inline">{t("edit")}</span>
+                            <Pencil className="h-3.5 w-3.5" />
+                            <span>{t("edit")}</span>
                           </button>
 
                           {/* Delete */}
@@ -624,15 +622,15 @@ export default function AdminFoerderpartnerPage() {
                             type="button"
                             onClick={() => handleDelete(sponsor)}
                             disabled={deletingId === sponsor.id}
-                            className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50 disabled:opacity-50"
+                            className="inline-flex min-h-[36px] items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium text-red-600 hover:bg-red-50 disabled:opacity-50"
                             title={t("delete")}
                           >
                             {deletingId === sponsor.id ? (
-                              <span className="h-3 w-3 inline-block animate-spin rounded-full border-2 border-red-400 border-t-transparent" />
+                              <span className="h-3.5 w-3.5 inline-block animate-spin rounded-full border-2 border-red-400 border-t-transparent" />
                             ) : (
-                              <Trash2 className="h-3 w-3" />
+                              <Trash2 className="h-3.5 w-3.5" />
                             )}
-                            <span className="hidden md:inline">{t("delete")}</span>
+                            <span>{t("delete")}</span>
                           </button>
                         </div>
                       </td>

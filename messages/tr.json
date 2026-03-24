@@ -564,7 +564,15 @@
       "intervalLabel": "Aralık",
       "weekdayLabel": "Haftanın Günü",
       "monthDayLabel": "Ayın _. günü",
-      "ofMonth": "ayın günü",
+      "ofMonth": "ayın",
+      "monthModeDay": "Sabit Gün",
+      "monthModeWeekday": "N. Haftanın Günü",
+      "monthWeekdayLabel": "Hangi gün?",
+      "monthWeek1": "1.",
+      "monthWeek2": "2.",
+      "monthWeek3": "3.",
+      "monthWeek4": "4.",
+      "monthWeekLast": "Son",
       "recurringEndLabel": "Bitiş tarihi (isteğe bağlı)",
       "btnCancel": "İptal Et"
     }

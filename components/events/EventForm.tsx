@@ -130,6 +130,15 @@ export function EventForm({ initialData, onSubmit, isEdit, defaultVisibility }: 
   const [recurrenceDayOfMonth, setRecurrenceDayOfMonth] = useState(
     initialData?.recurrence_day_of_month || 1
   );
+  const [recurrenceMonthMode, setRecurrenceMonthMode] = useState<"day" | "weekday">(
+    initialData?.recurrence_month_mode || "day"
+  );
+  const [recurrenceMonthWeek, setRecurrenceMonthWeek] = useState(
+    initialData?.recurrence_month_week ?? 1
+  );
+  const [recurrenceMonthWeekday, setRecurrenceMonthWeekday] = useState(
+    initialData?.recurrence_month_weekday || "friday"
+  );
   const [recurrenceEndDate, setRecurrenceEndDate] = useState(
     initialData?.recurrence_end_date ? initialData.recurrence_end_date.slice(0, 10) : ""
   );
@@ -142,8 +151,11 @@ export function EventForm({ initialData, onSubmit, isEdit, defaultVisibility }: 
     computedEndPreview.setMinutes(computedEndPreview.getMinutes() + totalDurationMinutes);
   }
 
+  const monthlyValid = recurrenceType === "monthly"
+    ? (recurrenceMonthMode === "day" ? recurrenceDayOfMonth > 0 : !!recurrenceMonthWeekday)
+    : true;
   const startIsValid = isRecurring
-    ? (recurrenceType === "weekly" ? !!recurrenceDayOfWeek : recurrenceType === "monthly" ? recurrenceDayOfMonth > 0 : true)
+    ? (recurrenceType === "weekly" ? !!recurrenceDayOfWeek : monthlyValid)
     : (startMode === "time" ? !!startAt : !!startDate);
 
   async function handleSubmit(status: "published" | "draft" | "cancelled") {
@@ -182,7 +194,10 @@ export function EventForm({ initialData, onSubmit, isEdit, defaultVisibility }: 
         is_recurring: isRecurring,
         recurrence_type: isRecurring ? recurrenceType : "",
         recurrence_day_of_week: isRecurring && recurrenceType === "weekly" ? recurrenceDayOfWeek : "",
-        recurrence_day_of_month: isRecurring && recurrenceType === "monthly" ? recurrenceDayOfMonth : 0,
+        recurrence_day_of_month: isRecurring && recurrenceType === "monthly" && recurrenceMonthMode === "day" ? recurrenceDayOfMonth : 0,
+        recurrence_month_mode: isRecurring && recurrenceType === "monthly" ? recurrenceMonthMode : "day",
+        recurrence_month_week: isRecurring && recurrenceType === "monthly" && recurrenceMonthMode === "weekday" ? recurrenceMonthWeek : 1,
+        recurrence_month_weekday: isRecurring && recurrenceType === "monthly" && recurrenceMonthMode === "weekday" ? recurrenceMonthWeekday : "",
         recurrence_end_date: isRecurring && recurrenceEndDate ? new Date(recurrenceEndDate).toISOString() : "",
       });
 
@@ -285,19 +300,33 @@ export function EventForm({ initialData, onSubmit, isEdit, defaultVisibility }: 
         </div>
 
         {startMode === "time" ? (
-          <Input
-            type="datetime-local"
-            value={startAt}
-            onChange={(e) => setStartAt(e.target.value)}
-          />
+          <div>
+            <Input
+              type="datetime-local"
+              value={startAt}
+              onChange={(e) => setStartAt(e.target.value)}
+            />
+            {startAt && (
+              <p className="mt-1 text-xs text-gray-500">
+                {new Date(startAt).toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
+              </p>
+            )}
+          </div>
         ) : (
           <div className="flex flex-wrap items-center gap-2">
-            <Input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="w-44"
-            />
+            <div>
+              <Input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="w-44"
+              />
+              {startDate && (
+                <p className="mt-1 text-xs text-gray-500">
+                  {new Date(startDate + "T12:00:00").toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
+                </p>
+              )}
+            </div>
             <span className="shrink-0 text-sm text-gray-500">{tE("afterPrayer")}</span>
             <select
               value={startPrayer}
@@ -454,21 +483,74 @@ export function EventForm({ initialData, onSubmit, isEdit, defaultVisibility }: 
               </div>
             )}
 
-            {/* Tag des Monats */}
+            {/* Monatliche Optionen */}
             {recurrenceType === "monthly" && (
-              <div className="space-y-1.5">
-                <Label className="text-xs text-gray-500">{tE("monthDayLabel")}</Label>
-                <div className="flex items-center gap-2">
-                  <Input
-                    type="number"
-                    min={1}
-                    max={31}
-                    value={recurrenceDayOfMonth}
-                    onChange={(e) => setRecurrenceDayOfMonth(Math.max(1, Math.min(31, parseInt(e.target.value) || 1)))}
-                    className="w-24 text-center"
-                  />
-                  <span className="text-sm text-gray-500">{tE("ofMonth")}</span>
+              <div className="space-y-3">
+                {/* Modus-Auswahl */}
+                <div className="flex gap-1 rounded-lg bg-gray-200 p-1">
+                  <button
+                    type="button"
+                    onClick={() => setRecurrenceMonthMode("day")}
+                    className={`${TOGGLE_BASE} ${recurrenceMonthMode === "day" ? TOGGLE_ACTIVE : TOGGLE_INACTIVE}`}
+                  >
+                    {tE("monthModeDay")}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setRecurrenceMonthMode("weekday")}
+                    className={`${TOGGLE_BASE} ${recurrenceMonthMode === "weekday" ? TOGGLE_ACTIVE : TOGGLE_INACTIVE}`}
+                  >
+                    {tE("monthModeWeekday")}
+                  </button>
                 </div>
+
+                {/* Fester Tag des Monats */}
+                {recurrenceMonthMode === "day" && (
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-gray-500">{tE("monthDayLabel")}</Label>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="number"
+                        min={1}
+                        max={31}
+                        value={recurrenceDayOfMonth}
+                        onChange={(e) => setRecurrenceDayOfMonth(Math.max(1, Math.min(31, parseInt(e.target.value) || 1)))}
+                        className="w-24 text-center"
+                      />
+                      <span className="text-sm text-gray-500">{tE("ofMonth")}</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* N. Wochentag des Monats */}
+                {recurrenceMonthMode === "weekday" && (
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-gray-500">{tE("monthWeekdayLabel")}</Label>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <select
+                        value={recurrenceMonthWeek}
+                        onChange={(e) => setRecurrenceMonthWeek(parseInt(e.target.value))}
+                        className={`${SELECT_CLASS} w-36`}
+                      >
+                        <option value={1}>{tE("monthWeek1")}</option>
+                        <option value={2}>{tE("monthWeek2")}</option>
+                        <option value={3}>{tE("monthWeek3")}</option>
+                        <option value={4}>{tE("monthWeek4")}</option>
+                        <option value={-1}>{tE("monthWeekLast")}</option>
+                      </select>
+                      <select
+                        value={recurrenceMonthWeekday}
+                        onChange={(e) => setRecurrenceMonthWeekday(e.target.value)}
+                        className={`${SELECT_CLASS} w-36`}
+                      >
+                        {dayOptions.map((d) => (
+                          <option key={d.value} value={d.value}>{d.label}</option>
+                        ))}
+                      </select>
+                      <span className="text-sm text-gray-500">{tE("ofMonth")}</span>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 

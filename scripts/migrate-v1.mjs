@@ -762,6 +762,9 @@ const EVENTS_RECURRING_FIELDS = [
     },
   },
   { name: "recurrence_day_of_month", type: "number", options: { min: 1, max: 31 } },
+  { name: "recurrence_month_mode", type: "text", options: { max: 20 } },
+  { name: "recurrence_month_week", type: "number", options: { min: -1, max: 4 } },
+  { name: "recurrence_month_weekday", type: "text", options: { max: 20 } },
   { name: "recurrence_end_date", type: "date" },
 ];
 

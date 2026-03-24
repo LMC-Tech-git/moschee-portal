@@ -565,6 +565,14 @@
       "weekdayLabel": "Wochentag",
       "monthDayLabel": "Am _. des Monats",
       "ofMonth": "des Monats",
+      "monthModeDay": "Fester Tag",
+      "monthModeWeekday": "N. Wochentag",
+      "monthWeekdayLabel": "Welcher Wochentag?",
+      "monthWeek1": "1.",
+      "monthWeek2": "2.",
+      "monthWeek3": "3.",
+      "monthWeek4": "4.",
+      "monthWeekLast": "Letzter",
       "recurringEndLabel": "Enddatum (optional)",
       "btnCancel": "Absagen"
     }
