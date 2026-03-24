@@ -13,16 +13,20 @@ import {
   ChevronRight,
   UserPlus,
   Trash2,
+  TrendingUp,
+  Clock,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 import { useMosque } from "@/lib/mosque-context";
-import { getMembersByMosque, updateMemberStatus, deleteMember } from "@/lib/actions/members";
+import { getMembersByMosque, updateMemberStatus, deleteMember, getMemberStats } from "@/lib/actions/members";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CreateInviteDialog } from "@/components/invites/CreateInviteDialog";
+import { MemberGrowthChart } from "@/components/admin/MemberGrowthChart";
+import { MemberStatusChart } from "@/components/admin/MemberStatusChart";
 import { cn } from "@/lib/utils";
 import type { User } from "@/types";
 import { useTranslations } from "next-intl";
@@ -72,6 +76,14 @@ export default function MitgliederListePage() {
   const [isDeleting, setIsDeleting] = useState(false);
   const canDelete = user?.role === "admin" || user?.role === "super_admin";
 
+  // Stats / Charts
+  const [stats, setStats] = useState<{
+    byStatus: { active: number; pending: number; inactive: number; blocked: number };
+    byMonth: { month: string; count: number }[];
+  } | null>(null);
+  const [statsLoading, setStatsLoading] = useState(true);
+  const [recentMembers, setRecentMembers] = useState<User[]>([]);
+
   // Filter
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
@@ -111,6 +123,26 @@ export default function MitgliederListePage() {
   useEffect(() => {
     setPage(1);
   }, [searchQuery, roleFilter, statusFilter]);
+
+  // Stats laden (einmalig)
+  useEffect(() => {
+    if (!mosqueId) return;
+    setStatsLoading(true);
+    getMemberStats(mosqueId)
+      .then((data) => setStats(data))
+      .catch(() => {})
+      .finally(() => setStatsLoading(false));
+  }, [mosqueId]);
+
+  // Neueste Mitglieder laden (einmalig, letzte 5)
+  useEffect(() => {
+    if (!mosqueId) return;
+    getMembersByMosque(mosqueId, { page: 1, limit: 5 })
+      .then((result) => {
+        if (result.success && result.data) setRecentMembers(result.data);
+      })
+      .catch(() => {});
+  }, [mosqueId]);
 
   async function handleDelete(memberId: string) {
     if (!user) return;
@@ -165,6 +197,121 @@ export default function MitgliederListePage() {
           {t("invite")}
         </Button>
       </div>
+
+      {/* KPI-Kacheln */}
+      {statsLoading ? (
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i}>
+              <CardContent className="p-4">
+                <Skeleton className="mb-2 h-4 w-20" />
+                <Skeleton className="h-7 w-12" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : stats ? (
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {[
+            {
+              label: t("kpi.total"),
+              value: stats.byStatus.active + stats.byStatus.pending + stats.byStatus.inactive + stats.byStatus.blocked,
+              color: "text-blue-600",
+              bg: "bg-blue-50",
+            },
+            {
+              label: t("kpi.active"),
+              value: stats.byStatus.active,
+              color: "text-emerald-600",
+              bg: "bg-emerald-50",
+            },
+            {
+              label: t("kpi.pending"),
+              value: stats.byStatus.pending,
+              color: "text-amber-600",
+              bg: "bg-amber-50",
+            },
+            {
+              label: t("kpi.inactiveBlocked"),
+              value: stats.byStatus.inactive + stats.byStatus.blocked,
+              color: "text-gray-500",
+              bg: "bg-gray-50",
+            },
+          ].map((kpi) => (
+            <Card key={kpi.label}>
+              <CardContent className="p-4">
+                <p className="text-xs font-medium text-gray-500">{kpi.label}</p>
+                <p className={cn("mt-1 text-2xl font-bold", kpi.color)}>{kpi.value}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : null}
+
+      {/* Charts + Neueste Mitglieder */}
+      {stats && (
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+          {/* Wachstum */}
+          <Card className="lg:col-span-1">
+            <CardHeader className="pb-2 pt-4 px-4">
+              <CardTitle className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                <TrendingUp className="h-4 w-4 text-emerald-500" />
+                {t("chart.growthTitle")}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="px-2 pb-4">
+              <MemberGrowthChart data={stats.byMonth} />
+            </CardContent>
+          </Card>
+
+          {/* Statusverteilung */}
+          <Card className="lg:col-span-1">
+            <CardHeader className="pb-2 pt-4 px-4">
+              <CardTitle className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                <Users className="h-4 w-4 text-blue-500" />
+                {t("chart.statusTitle")}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="px-2 pb-4">
+              <MemberStatusChart byStatus={stats.byStatus} />
+            </CardContent>
+          </Card>
+
+          {/* Neueste Mitglieder */}
+          <Card className="lg:col-span-1">
+            <CardHeader className="pb-2 pt-4 px-4">
+              <CardTitle className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                <Clock className="h-4 w-4 text-purple-500" />
+                {t("chart.recentTitle")}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="px-4 pb-4">
+              {recentMembers.length === 0 ? (
+                <p className="py-4 text-center text-sm text-gray-400">{t("noFound")}</p>
+              ) : (
+                <ul className="divide-y">
+                  {recentMembers.map((m) => (
+                    <li key={m.id} className="flex items-center justify-between py-2.5">
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">{m.full_name || "—"}</p>
+                        <p className="text-xs text-gray-400">{m.email}</p>
+                      </div>
+                      <span
+                        className={cn(
+                          "ml-2 inline-flex shrink-0 rounded-full px-2 py-0.5 text-xs font-medium",
+                          STATUS_BADGES[m.status]?.className || "bg-gray-100 text-gray-600"
+                        )}
+                      >
+                        {STATUS_BADGES[m.status]?.label || m.status}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Filter */}
       <Card>

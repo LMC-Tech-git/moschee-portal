@@ -8,10 +8,14 @@ import {
   getDonationKPIs,
   updateDonationStatus,
   createManualDonation,
+  getDonationChartData,
   type DonationWithMeta,
   type DonationKPIs,
   type GetDonationsOptions,
 } from "@/lib/actions/donations";
+import { DonationMonthlyChart } from "@/components/admin/DonationMonthlyChart";
+import { DonationProviderChart } from "@/components/admin/DonationProviderChart";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getPublicCampaigns } from "@/lib/actions/campaigns";
 import { formatCurrencyCents, formatDateTime } from "@/lib/utils";
 import type { CampaignWithProgress } from "@/types";
@@ -263,6 +267,12 @@ export default function AdminSpendenPage() {
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [actionError, setActionError] = useState("");
 
+  // Charts
+  const [chartData, setChartData] = useState<{
+    byMonth: { month: string; amountCents: number }[];
+    byProvider: { provider: string; amountCents: number; count: number }[];
+  } | null>(null);
+
   const loadData = useCallback(async (page = 1) => {
     if (!mosqueId) return;
     setIsLoading(true);
@@ -299,6 +309,12 @@ export default function AdminSpendenPage() {
     getPublicCampaigns(mosqueId, 50).then((r) => {
       if (r.success && r.data) setCampaigns(r.data);
     });
+  }, [mosqueId]);
+
+  // Chart-Daten einmalig laden
+  useEffect(() => {
+    if (!mosqueId) return;
+    getDonationChartData(mosqueId).then(setChartData).catch(() => {});
   }, [mosqueId]);
 
   useEffect(() => {
@@ -381,6 +397,34 @@ export default function AdminSpendenPage() {
                 : "—"}
             </p>
           </div>
+        </div>
+      )}
+
+      {/* Charts */}
+      {chartData && (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <Card>
+            <CardHeader className="pb-2 pt-4 px-4">
+              <CardTitle className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                <Banknote className="h-4 w-4 text-rose-500" />
+                {t("chart.monthlyTitle")}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="px-2 pb-4">
+              <DonationMonthlyChart data={chartData.byMonth} />
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2 pt-4 px-4">
+              <CardTitle className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                <CreditCard className="h-4 w-4 text-blue-500" />
+                {t("chart.providerTitle")}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="px-2 pb-4">
+              <DonationProviderChart byProvider={chartData.byProvider} />
+            </CardContent>
+          </Card>
         </div>
       )}
 

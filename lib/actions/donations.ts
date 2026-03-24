@@ -313,3 +313,59 @@ export async function createManualDonation(
     return { success: false, error: "Spende konnte nicht erfasst werden" };
   }
 }
+
+// --- Chart / KPI Data ---
+
+export async function getDonationChartData(mosqueId: string): Promise<{
+  byMonth: { month: string; amountCents: number }[];
+  byProvider: { provider: string; amountCents: number; count: number }[];
+}> {
+  try {
+    const pb = await getAdminPB();
+    const records = await pb.collection("donations").getFullList({
+      filter: `mosque_id = "${mosqueId}" && status = "paid"`,
+      fields: "id,created,paid_at,amount_cents,amount,provider",
+    });
+
+    const monthMap = new Map<string, number>();
+    const providerMap = new Map<string, { amountCents: number; count: number }>();
+
+    const cutoff = new Date();
+    cutoff.setMonth(cutoff.getMonth() - 11);
+    cutoff.setDate(1);
+    cutoff.setHours(0, 0, 0, 0);
+
+    records.forEach((r) => {
+      const cents = r.amount_cents || Math.round((r.amount || 0) * 100);
+      const d = new Date(r.paid_at || r.created);
+
+      if (d >= cutoff) {
+        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+        monthMap.set(key, (monthMap.get(key) || 0) + cents);
+      }
+
+      const p = r.provider || "manual";
+      const existing = providerMap.get(p) || { amountCents: 0, count: 0 };
+      providerMap.set(p, { amountCents: existing.amountCents + cents, count: existing.count + 1 });
+    });
+
+    const byMonth: { month: string; amountCents: number }[] = [];
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date();
+      d.setMonth(d.getMonth() - i);
+      d.setDate(1);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      byMonth.push({ month: key, amountCents: monthMap.get(key) || 0 });
+    }
+
+    const byProvider = Array.from(providerMap.entries()).map(([provider, v]) => ({
+      provider,
+      ...v,
+    }));
+
+    return { byMonth, byProvider };
+  } catch (error) {
+    console.error("[Donations] getDonationChartData Fehler:", error);
+    return { byMonth: [], byProvider: [] };
+  }
+}

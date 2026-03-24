@@ -462,6 +462,17 @@
     "statusChanged": "Status auf \"{status}\" geändert",
     "loadError": "Fehler beim Laden der Mitglieder",
     "statusError": "Fehler beim Ändern des Status",
+    "kpi": {
+      "total": "Gesamt",
+      "active": "Aktiv",
+      "pending": "Ausstehend",
+      "inactiveBlocked": "Inaktiv / Gesperrt"
+    },
+    "chart": {
+      "growthTitle": "Neuanmeldungen (letzte 12 Monate)",
+      "statusTitle": "Statusverteilung",
+      "recentTitle": "Neueste Mitglieder"
+    },
     "status": {
       "pending": "Ausstehend",
       "active": "Aktiv",
@@ -760,6 +771,10 @@
       "thisMonth": "Diesen Monat",
       "donors": "Spender",
       "open": "Offen"
+    },
+    "chart": {
+      "monthlyTitle": "Monatliche Einnahmen (letzte 12 Monate)",
+      "providerTitle": "Nach Zahlungsweg"
     },
     "searchPlaceholder": "Name oder E-Mail...",
     "filterAllStatus": "Alle Status",

@@ -462,6 +462,17 @@
     "statusChanged": "Durum \"{status}\" olarak değiştirildi",
     "loadError": "Üyeler yüklenirken hata oluştu",
     "statusError": "Durum değiştirilirken hata oluştu",
+    "kpi": {
+      "total": "Toplam",
+      "active": "Aktif",
+      "pending": "Beklemede",
+      "inactiveBlocked": "Pasif / Engelli"
+    },
+    "chart": {
+      "growthTitle": "Yeni Üyeler (son 12 ay)",
+      "statusTitle": "Durum Dağılımı",
+      "recentTitle": "Son Üyeler"
+    },
     "status": {
       "pending": "Beklemede",
       "active": "Aktif",
@@ -760,6 +771,10 @@
       "thisMonth": "Bu Ay",
       "donors": "Bağışçılar",
       "open": "Bekleyen"
+    },
+    "chart": {
+      "monthlyTitle": "Aylık Gelir (son 12 ay)",
+      "providerTitle": "Ödeme Yöntemine Göre"
     },
     "searchPlaceholder": "Ad veya e-posta...",
     "filterAllStatus": "Tüm Durumlar",

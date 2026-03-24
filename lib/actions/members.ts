@@ -671,3 +671,55 @@ export async function deleteMember(
     return { success: false, error: "Mitglied konnte nicht gelöscht werden" };
   }
 }
+
+// --- Chart / KPI Data ---
+
+export async function getMemberStats(mosqueId: string): Promise<{
+  byStatus: { active: number; pending: number; inactive: number; blocked: number };
+  byMonth: { month: string; count: number }[];
+}> {
+  try {
+    const pb = await getAdminPB();
+    const records = await pb.collection("users").getFullList({
+      filter: `mosque_id = "${mosqueId}"`,
+      fields: "id,created,status",
+    });
+
+    const byStatus = { active: 0, pending: 0, inactive: 0, blocked: 0 };
+    records.forEach((r) => {
+      const s = r.status as keyof typeof byStatus;
+      if (s in byStatus) byStatus[s]++;
+    });
+
+    const monthMap = new Map<string, number>();
+    const cutoff = new Date();
+    cutoff.setMonth(cutoff.getMonth() - 11);
+    cutoff.setDate(1);
+    cutoff.setHours(0, 0, 0, 0);
+
+    records.forEach((r) => {
+      const d = new Date(r.created);
+      if (d >= cutoff) {
+        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+        monthMap.set(key, (monthMap.get(key) || 0) + 1);
+      }
+    });
+
+    const byMonth: { month: string; count: number }[] = [];
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date();
+      d.setMonth(d.getMonth() - i);
+      d.setDate(1);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      byMonth.push({ month: key, count: monthMap.get(key) || 0 });
+    }
+
+    return { byStatus, byMonth };
+  } catch (error) {
+    console.error("[Members] getMemberStats Fehler:", error);
+    return {
+      byStatus: { active: 0, pending: 0, inactive: 0, blocked: 0 },
+      byMonth: [],
+    };
+  }
+}
