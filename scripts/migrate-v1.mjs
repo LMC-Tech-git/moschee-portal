@@ -670,6 +670,13 @@ const SETTINGS_TEAM_FIELDS = [
   },
 ];
 
+const SETTINGS_CONTACT_FIELDS = [
+  { name: "contact_enabled",      type: "bool", options: { default: false } },
+  { name: "contact_email",        type: "email", required: false },
+  { name: "contact_notify_admin", type: "bool", options: { default: true } },
+  { name: "contact_auto_reply",   type: "bool", options: { default: true } },
+];
+
 const SPONSORS_NEW_FIELDS = [
   { name: "contact_user_id", type: "relation", options: { collectionId: "", maxSelect: 1 } },
   { name: "contact_email", type: "email", options: {} },
@@ -1137,6 +1144,20 @@ async function main() {
     }
   }
 
+  // 9e. settings: Kontakt-Felder hinzufügen
+  if (collectionMap.settings) {
+    const settingsCol = (await getExistingCollections()).find((c) => c.name === "settings");
+    const existingFieldNames = (settingsCol?.schema || []).map((f) => f.name);
+    const fieldsToAdd = SETTINGS_CONTACT_FIELDS.filter((f) => !existingFieldNames.includes(f.name));
+    if (fieldsToAdd.length > 0) {
+      const newSchema = [...(settingsCol?.schema || []), ...fieldsToAdd];
+      await updateCollection("settings", { schema: newSchema });
+      console.log(`   ✅ settings (contact): ${fieldsToAdd.map((f) => f.name).join(", ")} hinzugefügt`);
+    } else {
+      console.log("   ⏭️  settings: alle Kontakt-Felder vorhanden");
+    }
+  }
+
   // 9c. student_fees: reminder_sent_at hinzufügen
   if (collectionMap.student_fees) {
     const feesCol = (await getExistingCollections()).find((c) => c.name === "student_fees");
@@ -1297,6 +1318,45 @@ async function main() {
     });
   } else {
     console.log(`   ⏭️  "inquiries" existiert bereits`);
+  }
+
+  // 14. contact_messages: Per-Moschee Kontaktanfragen (DSGVO-konform)
+  // Lösch-Strategie: Records älter als 180 Tage per Cron löschen.
+  const contactMessagesExists = await collectionExists("contact_messages");
+  if (!contactMessagesExists) {
+    const mosquesCol = (await getExistingCollections()).find((c) => c.name === "mosques");
+    await createCollection({
+      name: "contact_messages",
+      type: "base",
+      schema: [
+        {
+          name: "mosque_id",
+          type: "relation",
+          required: true,
+          options: { collectionId: mosquesCol?.id || "", maxSelect: 1, cascadeDelete: false },
+        },
+        { name: "name",                type: "text",   required: true,  options: { max: 100 } },
+        { name: "email",               type: "email",  required: true },
+        { name: "organization",        type: "text",   required: false, options: { max: 100 } },
+        {
+          name: "inquiry_type",
+          type: "select",
+          required: true,
+          options: { values: ["demo", "support", "partnership", "bug", "feedback", "other"], maxSelect: 1 },
+        },
+        { name: "message",             type: "text",   required: true,  options: { max: 5000 } },
+        { name: "privacy_accepted",    type: "bool",   required: true },
+        { name: "privacy_accepted_at", type: "date",   required: true },
+        { name: "ip_address",          type: "text",   required: false, options: { max: 64 } }, // SHA-256+Salt Hash, kein Klartext
+        {
+          name: "status",
+          type: "select",
+          options: { values: ["new", "in_progress", "done", "spam"], maxSelect: 1 },
+        },
+      ],
+    });
+  } else {
+    console.log(`   ⏭️  "contact_messages" existiert bereits`);
   }
 
   console.log("\n=== ✅ Migration abgeschlossen ===\n");

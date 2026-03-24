@@ -68,6 +68,11 @@ export interface Settings {
   // Leitung & Team
   team_enabled: boolean;
   team_visibility: "public" | "members";
+  // Kontaktformular
+  contact_enabled: boolean;
+  contact_email: string;
+  contact_notify_admin: boolean;
+  contact_auto_reply: boolean;
   created: string;
   updated: string;
 }

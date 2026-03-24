@@ -450,13 +450,15 @@ export function renderContactNotification(data: {
   organization?: string;
   inquiry_type: string;
   message: string;
+  mosqueName?: string;
 }): string {
   const typeLabel = INQUIRY_TYPE_LABELS[data.inquiry_type] ?? data.inquiry_type;
   const escapedMessage = data.message.replace(/\n/g, "<br/>");
+  const senderName = data.mosqueName ?? "moschee.app";
 
   const content = `
     <h2 style="margin:0 0 8px;color:#111827;font-size:22px;">📬 Neue Kontaktanfrage</h2>
-    <p style="margin:0 0 24px;color:#6b7280;font-size:14px;">Eingegangen über das Kontaktformular auf moschee.app</p>
+    <p style="margin:0 0 24px;color:#6b7280;font-size:14px;">Eingegangen über das Kontaktformular auf ${senderName}</p>
 
     <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9fafb;border-radius:8px;border:1px solid #e5e7eb;margin:0 0 24px;">
       <tr>
@@ -511,14 +513,15 @@ export function renderContactNotification(data: {
       Diese Anfrage wurde automatisch gespeichert.
     </p>
   `;
-  return baseTemplate(content, "moschee.app");
+  return baseTemplate(content, senderName);
 }
 
 // =========================================
 // Kontaktformular — Auto-Reply an Absender
 // =========================================
 
-export function renderContactAutoReply(data: { name: string }): string {
+export function renderContactAutoReply(data: { name: string; mosqueName?: string }): string {
+  const senderName = data.mosqueName ?? "moschee.app";
   const content = `
     <h2 style="margin:0 0 16px;color:#111827;font-size:22px;">Vielen Dank für Ihre Anfrage ✅</h2>
     <p style="margin:0 0 16px;color:#374151;font-size:16px;line-height:1.6;">
@@ -530,8 +533,7 @@ export function renderContactAutoReply(data: { name: string }): string {
       <tr>
         <td style="padding:16px 20px;">
           <p style="margin:0;color:#065f46;font-size:14px;line-height:1.6;">
-            Haben Sie Fragen? Schreiben Sie uns direkt an
-            <a href="mailto:kontakt@moschee.app" style="color:#059669;font-weight:600;">kontakt@moschee.app</a>.
+            Diese Nachricht wurde über das Kontaktformular von <strong>${senderName}</strong> gesendet.
           </p>
         </td>
       </tr>
@@ -539,10 +541,10 @@ export function renderContactAutoReply(data: { name: string }): string {
 
     <p style="margin:0;color:#6b7280;font-size:13px;line-height:1.6;">
       Mit freundlichen Grüßen,<br/>
-      <strong>Das moschee.app Team</strong>
+      <strong>${senderName}</strong>
     </p>
   `;
-  return baseTemplate(content, "moschee.app");
+  return baseTemplate(content, senderName);
 }
 
 // =========================================

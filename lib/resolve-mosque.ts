@@ -57,6 +57,10 @@ export async function resolveMosqueSettings(
     sponsors_visibility: "public",
     team_enabled: false,
     team_visibility: "public",
+    contact_enabled: false,
+    contact_email: "",
+    contact_notify_admin: true,
+    contact_auto_reply: true,
     created: "",
     updated: "",
   };

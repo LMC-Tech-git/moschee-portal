@@ -102,7 +102,8 @@
     },
     "success": {
       "title": "Vielen Dank!",
-      "message": "Ihre Nachricht wurde erfolgreich übermittelt. Wir melden uns in der Regel innerhalb von 24 Stunden."
+      "message": "Ihre Nachricht wurde erfolgreich übermittelt. Wir melden uns in der Regel innerhalb von 24 Stunden.",
+      "messageNamed": "Ihre Nachricht wurde erfolgreich übermittelt. {name} wird sich in der Regel innerhalb von 24 Stunden bei Ihnen melden."
     },
     "errors": {
       "nameTooShort": "Name muss mindestens 2 Zeichen lang sein.",
@@ -1310,6 +1311,7 @@
       "madrasa": "Madrasa",
       "sponsors": "Förderpartner",
       "team": "Team",
+      "contact": "Kontaktformular",
       "email": "E-Mail"
     },
     "team": {
@@ -1338,6 +1340,25 @@
       "saving": "Wird gespeichert...",
       "saved": "Einstellungen gespeichert.",
       "manageLink": "Sponsoren verwalten →"
+    },
+    "contact": {
+      "title": "Kontaktformular",
+      "desc": "Besucher können über eine eigene Kontaktseite Nachrichten an Ihre Gemeinde senden.",
+      "emailLabel": "Empfänger-E-Mail",
+      "emailPlaceholder": "Leer lassen = Gemeinde-E-Mail wird verwendet",
+      "emailHint": "An diese Adresse werden eingehende Anfragen gesendet.",
+      "enabledLabel": "Kontaktformular aktivieren",
+      "enabledHint": "Aktiviert die Seite /{gemeinde}/kontakt mit einem öffentlichen Kontaktformular.",
+      "enabledRequiresEmail": "Bitte zuerst eine E-Mail-Adresse hinterlegen oder die Gemeinde-E-Mail konfigurieren.",
+      "notifyAdminLabel": "Admin-Benachrichtigung",
+      "notifyAdminHint": "Sie erhalten eine E-Mail wenn eine neue Nachricht eingeht.",
+      "autoReplyLabel": "Automatische Antwort",
+      "autoReplyHint": "Absender erhält eine Eingangsbestätigung.",
+      "manageLink": "Kontaktseite ansehen →",
+      "save": "Einstellungen speichern",
+      "saving": "Wird gespeichert...",
+      "saved": "Einstellungen gespeichert.",
+      "saveError": "Einstellungen konnten nicht gespeichert werden."
     },
     "loadError": "Einstellungen konnten nicht geladen werden.",
     "branding": {

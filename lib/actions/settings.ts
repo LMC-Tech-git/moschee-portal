@@ -15,20 +15,22 @@ import type { Mosque, Settings } from "@/types";
 export async function getFeatureFlags(mosqueId: string): Promise<{
   team_enabled: boolean;
   sponsors_enabled: boolean;
+  contact_enabled: boolean;
 }> {
   try {
     const pb = await getAdminPB();
     const record = await pb
       .collection("settings")
       .getFirstListItem(`mosque_id = "${mosqueId}"`, {
-        fields: "team_enabled,sponsors_enabled",
+        fields: "team_enabled,sponsors_enabled,contact_enabled",
       });
     return {
       team_enabled: record.team_enabled ?? false,
       sponsors_enabled: record.sponsors_enabled ?? false,
+      contact_enabled: record.contact_enabled ?? false,
     };
   } catch {
-    return { team_enabled: false, sponsors_enabled: false };
+    return { team_enabled: false, sponsors_enabled: false, contact_enabled: false };
   }
 }
 
@@ -248,7 +250,7 @@ export async function getPortalSettings(mosqueId: string): Promise<{
     const mosqueRecord = await pb.collection("mosques").getOne(mosqueId);
     const mosque = mosqueRecord as unknown as Mosque;
 
-    let settings: Settings | null = null;
+    let settings: Settings;
     try {
       const record = await pb
         .collection("settings")
@@ -282,6 +284,10 @@ export async function getPortalSettings(mosqueId: string): Promise<{
         sponsors_visibility: "public",
         team_enabled: false,
         team_visibility: "public",
+        contact_enabled: false,
+        contact_email: "",
+        contact_notify_admin: true,
+        contact_auto_reply: true,
         created: "",
         updated: "",
       };
@@ -551,6 +557,57 @@ export async function updateTeamSettings(
   } catch (error) {
     console.error("[settings] updateTeamSettings:", error);
     return { success: false, error: "Team-Einstellungen konnten nicht gespeichert werden." };
+  }
+}
+
+// =========================================
+// Kontaktformular-Einstellungen
+// =========================================
+
+export async function updateContactSettings(
+  mosqueId: string,
+  userId: string,
+  data: {
+    contact_enabled: boolean;
+    contact_email: string;
+    contact_notify_admin: boolean;
+    contact_auto_reply: boolean;
+  }
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const pb = await getAdminPB();
+
+    let settingsId: string | null = null;
+    try {
+      const record = await pb
+        .collection("settings")
+        .getFirstListItem(`mosque_id = "${mosqueId}"`);
+      settingsId = record.id;
+    } catch {
+      // Kein Settings-Record
+    }
+
+    const payload = { mosque_id: mosqueId, ...data };
+
+    if (settingsId) {
+      await pb.collection("settings").update(settingsId, payload);
+    } else {
+      await pb.collection("settings").create(payload);
+    }
+
+    await logAudit({
+      mosqueId,
+      userId,
+      action: "update_contact_settings",
+      entityType: "settings",
+      entityId: settingsId || mosqueId,
+      after: data,
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("[settings] updateContactSettings:", error);
+    return { success: false, error: "Kontakt-Einstellungen konnten nicht gespeichert werden." };
   }
 }
 

@@ -7,7 +7,14 @@ import { CheckCircle2, Loader2, Send } from "lucide-react";
 
 const INQUIRY_TYPE_VALUES = ["demo", "support", "partnership", "bug", "feedback", "other"] as const;
 
-export function ContactForm() {
+interface ContactFormProps {
+  /** API-Endpunkt für das Formular. Default: "/api/contact" (globaler Kanal) */
+  apiPath?: string;
+  /** Moschee-Name für personalisierte Erfolgs-/Auto-Reply-Nachrichten */
+  mosqueName?: string;
+}
+
+export function ContactForm({ apiPath = "/api/contact", mosqueName }: ContactFormProps) {
   const t = useTranslations("contact");
 
   const [formData, setFormData] = useState({
@@ -62,7 +69,7 @@ export function ContactForm() {
 
     setIsLoading(true);
     try {
-      const res = await fetch("/api/contact", {
+      const res = await fetch(apiPath, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
@@ -89,7 +96,11 @@ export function ContactForm() {
       <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-8 text-center">
         <CheckCircle2 className="mx-auto mb-4 h-12 w-12 text-emerald-600" aria-hidden="true" />
         <h2 className="mb-2 text-xl font-bold text-emerald-900">{t("success.title")}</h2>
-        <p className="text-emerald-700">{t("success.message")}</p>
+        <p className="text-emerald-700">
+          {mosqueName
+            ? t("success.messageNamed", { name: mosqueName })
+            : t("success.message")}
+        </p>
       </div>
     );
   }

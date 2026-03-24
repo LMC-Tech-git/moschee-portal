@@ -102,7 +102,8 @@
     },
     "success": {
       "title": "Teşekkürler!",
-      "message": "Mesajınız başarıyla iletildi. Genellikle 24 saat içinde size geri döneceğiz."
+      "message": "Mesajınız başarıyla iletildi. Genellikle 24 saat içinde size geri döneceğiz.",
+      "messageNamed": "Mesajınız başarıyla iletildi. {name} genellikle 24 saat içinde size geri dönecektir."
     },
     "errors": {
       "nameTooShort": "Ad en az 2 karakter olmalıdır.",
@@ -1310,6 +1311,7 @@
       "madrasa": "Medrese",
       "sponsors": "Destek Ortakları",
       "team": "Ekip",
+      "contact": "İletişim Formu",
       "email": "E-posta"
     },
     "team": {
@@ -1338,6 +1340,25 @@
       "saving": "Kaydediliyor...",
       "saved": "Ayarlar kaydedildi.",
       "manageLink": "Sponsorları yönet →"
+    },
+    "contact": {
+      "title": "İletişim Formu",
+      "desc": "Ziyaretçiler özel bir iletişim sayfası aracılığıyla cemaatinize mesaj gönderebilir.",
+      "emailLabel": "Alıcı E-posta",
+      "emailPlaceholder": "Boş bırakırsanız cemaat e-postası kullanılır",
+      "emailHint": "Gelen talepler bu adrese gönderilir.",
+      "enabledLabel": "İletişim formunu etkinleştir",
+      "enabledHint": "/{cemaat}/kontakt adresinde halka açık bir iletişim formu sayfası açar.",
+      "enabledRequiresEmail": "Lütfen önce bir e-posta adresi girin veya cemaat e-postasını yapılandırın.",
+      "notifyAdminLabel": "Yönetici Bildirimi",
+      "notifyAdminHint": "Yeni bir mesaj geldiğinde e-posta alırsınız.",
+      "autoReplyLabel": "Otomatik Yanıt",
+      "autoReplyHint": "Gönderici, mesajın alındığına dair bir onay e-postası alır.",
+      "manageLink": "İletişim sayfasını gör →",
+      "save": "Ayarları kaydet",
+      "saving": "Kaydediliyor...",
+      "saved": "Ayarlar kaydedildi.",
+      "saveError": "Ayarlar kaydedilemedi."
     },
     "loadError": "Ayarlar yüklenemedi.",
     "branding": {

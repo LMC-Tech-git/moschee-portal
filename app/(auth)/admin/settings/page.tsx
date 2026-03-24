@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Settings, Palette, Clock, Sliders, Save, RotateCcw, Upload, X, Check, ChevronDown, ChevronUp, GraduationCap, Mail, CheckCircle, AlertCircle, Send, Handshake, Users } from "lucide-react";
+import { Settings, Palette, Clock, Sliders, Save, RotateCcw, Upload, X, Check, ChevronDown, ChevronUp, GraduationCap, Mail, CheckCircle, AlertCircle, Send, Handshake, Users, MessageSquare, ExternalLink } from "lucide-react";
 import { useMosque } from "@/lib/mosque-context";
 import { useAuth } from "@/lib/auth-context";
 import {
@@ -16,6 +16,7 @@ import {
   updatePbSmtpSettings,
   updateSponsorsSettings,
   updateTeamSettings,
+  updateContactSettings,
 } from "@/lib/actions/settings";
 import type { PbSmtpSettings } from "@/lib/actions/settings";
 import { sendTestEmailAction } from "@/lib/actions/email";
@@ -34,6 +35,7 @@ const TABS = [
   { id: "madrasa", icon: GraduationCap },
   { id: "sponsors", icon: Handshake },
   { id: "team", icon: Users },
+  { id: "contact", icon: MessageSquare },
   { id: "email", icon: Mail },
 ] as const;
 
@@ -105,6 +107,10 @@ export default function AdminSettingsPage() {
   const [sponsorsVisibility, setSponsorsVisibility] = useState<"public" | "members">("public");
   const [teamEnabled, setTeamEnabled] = useState(false);
   const [teamVisibility, setTeamVisibility] = useState<"public" | "members">("public");
+  const [contactEnabled, setContactEnabled] = useState(false);
+  const [contactEmail, setContactEmail] = useState("");
+  const [contactNotifyAdmin, setContactNotifyAdmin] = useState(true);
+  const [contactAutoReply, setContactAutoReply] = useState(true);
 
   const [madrasaFeeSettings, setMadrasaFeeSettings] = useState<{
     madrasa_fees_enabled: boolean;
@@ -127,6 +133,10 @@ export default function AdminSettingsPage() {
         setSponsorsVisibility(portalResult.settings.sponsors_visibility ?? "public");
         setTeamEnabled(portalResult.settings.team_enabled ?? false);
         setTeamVisibility(portalResult.settings.team_visibility ?? "public");
+        setContactEnabled(portalResult.settings.contact_enabled ?? false);
+        setContactEmail(portalResult.settings.contact_email ?? "");
+        setContactNotifyAdmin(portalResult.settings.contact_notify_admin ?? true);
+        setContactAutoReply(portalResult.settings.contact_auto_reply ?? true);
       }
       if (feeResult.success && feeResult.data) {
         setMadrasaFeeSettings(feeResult.data);
@@ -248,6 +258,24 @@ export default function AdminSettingsPage() {
             setTeamEnabled(enabled);
             setTeamVisibility(visibility);
             setTeamEnabledCtx(enabled);
+          }}
+        />
+      )}
+      {activeTab === "contact" && (
+        <ContactTab
+          mosqueId={mosqueId}
+          userId={user?.id || ""}
+          mosqueEmail={mosque.email}
+          mosqueSlug={mosque.slug}
+          contactEnabled={contactEnabled}
+          contactEmail={contactEmail}
+          contactNotifyAdmin={contactNotifyAdmin}
+          contactAutoReply={contactAutoReply}
+          onSaved={(enabled, email, notifyAdmin, autoReply) => {
+            setContactEnabled(enabled);
+            setContactEmail(email);
+            setContactNotifyAdmin(notifyAdmin);
+            setContactAutoReply(autoReply);
           }}
         />
       )}
@@ -1934,6 +1962,185 @@ function TeamTab({
           >
             <Save className="h-4 w-4" />
             {isSaving ? t("team.saving") : t("team.save")}
+          </button>
+        </div>
+      </SectionCard>
+    </div>
+  );
+}
+
+// =========================================
+// Tab: Kontaktformular
+// =========================================
+
+function ContactTab({
+  mosqueId,
+  userId,
+  mosqueEmail,
+  mosqueSlug,
+  contactEnabled,
+  contactEmail,
+  contactNotifyAdmin,
+  contactAutoReply,
+  onSaved,
+}: {
+  mosqueId: string;
+  userId: string;
+  mosqueEmail: string;
+  mosqueSlug: string;
+  contactEnabled: boolean;
+  contactEmail: string;
+  contactNotifyAdmin: boolean;
+  contactAutoReply: boolean;
+  onSaved: (enabled: boolean, email: string, notifyAdmin: boolean, autoReply: boolean) => void;
+}) {
+  const t = useTranslations("settings");
+  const [enabled, setEnabled] = useState(contactEnabled);
+  const [email, setEmail] = useState(contactEmail);
+  const [notifyAdmin, setNotifyAdmin] = useState(contactNotifyAdmin);
+  const [autoReply, setAutoReply] = useState(contactAutoReply);
+  const [isSaving, setIsSaving] = useState(false);
+  const [status, setStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
+
+  // Prüft ob eine Ziel-E-Mail vorhanden ist (eigene oder Moschee-E-Mail)
+  const hasTargetEmail = email.trim().length > 0 || mosqueEmail.trim().length > 0;
+
+  async function handleSave() {
+    // Client-seitige Validierung: Aktivieren ohne E-Mail nicht erlaubt
+    if (enabled && !hasTargetEmail) {
+      setStatus({ type: "error", message: t("contact.enabledRequiresEmail") });
+      return;
+    }
+    setIsSaving(true);
+    setStatus(null);
+    const result = await updateContactSettings(mosqueId, userId, {
+      contact_enabled: enabled,
+      contact_email: email.trim(),
+      contact_notify_admin: notifyAdmin,
+      contact_auto_reply: autoReply,
+    });
+    if (result.success) {
+      onSaved(enabled, email.trim(), notifyAdmin, autoReply);
+      setStatus({ type: "success", message: t("contact.saved") });
+    } else {
+      setStatus({ type: "error", message: result.error || t("contact.saveError") });
+    }
+    setIsSaving(false);
+  }
+
+  return (
+    <div className="space-y-6">
+      <StatusMessage status={status} />
+      <SectionCard title={t("contact.title")} description={t("contact.desc")}>
+        <div className="space-y-5">
+          {/* E-Mail-Eingabe */}
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-gray-700">
+              {t("contact.emailLabel")}
+            </label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder={mosqueEmail || t("contact.emailPlaceholder")}
+              className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+            />
+            <p className="mt-1 text-xs text-gray-500">{t("contact.emailHint")}</p>
+          </div>
+
+          {/* Aktivierungs-Toggle */}
+          <label className="flex cursor-pointer items-start gap-3">
+            <div className="relative mt-0.5">
+              <input
+                type="checkbox"
+                className="sr-only"
+                checked={enabled}
+                disabled={!hasTargetEmail}
+                onChange={(e) => setEnabled(e.target.checked)}
+              />
+              <div
+                className={`h-5 w-10 rounded-full transition-colors ${enabled && hasTargetEmail ? "bg-emerald-600" : "bg-gray-200"}`}
+              >
+                <div
+                  className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${enabled && hasTargetEmail ? "translate-x-5" : "translate-x-0.5"}`}
+                />
+              </div>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-900">{t("contact.enabledLabel")}</p>
+              <p className="text-xs text-gray-500">
+                {!hasTargetEmail
+                  ? t("contact.enabledRequiresEmail")
+                  : t("contact.enabledHint")}
+              </p>
+            </div>
+          </label>
+
+          {/* Weitere Optionen nur wenn aktiviert */}
+          {enabled && hasTargetEmail && (
+            <div className="space-y-3 rounded-lg border border-gray-200 bg-gray-50 p-4">
+              {/* Admin-Benachrichtigung */}
+              <label className="flex cursor-pointer items-start gap-3">
+                <div className="relative mt-0.5">
+                  <input
+                    type="checkbox"
+                    className="sr-only"
+                    checked={notifyAdmin}
+                    onChange={(e) => setNotifyAdmin(e.target.checked)}
+                  />
+                  <div className={`h-5 w-10 rounded-full transition-colors ${notifyAdmin ? "bg-emerald-600" : "bg-gray-200"}`}>
+                    <div className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${notifyAdmin ? "translate-x-5" : "translate-x-0.5"}`} />
+                  </div>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-900">{t("contact.notifyAdminLabel")}</p>
+                  <p className="text-xs text-gray-500">{t("contact.notifyAdminHint")}</p>
+                </div>
+              </label>
+
+              {/* Auto-Reply */}
+              <label className="flex cursor-pointer items-start gap-3">
+                <div className="relative mt-0.5">
+                  <input
+                    type="checkbox"
+                    className="sr-only"
+                    checked={autoReply}
+                    onChange={(e) => setAutoReply(e.target.checked)}
+                  />
+                  <div className={`h-5 w-10 rounded-full transition-colors ${autoReply ? "bg-emerald-600" : "bg-gray-200"}`}>
+                    <div className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${autoReply ? "translate-x-5" : "translate-x-0.5"}`} />
+                  </div>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-900">{t("contact.autoReplyLabel")}</p>
+                  <p className="text-xs text-gray-500">{t("contact.autoReplyHint")}</p>
+                </div>
+              </label>
+            </div>
+          )}
+
+          {/* Link zur öffentlichen Kontaktseite */}
+          {enabled && hasTargetEmail && (
+            <a
+              href={`/${mosqueSlug}/kontakt`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-2 rounded-lg border border-emerald-600 bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-700 hover:bg-emerald-100 transition-colors"
+            >
+              <ExternalLink className="h-4 w-4" />
+              {t("contact.manageLink")}
+            </a>
+          )}
+        </div>
+
+        <div className="flex justify-end border-t border-gray-100 pt-4">
+          <button
+            onClick={handleSave}
+            disabled={isSaving}
+            className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+          >
+            <Save className="h-4 w-4" />
+            {isSaving ? t("contact.saving") : t("contact.save")}
           </button>
         </div>
       </SectionCard>
