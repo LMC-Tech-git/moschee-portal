@@ -1195,6 +1195,24 @@ async function main() {
     }
   }
 
+  // 12. students: neue Felder (v4) — Vater/Mutter Portal-User-IDs
+  if (collectionMap.students) {
+    const studentsCol = (await getExistingCollections()).find((c) => c.name === "students");
+    const existingFieldNames = (studentsCol?.schema || []).map((f) => f.name);
+    const studentsV4Fields = [
+      { name: "father_user_id", type: "text", options: { max: 100 } },
+      { name: "mother_user_id", type: "text", options: { max: 100 } },
+    ];
+    const fieldsToAdd = studentsV4Fields.filter((f) => !existingFieldNames.includes(f.name));
+    if (fieldsToAdd.length > 0) {
+      const newSchema = [...(studentsCol?.schema || []), ...fieldsToAdd];
+      await updateCollection("students", { schema: newSchema });
+      console.log(`   ✅ students: ${fieldsToAdd.map((f) => f.name).join(", ")} hinzugefügt`);
+    } else {
+      console.log("   ⏭️  students: alle v4-Felder vorhanden");
+    }
+  }
+
   // 10. audit_logs: before_json + after_json + neue Indexes
   if (collectionMap.audit_logs) {
     const auditCol = (await getExistingCollections()).find((c) => c.name === "audit_logs");

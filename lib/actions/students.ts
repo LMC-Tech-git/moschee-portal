@@ -35,6 +35,8 @@ function mapRecord(record: RecordModel): Student {
     whatsapp_contact: record.whatsapp_contact || "",
     parent_is_member: record.parent_is_member ?? false,
     privacy_accepted_at: record.privacy_accepted_at || "",
+    father_user_id: record.father_user_id || "",
+    mother_user_id: record.mother_user_id || "",
     notes: record.notes || "",
     status: record.status || "active",
     created: record.created || "",
@@ -81,7 +83,7 @@ export async function getStudentsByParent(
   try {
     const pb = await getAdminPB();
     const records = await pb.collection("students").getFullList({
-      filter: `mosque_id = "${mosqueId}" && parent_id = "${parentId}" && status = "active"`,
+      filter: `mosque_id = "${mosqueId}" && (parent_id = "${parentId}" || father_user_id = "${parentId}" || mother_user_id = "${parentId}") && status = "active"`,
       sort: "last_name,first_name",
     });
     return { success: true, data: records.map(mapRecord) };
@@ -139,7 +141,7 @@ export async function createStudent(
       last_name: validated.last_name,
       date_of_birth: validated.date_of_birth,
       gender: validated.gender || "",
-      parent_id: validated.parent_id || "",
+      parent_id: validated.father_user_id || validated.mother_user_id || validated.parent_id || "",
       parent_name: validated.parent_name || "",
       parent_phone: normalizedParentPhone,
       address: validated.address || "",
@@ -155,6 +157,8 @@ export async function createStudent(
       last_year_teacher: validated.last_year_teacher || "",
       whatsapp_contact: validated.whatsapp_contact || "",
       parent_is_member: validated.parent_is_member ?? false,
+      father_user_id: validated.father_user_id || "",
+      mother_user_id: validated.mother_user_id || "",
       notes: validated.notes || "",
       status: validated.status,
     });
@@ -206,7 +210,7 @@ export async function updateStudent(
       last_name: validated.last_name,
       date_of_birth: validated.date_of_birth,
       gender: validated.gender || "",
-      parent_id: validated.parent_id || "",
+      parent_id: validated.father_user_id || validated.mother_user_id || validated.parent_id || "",
       parent_name: validated.parent_name || "",
       parent_phone: normalizedParentPhone,
       address: validated.address || "",
@@ -222,6 +226,8 @@ export async function updateStudent(
       last_year_teacher: validated.last_year_teacher || "",
       whatsapp_contact: validated.whatsapp_contact || "",
       parent_is_member: validated.parent_is_member ?? false,
+      father_user_id: validated.father_user_id || "",
+      mother_user_id: validated.mother_user_id || "",
       notes: validated.notes || "",
       status: validated.status,
     });

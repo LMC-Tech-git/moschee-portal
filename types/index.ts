@@ -339,6 +339,9 @@ export interface Student {
   whatsapp_contact: "mother" | "father" | "both" | "";
   parent_is_member: boolean;
   privacy_accepted_at: string;
+  // Neue Felder (v4) — Vater/Mutter als eigenständige Portal-Benutzer
+  father_user_id?: string;
+  mother_user_id?: string;
   notes: string;
   status: "active" | "inactive";
   created: string;

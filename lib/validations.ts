@@ -134,6 +134,9 @@ export const studentSchema = z.object({
   last_year_teacher: z.string().optional().default(""),
   whatsapp_contact: z.enum(["mother", "father", "both", ""]).default(""),
   parent_is_member: z.boolean().default(false),
+  // Neue Felder (v4) — Vater/Mutter Portal-Benutzer
+  father_user_id: z.string().optional().default(""),
+  mother_user_id: z.string().optional().default(""),
   notes: z.string().optional().default(""),
   status: z.enum(["active", "inactive"]).default("active"),
 });

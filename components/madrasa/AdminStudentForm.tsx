@@ -18,7 +18,7 @@ interface ParentCandidate {
 interface Props {
   mosqueId: string;
   userId: string;
-  student?: Student | null;     // undefined/null = create mode
+  student?: Student | null;
   onSuccess: () => void;
   onCancel: () => void;
 }
@@ -38,9 +38,13 @@ type FormData = {
   father_name: string;
   father_phone: string;
   parent_is_member: boolean | null;
+  // Legacy (für Backward-Compat beim Submit)
   parent_id: string;
   parent_name: string;
   parent_phone: string;
+  // Neu (v4)
+  father_user_id: string;
+  mother_user_id: string;
   address: string;
   health_notes: string;
   membership_status: "active" | "none" | "planned" | "";
@@ -67,6 +71,8 @@ function toFormData(s: Student): FormData {
     parent_id: s.parent_id,
     parent_name: s.parent_name,
     parent_phone: s.parent_phone,
+    father_user_id: s.father_user_id || "",
+    mother_user_id: s.mother_user_id || "",
     address: s.address,
     health_notes: s.health_notes,
     membership_status: (s.membership_status as "active" | "none" | "planned" | "") || "",
@@ -93,6 +99,8 @@ const emptyForm: FormData = {
   parent_id: "",
   parent_name: "",
   parent_phone: "",
+  father_user_id: "",
+  mother_user_id: "",
   address: "",
   health_notes: "",
   membership_status: "",
@@ -112,10 +120,15 @@ export function AdminStudentForm({ mosqueId, userId, student, onSuccess, onCance
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
 
-  // Parent lookup
-  const [parentQuery, setParentQuery] = useState("");
-  const [parentDropdownOpen, setParentDropdownOpen] = useState(false);
-  const parentWrapperRef = useRef<HTMLDivElement>(null);
+  // Vater-Lookup
+  const [fatherQuery, setFatherQuery] = useState("");
+  const [fatherDropdownOpen, setFatherDropdownOpen] = useState(false);
+  const fatherWrapperRef = useRef<HTMLDivElement>(null);
+
+  // Mutter-Lookup
+  const [motherQuery, setMotherQuery] = useState("");
+  const [motherDropdownOpen, setMotherDropdownOpen] = useState(false);
+  const motherWrapperRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     getTeachersByMosque(mosqueId).then((res) => {
@@ -124,20 +137,27 @@ export function AdminStudentForm({ mosqueId, userId, student, onSuccess, onCance
     getParentCandidates(mosqueId).then((res) => {
       if (res.success && res.data) {
         setParents(res.data);
-        // Init parent query for edit mode
-        if (student?.parent_id) {
-          const found = res.data.find((p) => p.id === student.parent_id);
-          if (found) setParentQuery(found.name);
+        // Edit-Modus: bestehende Portal-Benutzer vorbelegen
+        if (student?.father_user_id) {
+          const found = res.data.find((p) => p.id === student.father_user_id);
+          if (found) setFatherQuery(found.name);
+        }
+        if (student?.mother_user_id) {
+          const found = res.data.find((p) => p.id === student.mother_user_id);
+          if (found) setMotherQuery(found.name);
         }
       }
     });
   }, [mosqueId, student]);
 
-  // Close parent dropdown on outside click
+  // Außerhalb-Klick schließt Dropdowns
   useEffect(() => {
     function handleClick(e: MouseEvent) {
-      if (parentWrapperRef.current && !parentWrapperRef.current.contains(e.target as Node)) {
-        setParentDropdownOpen(false);
+      if (fatherWrapperRef.current && !fatherWrapperRef.current.contains(e.target as Node)) {
+        setFatherDropdownOpen(false);
+      }
+      if (motherWrapperRef.current && !motherWrapperRef.current.contains(e.target as Node)) {
+        setMotherDropdownOpen(false);
       }
     }
     document.addEventListener("mousedown", handleClick);
@@ -149,19 +169,25 @@ export function AdminStudentForm({ mosqueId, userId, student, onSuccess, onCance
     setErrors((prev) => ({ ...prev, [key]: "" }));
   }
 
-  function handleParentSelect(parentId: string) {
-    set("parent_id", parentId);
-    if (!parentId) return;
-    const found = parents.find((p) => p.id === parentId);
+  function handleFatherSelect(id: string) {
+    set("father_user_id", id);
+    if (!id) { set("father_name", ""); return; }
+    const found = parents.find((p) => p.id === id);
     if (found) {
-      set("parent_name", found.name);
-      if (found.phone) {
-        set("mother_phone", found.phone);
-        set("father_phone", found.phone);
-      }
-      if (found.address) {
-        set("address", found.address);
-      }
+      set("father_name", found.name);
+      if (found.phone) set("father_phone", found.phone);
+      if (found.address) set("address", found.address);
+    }
+  }
+
+  function handleMotherSelect(id: string) {
+    set("mother_user_id", id);
+    if (!id) { set("mother_name", ""); return; }
+    const found = parents.find((p) => p.id === id);
+    if (found) {
+      set("mother_name", found.name);
+      if (found.phone) set("mother_phone", found.phone);
+      if (!form.address && found.address) set("address", found.address);
     }
   }
 
@@ -209,6 +235,89 @@ export function AdminStudentForm({ mosqueId, userId, student, onSuccess, onCance
   const inputCls = "w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500";
   const fieldErr = (key: string) =>
     errors[key] ? <p className="text-xs text-red-600 mt-1">{errors[key]}</p> : null;
+
+  // Hilfsfunktion: Dropdown für Portal-Benutzer
+  function ParentLookup({
+    label,
+    hint,
+    placeholder,
+    noneLabel,
+    query,
+    setQuery,
+    open,
+    setOpen,
+    selectedId,
+    onSelect,
+    wrapperRef,
+  }: {
+    label: string;
+    hint: string;
+    placeholder: string;
+    noneLabel: string;
+    query: string;
+    setQuery: (v: string) => void;
+    open: boolean;
+    setOpen: (v: boolean) => void;
+    selectedId: string;
+    onSelect: (id: string) => void;
+    wrapperRef: React.RefObject<HTMLDivElement>;
+  }) {
+    const filtered = parents.filter(
+      (p) => !query.trim() || p.name.toLowerCase().includes(query.toLowerCase())
+    );
+    return (
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+        <div ref={wrapperRef} className="relative">
+          <input
+            type="text"
+            className={inputCls}
+            placeholder={placeholder}
+            value={query}
+            onChange={(e) => { setQuery(e.target.value); setOpen(true); }}
+            onFocus={() => setOpen(true)}
+          />
+          {selectedId && (
+            <button
+              type="button"
+              onClick={() => { onSelect(""); setQuery(""); }}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+          {open && (
+            <div className="absolute z-20 mt-1 w-full rounded-xl border border-gray-200 bg-white shadow-lg max-h-48 overflow-y-auto">
+              <button
+                type="button"
+                onClick={() => { onSelect(""); setQuery(""); setOpen(false); }}
+                className="w-full text-left px-4 py-2 text-sm text-gray-500 hover:bg-gray-50 border-b"
+              >
+                {noneLabel}
+              </button>
+              {filtered.map((p) => (
+                <button
+                  type="button"
+                  key={p.id}
+                  onClick={() => { onSelect(p.id); setQuery(p.name); setOpen(false); }}
+                  className="w-full text-left px-4 py-2 text-sm hover:bg-emerald-50 border-b border-gray-100 last:border-0"
+                >
+                  <span className="font-medium">{p.name}</span>
+                  {p.phone && <span className="ml-2 text-xs text-gray-400">{p.phone}</span>}
+                </button>
+              ))}
+              {filtered.length === 0 && (
+                <div className="px-4 py-2 text-sm text-gray-400">{tAdmin("noResults")}</div>
+              )}
+            </div>
+          )}
+        </div>
+        {selectedId && (
+          <p className="text-xs text-gray-500 mt-1">{hint}</p>
+        )}
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -293,9 +402,53 @@ export function AdminStudentForm({ mosqueId, userId, student, onSuccess, onCance
         )}
       </div>
 
-      {/* WhatsApp */}
+      {/* Elternteil / Kontakt */}
       <div className="border-t pt-4">
-        <p className="text-sm font-semibold text-gray-700 mb-3">{t("whatsappSection")}</p>
+        <p className="text-sm font-semibold text-gray-700 mb-3">{tAdmin("parentSection")}</p>
+
+        {/* Vater und Mutter Portal-Benutzer Selektoren */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+          <ParentLookup
+            label={tAdmin("fatherPortalUser")}
+            hint={tAdmin("fatherPortalUserHint")}
+            placeholder={tAdmin("fatherPortalUserPlaceholder")}
+            noneLabel={tAdmin("parentPortalUserNone")}
+            query={fatherQuery}
+            setQuery={setFatherQuery}
+            open={fatherDropdownOpen}
+            setOpen={setFatherDropdownOpen}
+            selectedId={form.father_user_id}
+            onSelect={handleFatherSelect}
+            wrapperRef={fatherWrapperRef}
+          />
+          <ParentLookup
+            label={tAdmin("motherPortalUser")}
+            hint={tAdmin("motherPortalUserHint")}
+            placeholder={tAdmin("motherPortalUserPlaceholder")}
+            noneLabel={tAdmin("parentPortalUserNone")}
+            query={motherQuery}
+            setQuery={setMotherQuery}
+            open={motherDropdownOpen}
+            setOpen={setMotherDropdownOpen}
+            selectedId={form.mother_user_id}
+            onSelect={handleMotherSelect}
+            wrapperRef={motherWrapperRef}
+          />
+        </div>
+
+        {/* Namen (werden durch Selektor vorausgefüllt, aber manuell editierbar) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t("fatherName")}</label>
+            <input className={inputCls} value={form.father_name} onChange={(e) => set("father_name", e.target.value)} />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t("motherName")}</label>
+            <input className={inputCls} value={form.mother_name} onChange={(e) => set("mother_name", e.target.value)} />
+          </div>
+        </div>
+
+        {/* WhatsApp-Gruppenbenachrichtigung — NACH den Selektoren */}
         <label className="block text-sm text-gray-700 mb-2">{t("whatsappContact")}</label>
         <div className="flex gap-4">
           {(["mother", "father", "both"] as const).map((val) => (
@@ -315,31 +468,20 @@ export function AdminStudentForm({ mosqueId, userId, student, onSuccess, onCance
         </div>
         {fieldErr("whatsapp_contact")}
 
-        <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">{t("motherName")}</label>
-            <input className={inputCls} value={form.mother_name} onChange={(e) => set("mother_name", e.target.value)} />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">{t("fatherName")}</label>
-            <input className={inputCls} value={form.father_name} onChange={(e) => set("father_name", e.target.value)} />
-          </div>
-        </div>
-
         {(needsMotherPhone || needsFatherPhone) && (
           <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {needsMotherPhone && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">{t("motherPhone")}</label>
-                <input type="tel" className={inputCls} value={form.mother_phone} onChange={(e) => set("mother_phone", e.target.value)} />
-                {fieldErr("mother_phone")}
-              </div>
-            )}
             {needsFatherPhone && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">{t("fatherPhone")}</label>
                 <input type="tel" className={inputCls} value={form.father_phone} onChange={(e) => set("father_phone", e.target.value)} />
                 {fieldErr("father_phone")}
+              </div>
+            )}
+            {needsMotherPhone && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t("motherPhone")}</label>
+                <input type="tel" className={inputCls} value={form.mother_phone} onChange={(e) => set("mother_phone", e.target.value)} />
+                {fieldErr("mother_phone")}
               </div>
             )}
           </div>
@@ -370,60 +512,6 @@ export function AdminStudentForm({ mosqueId, userId, student, onSuccess, onCance
       {/* Admin-Extras */}
       <div className="border-t pt-4 space-y-4">
         <p className="text-sm font-semibold text-gray-700">{tAdmin("adminSection")}</p>
-
-        {/* Portal-Benutzer (Elternteil) — Lookup */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">{tAdmin("parentPortalUser")}</label>
-          <div ref={parentWrapperRef} className="relative">
-            <input
-              type="text"
-              className={inputCls}
-              placeholder={tAdmin("parentPortalUserPlaceholder")}
-              value={parentQuery}
-              onChange={(e) => { setParentQuery(e.target.value); setParentDropdownOpen(true); }}
-              onFocus={() => setParentDropdownOpen(true)}
-            />
-            {form.parent_id && (
-              <button
-                type="button"
-                onClick={() => { set("parent_id", ""); set("parent_name", ""); setParentQuery(""); }}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            )}
-            {parentDropdownOpen && (
-              <div className="absolute z-20 mt-1 w-full rounded-xl border border-gray-200 bg-white shadow-lg max-h-48 overflow-y-auto">
-                <button
-                  type="button"
-                  onClick={() => { handleParentSelect(""); setParentQuery(""); setParentDropdownOpen(false); }}
-                  className="w-full text-left px-4 py-2 text-sm text-gray-500 hover:bg-gray-50 border-b"
-                >
-                  {tAdmin("parentPortalUserNone")}
-                </button>
-                {parents
-                  .filter((p) => !parentQuery.trim() || p.name.toLowerCase().includes(parentQuery.toLowerCase()))
-                  .map((p) => (
-                    <button
-                      type="button"
-                      key={p.id}
-                      onClick={() => { handleParentSelect(p.id); setParentQuery(p.name); setParentDropdownOpen(false); }}
-                      className="w-full text-left px-4 py-2 text-sm hover:bg-emerald-50 border-b border-gray-100 last:border-0"
-                    >
-                      <span className="font-medium">{p.name}</span>
-                      {p.phone && <span className="ml-2 text-xs text-gray-400">{p.phone}</span>}
-                    </button>
-                  ))}
-                {parents.filter((p) => !parentQuery.trim() || p.name.toLowerCase().includes(parentQuery.toLowerCase())).length === 0 && (
-                  <div className="px-4 py-2 text-sm text-gray-400">{tAdmin("noResults")}</div>
-                )}
-              </div>
-            )}
-          </div>
-          {form.parent_id && (
-            <p className="text-xs text-gray-500 mt-1">{tAdmin("parentPortalUserHint")}</p>
-          )}
-        </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
