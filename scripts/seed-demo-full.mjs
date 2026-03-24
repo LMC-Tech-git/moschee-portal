@@ -155,9 +155,15 @@ function monthsAgo(n) {
 
 // ─── 3. Daten-Definitionen ───────────────────────────────────────────────────
 
-// Schuljahre dynamisch (nie veraltet)
-const ARCHIVED_YEAR_NAME = `${CY - 1}/${String(CY).slice(-2)}`;
-const ACTIVE_YEAR_NAME   = `${CY}/${String(CY + 1).slice(-2)}`;
+// Schuljahre dynamisch: Schuljahr läuft Sep–Jul.
+// Im ersten Halbjahr (Jan–Aug) ist das laufende Jahr CY-1/CY, sonst CY/CY+1.
+const isSecondHalf = NOW.getMonth() >= 8; // Sep=8 … Dez=11
+const ACTIVE_START  = isSecondHalf ? CY     : CY - 1;
+const ACTIVE_END    = isSecondHalf ? CY + 1 : CY;
+const ARCHIVED_START = ACTIVE_START - 1;
+const ARCHIVED_END   = ACTIVE_END   - 1;
+const ARCHIVED_YEAR_NAME = `${ARCHIVED_START}/${String(ARCHIVED_END).slice(-2)}`;
+const ACTIVE_YEAR_NAME   = `${ACTIVE_START}/${String(ACTIVE_END).slice(-2)}`;
 
 // Mitglieder-Daten (20 Personen, realistisch deutsch/türkisch)
 const MEMBER_DATA = [
@@ -406,14 +412,14 @@ async function seedAcademicYears() {
   const years = [
     {
       name: ARCHIVED_YEAR_NAME,
-      start_date: `${CY - 1}-09-01`,
-      end_date: `${CY}-07-31`,
+      start_date: `${ARCHIVED_START}-09-01`,
+      end_date: `${ARCHIVED_END}-07-31`,
       status: "archived",
     },
     {
       name: ACTIVE_YEAR_NAME,
-      start_date: `${CY}-09-01`,
-      end_date: `${CY + 1}-07-31`,
+      start_date: `${ACTIVE_START}-09-01`,
+      end_date: `${ACTIVE_END}-07-31`,
       status: "active",
     },
   ];
@@ -1019,18 +1025,22 @@ async function seedCampaigns(adminId) {
   console.log("🎯 Kampagnen...");
   const campaigns = [
     {
-      title: "Moschee-Renovierung 2024",
+      title: "Moschee-Renovierung",
       description: "Umfassende Renovierung des Hauptgebetsraums, der Eingangshalle und der Nebenräume. Dank großzügiger Unterstützung unserer Gemeinde konnten alle Arbeiten erfolgreich abgeschlossen werden.",
       category: "construction",
+      type: "general",
+      visibility: "public",
       goal_amount_cents: 1500000,
       start_at: isoDateTime(daysAgo(180)),
       end_at: isoDateTime(daysAgo(30)),
       status: "completed",
     },
     {
-      title: "Neue Waschräume 2025",
+      title: "Neue Waschräume",
       description: "Unsere Waschräume sind veraltet und bedürfen dringend einer Renovierung. Ziel ist die vollständige Sanierung aller Anlagen — für mehr Komfort und Würde beim rituellen Waschen.",
       category: "maintenance",
+      type: "general",
+      visibility: "public",
       goal_amount_cents: 800000,
       start_at: isoDateTime(daysAgo(45)),
       end_at: isoDateTime(daysFromNow(60)),
@@ -1040,6 +1050,8 @@ async function seedCampaigns(adminId) {
       title: "Kinderspielplatz Projekt",
       description: "Wir möchten unseren jüngsten Gemeindemitgliedern einen sicheren und ansprechenden Spielplatz im Innenhof der Moschee schenken. Helfen Sie uns, diesen Traum Wirklichkeit werden zu lassen!",
       category: "general",
+      type: "general",
+      visibility: "public",
       goal_amount_cents: 500000,
       start_at: isoDateTime(daysAgo(10)),
       end_at: isoDateTime(daysFromNow(90)),
