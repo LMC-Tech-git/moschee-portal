@@ -553,6 +553,39 @@ export async function getEventRegistrations(
       updated: record.updated || "",
     }));
 
+    // Mitglieds-Namen und E-Mails nachladen
+    const memberUserIds = [
+      ...new Set(
+        registrations
+          .filter((r) => r.registrant_type === "member" && r.user_id)
+          .map((r) => r.user_id)
+      ),
+    ];
+    if (memberUserIds.length > 0) {
+      try {
+        const userFilter = memberUserIds.map((id) => `id = "${id}"`).join(" || ");
+        const users = await pb.collection("users").getFullList({
+          filter: userFilter,
+          fields: "id,first_name,last_name,email",
+        });
+        const userMap = new Map(users.map((u) => [u.id, u]));
+        registrations.forEach((r) => {
+          if (r.registrant_type === "member" && r.user_id) {
+            const u = userMap.get(r.user_id);
+            if (u) {
+              r.member_name =
+                [u.first_name, u.last_name].filter(Boolean).join(" ") ||
+                u.email ||
+                "";
+              r.member_email = u.email || "";
+            }
+          }
+        });
+      } catch {
+        // Fehler beim User-Lookup ignorieren — Fallback auf "Mitglied"
+      }
+    }
+
     return { success: true, data: registrations };
   } catch (error) {
     console.error("[Events] Fehler beim Laden der Registrierungen:", error);

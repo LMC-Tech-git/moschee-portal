@@ -210,6 +210,9 @@ export interface EventRegistration {
   user_agent: string;
   created: string;
   updated: string;
+  // Nachgeladen für Mitglieds-Registrierungen
+  member_name?: string;
+  member_email?: string;
 }
 
 // --- 7. Campaigns (Spendenkampagnen) ---

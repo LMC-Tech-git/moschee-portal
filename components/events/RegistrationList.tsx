@@ -167,12 +167,12 @@ export function RegistrationList({
                     <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">
                       {reg.registrant_type === "guest"
                         ? reg.guest_name || "—"
-                        : `Mitglied`}
+                        : reg.member_name || "Mitglied"}
                     </td>
                     <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-600">
                       {reg.registrant_type === "guest"
                         ? reg.guest_email || "—"
-                        : "—"}
+                        : reg.member_email || "—"}
                     </td>
                     <td className="whitespace-nowrap px-4 py-3 text-sm">
                       <span

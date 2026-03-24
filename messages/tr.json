@@ -893,6 +893,8 @@
     },
     "events": {
       "noEvents": "Henüz etkinlik katılımı yok",
+      "cancelBtn": "Kaydı İptal Et",
+      "cancelConfirm": "Bu etkinlikten kaydınızı iptal etmek istediğinizden emin misiniz?",
       "status": {
         "registered": "Kayıtlı",
         "attended": "Katıldı",

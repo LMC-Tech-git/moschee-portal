@@ -893,6 +893,8 @@
     },
     "events": {
       "noEvents": "Noch keine Event-Teilnahmen",
+      "cancelBtn": "Abmelden",
+      "cancelConfirm": "Möchtest du dich wirklich von dieser Veranstaltung abmelden?",
       "status": {
         "registered": "Angemeldet",
         "attended": "Teilgenommen",

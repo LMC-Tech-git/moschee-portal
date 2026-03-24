@@ -54,8 +54,10 @@ export default async function MosqueDashboard({
   const { mosque, settings } = result;
   const t = await getTranslations("mosque.dashboard");
 
-  // Prüfe ob User eingeloggt UND aktiv ist (pending-User sehen nur öffentliche Inhalte)
-  const { isActiveMember } = getAuthFromCookie();
+  // Prüfe ob User eingeloggt (inkl. Admins) oder aktives Mitglied ist
+  const { isLoggedIn: cookieLoggedIn, isActiveMember, userId } = getAuthFromCookie();
+  const isLoggedIn = cookieLoggedIn && !!userId;
+  const showMemberContent = isLoggedIn || isActiveMember;
 
   const prayerConfig = buildPrayerConfig(mosque, settings);
 
@@ -63,10 +65,10 @@ export default async function MosqueDashboard({
   const [prayerTimes, postsResult, eventsResult, campaignsResult, stats] =
     await Promise.all([
       getPrayerTimesForDate(mosque.id, new Date(), prayerConfig),
-      isActiveMember
+      showMemberContent
         ? getMemberPostsByMosque(mosque.id, 10)
         : getPublicPostsByMosque(mosque.id, 10),
-      isActiveMember
+      showMemberContent
         ? getMemberUpcomingEvents(mosque.id, 5)
         : getPublicUpcomingEvents(mosque.id, 5),
       getPublicCampaigns(mosque.id, 3),

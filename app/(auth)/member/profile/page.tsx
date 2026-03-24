@@ -12,6 +12,7 @@ import {
   getMemberDonations,
   getMemberEventHistory,
 } from "@/lib/actions/members";
+import { cancelMemberRegistration } from "@/lib/actions/events";
 import { getStudentsByParent } from "@/lib/actions/students";
 import { AddChildDialog } from "@/components/madrasa/AddChildDialog";
 import type { Student } from "@/types";
@@ -809,6 +810,7 @@ function EventHistory({
     (EventRegistration & { event_title?: string; event_start_at?: string })[]
   >([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [cancellingId, setCancellingId] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -820,6 +822,20 @@ function EventHistory({
     }
     load();
   }, [userId, mosqueId]);
+
+  async function handleCancel(regId: string, eventId: string) {
+    if (!confirm(t("member.events.cancelConfirm"))) return;
+    setCancellingId(regId);
+    const result = await cancelMemberRegistration(eventId, userId, mosqueId);
+    if (result.success) {
+      setEvents((prev) =>
+        prev.map((e) =>
+          e.id === regId ? { ...e, status: "cancelled" as const } : e
+        )
+      );
+    }
+    setCancellingId(null);
+  }
 
   if (isLoading) {
     return (
@@ -867,36 +883,51 @@ function EventHistory({
                   )}
                 </div>
               </div>
-              <span
-                className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
-                  reg.status === "registered"
-                    ? "bg-blue-50 text-blue-700"
-                    : reg.status === "attended"
-                      ? "bg-green-50 text-green-700"
-                      : reg.status === "cancelled"
-                        ? "bg-red-50 text-red-700"
-                        : "bg-gray-50 text-gray-700"
-                }`}
-              >
-                {reg.status === "registered" ? (
-                  <>
-                    <CheckCircle className="h-3 w-3" />
-                    {t("member.events.status.registered")}
-                  </>
-                ) : reg.status === "attended" ? (
-                  <>
-                    <CheckCircle className="h-3 w-3" />
-                    {t("member.events.status.attended")}
-                  </>
-                ) : reg.status === "cancelled" ? (
-                  <>
-                    <XCircle className="h-3 w-3" />
-                    {t("member.events.status.cancelled")}
-                  </>
-                ) : (
-                  t("member.events.status.noShow")
-                )}
-              </span>
+              <div className="flex items-center gap-2">
+                <span
+                  className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
+                    reg.status === "registered"
+                      ? "bg-blue-50 text-blue-700"
+                      : reg.status === "attended"
+                        ? "bg-green-50 text-green-700"
+                        : reg.status === "cancelled"
+                          ? "bg-red-50 text-red-700"
+                          : "bg-gray-50 text-gray-700"
+                  }`}
+                >
+                  {reg.status === "registered" ? (
+                    <>
+                      <CheckCircle className="h-3 w-3" />
+                      {t("member.events.status.registered")}
+                    </>
+                  ) : reg.status === "attended" ? (
+                    <>
+                      <CheckCircle className="h-3 w-3" />
+                      {t("member.events.status.attended")}
+                    </>
+                  ) : reg.status === "cancelled" ? (
+                    <>
+                      <XCircle className="h-3 w-3" />
+                      {t("member.events.status.cancelled")}
+                    </>
+                  ) : (
+                    t("member.events.status.noShow")
+                  )}
+                </span>
+                {reg.status === "registered" &&
+                  (!reg.event_start_at ||
+                    new Date(reg.event_start_at) > new Date()) && (
+                    <button
+                      onClick={() => handleCancel(reg.id, reg.event_id)}
+                      disabled={cancellingId === reg.id}
+                      className="rounded border border-red-200 px-2 py-0.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-50 disabled:opacity-50"
+                    >
+                      {cancellingId === reg.id
+                        ? "…"
+                        : t("member.events.cancelBtn")}
+                    </button>
+                  )}
+              </div>
             </div>
           ))}
         </div>
