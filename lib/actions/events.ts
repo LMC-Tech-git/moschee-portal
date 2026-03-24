@@ -554,13 +554,13 @@ export async function getEventRegistrations(
     }));
 
     // Mitglieds-Namen und E-Mails nachladen
-    const memberUserIds = [
-      ...new Set(
+    const memberUserIds = Array.from(
+      new Set(
         registrations
           .filter((r) => r.registrant_type === "member" && r.user_id)
           .map((r) => r.user_id)
-      ),
-    ];
+      )
+    );
     if (memberUserIds.length > 0) {
       try {
         const userFilter = memberUserIds.map((id) => `id = "${id}"`).join(" || ");
