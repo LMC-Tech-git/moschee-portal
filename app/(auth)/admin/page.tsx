@@ -165,6 +165,20 @@ export default function AdminDashboard() {
             icon: BookOpen,
             color: "text-amber-600",
           },
+          ...(sponsorsEnabled ? [{
+            title: t("admin.quickAccess.sponsors.title"),
+            desc: t("admin.quickAccess.sponsors.desc"),
+            href: "/admin/foerderpartner",
+            icon: Handshake,
+            color: "text-emerald-600",
+          }] : []),
+          ...(teamEnabled ? [{
+            title: t("admin.quickAccess.team.title"),
+            desc: t("admin.quickAccess.team.desc"),
+            href: "/admin/leitung",
+            icon: Users,
+            color: "text-blue-600",
+          }] : []),
           {
             title: t("admin.quickAccess.newsletter.title"),
             desc: t("admin.quickAccess.newsletter.desc"),
@@ -217,36 +231,6 @@ export default function AdminDashboard() {
             </Link>
           );
         })}
-        {sponsorsEnabled && (
-          <Link
-            href="/admin/foerderpartner"
-            className="group rounded-xl border border-gray-200 bg-white p-5 transition-shadow hover:shadow-md"
-          >
-            <div className="mb-3 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Handshake className="h-5 w-5 text-emerald-600" />
-                <h3 className="font-bold text-gray-900">{t("admin.quickAccess.sponsors.title")}</h3>
-              </div>
-              <ArrowRight className="h-4 w-4 text-gray-400 transition-transform group-hover:translate-x-0.5" />
-            </div>
-            <p className="text-sm text-gray-600">{t("admin.quickAccess.sponsors.desc")}</p>
-          </Link>
-        )}
-        {teamEnabled && (
-          <Link
-            href="/admin/leitung"
-            className="group rounded-xl border border-gray-200 bg-white p-5 transition-shadow hover:shadow-md"
-          >
-            <div className="mb-3 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Users className="h-5 w-5 text-blue-600" />
-                <h3 className="font-bold text-gray-900">{t("admin.quickAccess.team.title")}</h3>
-              </div>
-              <ArrowRight className="h-4 w-4 text-gray-400 transition-transform group-hover:translate-x-0.5" />
-            </div>
-            <p className="text-sm text-gray-600">{t("admin.quickAccess.team.desc")}</p>
-          </Link>
-        )}
       </div>
     </div>
   );

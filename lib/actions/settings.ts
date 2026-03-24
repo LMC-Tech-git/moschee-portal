@@ -5,6 +5,34 @@ import { logAudit } from "@/lib/audit";
 import type { Mosque, Settings } from "@/types";
 
 // =========================================
+// Feature Flags (für MosqueContext auf Auth-Routen)
+// =========================================
+
+/**
+ * Lädt nur die Feature-Flags einer Moschee (team_enabled, sponsors_enabled).
+ * Wird im MosqueContext aufgerufen wenn keine Slug-Route vorliegt (z.B. /member/profile, /admin/*).
+ */
+export async function getFeatureFlags(mosqueId: string): Promise<{
+  team_enabled: boolean;
+  sponsors_enabled: boolean;
+}> {
+  try {
+    const pb = await getAdminPB();
+    const record = await pb
+      .collection("settings")
+      .getFirstListItem(`mosque_id = "${mosqueId}"`, {
+        fields: "team_enabled,sponsors_enabled",
+      });
+    return {
+      team_enabled: record.team_enabled ?? false,
+      sponsors_enabled: record.sponsors_enabled ?? false,
+    };
+  } catch {
+    return { team_enabled: false, sponsors_enabled: false };
+  }
+}
+
+// =========================================
 // Branding
 // =========================================
 
@@ -525,3 +553,4 @@ export async function updateTeamSettings(
     return { success: false, error: "Team-Einstellungen konnten nicht gespeichert werden." };
   }
 }
+

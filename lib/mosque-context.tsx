@@ -12,6 +12,7 @@ import {
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { getMosqueById, getMosqueBySlug } from "@/lib/actions/mosques";
+import { getFeatureFlags } from "@/lib/actions/settings";
 import type { Mosque } from "@/types";
 
 interface MosqueContextType {
@@ -90,12 +91,22 @@ export function MosqueProvider({ children, initialMosque }: MosqueProviderProps)
           if (overrideMosqueId) {
             const m = await getMosqueById(overrideMosqueId);
             setMosque(m);
+            if (m) {
+              const flags = await getFeatureFlags(m.id);
+              setTeamEnabled(flags.team_enabled);
+              setSponsorsEnabled(flags.sponsors_enabled);
+            }
           } else {
             setMosque(null);
           }
         } else if (isAuthenticated && user?.mosque_id) {
           const m = await getMosqueById(user.mosque_id);
           setMosque(m);
+          if (m) {
+            const flags = await getFeatureFlags(m.id);
+            setTeamEnabled(flags.team_enabled);
+            setSponsorsEnabled(flags.sponsors_enabled);
+          }
         } else {
           // Nicht eingeloggt: Moschee aus URL-Slug laden (für öffentliche Seiten)
           const parts = pathname.split("/").filter(Boolean);
