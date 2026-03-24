@@ -112,6 +112,14 @@
       "privacyRequired": "Bitte stimmen Sie der Datenschutzerklärung zu.",
       "generic": "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut."
     },
+    "inquiryTypes": {
+      "demo": "Demo anfragen",
+      "support": "Support",
+      "partnership": "Kooperation",
+      "bug": "Fehlermeldung",
+      "feedback": "Feedback",
+      "other": "Sonstiges"
+    },
     "info": {
       "emailTitle": "E-Mail",
       "responseTitle": "Antwortzeit",

@@ -112,6 +112,14 @@
       "privacyRequired": "Lütfen gizlilik politikasını kabul edin.",
       "generic": "Bir hata oluştu. Lütfen tekrar deneyin."
     },
+    "inquiryTypes": {
+      "demo": "Demo talep et",
+      "support": "Destek",
+      "partnership": "İşbirliği",
+      "bug": "Hata bildirimi",
+      "feedback": "Geri bildirim",
+      "other": "Diğer"
+    },
     "info": {
       "emailTitle": "E-posta",
       "responseTitle": "Yanıt süresi",

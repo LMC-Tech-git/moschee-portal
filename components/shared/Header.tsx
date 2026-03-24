@@ -68,7 +68,7 @@ export default function Header() {
   const isTeacher = user?.role === "teacher";
   const isImam = user?.role === "imam";
   // URL-Slug hat Vorrang auf öffentlichen Moschee-Seiten (verhindert falsche Links bei eingeloggten Usern)
-  const HEADER_RESERVED = ['admin','member','lehrer','imam','login','register','api','invite','impressum','datenschutz','agb','leitung'];
+  const HEADER_RESERVED = ['admin','member','lehrer','imam','login','register','api','invite','impressum','datenschutz','agb','leitung','kontakt','offline'];
   const pathParts = pathname.split('/').filter(Boolean);
   const urlSlug = pathParts.length > 0 && !HEADER_RESERVED.includes(pathParts[0]) ? pathParts[0] : null;
   // mosque?.slug hat Vorrang: Kommt vom MosqueProvider (initialMosque = sofort verfügbar),

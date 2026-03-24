@@ -5,14 +5,7 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { CheckCircle2, Loader2, Send } from "lucide-react";
 
-const INQUIRY_TYPES = [
-  { value: "demo",        label: "Demo anfragen" },
-  { value: "support",     label: "Support" },
-  { value: "partnership", label: "Kooperation" },
-  { value: "bug",         label: "Fehlermeldung" },
-  { value: "feedback",    label: "Feedback" },
-  { value: "other",       label: "Sonstiges" },
-] as const;
+const INQUIRY_TYPE_VALUES = ["demo", "support", "partnership", "bug", "feedback", "other"] as const;
 
 export function ContactForm() {
   const t = useTranslations("contact");
@@ -191,9 +184,9 @@ export function ContactForm() {
             className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 transition-colors focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 disabled:bg-gray-50 disabled:text-gray-500"
           >
             <option value="">{t("placeholders.inquiryType")}</option>
-            {INQUIRY_TYPES.map((type) => (
-              <option key={type.value} value={type.value}>
-                {type.label}
+            {INQUIRY_TYPE_VALUES.map((value) => (
+              <option key={value} value={value}>
+                {t(`inquiryTypes.${value}`)}
               </option>
             ))}
           </select>
