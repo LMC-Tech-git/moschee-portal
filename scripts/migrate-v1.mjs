@@ -1267,6 +1267,38 @@ async function main() {
     }
   }
 
+  // 13. inquiries: Kontaktanfragen (plattformweit, kein mosque_id)
+  // Lösch-Strategie: Records älter als 180 Tage per Cron löschen.
+  const inquiriesExists = await collectionExists("inquiries");
+  if (!inquiriesExists) {
+    await createCollection({
+      name: "inquiries",
+      type: "base",
+      schema: [
+        { name: "name",                type: "text",   required: true,  options: { max: 100 } },
+        { name: "email",               type: "email",  required: true },
+        { name: "organization",        type: "text",   required: false, options: { max: 100 } },
+        {
+          name: "inquiry_type",
+          type: "select",
+          required: true,
+          options: { values: ["demo", "support", "partnership", "bug", "feedback", "other"], maxSelect: 1 },
+        },
+        { name: "message",             type: "text",   required: true,  options: { max: 5000 } },
+        { name: "privacy_accepted",    type: "bool",   required: true },
+        { name: "privacy_accepted_at", type: "date",   required: true },
+        { name: "ip_address",          type: "text",   required: false, options: { max: 64 } }, // SHA-256 Hash
+        {
+          name: "status",
+          type: "select",
+          options: { values: ["new", "in_progress", "done", "spam"], maxSelect: 1 },
+        },
+      ],
+    });
+  } else {
+    console.log(`   ⏭️  "inquiries" existiert bereits`);
+  }
+
   console.log("\n=== ✅ Migration abgeschlossen ===\n");
 
   // 7. .env.local Hinweis

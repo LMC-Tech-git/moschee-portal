@@ -28,6 +28,7 @@ export default async function Footer() {
             <ul className="space-y-2">
               {[
                 { label: t("nav.home"), href: "/" },
+                { label: t("footer.contact"), href: "/kontakt" },
                 { label: t("nav.login"), href: "/login" },
                 { label: t("nav.register"), href: "/register" },
               ].map((link) => (

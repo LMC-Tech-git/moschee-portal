@@ -50,6 +50,17 @@ const envSchema = z.object({
   RESEND_FROM_EMAIL: z.string().optional(),
 
   // -------------------------------------------------------
+  // Kontaktformular
+  // Zieladresse für Admin-Benachrichtigungen (Standard: kontakt@moschee.app)
+  // -------------------------------------------------------
+  CONTACT_EMAIL: z.string().email().optional(),
+
+  // -------------------------------------------------------
+  // Rate Limiting (Salt für IP-Hashing, DSGVO-konform)
+  // -------------------------------------------------------
+  RATE_LIMIT_SALT: z.string().optional(),
+
+  // -------------------------------------------------------
   // Cron-Jobs (Bearer-Token zum Schutz interner Endpunkte)
   // -------------------------------------------------------
   CRON_SECRET: z.string().optional(),

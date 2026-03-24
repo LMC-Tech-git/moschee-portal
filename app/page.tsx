@@ -201,13 +201,13 @@ export default function HomePage() {
           </p>
 
           <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <a
-              href="mailto:kontakt@moschee.app?subject=Demo%20anfragen"
+            <Link
+              href="/kontakt"
               className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-7 py-3.5 text-base font-bold text-white shadow-sm transition-all duration-200 hover:bg-emerald-700 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0"
             >
               {t("cta.request")}
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
-            </a>
+            </Link>
             {!DEMO_MOSQUE_ID && (
               <Link
                 href="/login"
@@ -392,13 +392,13 @@ export default function HomePage() {
             {t("cta.readySubtitle")}
           </p>
           <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <a
-              href="mailto:kontakt@moschee.app?subject=Demo%20anfragen"
+            <Link
+              href="/kontakt"
               className="inline-flex items-center gap-2 rounded-xl bg-white px-7 py-3.5 text-base font-bold text-emerald-700 shadow-sm transition-colors hover:bg-emerald-50"
             >
               {t("cta.request")}
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
-            </a>
+            </Link>
             <Link
               href="/login"
               className="inline-flex items-center gap-2 rounded-xl border border-emerald-400 px-7 py-3.5 text-base font-semibold text-white transition-colors hover:bg-emerald-700"

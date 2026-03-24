@@ -35,6 +35,8 @@ export interface SendEmailOptions {
   subject: string;
   html: string;
   from?: string;
+  /** Reply-To-Adresse (optional) — z.B. E-Mail des Absenders im Kontaktformular */
+  replyTo?: string;
 }
 
 export interface SendEmailResult {
@@ -61,6 +63,7 @@ export async function sendEmailDirect(options: SendEmailOptions): Promise<SendEm
       to: options.to,
       subject: options.subject,
       html: options.html,
+      ...(options.replyTo ? { reply_to: options.replyTo } : {}),
     });
 
     if (error) {

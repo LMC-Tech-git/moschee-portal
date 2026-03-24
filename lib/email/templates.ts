@@ -432,6 +432,120 @@ export function renderEmailChangeConfirmation(data: {
 }
 
 // =========================================
+// Kontaktformular — Admin-Benachrichtigung
+// =========================================
+
+const INQUIRY_TYPE_LABELS: Record<string, string> = {
+  demo: "Demo anfragen",
+  support: "Support",
+  partnership: "Kooperation",
+  bug: "Fehlermeldung",
+  feedback: "Feedback",
+  other: "Sonstiges",
+};
+
+export function renderContactNotification(data: {
+  name: string;
+  email: string;
+  organization?: string;
+  inquiry_type: string;
+  message: string;
+}): string {
+  const typeLabel = INQUIRY_TYPE_LABELS[data.inquiry_type] ?? data.inquiry_type;
+  const escapedMessage = data.message.replace(/\n/g, "<br/>");
+
+  const content = `
+    <h2 style="margin:0 0 8px;color:#111827;font-size:22px;">📬 Neue Kontaktanfrage</h2>
+    <p style="margin:0 0 24px;color:#6b7280;font-size:14px;">Eingegangen über das Kontaktformular auf moschee.app</p>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9fafb;border-radius:8px;border:1px solid #e5e7eb;margin:0 0 24px;">
+      <tr>
+        <td style="padding:20px 24px;">
+          <table width="100%" cellpadding="0" cellspacing="0">
+            <tr>
+              <td style="padding:0 0 12px;">
+                <p style="margin:0 0 2px;color:#6b7280;font-size:11px;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;">Name</p>
+                <p style="margin:0;color:#111827;font-size:15px;font-weight:600;">${data.name}</p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:0 0 12px;">
+                <p style="margin:0 0 2px;color:#6b7280;font-size:11px;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;">E-Mail</p>
+                <p style="margin:0;color:#111827;font-size:15px;">
+                  <a href="mailto:${data.email}" style="color:#059669;text-decoration:none;">${data.email}</a>
+                </p>
+              </td>
+            </tr>
+            ${data.organization ? `
+            <tr>
+              <td style="padding:0 0 12px;">
+                <p style="margin:0 0 2px;color:#6b7280;font-size:11px;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;">Organisation</p>
+                <p style="margin:0;color:#111827;font-size:15px;">${data.organization}</p>
+              </td>
+            </tr>` : ""}
+            <tr>
+              <td>
+                <p style="margin:0 0 2px;color:#6b7280;font-size:11px;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;">Anfragetyp</p>
+                <p style="margin:0;color:#111827;font-size:15px;">
+                  <span style="display:inline-block;background:#ecfdf5;color:#065f46;border-radius:4px;padding:2px 8px;font-size:13px;font-weight:600;">${typeLabel}</span>
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+
+    <p style="margin:0 0 8px;color:#6b7280;font-size:11px;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;">Nachricht</p>
+    <div style="background:#ffffff;border:1px solid #e5e7eb;border-radius:8px;padding:16px 20px;margin:0 0 24px;">
+      <p style="margin:0;color:#374151;font-size:15px;line-height:1.7;">${escapedMessage}</p>
+    </div>
+
+    <p style="margin:0 0 16px;">
+      <a href="mailto:${data.email}" style="display:inline-block;background:#059669;color:#ffffff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;">
+        Direkt antworten →
+      </a>
+    </p>
+
+    <p style="margin:0;color:#9ca3af;font-size:12px;">
+      Diese Anfrage wurde automatisch gespeichert.
+    </p>
+  `;
+  return baseTemplate(content, "moschee.app");
+}
+
+// =========================================
+// Kontaktformular — Auto-Reply an Absender
+// =========================================
+
+export function renderContactAutoReply(data: { name: string }): string {
+  const content = `
+    <h2 style="margin:0 0 16px;color:#111827;font-size:22px;">Vielen Dank für Ihre Anfrage ✅</h2>
+    <p style="margin:0 0 16px;color:#374151;font-size:16px;line-height:1.6;">
+      Hallo ${data.name},<br/><br/>
+      wir haben Ihre Nachricht erhalten und werden uns in der Regel <strong>innerhalb von 24 Stunden</strong> bei Ihnen melden.
+    </p>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="background:#f0fdf4;border-radius:8px;border:1px solid #bbf7d0;margin:0 0 24px;">
+      <tr>
+        <td style="padding:16px 20px;">
+          <p style="margin:0;color:#065f46;font-size:14px;line-height:1.6;">
+            Haben Sie Fragen? Schreiben Sie uns direkt an
+            <a href="mailto:kontakt@moschee.app" style="color:#059669;font-weight:600;">kontakt@moschee.app</a>.
+          </p>
+        </td>
+      </tr>
+    </table>
+
+    <p style="margin:0;color:#6b7280;font-size:13px;line-height:1.6;">
+      Mit freundlichen Grüßen,<br/>
+      <strong>Das moschee.app Team</strong>
+    </p>
+  `;
+  return baseTemplate(content, "moschee.app");
+}
+
+// =========================================
 // Förderpartner: Ablauf-Erinnerung an Moschee-Admin
 // =========================================
 

@@ -71,8 +71,59 @@
     "imprint": "Impressum",
     "privacy": "Datenschutz",
     "terms": "AGB",
+    "contact": "Kontakt",
     "copyright": "Moschee-Portal.",
     "builtForCommunity": "Mit Herz gebaut für die Gemeinde."
+  },
+  "contact": {
+    "pageTitle": "Kontakt",
+    "pageSubtitle": "Haben Sie Fragen, möchten eine Demo buchen oder eine Kooperation besprechen? Wir freuen uns von Ihnen zu hören.",
+    "formLabel": "Kontaktformular",
+    "optional": "optional",
+    "submit": "Nachricht senden",
+    "submitting": "Wird gesendet...",
+    "fields": {
+      "name": "Name",
+      "email": "E-Mail-Adresse",
+      "organization": "Organisation / Moschee",
+      "inquiryType": "Anfragetyp",
+      "message": "Ihre Nachricht"
+    },
+    "placeholders": {
+      "name": "Max Mustermann",
+      "email": "ihre@email.de",
+      "organization": "Islamische Gemeinde ...",
+      "inquiryType": "Bitte wählen ...",
+      "message": "Schreiben Sie uns Ihre Frage oder Ihr Anliegen ..."
+    },
+    "privacy": {
+      "text": "Ich stimme zu, dass meine Angaben aus dem Kontaktformular zur Bearbeitung meiner Anfrage verarbeitet werden. Weitere Informationen finden Sie in der",
+      "link": "Datenschutzerklärung"
+    },
+    "success": {
+      "title": "Vielen Dank!",
+      "message": "Ihre Nachricht wurde erfolgreich übermittelt. Wir melden uns in der Regel innerhalb von 24 Stunden."
+    },
+    "errors": {
+      "nameTooShort": "Name muss mindestens 2 Zeichen lang sein.",
+      "emailRequired": "Bitte eine gültige E-Mail-Adresse eingeben.",
+      "inquiryTypeRequired": "Bitte einen Anfragetyp wählen.",
+      "messageTooShort": "Ihre Nachricht muss mindestens 10 Zeichen lang sein.",
+      "privacyRequired": "Bitte stimmen Sie der Datenschutzerklärung zu.",
+      "generic": "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut."
+    },
+    "info": {
+      "emailTitle": "E-Mail",
+      "responseTitle": "Antwortzeit",
+      "responseText": "Wir antworten in der Regel innerhalb von 24 Stunden an Werktagen.",
+      "topicsTitle": "Wir helfen bei",
+      "topics": {
+        "demo": "Demo anfragen & Produktvorstellung",
+        "support": "Technischer Support",
+        "partnership": "Kooperationen & Partnerschaften",
+        "feedback": "Feedback & Verbesserungsvorschläge"
+      }
+    }
   },
   "landing": {
     "badge": "Jetzt verfügbar",

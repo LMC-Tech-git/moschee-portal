@@ -71,8 +71,59 @@
     "imprint": "Künye",
     "privacy": "Gizlilik Politikası",
     "terms": "Kullanım Koşulları",
+    "contact": "İletişim",
     "copyright": "Cami Portalı.",
     "builtForCommunity": "Cemaat için sevgiyle yapıldı."
+  },
+  "contact": {
+    "pageTitle": "İletişim",
+    "pageSubtitle": "Sorularınız mı var, demo mu talep etmek istiyorsunuz yoksa işbirliği mi görüşmek istiyorsunuz? Sizden haber almaktan memnuniyet duyarız.",
+    "formLabel": "İletişim formu",
+    "optional": "isteğe bağlı",
+    "submit": "Mesaj gönder",
+    "submitting": "Gönderiliyor...",
+    "fields": {
+      "name": "Ad Soyad",
+      "email": "E-posta adresi",
+      "organization": "Kuruluş / Cami",
+      "inquiryType": "Talep türü",
+      "message": "Mesajınız"
+    },
+    "placeholders": {
+      "name": "Ad Soyad",
+      "email": "sizin@email.de",
+      "organization": "İslam Derneği ...",
+      "inquiryType": "Lütfen seçin ...",
+      "message": "Sorunuzu veya talebinizi yazın ..."
+    },
+    "privacy": {
+      "text": "Talebimi işlemek amacıyla iletişim formundaki verilerimin işlenmesini kabul ediyorum. Daha fazla bilgi için lütfen",
+      "link": "Gizlilik Politikası"
+    },
+    "success": {
+      "title": "Teşekkürler!",
+      "message": "Mesajınız başarıyla iletildi. Genellikle 24 saat içinde size geri döneceğiz."
+    },
+    "errors": {
+      "nameTooShort": "Ad en az 2 karakter olmalıdır.",
+      "emailRequired": "Lütfen geçerli bir e-posta adresi girin.",
+      "inquiryTypeRequired": "Lütfen bir talep türü seçin.",
+      "messageTooShort": "Mesajınız en az 10 karakter olmalıdır.",
+      "privacyRequired": "Lütfen gizlilik politikasını kabul edin.",
+      "generic": "Bir hata oluştu. Lütfen tekrar deneyin."
+    },
+    "info": {
+      "emailTitle": "E-posta",
+      "responseTitle": "Yanıt süresi",
+      "responseText": "İş günlerinde genellikle 24 saat içinde yanıt veriyoruz.",
+      "topicsTitle": "Yardımcı olabiliriz",
+      "topics": {
+        "demo": "Demo talebi ve ürün sunumu",
+        "support": "Teknik destek",
+        "partnership": "İşbirliği ve ortaklıklar",
+        "feedback": "Geri bildirim ve öneriler"
+      }
+    }
   },
   "landing": {
     "badge": "Şimdi kullanılabilir",
