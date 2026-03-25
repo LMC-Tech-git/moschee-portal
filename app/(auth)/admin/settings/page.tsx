@@ -178,7 +178,7 @@ export default function AdminSettingsPage() {
 
       {/* Tabs */}
       <div className="mb-6 flex gap-1 overflow-x-auto rounded-xl border border-gray-200 bg-gray-100 p-1">
-        {TABS.map(({ id, icon: Icon }) => (
+        {TABS.filter(({ id }) => id !== "email" || user?.role === "super_admin").map(({ id, icon: Icon }) => (
           <button
             key={id}
             type="button"
@@ -280,7 +280,7 @@ export default function AdminSettingsPage() {
           }}
         />
       )}
-      {activeTab === "email" && (
+      {activeTab === "email" && user?.role === "super_admin" && (
         <EmailTab
           mosqueId={mosqueId}
           adminEmail={user?.email || ""}
