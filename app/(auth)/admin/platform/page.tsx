@@ -8,6 +8,8 @@ import {
   Target,
   ArrowRight,
   Globe,
+  RefreshCw,
+  AlertTriangle,
 } from "lucide-react";
 import { getPlatformStats, type PlatformStats } from "@/lib/actions/dashboard";
 import { formatCurrencyCents } from "@/lib/utils";
@@ -20,6 +22,9 @@ export default function PlatformDashboard() {
   const [stats, setStats] = useState<PlatformStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const [resetRunning, setResetRunning] = useState(false);
+  const [resetResult, setResetResult] = useState<{ ok: boolean; message: string } | null>(null);
 
   useEffect(() => {
     getPlatformStats()
@@ -34,6 +39,33 @@ export default function PlatformDashboard() {
   const handleManageMosque = (mosqueId: string) => {
     setMosqueOverride(mosqueId);
     router.push("/admin");
+  };
+
+  const handleDemoReset = async () => {
+    if (
+      !window.confirm(
+        "Demo-Daten zurücksetzen?\n\nAlle Beiträge, Veranstaltungen, Kurse, Schüler, Spenden und Sponsoren der Demo-Moschee werden gelöscht und neu angelegt.\n\nBenutzerkonten bleiben erhalten."
+      )
+    ) return;
+
+    setResetRunning(true);
+    setResetResult(null);
+    try {
+      const res = await fetch("/api/admin/demo-reset", { method: "POST" });
+      const data = await res.json();
+      if (res.ok && data.ok) {
+        setResetResult({
+          ok: true,
+          message: `Fertig! ${data.deletedCount} Einträge gelöscht, ${data.createdCount} neu angelegt (${(data.durationMs / 1000).toFixed(1)}s).`,
+        });
+      } else {
+        setResetResult({ ok: false, message: data.error ?? "Unbekannter Fehler" });
+      }
+    } catch (err) {
+      setResetResult({ ok: false, message: err instanceof Error ? err.message : "Netzwerkfehler" });
+    } finally {
+      setResetRunning(false);
+    }
   };
 
   const kpiCards = stats
@@ -189,6 +221,45 @@ export default function PlatformDashboard() {
             ))}
           </div>
         )}
+      </div>
+
+      {/* Demo-Reset */}
+      <div className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-gray-100">
+        <div className="flex items-start gap-3">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-100">
+            <RefreshCw className="h-4 w-4 text-amber-600" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-semibold text-gray-900">Demo-Gemeinde zurücksetzen</p>
+            <p className="mt-1 text-sm text-gray-500">
+              Löscht alle Demo-Inhalte (Beiträge, Veranstaltungen, Kurse, Schüler, Spenden,
+              Sponsoren) und legt sie neu an. Benutzerkonten bleiben erhalten.
+            </p>
+
+            {resetResult && (
+              <div
+                className={`mt-3 flex items-start gap-2 rounded-lg px-3 py-2 text-sm ${
+                  resetResult.ok
+                    ? "bg-emerald-50 text-emerald-700"
+                    : "bg-red-50 text-red-700"
+                }`}
+              >
+                {!resetResult.ok && <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />}
+                <span>{resetResult.message}</span>
+              </div>
+            )}
+
+            <button
+              onClick={handleDemoReset}
+              disabled={resetRunning}
+              type="button"
+              className="mt-3 flex items-center gap-2 rounded-lg bg-amber-50 px-4 py-2 text-sm font-medium text-amber-700 hover:bg-amber-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              <RefreshCw className={`h-4 w-4 ${resetRunning ? "animate-spin" : ""}`} />
+              {resetRunning ? "Zurücksetzen läuft…" : "Zurücksetzen"}
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
