@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import { getAdminPB } from "@/lib/pocketbase-admin";
 import { resetDemoData } from "@/lib/demo/seed";
 
@@ -13,15 +12,16 @@ export const maxDuration = 60;
  * Löscht alle Inhalts-Records der Demo-Moschee und erstellt sie neu.
  * Nur für Super-Admins zugänglich.
  */
-export async function POST(_request: NextRequest) {
-  // ── Auth-Check: pb_auth Cookie direkt auslesen und parsen ─────────────────
-  const cookieStore = cookies();
-  const pbAuthRaw = cookieStore.get("pb_auth")?.value;
+export async function POST(request: NextRequest) {
+  // ── Auth-Check: pb_auth Cookie über request.cookies auslesen ─────────────
+  const pbAuthRaw = request.cookies.get("pb_auth")?.value;
 
   let userRole: string | undefined;
   if (pbAuthRaw) {
     try {
-      const authData = JSON.parse(decodeURIComponent(pbAuthRaw));
+      // PocketBase speichert den Cookie-Wert URL-encodiert oder als rohes JSON
+      const decoded = pbAuthRaw.startsWith("%") ? decodeURIComponent(pbAuthRaw) : pbAuthRaw;
+      const authData = JSON.parse(decoded);
       userRole = authData.model?.role as string | undefined;
     } catch {
       // Cookie nicht parsebar → kein Zugriff
