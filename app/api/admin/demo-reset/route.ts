@@ -13,27 +13,31 @@ export const maxDuration = 60;
  * Nur für Super-Admins zugänglich.
  */
 export async function POST(request: NextRequest) {
-  // ── Auth-Check: pb_auth Cookie über request.cookies auslesen ─────────────
+  // ── Auth-Check: User-ID aus Cookie → Rolle per Admin-PB prüfen ───────────
   const pbAuthRaw = request.cookies.get("pb_auth")?.value;
-
-  let userRole: string | undefined;
-  let debugInfo: Record<string, unknown> = { cookieFound: !!pbAuthRaw };
+  let userId: string | undefined;
 
   if (pbAuthRaw) {
     try {
       const decoded = pbAuthRaw.startsWith("%") ? decodeURIComponent(pbAuthRaw) : pbAuthRaw;
-      const authData = JSON.parse(decoded);
-      userRole = authData.model?.role as string | undefined;
-      debugInfo = { ...debugInfo, parsedOk: true, role: userRole, modelKeys: Object.keys(authData.model ?? {}) };
-    } catch (e) {
-      debugInfo = { ...debugInfo, parsedOk: false, parseError: String(e), rawPreview: pbAuthRaw.substring(0, 80) };
+      userId = JSON.parse(decoded)?.model?.id as string | undefined;
+    } catch {
+      // ignore
     }
   }
 
-  console.log("[demo-reset] auth debug:", JSON.stringify(debugInfo));
+  if (!userId) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
 
-  if (userRole !== "super_admin") {
-    return NextResponse.json({ error: "Forbidden", debug: debugInfo }, { status: 403 });
+  try {
+    const adminPb = await getAdminPB();
+    const user = await adminPb.collection("users").getOne(userId, { fields: "id,role" });
+    if ((user as unknown as Record<string, unknown>).role !== "super_admin") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+  } catch {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   // ── Demo-Moschee ermitteln ────────────────────────────────────────────────
