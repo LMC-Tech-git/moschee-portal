@@ -17,6 +17,7 @@ import {
   updateSponsorsSettings,
   updateTeamSettings,
   updateContactSettings,
+  getResendStatus,
 } from "@/lib/actions/settings";
 import type { PbSmtpSettings } from "@/lib/actions/settings";
 import { sendTestEmailAction } from "@/lib/actions/email";
@@ -1486,6 +1487,7 @@ function EmailTab({ mosqueId: _mosqueId, adminEmail }: { mosqueId: string; admin
   const t = useTranslations("settings");
   const [smtpData, setSmtpData] = useState<PbSmtpSettings>(DEFAULT_SMTP);
   const [isLoadingSmtp, setIsLoadingSmtp] = useState(true);
+  const [resendConfigured, setResendConfigured] = useState<boolean | null>(null);
   const [testEmail, setTestEmail] = useState(adminEmail);
   const [isTesting, setIsTesting] = useState(false);
   const [isSavingSmtp, setIsSavingSmtp] = useState(false);
@@ -1497,6 +1499,7 @@ function EmailTab({ mosqueId: _mosqueId, adminEmail }: { mosqueId: string; admin
       if (r.success && r.data) setSmtpData(r.data);
       setIsLoadingSmtp(false);
     });
+    getResendStatus().then((r) => setResendConfigured(r.configured));
   }, []);
 
   async function handleTestEmail() {
@@ -1506,7 +1509,7 @@ function EmailTab({ mosqueId: _mosqueId, adminEmail }: { mosqueId: string; admin
     const r = await sendTestEmailAction(testEmail.trim());
     setTestStatus(
       r.success
-        ? { type: "success", message: t("email.saved") }
+        ? { type: "success", message: t("email.resendTestSuccess") }
         : { type: "error", message: r.error || t("email.saveError") }
     );
     setIsTesting(false);
@@ -1543,36 +1546,41 @@ function EmailTab({ mosqueId: _mosqueId, adminEmail }: { mosqueId: string; admin
         description={t("email.resendDesc")}
       >
         <div className="space-y-4">
-          <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800">
-            <p className="font-medium mb-1">Konfiguration über Umgebungsvariablen</p>
-            <p className="text-blue-700 mb-2">Trage folgende Werte in deine <code className="rounded bg-blue-100 px-1">.env.local</code> ein:</p>
-            <pre className="rounded bg-blue-100 p-3 text-xs font-mono text-blue-900 whitespace-pre-wrap">
-{`RESEND_API_KEY=re_xxxxxxxxxxxxxxxx
-RESEND_FROM_EMAIL=Moschee Portal <noreply@deine-domain.de>`}
-            </pre>
-            <p className="mt-2 text-blue-700">
-              Den API-Key erhältst du kostenlos unter{" "}
-              <a href="https://resend.com" target="_blank" rel="noopener noreferrer" className="underline font-medium">
-                resend.com
-              </a>
-              . Der kostenlose Plan beinhaltet 3.000 E-Mails/Monat.
-            </p>
+          {/* Status-Badge */}
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-medium text-gray-700">{t("email.resendStatusLabel")}:</span>
+            {resendConfigured === null ? (
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600 inline-block" />
+            ) : resendConfigured ? (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-sm font-medium text-emerald-700">
+                <CheckCircle className="h-3.5 w-3.5" />
+                {t("email.resendConfigured")}
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-sm font-medium text-amber-700">
+                <AlertCircle className="h-3.5 w-3.5" />
+                {t("email.resendNotConfigured")}
+              </span>
+            )}
           </div>
 
+          <p className="text-sm text-gray-500">{t("email.resendManagedBy")}</p>
+
+          {/* Test-E-Mail */}
           <div className="space-y-2">
-            <label className={labelCls}>{t("email.resendKeyLabel")}</label>
+            <label className={labelCls}>{t("email.resendTestLabel")}</label>
             <div className="flex gap-2">
               <input
                 type="email"
                 value={testEmail}
                 onChange={(e) => setTestEmail(e.target.value)}
-                placeholder={t("email.resendKeyPlaceholder")}
+                placeholder={t("email.resendTestPlaceholder")}
                 className={`${inputCls} flex-1`}
               />
               <button
                 type="button"
                 onClick={handleTestEmail}
-                disabled={isTesting || !testEmail.trim()}
+                disabled={isTesting || !testEmail.trim() || !resendConfigured}
                 className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-60"
               >
                 {isTesting ? (
@@ -1580,7 +1588,7 @@ RESEND_FROM_EMAIL=Moschee Portal <noreply@deine-domain.de>`}
                 ) : (
                   <Send className="h-4 w-4" />
                 )}
-                {isTesting ? t("email.saving") : t("email.save")}
+                {isTesting ? t("email.resendSending") : t("email.resendSend")}
               </button>
             </div>
             {testStatus && (

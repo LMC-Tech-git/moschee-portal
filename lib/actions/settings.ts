@@ -469,6 +469,14 @@ export async function updatePbSmtpSettings(
 }
 
 // =========================================
+// Resend-Status (nur ob konfiguriert, nie der Key selbst)
+// =========================================
+
+export async function getResendStatus(): Promise<{ configured: boolean }> {
+  return { configured: !!process.env.RESEND_API_KEY };
+}
+
+// =========================================
 // Förderpartner-Einstellungen
 // =========================================
 

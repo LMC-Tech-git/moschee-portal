@@ -1,4 +1,4 @@
-# Moschee-Portal — Projektstatus (Stand: März 2026, Session 20)
+# Moschee-Portal — Projektstatus (Stand: März 2026, Session 21)
 
 ## Tech-Stack
 - **Frontend:** Next.js 14 (App Router), TypeScript, Tailwind CSS, Shadcn/ui (12 Komponenten)
@@ -35,6 +35,8 @@
 | Einladungs-Registrierung | `app/[slug]/invite/[token]/` |
 | **Förderpartner-Seite (Kategoriefilter, Website-Links)** | `app/[slug]/foerderpartner/` |
 | Impressum, Datenschutz, AGB | `app/impressum`, `app/datenschutz`, `app/agb` |
+| **Globales Kontaktformular** (`moschee.app/kontakt`) | `app/kontakt/page.tsx`, `app/api/contact/route.ts`, `components/contact/ContactForm.tsx` |
+| **Per-Moschee Kontaktformular** (`[slug]/kontakt`) | `app/[slug]/kontakt/page.tsx`, `app/api/[slug]/contact/route.ts` |
 
 ### Admin-Panel (`/admin/...`)
 | Feature | Dateien |
@@ -48,7 +50,7 @@
 | Newsletter (email_outbox) | `app/(auth)/admin/newsletter/` |
 | Einladungen (erstellen, kopieren, widerrufen) | `app/(auth)/admin/invites/` |
 | Audit-Log (paginiert, gefiltert) | `app/(auth)/admin/audit/` |
-| Einstellungen (Branding, Gebetszeiten, Defaults, **Madrasa**) | `app/(auth)/admin/settings/` |
+| Einstellungen (Branding, Gebetszeiten, Defaults, **Madrasa**, **Kontaktformular**) | `app/(auth)/admin/settings/` |
 | **Madrasa: Schuljahre, Kurse, Einschreibungen** | `app/(auth)/admin/madrasa/` |
 | **Madrasa: Anwesenheit + Statistiken** | `app/(auth)/admin/madrasa/[id]/attendance/` |
 | **Madrasa: Gebühren (Bar/Überweisung/Erlassen)** | `app/(auth)/admin/madrasa/gebuehren/` |
@@ -82,7 +84,7 @@
 | **Email Queue** | `email_outbox` Collection → `GET/POST /api/email/process-queue` (CRON_SECRET) |
 | **Cron-Job** | Alle 5 Min: `curl https://moschee.app/api/email/process-queue` via Linux-Crontab |
 | **Stripe Webhook** | `checkout.session.completed` → Spendenbestätigungs-Mail |
-| **E-Mail-Templates** | 7 HTML-Templates: Newsletter, Event-Bestätigung, Gebühren-Erinnerung, Admin-Notiz, Spendenquittung, Jahresbescheinigung, **Sponsor-Ablauferinnerung** |
+| **E-Mail-Templates** | 9 HTML-Templates: Newsletter, Event-Bestätigung, Gebühren-Erinnerung, Admin-Notiz, Spendenquittung, Jahresbescheinigung, Sponsor-Ablauferinnerung, **Kontakt-Benachrichtigung (Admin)**, **Kontakt-Auto-Reply (Absender)** |
 | **Cron: Sponsor-Erinnerungen** | Jeden 21. des Monats: ablaufende Sponsors per E-Mail erinnern (`app/api/cron/sponsor-reminders/`) |
 
 ### API-Endpunkte
@@ -95,6 +97,8 @@
 | `GET /api/cron/sponsor-reminders` | Sponsor-Ablauferinnerungen senden (Bearer Auth, Cron 21./Monat) |
 | `GET/POST /api/email/process-queue` | E-Mail-Queue verarbeiten (Cron + manuell) |
 | `GET /api/health` | Health-Check |
+| `POST /api/contact` | Globales Kontaktformular (moschee.app, speichert in `inquiries`) |
+| `POST /api/[slug]/contact` | **Per-Moschee Kontaktformular** (Rate-Limit, Honeypot, IP-Hash, Demo-Guard, speichert in `contact_messages`) |
 
 ### Server Actions (`lib/actions/`)
 | Action-File | Zuständig für |
@@ -108,7 +112,7 @@
 | `email.ts` | Gebühren-Erinnerungsmails |
 | `invites.ts` | Einladungen CRUD + Token-Validierung |
 | `dashboard.ts` | Dashboard KPI-Aggregation |
-| `settings.ts` | Einstellungen (Branding, Gebetszeiten, Defaults, Madrasa) |
+| `settings.ts` | Einstellungen (Branding, Gebetszeiten, Defaults, Madrasa, **Kontaktformular**); `updateContactSettings()`, `getFeatureFlags()` (team/sponsors/**contact**) |
 | `audit.ts` | Audit-Log lesen (paginiert) |
 | `academic-years.ts` | Schuljahre CRUD |
 | `courses.ts` | Madrasa-Kurse CRUD |
@@ -120,12 +124,12 @@
 
 ---
 
-## 🗃️ PocketBase Collections (19)
+## 🗃️ PocketBase Collections (20)
 
 | Collection | Beschreibung |
 |---|---|
 | `mosques` | Haupttenant (Branding, Koordinaten, Stripe-Config) |
-| `settings` | Einstellungen pro Moschee |
+| `settings` | Einstellungen pro Moschee (inkl. `contact_enabled`, `contact_email`, `contact_notify_admin`, `contact_auto_reply`) |
 | `users` | Portal-Mitglieder (auth collection) |
 | `posts` | Blog-Beiträge |
 | `events` | Veranstaltungen (inkl. Wiederkehrend) |
@@ -144,6 +148,7 @@
 | `attendance` | Anwesenheitserfassung |
 | `student_fees` | Monatliche Madrasa-Gebühren |
 | `sponsors` | Förderpartner (Name, Logo, Kontakt-User, Stripe, Laufzeit, Erinnerung) |
+| `contact_messages` | Per-Moschee Kontaktnachrichten (mosque_id, name, email, message, inquiry_type, ip_address SHA-256) |
 
 ---
 
@@ -202,6 +207,7 @@ Fundament & Infrastruktur    ████████████ 100%
 Admin-Panel (Core)            ████████████ 100%
 Madrasa-Modul                 ████████████ 100%
 Förderpartner-Modul           ████████████ 100%
+Kontaktformular-Modul         ████████████ 100%
 Member-Bereich                ███████████░  98%  (Invite-Mail fehlt)
 Zahlungen                     ████████████ 100%
 Security                      ████████████ 100%
@@ -242,3 +248,4 @@ Das System ist produktionsbereit — Förderpartner-Modul, Madrasa, E-Mails, Zah
 | **18** | **Vollständige Mehrsprachigkeit DE/TR** — 19 Dateien, ~1050 neue Übersetzungsschlüssel: alle Admin-Seiten (newsletter, invites, audit, settings, madrasa, spenden, posts/new, events/new), Formular-Komponenten (PostForm, EventForm, CampaignForm, CourseForm, CreateInviteDialog), Listenseiten (Kategorie-/Status-Labels), Member-Profil (Monatsanzeige locale-aware) |
 | **19** | **E-Mail-Infrastruktur vollständig in Betrieb** — Resend.com eingerichtet (Domain verifiziert: mail.moschee.app, DKIM/SPF/DMARC), PocketBase SMTP für Passwort-Reset/Verifikation, Cron-Job für email_outbox (alle 5 Min), Stripe Webhook für Spendenbestätigung, PocketBase als systemd-Dienst (Auto-Restart), CSP-Fix (`connect-src` Origin statt Pfad), JSON-Syntaxfehler in Übersetzungsdateien behoben, **Spendenbescheinigung per E-Mail** (neues Feature: `renderAnnualDonationReceipt`, `sendDonationReceiptByEmail`, E-Mail-Button auf Bescheinigungsseite) |
 | **20** | **Förderpartner-Modul vollständig** — `sponsors` Collection (19. Collection), Admin-CRUD mit Kontaktfeldern (`contact_user_id`, `contact_email`), Laufzeit-Felder (Von/Bis im Dialog + auto-Berechnung via Stripe-Webhook), Kategoriefilter auf öffentlicher Seite, safeHref-Fix für Website-URLs, **Stripe-Checkout für Sponsors** (analog zu Schülergebühren), **Mehrmonats-Zahlung** (1/3/6/12 Monate) für Sponsors UND Madrasa-Gebühren, Förderpartner-Tab im Member-Profil (nur wenn als Kontakt hinterlegt), Erinnerungs-Indikator (Bell-Icon, `notification_sent`), Cron-Job am 21. jeden Monats (`/api/cron/sponsor-reminders`), E-Mail-Template für Ablauferinnerung, Mehrsprachigkeit DE/TR vollständig, VPS-Crontab konfiguriert |
+| **21** | **Per-Moschee Kontaktformular + Header-Fix** — `contact_messages` Collection (20. Collection), 4 neue Settings-Felder (`contact_enabled`, `contact_email`, `contact_notify_admin`, `contact_auto_reply`), `app/[slug]/kontakt/page.tsx` (notFound wenn deaktiviert), `app/api/[slug]/contact/route.ts` (Rate-Limit `contact:${slug}:${ipHash}`, Honeypot, Demo-Guard, E-Mail-Fallback-Kette mit `console.warn`), Admin-Settings "Kontaktformular"-Tab (E-Mail-Validierung, Sub-Toggles), `ContactForm` erweitert (`apiPath?`, `mosqueName?`), E-Mail-Templates mit `mosqueName?` Parameter (Admin-Notif + Auto-Reply), i18n DE/TR `settings.contact.*` + `contact.success.messageNamed`, **Header-Fix**: "Registrieren"-Button auf Root-Domain `moschee.app` ausgeblendet (`{slug && <Link>}`) |
