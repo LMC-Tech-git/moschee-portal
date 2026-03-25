@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import PocketBase from "pocketbase";
+import { cookies } from "next/headers";
 import { getAdminPB } from "@/lib/pocketbase-admin";
 import { resetDemoData } from "@/lib/demo/seed";
 
@@ -13,22 +13,22 @@ export const maxDuration = 60;
  * Löscht alle Inhalts-Records der Demo-Moschee und erstellt sie neu.
  * Nur für Super-Admins zugänglich.
  */
-export async function POST(request: NextRequest) {
-  // ── Auth-Check: nur super_admin ──────────────────────────────────────────
-  const pbUrl =
-    process.env.POCKETBASE_URL || process.env.NEXT_PUBLIC_POCKETBASE_URL;
-  if (!pbUrl) {
-    return NextResponse.json({ error: "Serverkonfiguration fehlt" }, { status: 500 });
+export async function POST(_request: NextRequest) {
+  // ── Auth-Check: pb_auth Cookie direkt auslesen und parsen ─────────────────
+  const cookieStore = cookies();
+  const pbAuthRaw = cookieStore.get("pb_auth")?.value;
+
+  let userRole: string | undefined;
+  if (pbAuthRaw) {
+    try {
+      const authData = JSON.parse(decodeURIComponent(pbAuthRaw));
+      userRole = authData.model?.role as string | undefined;
+    } catch {
+      // Cookie nicht parsebar → kein Zugriff
+    }
   }
 
-  const userPb = new PocketBase(pbUrl);
-  const cookieHeader = request.headers.get("cookie") ?? "";
-  userPb.authStore.loadFromCookie(cookieHeader);
-
-  const userRole = (userPb.authStore.model as Record<string, unknown> | null)
-    ?.role as string | undefined;
-
-  if (!userPb.authStore.isValid || userRole !== "super_admin") {
+  if (userRole !== "super_admin") {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
