@@ -90,7 +90,7 @@ export async function POST(
       }
     }
 
-    const { amount_cents, campaign_id, donor_name, donor_email, cover_fees } = parsed.data;
+    const { amount_cents, campaign_id, donor_name, donor_email, cover_fees, payment_method_type } = parsed.data;
 
     // Gebühren-Berechnung (einheitliche Formel — identisch zum Frontend)
     // Stripe EU-Schätzung: 1,5% + 0,25 €
@@ -180,7 +180,13 @@ export async function POST(
       : request.nextUrl.origin;
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
-      payment_method_types: ["card", "sepa_debit"],
+      // Wenn eine spezifische Methode gewählt wurde (Demo), nur diese anbieten.
+      // Sonst: Karte + SEPA zur Auswahl stellen.
+      payment_method_types: payment_method_type === "sepa_debit"
+        ? ["sepa_debit"]
+        : payment_method_type === "card"
+          ? ["card"]
+          : ["card", "sepa_debit"],
       line_items: [
         {
           price_data: {

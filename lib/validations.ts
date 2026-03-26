@@ -121,6 +121,8 @@ export const donationCheckoutSchema = z.object({
   donor_email: z.string().email().optional(),
   is_recurring: z.boolean().default(false),
   cover_fees: z.boolean().default(false),
+  /** Nur für Demo: Zahlungsmethode vorauswählen ("card" | "sepa_debit") */
+  payment_method_type: z.enum(["card", "sepa_debit"]).default("card").optional(),
 });
 export type DonationCheckoutInput = z.infer<typeof donationCheckoutSchema>;
 

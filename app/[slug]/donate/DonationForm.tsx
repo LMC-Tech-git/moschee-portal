@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { Heart, ExternalLink, UserCheck, ShieldCheck } from "lucide-react";
+import { Heart, ExternalLink, UserCheck, ShieldCheck, CreditCard, Building2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useAuth } from "@/lib/auth-context";
 import { formatCurrencyCents } from "@/lib/utils";
 import { TurnstileWidget } from "@/components/shared/TurnstileWidget";
+import { DEMO_MOSQUE_ID } from "@/lib/demo";
 import type { CampaignWithProgress } from "@/types";
 
 const DEFAULT_PRESET_AMOUNTS = [500, 1000, 2000, 5000, 10000]; // in Cents
@@ -44,6 +45,8 @@ export function DonationForm({
   const [donorName, setDonorName] = useState("");
   const [donorEmail, setDonorEmail] = useState("");
   const [coverFees, setCoverFees] = useState(false);
+  const [paymentMethodType, setPaymentMethodType] = useState<"card" | "sepa_debit">("card");
+  const isDemo = DEMO_MOSQUE_ID !== "" && mosqueId === DEMO_MOSQUE_ID;
   const [turnstileToken, setTurnstileToken] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -149,6 +152,7 @@ export function DonationForm({
             donor_email: donorEmail || undefined,
             turnstile_token: turnstileToken,
             cover_fees: coverFees,
+            payment_method_type: isDemo ? paymentMethodType : undefined,
           }),
         }
       );
@@ -311,6 +315,50 @@ export function DonationForm({
           </div>
         )}
       </div>
+
+      {/* Zahlungsmethode (nur Demo) */}
+      {isDemo && (
+        <div>
+          <p className="mb-2 text-sm font-medium text-gray-700">
+            Zahlungsmethode{" "}
+            <span className="ml-1 rounded bg-amber-100 px-1.5 py-0.5 text-xs font-semibold text-amber-700">
+              Demo
+            </span>
+          </p>
+          <div className="grid grid-cols-2 gap-2" role="group" aria-label="Zahlungsmethode wählen">
+            <button
+              type="button"
+              onClick={() => setPaymentMethodType("card")}
+              className={`flex items-center justify-center gap-2 rounded-lg border px-4 py-3 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
+                paymentMethodType === "card"
+                  ? "border-emerald-500 bg-emerald-50 text-emerald-700"
+                  : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+              }`}
+            >
+              <CreditCard className="h-4 w-4" aria-hidden="true" />
+              Kartenzahlung
+            </button>
+            <button
+              type="button"
+              onClick={() => setPaymentMethodType("sepa_debit")}
+              className={`flex items-center justify-center gap-2 rounded-lg border px-4 py-3 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
+                paymentMethodType === "sepa_debit"
+                  ? "border-emerald-500 bg-emerald-50 text-emerald-700"
+                  : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+              }`}
+            >
+              <Building2 className="h-4 w-4" aria-hidden="true" />
+              SEPA-Lastschrift
+            </button>
+          </div>
+          {paymentMethodType === "sepa_debit" && (
+            <p className="mt-2 rounded-lg bg-blue-50 px-3 py-2 text-xs text-blue-700">
+              <strong>Test-IBAN:</strong> DE08 3704 0044 0532 0130 03 — Zahlung wechselt nach ~3 Min. auf
+              „erfolgreich".
+            </p>
+          )}
+        </div>
+      )}
 
       <TurnstileWidget onVerify={handleTurnstileVerify} />
 
