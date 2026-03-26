@@ -68,13 +68,17 @@ export default function Header() {
   const isTeacher = user?.role === "teacher";
   const isImam = user?.role === "imam";
   // URL-Slug hat Vorrang auf öffentlichen Moschee-Seiten (verhindert falsche Links bei eingeloggten Usern)
-  const HEADER_RESERVED = ['admin','member','lehrer','imam','login','register','api','invite','impressum','datenschutz','agb','leitung','kontakt','offline','passwort-vergessen','passwort-zuruecksetzen'];
+  const HEADER_RESERVED = ['admin','member','lehrer','imam','login','register','api','invite','impressum','datenschutz','agb','leitung','foerderpartner','kontakt','offline','passwort-vergessen','passwort-zuruecksetzen'];
   const pathParts = pathname.split('/').filter(Boolean);
   const urlSlug = pathParts.length > 0 && !HEADER_RESERVED.includes(pathParts[0]) ? pathParts[0] : null;
   // mosque?.slug hat Vorrang: Kommt vom MosqueProvider (initialMosque = sofort verfügbar),
   // während urlSlug auf Subdomains (z.B. demo.moschee.app) initial null ist,
   // da usePathname() die Browser-URL zurückgibt, nicht den Middleware-Rewrite-Pfad.
   const slug = mosque?.slug ?? urlSlug;
+  // Auf Subdomains (mosque?.slug gesetzt) saubere Pfade nutzen ("/events" statt "/demo/events"),
+  // da die Middleware sonst doppelt rewritet: demo.moschee.app/demo/events → /demo/demo/events → 404.
+  // Auf der Hauptdomain (nur urlSlug) den Slug-Pfad beibehalten.
+  const basePath = mosque?.slug ? "" : (slug ? `/${slug}` : "");
 
   const closeMobileMenu = useCallback(() => setMobileMenuOpen(false), []);
 
@@ -129,7 +133,7 @@ export default function Header() {
           {/* Moschee-Dashboard (für alle eingeloggten User) */}
           {slug && (
             <Link
-              href={`/${slug}`}
+              href={basePath || "/"}
               className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-emerald-50 hover:text-emerald-600"
             >
               <Home className="h-4 w-4" aria-hidden="true" />
@@ -141,14 +145,14 @@ export default function Header() {
           {slug && (
             <>
               <Link
-                href={`/${slug}/events`}
+                href={`${basePath}/events`}
                 className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-emerald-50 hover:text-emerald-600"
               >
                 <CalendarDays className="h-4 w-4" aria-hidden="true" />
                 {t("nav.events")}
               </Link>
               <Link
-                href={`/${slug}/donate`}
+                href={`${basePath}/donate`}
                 className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-emerald-50 hover:text-emerald-600"
               >
                 <Heart className="h-4 w-4" aria-hidden="true" />
@@ -156,7 +160,7 @@ export default function Header() {
               </Link>
               {sponsorsEnabled && (
                 <Link
-                  href={`/${slug}/foerderpartner`}
+                  href={`${basePath}/foerderpartner`}
                   className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-emerald-50 hover:text-emerald-600"
                 >
                   <Handshake className="h-4 w-4" aria-hidden="true" />
@@ -165,7 +169,7 @@ export default function Header() {
               )}
               {teamEnabled && (
                 <Link
-                  href={`/${slug}/leitung`}
+                  href={`${basePath}/leitung`}
                   className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-emerald-50 hover:text-emerald-600"
                 >
                   <Users className="h-4 w-4" aria-hidden="true" />
@@ -296,7 +300,7 @@ export default function Header() {
           {slug ? (
             <>
               <Link
-                href={`/${slug}`}
+                href={basePath || "/"}
                 className="flex items-center gap-2 rounded-lg px-4 py-3 text-sm font-medium text-gray-700 hover:bg-emerald-50 hover:text-emerald-600"
                 onClick={closeMobileMenu}
               >
@@ -304,7 +308,7 @@ export default function Header() {
                 {t("nav.home")}
               </Link>
               <Link
-                href={`/${slug}/events`}
+                href={`${basePath}/events`}
                 className="flex items-center gap-2 rounded-lg px-4 py-3 text-sm font-medium text-gray-700 hover:bg-emerald-50 hover:text-emerald-600"
                 onClick={closeMobileMenu}
               >
@@ -312,7 +316,7 @@ export default function Header() {
                 {t("nav.events")}
               </Link>
               <Link
-                href={`/${slug}/donate`}
+                href={`${basePath}/donate`}
                 className="flex items-center gap-2 rounded-lg px-4 py-3 text-sm font-medium text-gray-700 hover:bg-emerald-50 hover:text-emerald-600"
                 onClick={closeMobileMenu}
               >
@@ -321,7 +325,7 @@ export default function Header() {
               </Link>
               {sponsorsEnabled && (
                 <Link
-                  href={`/${slug}/foerderpartner`}
+                  href={`${basePath}/foerderpartner`}
                   className="flex items-center gap-2 rounded-lg px-4 py-3 text-sm font-medium text-gray-700 hover:bg-emerald-50 hover:text-emerald-600"
                   onClick={closeMobileMenu}
                 >
@@ -331,7 +335,7 @@ export default function Header() {
               )}
               {teamEnabled && (
                 <Link
-                  href={`/${slug}/leitung`}
+                  href={`${basePath}/leitung`}
                   className="flex items-center gap-2 rounded-lg px-4 py-3 text-sm font-medium text-gray-700 hover:bg-emerald-50 hover:text-emerald-600"
                   onClick={closeMobileMenu}
                 >
