@@ -120,6 +120,7 @@ export const donationCheckoutSchema = z.object({
   donor_name: z.string().optional().default(""),
   donor_email: z.string().email().optional(),
   is_recurring: z.boolean().default(false),
+  cover_fees: z.boolean().default(false),
 });
 export type DonationCheckoutInput = z.infer<typeof donationCheckoutSchema>;
 

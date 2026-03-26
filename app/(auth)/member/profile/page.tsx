@@ -1124,6 +1124,19 @@ function MadrasaFeeOverview({
           </div>
         </div>
       )}
+
+      {/* Transparenz-Hinweis (nur wenn Stripe aktiv) */}
+      {stripeEnabled && (
+        <div className="flex items-start gap-2 rounded-lg border border-emerald-100 bg-emerald-50 px-3 py-2.5">
+          <svg xmlns="http://www.w3.org/2000/svg" className="mt-0.5 h-4 w-4 flex-shrink-0 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            <polyline points="9 12 11 14 15 10" />
+          </svg>
+          <p className="text-xs text-emerald-800">
+            Moschee.App erhebt keine Provision. Ihre Zahlung wird direkt an die Moschee weitergeleitet. Es können lediglich Gebühren des Zahlungsanbieters (Stripe) anfallen.
+          </p>
+        </div>
+      )}
     </div>
   );
 }

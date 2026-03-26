@@ -74,7 +74,14 @@ export async function POST(
       );
     }
 
-    const { amount_cents, campaign_id, donor_name, donor_email } = parsed.data;
+    const { amount_cents, campaign_id, donor_name, donor_email, cover_fees } = parsed.data;
+
+    // Gebühren-Berechnung (einheitliche Formel — identisch zum Frontend)
+    // Stripe EU-Schätzung: 1,5% + 0,25 €
+    const stripeCents = cover_fees
+      ? Math.ceil((amount_cents + 25) / 0.985)
+      : amount_cents;
+    const estimatedFeeCents = cover_fees ? stripeCents - amount_cents : 0;
 
     // 2c. Auth-Token prüfen (optional — eingeloggte Mitglieder)
     let authenticatedUserId = "";
@@ -121,8 +128,11 @@ export async function POST(
       donor_type: authenticatedDonorType,
       donor_name: donor_name || "",
       donor_email: donor_email || "",
-      amount: amount_cents / 100, // EUR (Pflichtfeld)
-      amount_cents,
+      amount: amount_cents / 100, // EUR (Pflichtfeld — immer Original-Betrag)
+      amount_cents,             // Original-Betrag (ohne Gebühren-Aufschlag)
+      gross_amount_cents: stripeCents, // Was Stripe tatsächlich berechnet
+      fee_covered: cover_fees,
+      estimated_fee_cents: estimatedFeeCents,
       currency: "EUR",
       is_recurring: false,
       provider: "stripe",
@@ -160,11 +170,12 @@ export async function POST(
         {
           price_data: {
             currency: "eur",
-            unit_amount: amount_cents,
+            unit_amount: stripeCents,
             product_data: {
               name: campaign_id
                 ? `Spende — ${mosque.name} (Kampagne)`
                 : `Spende — ${mosque.name}`,
+              description: "Moschee.App erhebt keine Provision. Zahlung direkt an die Moschee.",
             },
           },
           quantity: 1,
@@ -175,6 +186,8 @@ export async function POST(
         mosque_id: mosque.id,
         donation_id: donation.id,
         campaign_id: campaign_id || "",
+        original_amount_cents: String(amount_cents),
+        cover_fees: cover_fees ? "true" : "false",
       },
       success_url: `${origin}/${params.slug}/donate?success=true`,
       cancel_url: `${origin}/${params.slug}/donate?cancelled=true`,

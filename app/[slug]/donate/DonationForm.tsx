@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { Heart, ExternalLink, UserCheck } from "lucide-react";
+import { Heart, ExternalLink, UserCheck, ShieldCheck } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useAuth } from "@/lib/auth-context";
 import { formatCurrencyCents } from "@/lib/utils";
@@ -43,9 +43,18 @@ export function DonationForm({
   const [campaignId, setCampaignId] = useState(preselectedCampaignId || "");
   const [donorName, setDonorName] = useState("");
   const [donorEmail, setDonorEmail] = useState("");
+  const [coverFees, setCoverFees] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+
+  // Einheitliche Gebühren-Formel (Frontend = Backend)
+  // Stripe EU-Schätzung: 1,5% + 0,25 €
+  const adjustedCents = Math.ceil((amountCents + 25) / 0.985);
+  const feeEstimateCents = adjustedCents - amountCents;
+  const displayTotalCents = coverFees ? adjustedCents : amountCents;
+  // Checkbox nur anzeigen wenn Betrag >= 200 ct (2€), sonst wäre Fixgebühr unverhältnismäßig
+  const showFeeCheckbox = amountCents >= 200;
 
   // Vorausfüllen wenn eingeloggt
   useEffect(() => {
@@ -139,6 +148,7 @@ export function DonationForm({
             donor_name: donorName || undefined,
             donor_email: donorEmail || undefined,
             turnstile_token: turnstileToken,
+            cover_fees: coverFees,
           }),
         }
       );
@@ -268,12 +278,38 @@ export function DonationForm({
         </div>
       )}
 
-      {/* Betrag anzeigen */}
-      <div className="rounded-lg bg-emerald-50 p-4 text-center">
-        <p className="text-sm text-gray-600">{t("yourAmount")}</p>
-        <p className="text-3xl font-extrabold text-emerald-700">
-          {formatCurrencyCents(amountCents)}
-        </p>
+      {/* Betrag anzeigen + Gebühren-Checkbox */}
+      <div className="rounded-lg bg-emerald-50 p-4">
+        <div className="text-center">
+          <p className="text-sm text-gray-600">{t("yourAmount")}</p>
+          <p className="text-3xl font-extrabold text-emerald-700">
+            {formatCurrencyCents(amountCents)}
+          </p>
+        </div>
+
+        {/* Gebühren-Checkbox — nur bei >= 2 € */}
+        {showFeeCheckbox && (
+          <div className="mt-3 border-t border-emerald-100 pt-3">
+            <label className="flex cursor-pointer items-start gap-3">
+              <input
+                type="checkbox"
+                checked={coverFees}
+                onChange={(e) => setCoverFees(e.target.checked)}
+                className="mt-0.5 h-4 w-4 cursor-pointer rounded accent-emerald-600"
+              />
+              <span className="text-sm text-gray-700">
+                Ich übernehme die Transaktionskosten, damit meine Spende vollständig ankommt{" "}
+                <span className="font-semibold text-emerald-700">(+{formatCurrencyCents(feeEstimateCents)})</span>
+              </span>
+            </label>
+            {coverFees && (
+              <p className="mt-2 pl-7 text-xs text-gray-500">
+                Gesamtbetrag: <span className="font-semibold">{formatCurrencyCents(displayTotalCents)}</span>
+                {" "}· Geschätzt, kann je nach Zahlungsmethode leicht variieren.
+              </p>
+            )}
+          </div>
+        )}
       </div>
 
       <TurnstileWidget onVerify={handleTurnstileVerify} />
@@ -290,10 +326,22 @@ export function DonationForm({
         ) : (
           <>
             <Heart className="h-5 w-5" />
-            {t("submitBtn")}
+            {coverFees
+              ? `Jetzt ${formatCurrencyCents(displayTotalCents)} spenden`
+              : t("submitBtn")}
           </>
         )}
       </button>
+
+      {/* Transparenz-Hinweis */}
+      <div className="flex items-start gap-2 rounded-lg border border-emerald-100 bg-emerald-50 px-3 py-2.5">
+        <ShieldCheck className="mt-0.5 h-4 w-4 flex-shrink-0 text-emerald-600" />
+        <p className="text-xs text-emerald-800">
+          {coverFees
+            ? "Sie übernehmen die Transaktionskosten, sodass der Spendenbetrag nahezu vollständig bei der Moschee ankommt."
+            : "Moschee.App erhebt keine Provision. Ihre Zahlung wird direkt an die Moschee weitergeleitet. Es können lediglich Gebühren des Zahlungsanbieters (Stripe) anfallen."}
+        </p>
+      </div>
 
       <p className="text-center text-xs text-gray-400">
         {t("securePayment")}
