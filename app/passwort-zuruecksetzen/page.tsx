@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { KeyRound, Eye, EyeOff, CheckCircle, AlertCircle } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { getClientPB } from "@/lib/pocketbase";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -60,14 +59,21 @@ export default function ResetPasswordPage() {
     setError("");
 
     try {
-      const pb = getClientPB();
-      await pb.collection("users").confirmPasswordReset(token, password, passwordConfirm);
+      const res = await fetch("/api/auth/confirm-password-reset", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, password }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Fehler");
+      }
       setSuccess(true);
       setTimeout(() => router.push("/login"), 2000);
     } catch (err: unknown) {
-      const pbErr = err as { message?: string };
-      if (pbErr?.message?.includes("invalid")) {
-        setError(t("errorInvalid"));
+      const msg = err instanceof Error ? err.message : "";
+      if (msg.includes("ungültig") || msg.includes("verwendet") || msg.includes("abgelaufen")) {
+        setError(msg);
       } else {
         setError(t("errorGeneric"));
       }

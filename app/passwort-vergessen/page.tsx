@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { KeyRound, Mail, ArrowLeft, CheckCircle } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { getClientPB } from "@/lib/pocketbase";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,8 +24,11 @@ export default function ForgotPasswordPage() {
     setError("");
 
     try {
-      const pb = getClientPB();
-      await pb.collection("users").requestPasswordReset(email.trim());
+      await fetch("/api/auth/request-password-reset", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim() }),
+      });
       // Immer Erfolg anzeigen — verhindert E-Mail-Enumeration
       setSubmitted(true);
     } catch {
