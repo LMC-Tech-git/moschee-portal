@@ -33,24 +33,38 @@ export async function POST(
       );
     }
 
-    // 1b. Rate Limiting (IP-basiert)
+    // 1b. Auth-Token schnell vorab prüfen (kein DB-Call — nur JWT dekodieren)
+    // Eingeloggte Member/Admins erhalten kein Rate-Limit
+    let isPreAuthenticated = false;
+    const authHeaderPre = request.headers.get("authorization");
+    if (authHeaderPre?.startsWith("Bearer ")) {
+      try {
+        const token = authHeaderPre.slice(7);
+        const payload = JSON.parse(Buffer.from(token.split(".")[1], "base64").toString());
+        isPreAuthenticated = !!(payload.id && payload.type === "authRecord");
+      } catch {}
+    }
+
+    // 1c. Rate Limiting — nur für Gäste (Anti-Bot, nicht für eingeloggte User)
     const ip =
       request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
       request.headers.get("x-real-ip") ||
       "unknown";
     const ipHash = await hashIP(ip);
 
-    const rl = checkRateLimit(
-      `donation:${ipHash}`,
-      5, // Max 5 Checkout-Sessions pro IP pro Stunde
-      60 * 60 * 1000
-    );
-
-    if (!rl.allowed) {
-      return NextResponse.json(
-        { success: false, error: "Zu viele Anfragen. Bitte versuchen Sie es später erneut." },
-        { status: 429, headers: getRateLimitHeaders(rl) }
+    if (!isPreAuthenticated) {
+      const rl = checkRateLimit(
+        `donation:${ipHash}`,
+        5, // Max 5 Checkout-Sessions pro IP pro Stunde (nur Gäste)
+        60 * 60 * 1000
       );
+
+      if (!rl.allowed) {
+        return NextResponse.json(
+          { success: false, error: "Zu viele Anfragen. Bitte versuchen Sie es später erneut." },
+          { status: 429, headers: getRateLimitHeaders(rl) }
+        );
+      }
     }
 
     // 2. Body validieren
@@ -65,13 +79,15 @@ export async function POST(
       );
     }
 
-    // 2b. CAPTCHA (Turnstile) verifizieren
-    const turnstileValid = await verifyTurnstileToken(body.turnstile_token || "");
-    if (!turnstileValid) {
-      return NextResponse.json(
-        { success: false, error: "CAPTCHA-Verifizierung fehlgeschlagen. Bitte versuchen Sie es erneut." },
-        { status: 400 }
-      );
+    // 2b. CAPTCHA (Turnstile) — nur für Gäste (eingeloggte User überspringen)
+    if (!isPreAuthenticated) {
+      const turnstileValid = await verifyTurnstileToken(body.turnstile_token || "");
+      if (!turnstileValid) {
+        return NextResponse.json(
+          { success: false, error: "CAPTCHA-Verifizierung fehlgeschlagen. Bitte versuchen Sie es erneut." },
+          { status: 400 }
+        );
+      }
     }
 
     const { amount_cents, campaign_id, donor_name, donor_email, cover_fees } = parsed.data;
@@ -83,13 +99,12 @@ export async function POST(
       : amount_cents;
     const estimatedFeeCents = cover_fees ? stripeCents - amount_cents : 0;
 
-    // 2c. Auth-Token prüfen (optional — eingeloggte Mitglieder)
+    // 2c. Auth-Token vollständig prüfen (mit DB-Call — User + Moschee verifizieren)
     let authenticatedUserId = "";
     let authenticatedDonorType: "member" | "guest" = "guest";
-    const authHeader = request.headers.get("authorization");
-    if (authHeader?.startsWith("Bearer ")) {
+    if (isPreAuthenticated && authHeaderPre?.startsWith("Bearer ")) {
       try {
-        const token = authHeader.slice(7);
+        const token = authHeaderPre.slice(7);
         // Token dekodieren und User-ID extrahieren
         const payload = JSON.parse(
           Buffer.from(token.split(".")[1], "base64").toString()
