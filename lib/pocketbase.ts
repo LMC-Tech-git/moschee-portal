@@ -31,27 +31,28 @@ export function getClientPB(): PocketBase {
     clientInstance = createPocketBase();
 
     // Auth-Token als Cookie speichern, damit Middleware + Server Components ihn lesen kann.
-    // Gespeichert wird ein JSON-Objekt { token, model: { id } } für Server-Side Auth-Erkennung.
-    clientInstance.authStore.onChange(() => {
-      if (clientInstance?.authStore.isValid && clientInstance.authStore.record) {
+    // domain=.moschee.app → Cookie gilt für alle Subdomains (demo.moschee.app, etc.)
+    const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "moschee.app";
+    const cookieDomain = `domain=.${rootDomain}; `;
+
+    const setAuthCookie = (pb: PocketBase) => {
+      if (pb.authStore.isValid && pb.authStore.record) {
         const cookieVal = JSON.stringify({
-          token: clientInstance.authStore.token,
-          model: { id: clientInstance.authStore.record.id },
+          token: pb.authStore.token,
+          model: { id: pb.authStore.record.id },
         });
-        document.cookie = `pb_auth=${encodeURIComponent(cookieVal)}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax`;
+        document.cookie = `pb_auth=${encodeURIComponent(cookieVal)}; path=/; ${cookieDomain}max-age=${7 * 24 * 60 * 60}; SameSite=Lax`;
       } else {
-        document.cookie = "pb_auth=; path=/; max-age=0; SameSite=Lax";
+        document.cookie = `pb_auth=; path=/; ${cookieDomain}max-age=0; SameSite=Lax`;
       }
+    };
+
+    clientInstance.authStore.onChange(() => {
+      setAuthCookie(clientInstance!);
     });
 
     // Falls bereits ein Token aus localStorage vorhanden ist, sofort Cookie setzen
-    if (clientInstance.authStore.isValid && clientInstance.authStore.record) {
-      const cookieVal = JSON.stringify({
-        token: clientInstance.authStore.token,
-        model: { id: clientInstance.authStore.record.id },
-      });
-      document.cookie = `pb_auth=${encodeURIComponent(cookieVal)}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax`;
-    }
+    setAuthCookie(clientInstance);
   }
   return clientInstance;
 }
