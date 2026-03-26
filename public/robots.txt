@@ -7,4 +7,4 @@ Disallow: /api/
 Disallow: /login
 Disallow: /register
 
-Sitemap: https://moschee-portal.de/sitemap.xml
+Sitemap: https://moschee.app/sitemap.xml

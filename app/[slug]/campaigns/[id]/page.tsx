@@ -30,7 +30,7 @@ export async function generateMetadata({
     return {
       title,
       description,
-      alternates: { canonical: `https://moschee.app/${params.slug}/campaigns/${params.id}` },
+      alternates: { canonical: `https://${params.slug}.${process.env.NEXT_PUBLIC_ROOT_DOMAIN || "moschee.app"}/campaigns/${params.id}` },
       openGraph: { title, description, type: "article" as const },
     };
   } catch {
@@ -66,7 +66,7 @@ export default async function PublicCampaignPage({
       >
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
           <Link
-            href={`/${params.slug}/campaigns`}
+            href={`/campaigns`}
             className="mb-4 inline-flex items-center gap-1 text-sm text-white/70 hover:text-white transition-colors"
           >
             <ChevronLeft className="h-4 w-4" />
@@ -171,7 +171,7 @@ export default async function PublicCampaignPage({
               Jede Spende hilft uns, unser Ziel zu erreichen.
             </p>
             <Button asChild className="bg-amber-500 hover:bg-amber-600 px-8 font-bold">
-              <Link href={`/${params.slug}/donate?campaign=${campaign.id}`}>
+              <Link href={`/donate?campaign=${campaign.id}`}>
                 <Heart className="mr-2 h-4 w-4" />
                 Für diese Kampagne spenden
               </Link>

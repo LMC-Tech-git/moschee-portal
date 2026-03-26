@@ -103,7 +103,7 @@ export default async function MosqueKontaktPage({
         {/* Back link */}
         <div className="mt-10">
           <Link
-            href={`/${params.slug}`}
+            href="/"
             className="text-sm text-gray-500 hover:text-gray-700"
           >
             ← Zurück zur Startseite

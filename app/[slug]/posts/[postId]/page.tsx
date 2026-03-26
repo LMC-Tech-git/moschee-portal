@@ -27,7 +27,7 @@ export async function generateMetadata({
     return {
       title,
       description,
-      alternates: { canonical: `https://moschee.app/${params.slug}/posts/${params.postId}` },
+      alternates: { canonical: `https://${params.slug}.${process.env.NEXT_PUBLIC_ROOT_DOMAIN || "moschee.app"}/posts/${params.postId}` },
       openGraph: { title, description, type: "article" as const },
     };
   } catch {
@@ -70,7 +70,7 @@ export default async function PostDetailPage({
       >
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
           <Link
-            href={`/${params.slug}/posts`}
+            href={`/posts`}
             className="mb-4 inline-flex items-center gap-1 text-sm text-white/70 hover:text-white transition-colors"
           >
             <ChevronLeft className="h-4 w-4" />

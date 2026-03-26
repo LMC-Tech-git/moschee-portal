@@ -197,7 +197,7 @@ export default async function MosqueDashboard({
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 items-stretch">
             <Link
-              href={`/${params.slug}/campaigns`}
+              href={`/campaigns`}
               className="block rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
             >
               <KPITile
@@ -207,7 +207,7 @@ export default async function MosqueDashboard({
               />
             </Link>
             <Link
-              href={`/${params.slug}/donate`}
+              href={`/donate`}
               className="block rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2"
             >
               <KPITile
@@ -217,7 +217,7 @@ export default async function MosqueDashboard({
               />
             </Link>
             <Link
-              href={`/${params.slug}/events`}
+              href={`/events`}
               className="block rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
             >
               <KPITile
@@ -259,7 +259,7 @@ export default async function MosqueDashboard({
                     <PostCard
                       key={post.id}
                       post={post}
-                      href={`/${params.slug}/posts/${post.id}`}
+                      href={`/posts/${post.id}`}
                     />
                   ))}
                 </div>
@@ -278,7 +278,7 @@ export default async function MosqueDashboard({
                     </h3>
                   </div>
                   <Link
-                    href={`/${params.slug}/events`}
+                    href={`/events`}
                     className="text-xs font-medium text-blue-600 hover:underline"
                   >
                     {t("showAllEvents")}<span className="sr-only"> {t("events")}</span>
@@ -293,7 +293,7 @@ export default async function MosqueDashboard({
                     {upcomingEvents.map((event) => (
                       <Link
                         key={event.id}
-                        href={`/${params.slug}/events/${event.id}`}
+                        href={`/events/${event.id}`}
                       >
                         <EventCard event={event} compact />
                       </Link>
@@ -310,7 +310,7 @@ export default async function MosqueDashboard({
                     <h3 className="font-bold text-gray-900">{t("campaigns")}</h3>
                   </div>
                   <Link
-                    href={`/${params.slug}/campaigns`}
+                    href={`/campaigns`}
                     className="text-xs font-medium text-emerald-600 hover:underline"
                   >
                     {t("showAllCampaigns")}<span className="sr-only"> {t("campaigns")}</span>
@@ -325,7 +325,7 @@ export default async function MosqueDashboard({
                     {campaigns.map((campaign) => (
                       <Link
                         key={campaign.id}
-                        href={`/${params.slug}/campaigns/${campaign.id}`}
+                        href={`/campaigns/${campaign.id}`}
                         className="group block rounded-lg p-2 -mx-2 transition-colors hover:bg-emerald-50"
                       >
                         <div className="space-y-2">
@@ -372,7 +372,7 @@ export default async function MosqueDashboard({
                   {t("donateSupport")}
                 </p>
                 <Button asChild className="w-full bg-amber-500 hover:bg-amber-600">
-                  <Link href={`/${params.slug}/donate`} className="inline-flex items-center justify-center gap-2">
+                  <Link href={`/donate`} className="inline-flex items-center justify-center gap-2">
                     <Heart className="h-4 w-4" />
                     {t("donateNow")}
                   </Link>

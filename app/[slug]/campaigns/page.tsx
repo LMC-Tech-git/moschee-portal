@@ -19,13 +19,13 @@ export async function generateMetadata({ params }: { params: { slug: string } })
     title,
     description,
     alternates: {
-      canonical: `https://moschee.app/${params.slug}/campaigns`,
+      canonical: `https://${params.slug}.${process.env.NEXT_PUBLIC_ROOT_DOMAIN || "moschee.app"}/campaigns`,
     },
     openGraph: {
       title,
       description,
       type: "website" as const,
-      url: `https://moschee.app/${params.slug}/campaigns`,
+      url: `https://${params.slug}.${process.env.NEXT_PUBLIC_ROOT_DOMAIN || "moschee.app"}/campaigns`,
       siteName: "moschee.app",
     },
   };
@@ -48,7 +48,7 @@ export default async function CampaignsPage({
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
         {/* Zurück */}
         <Link
-          href={`/${params.slug}`}
+          href="/"
           className="mb-6 inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
         >
           <ChevronLeft className="h-4 w-4" />
@@ -89,7 +89,7 @@ export default async function CampaignsPage({
             {campaigns.map((campaign) => (
               <Link
                 key={campaign.id}
-                href={`/${params.slug}/campaigns/${campaign.id}`}
+                href={`/campaigns/${campaign.id}`}
                 className="block transition-transform hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 rounded-xl"
               >
                 <CampaignCard campaign={campaign} />
@@ -108,7 +108,7 @@ export default async function CampaignsPage({
             {t("ctaDesc")}
           </p>
           <Link
-            href={`/${params.slug}/donate`}
+            href={`/donate`}
             className="inline-flex items-center gap-2 rounded-lg bg-amber-500 px-6 py-2.5 text-sm font-bold text-white shadow transition-colors hover:bg-amber-600"
           >
             <Heart className="h-4 w-4" />

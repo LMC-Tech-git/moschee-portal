@@ -39,14 +39,14 @@ export async function generateMetadata({
     title,
     description,
     alternates: {
-      canonical: `https://moschee.app/${params.slug}/events`,
+      canonical: `https://${params.slug}.${process.env.NEXT_PUBLIC_ROOT_DOMAIN || "moschee.app"}/events`,
     },
     robots: searchParams?.category ? { index: false } : undefined,
     openGraph: {
       title,
       description,
       type: "website" as const,
-      url: `https://moschee.app/${params.slug}/events`,
+      url: `https://${params.slug}.${process.env.NEXT_PUBLIC_ROOT_DOMAIN || "moschee.app"}/events`,
       siteName: "moschee.app",
     },
   };
@@ -122,7 +122,7 @@ export default async function EventsPage({
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3">
             <Link
-              href={`/${params.slug}`}
+              href="/"
               className="text-white/70 hover:text-white transition-colors"
               aria-label={t("back")}
             >
@@ -191,7 +191,7 @@ export default async function EventsPage({
                     {upcoming.map((event) => (
                       <Link
                         key={event.id}
-                        href={`/${params.slug}/events/${event.id}`}
+                        href={`/events/${event.id}`}
                         className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 rounded-xl"
                       >
                         <EventCard event={event} />
@@ -211,7 +211,7 @@ export default async function EventsPage({
                     {past.map((event) => (
                       <Link
                         key={event.id}
-                        href={`/${params.slug}/events/${event.id}`}
+                        href={`/events/${event.id}`}
                         className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 rounded-xl"
                       >
                         <EventCard event={event} />

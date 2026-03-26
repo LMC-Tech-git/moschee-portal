@@ -25,14 +25,14 @@ export async function generateMetadata({
     title,
     description,
     alternates: {
-      canonical: `https://moschee.app/${params.slug}/donate`,
+      canonical: `https://${params.slug}.${process.env.NEXT_PUBLIC_ROOT_DOMAIN || "moschee.app"}/donate`,
     },
     robots: searchParams?.campaign ? { index: false } : undefined,
     openGraph: {
       title,
       description,
       type: "website" as const,
-      url: `https://moschee.app/${params.slug}/donate`,
+      url: `https://${params.slug}.${process.env.NEXT_PUBLIC_ROOT_DOMAIN || "moschee.app"}/donate`,
       siteName: "moschee.app",
     },
   };
@@ -79,7 +79,7 @@ export default async function DonatePage({
       <div className="mx-auto max-w-2xl px-4 sm:px-6 lg:px-8">
         {/* Zurück */}
         <Link
-          href={`/${params.slug}`}
+          href="/"
           className="mb-6 inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
         >
           <ChevronLeft className="h-4 w-4" />
@@ -148,7 +148,7 @@ export default async function DonatePage({
                 <h2 className="font-bold text-gray-900">{t("activeCampaigns")}</h2>
               </div>
               <Link
-                href={`/${params.slug}/campaigns`}
+                href={`/campaigns`}
                 className="text-xs font-medium text-emerald-600 hover:underline"
               >
                 {t("showAll")}
@@ -158,7 +158,7 @@ export default async function DonatePage({
               {campaigns.map((campaign) => (
                 <Link
                   key={campaign.id}
-                  href={`/${params.slug}/donate?campaign=${campaign.id}`}
+                  href={`/donate?campaign=${campaign.id}`}
                   className="block rounded-xl transition-transform hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
                 >
                   <CampaignCard campaign={campaign} />
@@ -183,7 +183,7 @@ export default async function DonatePage({
                 {t("donateFor")}
               </span>
               <Link
-                href={`/${params.slug}/donate`}
+                href={`/donate`}
                 className="text-xs text-gray-400 hover:text-gray-600 hover:underline"
               >
                 {t("selectGeneral")}

@@ -128,7 +128,14 @@ export default function HomePage() {
         .then((res) => res.json())
         .then((data) => {
           if (data.slug) {
-            router.push(`/${data.slug}`);
+            // Token über URL-Param übergeben — localStorage ist zwischen Subdomains isoliert
+            const pb = getClientPB();
+            const token = pb.authStore.token;
+            const model = pb.authStore.model;
+            const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "moschee.app";
+            const encodedToken = encodeURIComponent(token);
+            const encodedModel = encodeURIComponent(JSON.stringify(model));
+            window.location.href = `https://${data.slug}.${rootDomain}?_token=${encodedToken}&_model=${encodedModel}`;
           } else {
             setLoadingSlug(false);
           }

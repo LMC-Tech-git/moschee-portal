@@ -42,7 +42,7 @@ export async function generateMetadata({
     return {
       title,
       description,
-      alternates: { canonical: `https://moschee.app/${params.slug}/events/${params.eventId}` },
+      alternates: { canonical: `https://${params.slug}.${process.env.NEXT_PUBLIC_ROOT_DOMAIN || "moschee.app"}/events/${params.eventId}` },
       openGraph: { title, description, type: "article" as const },
     };
   } catch {
@@ -91,7 +91,7 @@ export default async function PublicEventPage({
       <div className="py-10">
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
           <Link
-            href={`/${params.slug}/events`}
+            href={`/events`}
             className="mb-6 inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
           >
             <ChevronLeft className="h-4 w-4" />
@@ -144,7 +144,7 @@ export default async function PublicEventPage({
       >
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
           <Link
-            href={`/${params.slug}/events`}
+            href={`/events`}
             className="mb-4 inline-flex items-center gap-1 text-sm text-white/70 hover:text-white transition-colors"
           >
             <ChevronLeft className="h-4 w-4" />

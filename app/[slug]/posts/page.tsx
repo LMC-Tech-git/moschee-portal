@@ -83,7 +83,7 @@ export default async function PostsPage({
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3">
             <Link
-              href={`/${params.slug}`}
+              href="/"
               className="text-white/70 hover:text-white transition-colors"
               aria-label={t("back")}
             >
@@ -149,7 +149,7 @@ export default async function PostsPage({
                 <PostCard
                   key={post.id}
                   post={post}
-                  href={`/${params.slug}/posts/${post.id}`}
+                  href={`/posts/${post.id}`}
                 />
               ))}
             </div>

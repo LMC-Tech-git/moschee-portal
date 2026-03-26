@@ -54,16 +54,15 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const hostname = request.headers.get("host") || "";
 
-  // ── Demo-Subdomain: demo.moschee.app → /demo/* ─────────────────────────────
-  const demoSlug = process.env.NEXT_PUBLIC_DEMO_SLUG || "demo";
-  const demoDomain = `demo.${process.env.NEXT_PUBLIC_ROOT_DOMAIN || "moschee.app"}`;
+  // ── Generisch: {slug}.moschee.app/* → /{slug}/* ────────────────────────────
+  const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "moschee.app";
 
-  if (hostname === demoDomain) {
-    // Routen die NICHT umgeschrieben werden sollen
+  if (hostname.endsWith(`.${rootDomain}`) && hostname !== `www.${rootDomain}`) {
+    const slug = hostname.replace(`.${rootDomain}`, "");
     const PASS_THROUGH = [
-      "/admin", "/member", "/lehrer", "/imam",
+      `/${slug}`,   // Verhindert Doppel-Rewrite bei bestehenden /{slug}/... Links
       "/login", "/register", "/api", "/invite",
-      `/${demoSlug}`, // bereits umgeschrieben (verhindert Doppel-Rewrite)
+      "/admin", "/member", "/lehrer", "/imam",
       "/impressum", "/datenschutz", "/agb",
       "/passwort-vergessen", "/passwort-zuruecksetzen",
     ];
@@ -71,20 +70,9 @@ export async function middleware(request: NextRequest) {
 
     if (needsRewrite) {
       const url = request.nextUrl.clone();
-      url.pathname = `/${demoSlug}${pathname === "/" ? "" : pathname}`;
-      const rewriteResponse = NextResponse.rewrite(url);
-      return applyLocale(rewriteResponse, request);
+      url.pathname = `/${slug}${pathname === "/" ? "" : pathname}`;
+      return applyLocale(NextResponse.rewrite(url), request);
     }
-  }
-
-  // ── moschee.app/demo → demo.moschee.app ────────────────────────────────────
-  const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "moschee.app";
-  if (
-    (hostname === rootDomain || hostname === `www.${rootDomain}`) &&
-    (pathname === `/${demoSlug}` || pathname.startsWith(`/${demoSlug}/`))
-  ) {
-    const subpath = pathname.slice(`/${demoSlug}`.length) || "/";
-    return NextResponse.redirect(`https://${demoDomain}${subpath}`);
   }
 
   // PocketBase speichert Auth-Token im Cookie "pb_auth"

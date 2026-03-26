@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { resolveMosqueWithSettings } from "@/lib/resolve-mosque";
 import { getBrandColor } from "@/lib/constants";
@@ -15,9 +16,14 @@ export async function generateMetadata({
 }: {
   params: { slug: string };
 }) {
+  const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "moschee.app";
+  const hostname = (await headers()).get("host") || "";
+  if (hostname === rootDomain || hostname === `www.${rootDomain}`) return {};
+
   const result = await resolveMosqueWithSettings(params.slug);
   if (!result) return { title: "Nicht gefunden" };
 
+  const baseUrl = `https://${params.slug}.${rootDomain}`;
   const title = `${result.mosque.name} — Digitales Gemeinde-Portal`;
   const description = `Willkommen beim digitalen Portal der ${result.mosque.name}${result.mosque.city ? ` in ${result.mosque.city}` : ""}. Gebetszeiten, Veranstaltungen, Spenden und mehr.`;
 
@@ -25,13 +31,13 @@ export async function generateMetadata({
     title,
     description,
     alternates: {
-      canonical: `https://moschee.app/${params.slug}`,
+      canonical: baseUrl,
     },
     openGraph: {
       title,
       description,
       type: "website",
-      url: `https://moschee.app/${params.slug}`,
+      url: baseUrl,
       siteName: "moschee.app",
     },
   };
@@ -46,6 +52,11 @@ export default async function SlugLayout({
 }) {
   // Locale-Codes niemals als Moschee-Slugs behandeln
   if (["de", "tr"].includes(params.slug)) notFound();
+
+  // Gemeinde-Seiten nur über Subdomains erreichbar
+  const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "moschee.app";
+  const hostname = (await headers()).get("host") || "";
+  if (hostname === rootDomain || hostname === `www.${rootDomain}`) notFound();
 
   const result = await resolveMosqueWithSettings(params.slug);
 
