@@ -354,7 +354,7 @@ export function DonationForm({
           {paymentMethodType === "sepa_debit" && (
             <p className="mt-2 rounded-lg bg-blue-50 px-3 py-2 text-xs text-blue-700">
               <strong>Test-IBAN:</strong> DE08 3704 0044 0532 0130 03 — Zahlung wechselt nach ~3 Min. auf
-              „erfolgreich".
+              &bdquo;erfolgreich&rdquo;.
             </p>
           )}
         </div>
