@@ -541,12 +541,12 @@ export async function getParentAttendanceOverview(
         const s = statsMap[key] || { present: 0, absent: 0, late: 0, excused: 0, total: 0 };
         const rate = s.total > 0 ? Math.round(((s.present + s.late) / s.total) * 100) : 0;
         const todayStatusRaw = todayMap[key];
-        const todayStatus =
+        const todayStatus: "present" | "absent" | "late" | "excused" | null =
           todayStatusRaw === "present" ||
           todayStatusRaw === "absent" ||
           todayStatusRaw === "late" ||
           todayStatusRaw === "excused"
-            ? todayStatusRaw
+            ? (todayStatusRaw as "present" | "absent" | "late" | "excused")
             : null;
         return {
           courseId,
