@@ -477,7 +477,7 @@ export async function getParentAttendanceOverview(
       const sid = r.student_id as string;
       const cid = r.course_id as string;
       const course = r.expand?.course_id as RecordModel | undefined;
-      const courseName = (course?.name as string) || cid;
+      const courseName = (course?.title as string) || cid;
       if (!enrollmentMap[sid]) enrollmentMap[sid] = [];
       enrollmentMap[sid].push({ courseId: cid, courseName });
       enrolledSet.add(`${sid}:${cid}`);
