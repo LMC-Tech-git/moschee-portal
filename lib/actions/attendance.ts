@@ -398,6 +398,180 @@ export async function deleteAttendanceSession(
   }
 }
 
+// ─── Eltern-Anwesenheitsübersicht ─────────────────────────────────────────────
+
+export interface ChildCourseAttendanceSummary {
+  courseId: string;
+  courseName: string;
+  total: number;
+  present: number;
+  absent: number;
+  late: number;
+  excused: number;
+  rate: number; // (present + late) / total * 100
+  todayStatus: "present" | "absent" | "late" | "excused" | null;
+}
+
+export interface ChildAttendanceOverview {
+  studentId: string;
+  studentName: string;
+  courses: ChildCourseAttendanceSummary[]; // sortiert nach rate desc
+}
+
+function chunkArray<T>(arr: T[], size: number): T[][] {
+  const out: T[][] = [];
+  for (let i = 0; i < arr.length; i += size) {
+    out.push(arr.slice(i, i + size));
+  }
+  return out;
+}
+
+/**
+ * Anwesenheitsübersicht aller Kinder eines Elternteils.
+ * Liefert pro Kind eine Liste der eingeschriebenen Kurse mit aggregierten Stats
+ * (letzte 12 Monate) sowie dem heutigen Anwesenheitsstatus.
+ */
+export async function getParentAttendanceOverview(
+  mosqueId: string,
+  parentUserId: string
+): Promise<ActionResult<ChildAttendanceOverview[]>> {
+  try {
+    const pb = await getAdminPB();
+
+    // 1. Aktive Kinder des Elternteils
+    const studentsRecords = await pb.collection("students").getFullList({
+      filter: `parent_id = "${parentUserId}" && mosque_id = "${mosqueId}" && status = "active"`,
+      fields: "id,first_name,last_name",
+    });
+    if (studentsRecords.length === 0) {
+      return { success: true, data: [] };
+    }
+
+    const studentIds = studentsRecords.map((s) => s.id as string);
+    const nameMap: Record<string, string> = {};
+    studentsRecords.forEach((s) => {
+      nameMap[s.id as string] = `${s.first_name || ""} ${s.last_name || ""}`.trim();
+    });
+
+    const buildOrFilter = (field: string, ids: string[]) =>
+      ids.map((id) => `${field} = "${id}"`).join(" || ");
+
+    // 2. Aktive Einschreibungen (mit Kursname)
+    const enrollmentChunks = chunkArray(studentIds, 10);
+    const enrollmentRecords = (
+      await Promise.all(
+        enrollmentChunks.map((chunk) =>
+          pb.collection("course_enrollments").getFullList({
+            filter: `(${buildOrFilter("student_id", chunk)}) && status = "enrolled" && mosque_id = "${mosqueId}"`,
+            expand: "course_id",
+            fields: "student_id,course_id,expand.course_id.id,expand.course_id.name",
+          })
+        )
+      )
+    ).flat();
+
+    // enrollmentMap: studentId → [{courseId, courseName}]
+    const enrollmentMap: Record<string, { courseId: string; courseName: string }[]> = {};
+    // enrolledSet: "studentId:courseId" für Whitelist
+    const enrolledSet = new Set<string>();
+    enrollmentRecords.forEach((r) => {
+      const sid = r.student_id as string;
+      const cid = r.course_id as string;
+      const course = r.expand?.course_id as RecordModel | undefined;
+      const courseName = (course?.name as string) || cid;
+      if (!enrollmentMap[sid]) enrollmentMap[sid] = [];
+      enrollmentMap[sid].push({ courseId: cid, courseName });
+      enrolledSet.add(`${sid}:${cid}`);
+    });
+
+    // 3. Attendance Stats (letzte 12 Monate)
+    const fromDate = new Date();
+    fromDate.setMonth(fromDate.getMonth() - 12);
+    const fromDateStr = fromDate.toLocaleDateString("en-CA");
+
+    const statsRecords = (
+      await Promise.all(
+        chunkArray(studentIds, 10).map((chunk) =>
+          pb.collection("attendance").getFullList({
+            filter: `mosque_id = "${mosqueId}" && (${buildOrFilter("student_id", chunk)}) && session_date >= "${fromDateStr}"`,
+            fields: "student_id,course_id,status",
+          })
+        )
+      )
+    ).flat();
+
+    // 4. Heute-Status
+    const today = new Date().toLocaleDateString("en-CA");
+    const todayRecords = (
+      await Promise.all(
+        chunkArray(studentIds, 10).map((chunk) =>
+          pb.collection("attendance").getFullList({
+            filter: `mosque_id = "${mosqueId}" && (${buildOrFilter("student_id", chunk)}) && session_date ~ "${today}"`,
+            fields: "student_id,course_id,status",
+          })
+        )
+      )
+    ).flat();
+
+    // todayMap: "studentId:courseId" → status
+    const todayMap: Record<string, string> = {};
+    todayRecords.forEach((r) => {
+      todayMap[`${r.student_id}:${r.course_id}`] = r.status as string;
+    });
+
+    // Aggregation per (studentId, courseId)
+    type StatsEntry = { present: number; absent: number; late: number; excused: number; total: number };
+    const statsMap: Record<string, StatsEntry> = {};
+    statsRecords.forEach((r) => {
+      const key = `${r.student_id}:${r.course_id}`;
+      if (!enrolledSet.has(key)) return; // nur eingeschriebene Kurse
+      if (!statsMap[key]) statsMap[key] = { present: 0, absent: 0, late: 0, excused: 0, total: 0 };
+      const s = statsMap[key];
+      s.total++;
+      if (r.status === "present") s.present++;
+      else if (r.status === "absent") s.absent++;
+      else if (r.status === "late") s.late++;
+      else if (r.status === "excused") s.excused++;
+    });
+
+    // Ergebnis zusammenstellen
+    const result: ChildAttendanceOverview[] = studentIds.map((sid) => {
+      const courses = (enrollmentMap[sid] || []).map(({ courseId, courseName }) => {
+        const key = `${sid}:${courseId}`;
+        const s = statsMap[key] || { present: 0, absent: 0, late: 0, excused: 0, total: 0 };
+        const rate = s.total > 0 ? Math.round(((s.present + s.late) / s.total) * 100) : 0;
+        const todayStatusRaw = todayMap[key];
+        const todayStatus =
+          todayStatusRaw === "present" ||
+          todayStatusRaw === "absent" ||
+          todayStatusRaw === "late" ||
+          todayStatusRaw === "excused"
+            ? todayStatusRaw
+            : null;
+        return {
+          courseId,
+          courseName,
+          ...s,
+          rate,
+          todayStatus,
+        };
+      });
+      // Kurse nach Rate absteigend sortieren
+      courses.sort((a, b) => b.rate - a.rate);
+      return {
+        studentId: sid,
+        studentName: nameMap[sid] || sid,
+        courses,
+      };
+    });
+
+    return { success: true, data: result };
+  } catch (error) {
+    console.error("[Attendance] Fehler bei Eltern-Übersicht:", error);
+    return { success: false, error: "Anwesenheitsübersicht konnte nicht geladen werden" };
+  }
+}
+
 /**
  * Alle Sessions (Daten) eines Kurses laden.
  */

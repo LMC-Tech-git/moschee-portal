@@ -924,7 +924,21 @@
         "empty": "Noch keine Kinder eingetragen.",
         "school": "Schule",
         "class": "Klasse",
-        "dob": "Geburtsdatum"
+        "dob": "Geburtsdatum",
+        "attendance": {
+          "noData": "Noch keine Anwesenheitsdaten",
+          "sessions": "Stunden",
+          "showMore": "Mehr anzeigen",
+          "showLess": "Weniger anzeigen",
+          "todayPresent": "Heute anwesend",
+          "todayAbsent": "Heute abwesend",
+          "todayLate": "Heute verspätet",
+          "todayExcused": "Heute entschuldigt",
+          "present": "anwesend",
+          "absent": "abwesend",
+          "late": "verspätet",
+          "excused": "entschuldigt"
+        }
       },
       "emailChange": {
         "title": "E-Mail-Adresse",

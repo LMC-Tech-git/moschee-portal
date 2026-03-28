@@ -369,3 +369,49 @@ export async function getDonationChartData(mosqueId: string): Promise<{
     return { byMonth: [], byProvider: [] };
   }
 }
+
+// --- PayPal Intent Tracking (fire-and-forget) ---
+
+/**
+ * Erfasst einen PayPal-Weiterleitungsversuch in der DB.
+ * Wird fire-and-forget aufgerufen — Fehler blockieren niemals den Redirect.
+ * Status: "external" | Provider: "paypal_link"
+ */
+export async function recordPaypalIntent(data: {
+  mosqueId: string;
+  amountCents: number;
+  currency?: string;
+  donorName?: string;
+  donorEmail?: string;
+  donorType: "guest" | "member";
+  userId?: string;
+  campaignId?: string;
+}): Promise<void> {
+  // Guard: kein Tracking bei ungültigem Betrag
+  if (!data.amountCents || data.amountCents < 100) return;
+
+  try {
+    const pb = await getAdminPB();
+    const amount = Number((data.amountCents / 100).toFixed(2));
+
+    await pb.collection("donations").create({
+      mosque_id: data.mosqueId,
+      campaign_id: data.campaignId || "",
+      donor_type: data.donorType,
+      user_id: data.userId || "",
+      donor_name: data.donorName || "",
+      donor_email: data.donorEmail || "",
+      amount,
+      amount_cents: data.amountCents,
+      gross_amount_cents: data.amountCents,
+      fee_covered: false,
+      estimated_fee_cents: 0,
+      currency: data.currency ?? "EUR",
+      status: "external",
+      provider: "paypal_link",
+    });
+  } catch (error) {
+    // Nur loggen — niemals werfen (fire-and-forget)
+    console.error("[PayPal Intent] Tracking fehlgeschlagen:", error);
+  }
+}

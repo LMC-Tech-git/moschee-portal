@@ -924,7 +924,21 @@
         "empty": "Henüz kayıtlı çocuk yok.",
         "school": "Okul",
         "class": "Sınıf",
-        "dob": "Doğum tarihi"
+        "dob": "Doğum tarihi",
+        "attendance": {
+          "noData": "Henüz devam bilgisi yok",
+          "sessions": "Ders",
+          "showMore": "Daha fazla göster",
+          "showLess": "Daha az göster",
+          "todayPresent": "Bugün mevcut",
+          "todayAbsent": "Bugün yok",
+          "todayLate": "Bugün geç kaldı",
+          "todayExcused": "Bugün mazeretli",
+          "present": "mevcut",
+          "absent": "yok",
+          "late": "geç",
+          "excused": "mazeretli"
+        }
       },
       "emailChange": {
         "title": "E-posta Adresi",

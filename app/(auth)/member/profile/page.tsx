@@ -14,6 +14,10 @@ import {
 } from "@/lib/actions/members";
 import { cancelMemberRegistration } from "@/lib/actions/events";
 import { getStudentsByParent } from "@/lib/actions/students";
+import {
+  getParentAttendanceOverview,
+  type ChildAttendanceOverview,
+} from "@/lib/actions/attendance";
 import { AddChildDialog } from "@/components/madrasa/AddChildDialog";
 import type { Student } from "@/types";
 import {
@@ -46,6 +50,9 @@ import {
   Plus,
   MapPin,
   Pencil,
+  BookOpen,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { formatCurrencyCents } from "@/lib/utils";
 import type { Donation, EventRegistration } from "@/types";
@@ -576,14 +583,20 @@ function ChildrenTab({
   const t = useTranslations();
   const locale = useLocale();
   const [children, setChildren] = useState<Student[]>([]);
+  const [attendanceOverview, setAttendanceOverview] = useState<ChildAttendanceOverview[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showDialog, setShowDialog] = useState(false);
   const [editChild, setEditChild] = useState<Student | null>(null);
+  const [expandedAttendance, setExpandedAttendance] = useState<Set<string>>(new Set());
 
   async function loadChildren() {
     setIsLoading(true);
-    const result = await getStudentsByParent(userId, mosqueId);
-    if (result.success && result.data) setChildren(result.data);
+    const [studentsResult, attendanceResult] = await Promise.all([
+      getStudentsByParent(userId, mosqueId),
+      getParentAttendanceOverview(mosqueId, userId),
+    ]);
+    if (studentsResult.success && studentsResult.data) setChildren(studentsResult.data);
+    if (attendanceResult.success && attendanceResult.data) setAttendanceOverview(attendanceResult.data);
     setIsLoading(false);
   }
 
@@ -593,6 +606,37 @@ function ChildrenTab({
   }, [userId, mosqueId]);
 
   const intlLocale = locale === "tr" ? "tr-TR" : "de-DE";
+
+  function toggleExpanded(childId: string) {
+    setExpandedAttendance((prev) => {
+      const next = new Set(prev);
+      if (next.has(childId)) next.delete(childId);
+      else next.add(childId);
+      return next;
+    });
+  }
+
+  const COURSE_LIMIT = 3;
+
+  const todayLabel: Record<string, string> = {
+    present: t("member.profile.children.attendance.todayPresent"),
+    absent: t("member.profile.children.attendance.todayAbsent"),
+    late: t("member.profile.children.attendance.todayLate"),
+    excused: t("member.profile.children.attendance.todayExcused"),
+  };
+
+  const todayColor: Record<string, string> = {
+    present: "bg-emerald-100 text-emerald-700",
+    absent: "bg-red-100 text-red-700",
+    late: "bg-amber-100 text-amber-700",
+    excused: "bg-blue-100 text-blue-700",
+  };
+
+  function rateColor(rate: number) {
+    if (rate >= 75) return "bg-emerald-100 text-emerald-700";
+    if (rate >= 50) return "bg-amber-100 text-amber-700";
+    return "bg-red-100 text-red-700";
+  }
 
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-6">
@@ -615,40 +659,121 @@ function ChildrenTab({
         </div>
       ) : (
         <div className="space-y-3">
-          {children.map((child) => (
-            <div key={child.id} className="rounded-lg border border-gray-100 bg-gray-50 p-4">
-              <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-100">
-                  <Baby className="h-4 w-4 text-emerald-600" />
+          {children.map((child) => {
+            const childAttendance = attendanceOverview.find((a) => a.studentId === child.id);
+            const courses = childAttendance?.courses ?? [];
+            const isExpanded = expandedAttendance.has(child.id);
+            const visibleCourses = isExpanded ? courses : courses.slice(0, COURSE_LIMIT);
+            const hasData = courses.some((c) => c.total > 0);
+
+            return (
+              <div key={child.id} className="rounded-lg border border-gray-100 bg-gray-50 p-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-100">
+                    <Baby className="h-4 w-4 text-emerald-600" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-gray-900">
+                      {child.first_name} {child.last_name}
+                    </p>
+                    <div className="flex flex-wrap gap-x-3 text-xs text-gray-500">
+                      {child.date_of_birth && (
+                        <span>
+                          {t("member.profile.children.dob")}: {new Date(child.date_of_birth).toLocaleDateString(intlLocale)}
+                        </span>
+                      )}
+                      {child.school_name && (
+                        <span>{t("member.profile.children.school")}: {child.school_name}</span>
+                      )}
+                      {child.school_class && (
+                        <span>{t("member.profile.children.class")}: {child.school_class}</span>
+                      )}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setEditChild(child)}
+                    className="rounded-lg p-2 text-gray-400 hover:bg-gray-200 hover:text-gray-600 transition-colors"
+                    title={t("member.profile.children.editButton")}
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </button>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-gray-900">
-                    {child.first_name} {child.last_name}
-                  </p>
-                  <div className="flex flex-wrap gap-x-3 text-xs text-gray-500">
-                    {child.date_of_birth && (
-                      <span>
-                        {t("member.profile.children.dob")}: {new Date(child.date_of_birth).toLocaleDateString(intlLocale)}
-                      </span>
-                    )}
-                    {child.school_name && (
-                      <span>{t("member.profile.children.school")}: {child.school_name}</span>
-                    )}
-                    {child.school_class && (
-                      <span>{t("member.profile.children.class")}: {child.school_class}</span>
+
+                {/* Anwesenheitsbereich */}
+                {courses.length > 0 && (
+                  <div className="mt-3 border-t border-gray-200 pt-3">
+                    {!hasData ? (
+                      <p className="text-xs text-gray-400">
+                        {t("member.profile.children.attendance.noData")}
+                      </p>
+                    ) : (
+                      <div className="space-y-2">
+                        {visibleCourses.map((course) => (
+                          <div key={course.courseId} className="rounded-md bg-white border border-gray-100 px-3 py-2">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <BookOpen className="h-3.5 w-3.5 shrink-0 text-gray-400" />
+                              <span className="text-xs font-medium text-gray-700 flex-1 min-w-0 truncate">
+                                {course.courseName}
+                              </span>
+                              {course.total > 0 && (
+                                <span className={`rounded-full px-1.5 py-0.5 text-xs font-semibold ${rateColor(course.rate)}`}>
+                                  {course.rate}%
+                                </span>
+                              )}
+                              {course.todayStatus && (
+                                <span className={`rounded-full px-1.5 py-0.5 text-xs font-medium ${todayColor[course.todayStatus]}`}>
+                                  {todayLabel[course.todayStatus]}
+                                </span>
+                              )}
+                            </div>
+                            {course.total > 0 && (
+                              <div className="mt-1 flex flex-wrap gap-x-3 text-xs text-gray-500">
+                                <span className="flex items-center gap-0.5">
+                                  <CheckCircle className="h-3 w-3 text-emerald-500" />
+                                  {course.present} {t("member.profile.children.attendance.present")}
+                                </span>
+                                <span className="flex items-center gap-0.5">
+                                  <XCircle className="h-3 w-3 text-red-400" />
+                                  {course.absent} {t("member.profile.children.attendance.absent")}
+                                </span>
+                                {course.late > 0 && (
+                                  <span className="flex items-center gap-0.5">
+                                    <Clock className="h-3 w-3 text-amber-400" />
+                                    {course.late} {t("member.profile.children.attendance.late")}
+                                  </span>
+                                )}
+                                <span className="text-gray-400">
+                                  ({course.total} {t("member.profile.children.attendance.sessions")})
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                        {courses.length > COURSE_LIMIT && (
+                          <button
+                            onClick={() => toggleExpanded(child.id)}
+                            className="flex items-center gap-1 text-xs text-emerald-600 hover:text-emerald-700"
+                          >
+                            {isExpanded ? (
+                              <>
+                                <ChevronUp className="h-3.5 w-3.5" />
+                                {t("member.profile.children.attendance.showLess")}
+                              </>
+                            ) : (
+                              <>
+                                <ChevronDown className="h-3.5 w-3.5" />
+                                {t("member.profile.children.attendance.showMore")} ({courses.length - COURSE_LIMIT})
+                              </>
+                            )}
+                          </button>
+                        )}
+                      </div>
                     )}
                   </div>
-                </div>
-                <button
-                  onClick={() => setEditChild(child)}
-                  className="rounded-lg p-2 text-gray-400 hover:bg-gray-200 hover:text-gray-600 transition-colors"
-                  title={t("member.profile.children.editButton")}
-                >
-                  <Pencil className="h-4 w-4" />
-                </button>
+                )}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 

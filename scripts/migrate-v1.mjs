@@ -582,6 +582,7 @@ const MOSQUES_NEW_FIELDS = [
     options: { values: ["stripe", "paypal", "external", "none"], maxSelect: 1 },
   },
   { name: "paypal_donate_url", type: "url" },
+  { name: "paypal_enabled", type: "bool", options: { default: false } },
   { name: "brand_logo", type: "file", options: { maxSelect: 1, maxSize: 2097152 } },
   { name: "brand_primary_color", type: "text" },
   { name: "brand_accent_color", type: "text" },
@@ -1082,7 +1083,7 @@ async function main() {
     const donationCol = collections.find((c) => c.name === "donations");
     const statusField = (donationCol?.schema || []).find((f) => f.name === "status");
     if (statusField) {
-      const neededValues = ["created", "pending", "paid", "failed", "refunded", "cancelled"];
+      const neededValues = ["created", "pending", "paid", "failed", "refunded", "cancelled", "external"];
       const existingValues = statusField.options?.values || [];
       const missing = neededValues.filter((v) => !existingValues.includes(v));
 

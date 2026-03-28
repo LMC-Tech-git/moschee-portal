@@ -619,3 +619,77 @@ export async function updateContactSettings(
   }
 }
 
+// =========================================
+// Zahlungsarten-Einstellungen (PayPal)
+// =========================================
+
+/**
+ * Liest PayPal-Zahlungseinstellungen vom Mosque-Record.
+ */
+export async function getPaymentSettings(mosqueId: string): Promise<{
+  donation_provider: string;
+  paypal_enabled: boolean;
+  paypal_donate_url: string;
+}> {
+  try {
+    const pb = await getAdminPB();
+    const mosque = await pb
+      .collection("mosques")
+      .getOne(mosqueId, { fields: "donation_provider,paypal_enabled,paypal_donate_url" });
+    return {
+      donation_provider: mosque.donation_provider || "stripe",
+      paypal_enabled: mosque.paypal_enabled ?? false,
+      paypal_donate_url: mosque.paypal_donate_url || "",
+    };
+  } catch (error) {
+    console.error("[settings] getPaymentSettings:", error);
+    return { donation_provider: "stripe", paypal_enabled: false, paypal_donate_url: "" };
+  }
+}
+
+/**
+ * Speichert PayPal-Zahlungseinstellungen auf dem Mosque-Record.
+ * Validiert die PayPal-URL serverseitig (hostname muss "paypal.me" sein).
+ */
+export async function updatePaymentSettings(
+  mosqueId: string,
+  data: { paypal_enabled: boolean; paypal_donate_url: string }
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    // Backend-Validierung: echte Domain-Prüfung (verhindert paypal.me.evil.com)
+    if (data.paypal_enabled && data.paypal_donate_url) {
+      try {
+        const parsed = new URL(data.paypal_donate_url);
+        if (parsed.hostname !== "paypal.me") {
+          return { success: false, error: "Ungültige PayPal-URL. Bitte eine paypal.me-URL eingeben." };
+        }
+      } catch {
+        return { success: false, error: "Ungültige URL-Format." };
+      }
+    }
+
+    if (data.paypal_enabled && !data.paypal_donate_url) {
+      return { success: false, error: "Bitte eine PayPal.me-URL eingeben wenn PayPal aktiviert ist." };
+    }
+
+    const pb = await getAdminPB();
+    await pb.collection("mosques").update(mosqueId, {
+      paypal_enabled: data.paypal_enabled,
+      paypal_donate_url: data.paypal_donate_url || "",
+    });
+
+    await logAudit({
+      mosqueId,
+      action: "payment_settings_updated",
+      entityType: "mosque",
+      entityId: mosqueId,
+      after: data,
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("[settings] updatePaymentSettings:", error);
+    return { success: false, error: "Zahlungseinstellungen konnten nicht gespeichert werden." };
+  }
+}
+

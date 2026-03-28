@@ -18,6 +18,7 @@ export interface Mosque {
   public_enabled: boolean;
   donation_provider: "stripe" | "paypal" | "external" | "none";
   paypal_donate_url: string;
+  paypal_enabled: boolean;
   external_donation_url: string;
   external_donation_label: string;
   zip_code: string;
