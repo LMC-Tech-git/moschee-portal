@@ -464,7 +464,6 @@ export async function getParentAttendanceOverview(
           pb.collection("course_enrollments").getFullList({
             filter: `(${buildOrFilter("student_id", chunk)}) && status = "enrolled" && mosque_id = "${mosqueId}"`,
             expand: "course_id",
-            fields: "student_id,course_id,expand.course_id.id,expand.course_id.name",
           })
         )
       )
