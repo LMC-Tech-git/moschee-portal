@@ -46,9 +46,16 @@ async function authViaAdminsEndpoint(
 export async function getAdminPB(): Promise<PocketBase> {
   const now = Date.now();
 
-  if (_adminPB && _adminAuthExpiry > now) {
+  // Gecachte Instanz nutzen, ABER nur wenn Token laut SDK noch gültig ist.
+  // Ohne isValid-Check bleibt ein nach PB-Neustart ungültig gewordener Token
+  // bis zu 10 Minuten im Cache → alle Queries schlagen still fehl → 0-Ergebnisse.
+  if (_adminPB && _adminAuthExpiry > now && _adminPB.authStore.isValid) {
     return _adminPB;
   }
+
+  // Ungültigen Cache sofort zurücksetzen
+  _adminPB = null;
+  _adminAuthExpiry = 0;
 
   const url = process.env.POCKETBASE_URL || process.env.NEXT_PUBLIC_POCKETBASE_URL;
   const email = process.env.PB_ADMIN_EMAIL;
