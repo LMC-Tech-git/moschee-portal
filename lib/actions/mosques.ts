@@ -18,6 +18,7 @@ function mapRecord(record: RecordModel): Mosque {
     email: record.email || "",
     public_enabled: record.public_enabled ?? true,
     donation_provider: record.donation_provider || "none",
+    paypal_enabled: record.paypal_enabled ?? false,
     paypal_donate_url: record.paypal_donate_url || "",
     external_donation_url: record.external_donation_url || "",
     external_donation_label: record.external_donation_label || "",
