@@ -24,10 +24,21 @@
 
   html {
     scroll-behavior: smooth;
+    overflow-x: hidden;
   }
 
   body {
     @apply bg-background text-foreground antialiased;
+    /* Verhindert horizontales Scrollen auf mobilen Geräten (inkl. iOS/Android PWA).
+       position: relative ist notwendig damit overflow-x: hidden korrekt greift. */
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* Zusätzliche Absicherung: main-Content clippt horizontalen Overflow ohne
+     Scroll-Container zu erzeugen (overflow-x: clip statt hidden). */
+  #main-content {
+    overflow-x: clip;
   }
 
   * {

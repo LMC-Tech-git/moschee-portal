@@ -240,7 +240,7 @@ export default async function MosqueDashboard({
       {/* Dashboard Content */}
       <section className="py-10">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid gap-8 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
             {/* Linke Spalte: Posts */}
             <div className="lg:col-span-2">
               <div className="mb-4 flex items-center gap-2">
