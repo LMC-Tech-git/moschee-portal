@@ -56,7 +56,7 @@ export async function getMembersByMosque(
     const page = options?.page || 1;
     const limit = options?.limit || 20;
 
-    const filters: string[] = [`mosque_id = "${mosqueId}"`];
+    const filters: string[] = [`mosque_id = "${mosqueId}"`, `role != "super_admin"`];
     if (options?.status) {
       filters.push(`status = "${options.status}"`);
     }
@@ -648,10 +648,13 @@ export async function deleteMember(
 
     const pb = await getAdminPB();
 
-    // Tenant-Check
-    const target = await pb.collection("users").getOne(targetUserId, { fields: "id,mosque_id,full_name,email" });
+    // Tenant-Check + Superadmin-Schutz
+    const target = await pb.collection("users").getOne(targetUserId, { fields: "id,mosque_id,full_name,email,role" });
     if (target.mosque_id !== mosqueId) {
       return { success: false, error: "Mitglied nicht gefunden" };
+    }
+    if (target.role === "super_admin") {
+      return { success: false, error: "Superadmin-Konten können nicht gelöscht werden" };
     }
 
     await pb.collection("users").delete(targetUserId);
@@ -681,7 +684,7 @@ export async function getMemberStats(mosqueId: string): Promise<{
   try {
     const pb = await getAdminPB();
     const records = await pb.collection("users").getFullList({
-      filter: `mosque_id = "${mosqueId}"`,
+      filter: `mosque_id = "${mosqueId}" && role != "super_admin"`,
       fields: "id,created,status",
     });
 
