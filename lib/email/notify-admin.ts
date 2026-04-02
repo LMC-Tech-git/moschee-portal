@@ -17,9 +17,9 @@ export async function notifyAdmins(params: {
   try {
     const pb = await getAdminPB();
 
-    // Alle Admin-User der Moschee laden
+    // Alle aktiven Admin-User der Moschee laden (pending/inactive bekommen keine Benachrichtigungen)
     const admins = await pb.collection("users").getFullList({
-      filter: `mosque_id = "${params.mosqueId}" && role = "admin"`,
+      filter: `mosque_id = "${params.mosqueId}" && role = "admin" && status = "active"`,
       fields: "id,email,name",
     });
 

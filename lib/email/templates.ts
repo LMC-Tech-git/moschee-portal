@@ -597,3 +597,42 @@ export function renderSponsorExpiryReminder(data: {
   `;
   return baseTemplate(content, data.mosqueName, data.accentColor);
 }
+
+// =========================================
+// Einladungs-E-Mail
+// =========================================
+
+export function renderInviteEmail(data: {
+  mosqueName: string;
+  inviteUrl: string;
+  accentColor?: string;
+}): string {
+  const content = `
+    <h2 style="margin:0 0 16px;color:#111827;font-size:22px;">Du wurdest eingeladen!</h2>
+    <p style="margin:0 0 24px;color:#374151;font-size:16px;line-height:1.6;">
+      Du hast eine Einladung erhalten, dem Portal von <strong>${data.mosqueName}</strong> beizutreten.
+      Klicke auf den Button unten, um dein Konto zu erstellen.
+    </p>
+
+    <p style="margin:0 0 32px;">
+      <a href="${data.inviteUrl}"
+         style="display:inline-block;background:${data.accentColor ?? "#059669"};color:#ffffff;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:16px;">
+        Jetzt registrieren →
+      </a>
+    </p>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9fafb;border-radius:8px;border:1px solid #e5e7eb;margin:0 0 24px;">
+      <tr>
+        <td style="padding:14px 20px;">
+          <p style="margin:0 0 4px;color:#6b7280;font-size:12px;text-transform:uppercase;letter-spacing:0.05em;">Einladungslink</p>
+          <p style="margin:0;color:#374151;font-size:13px;word-break:break-all;">${data.inviteUrl}</p>
+        </td>
+      </tr>
+    </table>
+
+    <p style="margin:0;color:#9ca3af;font-size:13px;line-height:1.6;">
+      Falls du diese Einladung nicht erwartet hast, kannst du diese E-Mail ignorieren.
+    </p>
+  `;
+  return baseTemplate(content, data.mosqueName, data.accentColor);
+}

@@ -3,6 +3,8 @@
 import { randomBytes } from "crypto";
 import { getAdminPB } from "@/lib/pocketbase-admin";
 import { logAudit } from "@/lib/audit";
+import { sendEmailDirect } from "@/lib/email";
+import { renderInviteEmail } from "@/lib/email/templates";
 import type { Invite } from "@/types";
 import type { RecordModel } from "pocketbase";
 
@@ -152,6 +154,29 @@ export async function createInvite(
       entityId: invite.id,
       details: { type: data.type, role: invite.role, max_uses },
     });
+
+    // Einladungs-E-Mail senden (fire-and-forget, blockiert nie)
+    if (data.email) {
+      try {
+        const mosque = await pb.collection("mosques").getOne(mosqueId, {
+          fields: "id,name,slug,brand_primary_color",
+        });
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://moschee.app";
+        const inviteUrl = `${baseUrl}/${mosque.slug}/invite/${token}`;
+        const html = renderInviteEmail({
+          mosqueName: mosque.name,
+          inviteUrl,
+          accentColor: mosque.brand_primary_color || undefined,
+        });
+        await sendEmailDirect({
+          to: data.email,
+          subject: `Einladung: ${mosque.name}`,
+          html,
+        });
+      } catch (emailErr) {
+        console.error("[Invites] E-Mail-Versand fehlgeschlagen:", emailErr);
+      }
+    }
 
     return { success: true, data: invite };
   } catch (error: unknown) {
