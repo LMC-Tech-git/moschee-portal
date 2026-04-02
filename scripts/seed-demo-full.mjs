@@ -768,6 +768,24 @@ async function seedPosts(adminId) {
       pinned: false,
       daysBack: 0,
     },
+    {
+      title: "Ramazan Mübarek — Oruç ve İbadet",
+      content: "Değerli cemaat mensuplarımız, mübarek Ramazan ayına kavuşmanın heyecanı ve sevinci içindeyiz. Bu ay boyunca sabah iftarından akşam iftarına kadar birlikte ibadet edip güçleneceğiz. Teravih namazları her gece saat 21:30'da kılınacaktır. Allah oruçlarımızı ve namazlarımızı kabul etsin.",
+      category: "announcement",
+      visibility: "public",
+      status: "published",
+      pinned: true,
+      daysBack: 22,
+    },
+    {
+      title: "Kuran Kursu Kayıtları Başladı",
+      content: "Yeni eğitim-öğretim yılı için Kuran kursu kayıtları başlamıştır. 6–14 yaş arası çocuklar için hafta sonu Kuran, Arapça ve din bilgisi dersleri sunulmaktadır. Kayıt yaptırmak için cemaat ofisimize bizzat gelebilir veya telefon ile ulaşabilirsiniz. Kontenjanlar sınırlıdır, erken kayıt yaptırmanızı tavsiye ederiz.",
+      category: "general",
+      visibility: "public",
+      status: "published",
+      pinned: false,
+      daysBack: 8,
+    },
   ];
 
   for (const p of posts) {
@@ -867,6 +885,18 @@ async function seedEvents(adminId) {
       description: "Benefizauktion mit gespendeten Gegenständen und Erfahrungen. Alle Einnahmen fließen direkt in die Renovierung unserer Gemeinderäume.",
       category: "community", visibility: "public", capacity: 0, daysOff: 35,
       durationH: 3, location: "Hauptgebetsraum",
+    },
+    {
+      title: "Mevlid Kandili Programı",
+      description: "Peygamber Efendimiz Hz. Muhammed'in (s.a.v.) doğumunu kutlayacağımız özel programımıza tüm cemaat davetlidir. Kuran-ı Kerim tilaveti, ilahiler ve dualar eşliğinde güzel bir gece geçireceğiz. İkram yapılacaktır.",
+      category: "community", visibility: "public", capacity: 120, daysOff: 14,
+      durationH: 2.5, location: "Hauptgebetsraum",
+    },
+    {
+      title: "Türkçe Seminar: Aile ve İslam",
+      description: "İslam'da aile değerleri ve ebeveynlik üzerine Türkçe seminer. Konuşmacı: Yusuf Rahman Hoca. Seminer sonrası soru-cevap ve çay ikramı yapılacaktır. Herkese açık, giriş ücretsizdir.",
+      category: "lecture", visibility: "public", capacity: 60, daysOff: 19,
+      durationH: 2, location: "Seminarraum",
     },
   ];
 
@@ -1185,8 +1215,8 @@ async function main() {
   console.log("   🏅  6 Team-Mitglieder");
   console.log(`   📅  2 Schuljahre (${ARCHIVED_YEAR_NAME} + ${ACTIVE_YEAR_NAME}), 5 Kurse`);
   console.log("   🧒  20 Schüler, Einschreibungen, Anwesenheiten, Gebühren");
-  console.log("   📝  9 Beiträge");
-  console.log("   📅  12 Veranstaltungen + Teilnahmen");
+  console.log("   📝  11 Beiträge (inkl. 2 türkische)");
+  console.log("   📅  14 Veranstaltungen + Teilnahmen (inkl. 2 türkische)");
   console.log("   💰  3 Kampagnen + ~32 Spenden");
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 }
