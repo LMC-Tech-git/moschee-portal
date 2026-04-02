@@ -53,6 +53,8 @@ export async function getBrandingSettings(mosqueId: string): Promise<{
     | "brand_primary_color"
     | "brand_accent_color"
     | "brand_theme"
+    | "brand_hero_type"
+    | "brand_hero_image"
   >;
   error?: string;
 }> {
@@ -85,6 +87,23 @@ export async function updateBrandingSettings(
     pbFormData.append("brand_theme", (formData.get("brand_theme") as string) || "emerald");
     pbFormData.append("brand_primary_color", (formData.get("brand_primary_color") as string)?.trim() || "");
     pbFormData.append("brand_accent_color", (formData.get("brand_accent_color") as string)?.trim() || "");
+    pbFormData.append("brand_hero_type", (formData.get("brand_hero_type") as string) || "color");
+
+    // Hero-Bild-Upload (optional)
+    const heroImageFile = formData.get("brand_hero_image");
+    if (heroImageFile && typeof heroImageFile !== "string" && "size" in (heroImageFile as object) && (heroImageFile as File).size > 0) {
+      pbFormData.append("brand_hero_image", heroImageFile as Blob, (heroImageFile as File).name || "hero");
+    }
+
+    // Hero-Bild löschen
+    const removeHeroImage = formData.get("remove_hero_image");
+    if (removeHeroImage === "1") {
+      const currentRecord = await pb.collection("mosques").getOne(mosqueId, { fields: "brand_hero_image" });
+      const currentHero = currentRecord.brand_hero_image as string;
+      if (currentHero) {
+        pbFormData.append("brand_hero_image-", currentHero);
+      }
+    }
 
     // Logo-Upload (optional)
     const logoFile = formData.get("brand_logo");

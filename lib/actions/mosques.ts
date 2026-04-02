@@ -28,6 +28,8 @@ function mapRecord(record: RecordModel): Mosque {
     brand_primary_color: record.brand_primary_color || "",
     brand_accent_color: record.brand_accent_color || "",
     brand_theme: record.brand_theme || "default",
+    brand_hero_type: record.brand_hero_type || "color",
+    brand_hero_image: record.brand_hero_image || "",
     created: record.created || "",
     updated: record.updated || "",
   };

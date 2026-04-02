@@ -27,6 +27,8 @@ export interface Mosque {
   brand_primary_color: string;
   brand_accent_color: string;
   brand_theme: string; // preset-id oder "custom"
+  brand_hero_type: string; // "color" | "image"
+  brand_hero_image: string;
   created: string;
   updated: string;
 }

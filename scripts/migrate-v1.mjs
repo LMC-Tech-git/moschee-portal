@@ -589,6 +589,8 @@ const MOSQUES_NEW_FIELDS = [
   { name: "brand_theme", type: "text", options: { default: "emerald" } },
   { name: "zip_code", type: "text" },
   { name: "website", type: "url" },
+  { name: "brand_hero_type", type: "text", options: { default: "color" } },
+  { name: "brand_hero_image", type: "file", options: { maxSelect: 1, maxSize: 5242880 } },
 ];
 
 const USERS_NEW_FIELDS = [

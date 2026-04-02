@@ -107,9 +107,23 @@ export default async function MosqueDashboard({
   return (
     <>
       {/* Moschee Header */}
-      <section className="py-12" style={{ background: "linear-gradient(to bottom right, var(--brand-primary, #059669), color-mix(in srgb, var(--brand-primary, #059669) 80%, transparent), color-mix(in srgb, var(--brand-primary, #059669) 90%, black))" }}>
+      <section
+        className="py-12"
+        style={
+          mosque.brand_hero_type === "image" && mosque.brand_hero_image
+            ? {
+                backgroundImage: `url(${PB_URL}/api/files/mosques/${mosque.id}/${mosque.brand_hero_image})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+              }
+            : {
+                background:
+                  "linear-gradient(to bottom right, var(--brand-primary, #059669), color-mix(in srgb, var(--brand-primary, #059669) 80%, transparent), color-mix(in srgb, var(--brand-primary, #059669) 90%, black))",
+              }
+        }
+      >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
+          <div className={`text-center${mosque.brand_hero_type === "image" && mosque.brand_hero_image ? " rounded-2xl bg-black/40 px-6 py-6 backdrop-blur-sm" : ""}`}>
             {mosque.brand_logo ? (
               <div className="relative mx-auto mb-6 h-36 w-36 drop-shadow-xl sm:h-40 sm:w-40">
                 <Image

@@ -319,12 +319,19 @@ function BrandingTab({
     brand_theme: mosque.brand_theme || "emerald",
     brand_primary_color: mosque.brand_primary_color || "#059669",
     brand_accent_color: mosque.brand_accent_color || "#d97706",
+    brand_hero_type: mosque.brand_hero_type || "color",
   });
   const [logoPreview, setLogoPreview] = useState<string | null>(
     mosque.brand_logo ? `${PB_URL}/api/files/mosques/${mosque.id}/${mosque.brand_logo}` : null
   );
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [removeLogo, setRemoveLogo] = useState(false);
+  const [heroImagePreview, setHeroImagePreview] = useState<string | null>(
+    mosque.brand_hero_image ? `${PB_URL}/api/files/mosques/${mosque.id}/${mosque.brand_hero_image}` : null
+  );
+  const [heroImageFile, setHeroImageFile] = useState<File | null>(null);
+  const [removeHeroImage, setRemoveHeroImage] = useState(false);
+  const heroImageInputRef = useRef<HTMLInputElement>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [status, setStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [hexError, setHexError] = useState<{ primary?: string; accent?: string }>({});
@@ -371,6 +378,30 @@ function BrandingTab({
     if (fileInputRef.current) fileInputRef.current.value = "";
   }
 
+  function handleHeroImageChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!["image/png", "image/jpeg", "image/webp"].includes(file.type)) {
+      setStatus({ type: "error", message: t("branding.heroImageHint") });
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setStatus({ type: "error", message: t("branding.heroImageHint") });
+      return;
+    }
+    setHeroImageFile(file);
+    setHeroImagePreview(URL.createObjectURL(file));
+    setRemoveHeroImage(false);
+    setStatus(null);
+  }
+
+  function handleRemoveHeroImage() {
+    setHeroImageFile(null);
+    setHeroImagePreview(null);
+    setRemoveHeroImage(true);
+    if (heroImageInputRef.current) heroImageInputRef.current.value = "";
+  }
+
   async function handleSave() {
     const errors: { primary?: string; accent?: string } = {};
     if (isCustomTheme && !validateHex(form.brand_primary_color)) {
@@ -391,6 +422,8 @@ function BrandingTab({
     Object.entries(form).forEach(([k, v]) => fd.append(k, v));
     if (logoFile) fd.append("brand_logo", logoFile);
     if (removeLogo) fd.append("remove_logo", "1");
+    if (heroImageFile) fd.append("brand_hero_image", heroImageFile);
+    if (removeHeroImage) fd.append("remove_hero_image", "1");
 
     const result = await updateBrandingSettings(mosqueId, userId, fd);
     setIsSaving(false);
@@ -398,7 +431,9 @@ function BrandingTab({
       setStatus({ type: "success", message: t("branding.saved") });
       setLogoFile(null);
       setRemoveLogo(false);
-      onSaved({ ...form, ...(removeLogo ? { brand_logo: "" } : {}) });
+      setHeroImageFile(null);
+      setRemoveHeroImage(false);
+      onSaved({ ...form, ...(removeLogo ? { brand_logo: "" } : {}), ...(removeHeroImage ? { brand_hero_image: "" } : {}) });
       if (typeof refreshMosque === "function") {
         refreshMosque();
       } else {
@@ -421,10 +456,14 @@ function BrandingTab({
       brand_theme: mosque.brand_theme || "emerald",
       brand_primary_color: mosque.brand_primary_color || "#059669",
       brand_accent_color: mosque.brand_accent_color || "#d97706",
+      brand_hero_type: mosque.brand_hero_type || "color",
     });
     setLogoFile(null);
     setRemoveLogo(false);
     setLogoPreview(mosque.brand_logo ? `${PB_URL}/api/files/mosques/${mosque.id}/${mosque.brand_logo}` : null);
+    setHeroImageFile(null);
+    setRemoveHeroImage(false);
+    setHeroImagePreview(mosque.brand_hero_image ? `${PB_URL}/api/files/mosques/${mosque.id}/${mosque.brand_hero_image}` : null);
     setHexError({});
     setStatus(null);
   }
@@ -555,6 +594,93 @@ function BrandingTab({
               onChange={handleLogoChange}
             />
           </div>
+        </div>
+      </SectionCard>
+
+      {/* Hero-Hintergrund */}
+      <SectionCard title={t("branding.heroBackground")} description={t("branding.heroBackgroundDesc")}>
+        <div className="space-y-4">
+          {/* Radio: Farbe / Bild */}
+          <div className="flex flex-wrap gap-3">
+            <label className={`flex cursor-pointer items-center gap-2 rounded-lg border-2 px-4 py-2.5 text-sm font-medium transition-all ${form.brand_hero_type === "color" ? "border-emerald-500 bg-emerald-50 text-emerald-700" : "border-gray-200 text-gray-700 hover:border-gray-300"}`}>
+              <input
+                type="radio"
+                name="brand_hero_type"
+                value="color"
+                checked={form.brand_hero_type === "color"}
+                onChange={() => setForm((p) => ({ ...p, brand_hero_type: "color" }))}
+                className="hidden"
+              />
+              <span className="h-3.5 w-3.5 rounded-full border-2 flex items-center justify-center shrink-0" style={{ borderColor: form.brand_hero_type === "color" ? "#059669" : "#d1d5db" }}>
+                {form.brand_hero_type === "color" && <span className="h-2 w-2 rounded-full bg-emerald-500" />}
+              </span>
+              {t("branding.heroTypeColor")}
+            </label>
+            <label className={`flex cursor-pointer items-center gap-2 rounded-lg border-2 px-4 py-2.5 text-sm font-medium transition-all ${form.brand_hero_type === "image" ? "border-emerald-500 bg-emerald-50 text-emerald-700" : "border-gray-200 text-gray-700 hover:border-gray-300"}`}>
+              <input
+                type="radio"
+                name="brand_hero_type"
+                value="image"
+                checked={form.brand_hero_type === "image"}
+                onChange={() => setForm((p) => ({ ...p, brand_hero_type: "image" }))}
+                className="hidden"
+              />
+              <span className="h-3.5 w-3.5 rounded-full border-2 flex items-center justify-center shrink-0" style={{ borderColor: form.brand_hero_type === "image" ? "#059669" : "#d1d5db" }}>
+                {form.brand_hero_type === "image" && <span className="h-2 w-2 rounded-full bg-emerald-500" />}
+              </span>
+              {t("branding.heroTypeImage")}
+            </label>
+          </div>
+
+          {/* Farbe-Modus: Info */}
+          {form.brand_hero_type === "color" && (
+            <p className="text-sm text-gray-500">{t("branding.heroColorInfo")}</p>
+          )}
+
+          {/* Bild-Modus: Upload */}
+          {form.brand_hero_type === "image" && (
+            <div className="space-y-3">
+              {/* Vorschau */}
+              <div className="relative h-28 w-full overflow-hidden rounded-xl border border-gray-200 bg-gray-100">
+                {heroImagePreview ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={heroImagePreview} alt="Hero" className="h-full w-full object-cover" />
+                ) : (
+                  <div className="flex h-full items-center justify-center text-sm text-gray-400">
+                    {t("branding.heroNoImage")}
+                  </div>
+                )}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => heroImageInputRef.current?.click()}
+                  className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                >
+                  <Upload className="h-4 w-4" />
+                  {t("branding.uploadHeroImage")}
+                </button>
+                {heroImagePreview && (
+                  <button
+                    type="button"
+                    onClick={handleRemoveHeroImage}
+                    className="inline-flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-100"
+                  >
+                    <X className="h-4 w-4" />
+                    {t("branding.removeHeroImage")}
+                  </button>
+                )}
+              </div>
+              <p className="text-xs text-gray-400">{t("branding.heroImageHint")}</p>
+              <input
+                ref={heroImageInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                className="hidden"
+                onChange={handleHeroImageChange}
+              />
+            </div>
+          )}
         </div>
       </SectionCard>
 
