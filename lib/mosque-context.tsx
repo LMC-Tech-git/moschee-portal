@@ -5,6 +5,7 @@ import {
   createContext,
   useContext,
   useEffect,
+  useRef,
   useState,
   useCallback,
   type ReactNode,
@@ -27,6 +28,8 @@ interface MosqueContextType {
   /** Feature-Flags aus Settings (vom Slug-Layout befüllt) */
   teamEnabled: boolean;
   setTeamEnabled: (val: boolean) => void;
+  teamVisibility: string;
+  setTeamVisibility: (val: string) => void;
   sponsorsEnabled: boolean;
   setSponsorsEnabled: (val: boolean) => void;
 }
@@ -39,9 +42,13 @@ interface MosqueProviderProps {
   initialMosque?: Mosque | null;
 }
 
-// Routen die keinen Moschee-Slug in der URL haben
+// Routen die keinen Moschee-Slug in der URL haben (öffentliche Seiten-Namen einschließen!)
 const RESERVED_PATHS = [
   "admin", "member", "lehrer", "imam", "login", "register", "api", "invite",
+  "impressum", "datenschutz", "agb", "kontakt", "offline",
+  "passwort-vergessen", "passwort-zuruecksetzen",
+  "events", "donate", "posts", "campaigns",
+  "leitung", "foerderpartner",
 ];
 
 export function MosqueProvider({ children, initialMosque }: MosqueProviderProps) {
@@ -58,7 +65,11 @@ export function MosqueProvider({ children, initialMosque }: MosqueProviderProps)
 
   const [refreshKey, setRefreshKey] = useState(0);
   const [teamEnabled, setTeamEnabled] = useState(false);
+  const [teamVisibility, setTeamVisibility] = useState("public");
   const [sponsorsEnabled, setSponsorsEnabled] = useState(false);
+
+  // Verhindert, dass loadMosque() den Mosque überschreibt der vom MosqueInitializer gesetzt wurde
+  const externallySetRef = useRef(false);
 
   const refreshMosque = useCallback(() => setRefreshKey(k => k + 1), []);
 
@@ -73,8 +84,10 @@ export function MosqueProvider({ children, initialMosque }: MosqueProviderProps)
     }
   }, []);
 
-  // Direktes Setzen der Moschee (z.B. vom MosqueInitializer in Slug-Layouts)
+  // Direktes Setzen der Moschee (vom MosqueInitializer in Slug-Layouts)
+  // Setzt externallySetRef damit loadMosque() den Mosque nicht überschreibt.
   const setMosqueData = useCallback((m: Mosque | null) => {
+    externallySetRef.current = !!m;
     setMosque(m);
     if (m) setIsLoading(false);
   }, []);
@@ -83,32 +96,45 @@ export function MosqueProvider({ children, initialMosque }: MosqueProviderProps)
     if (initialMosque) return;
     if (authLoading) return;
 
+    let cancelled = false;
+
     async function loadMosque() {
+      // Wenn MosqueInitializer bereits die Moschee gesetzt hat, nicht überschreiben
+      if (externallySetRef.current) {
+        setIsLoading(false);
+        return;
+      }
       setIsLoading(true);
       try {
         // Server Actions verwenden getAdminPB() → umgeht PB viewRule-Beschränkungen
         if (user?.role === "super_admin") {
           if (overrideMosqueId) {
             const m = await getMosqueById(overrideMosqueId);
+            if (cancelled || externallySetRef.current) return;
             setMosque(m);
             if (m) {
               const flags = await getFeatureFlags(m.id);
-              setTeamEnabled(flags.team_enabled);
-              setSponsorsEnabled(flags.sponsors_enabled);
+              if (!cancelled) {
+                setTeamEnabled(flags.team_enabled);
+                setSponsorsEnabled(flags.sponsors_enabled);
+              }
             }
           } else {
-            setMosque(null);
+            if (!cancelled) setMosque(null);
           }
         } else if (isAuthenticated && user?.mosque_id) {
           const m = await getMosqueById(user.mosque_id);
+          if (cancelled || externallySetRef.current) return;
           setMosque(m);
           if (m) {
             const flags = await getFeatureFlags(m.id);
-            setTeamEnabled(flags.team_enabled);
-            setSponsorsEnabled(flags.sponsors_enabled);
+            if (!cancelled) {
+              setTeamEnabled(flags.team_enabled);
+              setSponsorsEnabled(flags.sponsors_enabled);
+            }
           }
         } else {
-          // Nicht eingeloggt: Moschee aus URL-Slug laden (für öffentliche Seiten)
+          // Nicht eingeloggt: Moschee ermitteln
           const parts = pathname.split("/").filter(Boolean);
           const slugFromPath =
             parts.length > 0 && !RESERVED_PATHS.includes(parts[0])
@@ -116,32 +142,41 @@ export function MosqueProvider({ children, initialMosque }: MosqueProviderProps)
               : null;
 
           if (slugFromPath) {
+            // Slug direkt aus URL-Pfad (Hauptdomain: moschee.app/demo/events → "demo")
             const m = await getMosqueBySlug(slugFromPath);
-            setMosque(m);
-          } else {
-            // Kein Slug in URL — prüfen ob Demo-Subdomain (für /login, /register etc.)
-            const demoSlug = process.env.NEXT_PUBLIC_DEMO_SLUG || "demo";
-            const demoDomain = `demo.${process.env.NEXT_PUBLIC_ROOT_DOMAIN || "moschee.app"}`;
-            if (typeof window !== "undefined" && window.location.hostname === demoDomain) {
-              const m = await getMosqueBySlug(demoSlug);
-              setMosque(m);
+            if (!cancelled && !externallySetRef.current) setMosque(m);
+          } else if (typeof window !== "undefined") {
+            // Kein Slug im Pfad — Subdomain auslesen (demo.moschee.app → "demo")
+            const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "moschee.app";
+            const hostname = window.location.hostname;
+            if (hostname !== rootDomain && hostname !== `www.${rootDomain}` && hostname.endsWith(`.${rootDomain}`)) {
+              const subSlug = hostname.slice(0, hostname.length - rootDomain.length - 1);
+              if (subSlug) {
+                const m = await getMosqueBySlug(subSlug);
+                if (!cancelled && !externallySetRef.current) setMosque(m);
+              } else {
+                if (!cancelled) setMosque(null);
+              }
             } else {
-              // Keine Moschee für Landing Page, Login etc.
-              setMosque(null);
+              // Hauptdomain ohne Slug (Landing Page, Login etc.)
+              if (!cancelled) setMosque(null);
             }
+          } else {
+            if (!cancelled) setMosque(null);
           }
         }
       } catch (error) {
         console.error("Fehler beim Laden der Moschee:", error);
       } finally {
-        setIsLoading(false);
+        if (!cancelled) setIsLoading(false);
       }
     }
     loadMosque();
+    return () => { cancelled = true; };
   }, [initialMosque, authLoading, isAuthenticated, user?.mosque_id, user?.role, overrideMosqueId, refreshKey, pathname]);
 
   return (
-    <MosqueContext.Provider value={{ mosque, mosqueId: mosque?.id || user?.mosque_id || "", isLoading, setMosqueOverride, overrideMosqueId, refreshMosque, setMosqueData, teamEnabled, setTeamEnabled, sponsorsEnabled, setSponsorsEnabled }}>
+    <MosqueContext.Provider value={{ mosque, mosqueId: mosque?.id || user?.mosque_id || "", isLoading, setMosqueOverride, overrideMosqueId, refreshMosque, setMosqueData, teamEnabled, setTeamEnabled, teamVisibility, setTeamVisibility, sponsorsEnabled, setSponsorsEnabled }}>
       {children}
     </MosqueContext.Provider>
   );

@@ -39,7 +39,11 @@ export function getClientPB(): PocketBase {
       if (pb.authStore.isValid && pb.authStore.record) {
         const cookieVal = JSON.stringify({
           token: pb.authStore.token,
-          model: { id: pb.authStore.record.id },
+          model: {
+            id: pb.authStore.record.id,
+            status: pb.authStore.record['status'],
+            role: pb.authStore.record['role'],
+          },
         });
         document.cookie = `pb_auth=${encodeURIComponent(cookieVal)}; path=/; ${cookieDomain}max-age=${7 * 24 * 60 * 60}; SameSite=Lax`;
       } else {
