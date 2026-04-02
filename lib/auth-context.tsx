@@ -80,6 +80,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // BFCache-Schutz: Wenn Seite aus bfcache wiederhergestellt wird aber Auth-Cookie fehlt
+  // → Seite neu laden, damit Server den korrekten (ausgeloggten) Inhalt rendert.
+  // Ohne dies sieht der User nach dem Logout beim Zurück-Button noch die alte Seite mit Mitglieder-Inhalten.
+  useEffect(() => {
+    const handlePageShow = (e: PageTransitionEvent) => {
+      if (e.persisted && !document.cookie.includes("pb_auth=")) {
+        window.location.reload();
+      }
+    };
+    window.addEventListener("pageshow", handlePageShow);
+    return () => window.removeEventListener("pageshow", handlePageShow);
+  }, []);
+
   // Auth-State beim Laden initialisieren
   useEffect(() => {
     if (pb.authStore.isValid && pb.authStore.record) {
@@ -114,6 +127,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = useCallback(() => {
     pb.authStore.clear();
     setUser(null);
+    // Explizit Cookie löschen — nicht auf authStore.onChange-Timing verlassen
+    // (ältere PB-SDK-Versionen können onChange vor dem eigentlichen Clear feuern)
+    const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "moschee.app";
+    document.cookie = `pb_auth=; path=/; domain=.${rootDomain}; max-age=0; SameSite=Lax`;
+    document.cookie = `pb_auth=; path=/; max-age=0; SameSite=Lax`;
     // Hard redirect: loescht Next.js Router-Cache komplett, Middleware prueft Cookie neu
     window.location.href = '/login';
   }, [pb]);
