@@ -206,7 +206,7 @@
     },
     "banner": {
       "title": "Demo-Modus",
-      "message": "Alle Daten können jederzeit zurückgesetzt werden. Nutze die Zugangsdaten auf der Anmeldeseite zum Testen.",
+      "message": "Alle eingegebenen Daten sind für jeden sichtbar — keine echten Daten eingeben! Die Daten können jederzeit zurückgesetzt werden.",
       "returnToHome": "Zur Startseite"
     }
   },

@@ -206,7 +206,7 @@
     },
     "banner": {
       "title": "Demo Modu",
-      "message": "Tüm veriler istediğiniz zaman sıfırlanabilir. Test için giriş sayfasındaki kimlik bilgilerini kullanın.",
+      "message": "Girilen tüm veriler herkese açık görünür — gerçek bilgi girmeyin! Veriler istediğiniz zaman sıfırlanabilir.",
       "returnToHome": "Ana Sayfaya Dön"
     }
   },
