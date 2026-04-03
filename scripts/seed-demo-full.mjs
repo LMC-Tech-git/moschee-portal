@@ -1174,6 +1174,36 @@ async function seedDonations(campaignIds, memberIds) {
   console.log(`  → ${totalDonations} Spenden gesamt\n`);
 }
 
+async function seedSettings() {
+  console.log("⚙️  Einstellungen (Demo-Features aktivieren)...");
+  // Prüfen ob Settings-Record für diese Moschee existiert
+  const existing = await pbFetch(
+    `collections/settings/records?filter=${encodeURIComponent(`mosque_id="${MOSQUE_ID}"`)}&perPage=1`,
+    { throwOnError: false }
+  );
+
+  const settingsData = {
+    mosque_id: MOSQUE_ID,
+    contact_enabled: true,
+    contact_auto_reply: true,
+    contact_notify_admin: true,
+    prayer_provider: "aladhan",
+    prayer_method: 13,
+  };
+
+  if (existing?.items?.length > 0) {
+    const id = existing.items[0].id;
+    await pbFetch(`collections/settings/records/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(settingsData),
+    });
+    console.log("  ⏭️  Settings aktualisiert (contact_enabled=true)\n");
+  } else {
+    await pbCreate("settings", settingsData);
+    console.log("  ✅ Settings erstellt (contact_enabled=true)\n");
+  }
+}
+
 // ─── 5. Main ─────────────────────────────────────────────────────────────────
 
 async function main() {
@@ -1185,6 +1215,7 @@ async function main() {
   await authenticate();
   await verifyMosque();
 
+  await seedSettings();
   const users       = await seedUsers();
   await seedTeamMembers();
   const yearIds     = await seedAcademicYears();
