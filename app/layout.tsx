@@ -7,7 +7,7 @@ import { AuthProvider } from "@/lib/auth-context";
 import { MosqueProvider } from "@/lib/mosque-context";
 import { ServiceWorkerRegistration } from "@/components/shared/ServiceWorkerRegistration";
 import Header from "@/components/shared/Header";
-import Footer from "@/components/shared/Footer";
+import { ContextualFooter } from "@/components/shared/ContextualFooter";
 import { DemoBanner } from "@/components/shared/DemoBanner";
 import "./globals.css";
 
@@ -111,7 +111,7 @@ export default async function RootLayout({
                 <Header />
                 <DemoBanner />
                 <main id="main-content" className="flex-1">{children}</main>
-                <Footer />
+                <ContextualFooter />
               </div>
               <Toaster position="top-right" richColors />
             </MosqueProvider>

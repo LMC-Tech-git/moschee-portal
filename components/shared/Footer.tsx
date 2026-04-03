@@ -2,9 +2,16 @@ import Link from "next/link";
 import { Heart } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 
-export default async function Footer() {
+export default async function Footer({ contactEnabled = false }: { contactEnabled?: boolean }) {
   const t = await getTranslations();
   const currentYear = new Date().getFullYear();
+
+  const quickLinks = [
+    { label: t("nav.home"), href: "/" },
+    ...(contactEnabled ? [{ label: t("footer.contact"), href: "/kontakt" }] : []),
+    { label: t("nav.login"), href: "/login" },
+    { label: t("nav.register"), href: "/register" },
+  ];
 
   return (
     <footer className="border-t border-gray-100 bg-gray-900 text-white print:hidden">
@@ -26,12 +33,7 @@ export default async function Footer() {
               {t("footer.quickLinks")}
             </h3>
             <ul className="space-y-2">
-              {[
-                { label: t("nav.home"), href: "/" },
-                { label: t("footer.contact"), href: "/kontakt" },
-                { label: t("nav.login"), href: "/login" },
-                { label: t("nav.register"), href: "/register" },
-              ].map((link) => (
+              {quickLinks.map((link) => (
                 <li key={link.href}>
                   <Link
                     href={link.href}
