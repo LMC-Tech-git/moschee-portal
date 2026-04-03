@@ -313,6 +313,7 @@ export default async function MosqueDashboard({
                         href={`/events/${event.id}`}
                         aria-label={event.title}
                       >
+                        <span className="sr-only">{event.title}</span>
                         <EventCard event={event} compact />
                       </Link>
                     ))}

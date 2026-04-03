@@ -38,7 +38,6 @@ export function LanguageSwitcher({ compact = false }: LanguageSwitcherProps) {
             type="button"
             onClick={() => switchLocale(code)}
             disabled={isPending || isActive}
-            aria-label={`Sprache: ${name}`}
             aria-pressed={isActive}
             title={name}
             className={[
