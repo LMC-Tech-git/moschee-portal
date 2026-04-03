@@ -24,8 +24,14 @@ export async function generateMetadata({
   if (!result) return { title: "Nicht gefunden" };
 
   const baseUrl = `https://${params.slug}.${rootDomain}`;
+  const pbUrl = process.env.NEXT_PUBLIC_POCKETBASE_URL || "";
   const title = `${result.mosque.name} — Digitales Gemeinde-Portal`;
   const description = `Willkommen beim digitalen Portal der ${result.mosque.name}${result.mosque.city ? ` in ${result.mosque.city}` : ""}. Gebetszeiten, Veranstaltungen, Spenden und mehr.`;
+
+  const ogImage =
+    result.mosque.brand_logo && pbUrl
+      ? `${pbUrl}/api/files/mosques/${result.mosque.id}/${result.mosque.brand_logo}`
+      : `https://${rootDomain}/og-default.png`;
 
   return {
     title,
@@ -39,6 +45,13 @@ export async function generateMetadata({
       type: "website",
       url: baseUrl,
       siteName: "moschee.app",
+      images: [{ url: ogImage, width: 1200, height: 630, alt: result.mosque.name }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [ogImage],
     },
   };
 }

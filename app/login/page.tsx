@@ -10,7 +10,7 @@ import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader } from "@/components/ui/card";
 
 export default function LoginPage() {
   const t = useTranslations();
@@ -67,7 +67,7 @@ export default function LoginPage() {
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary-100">
             <LogIn className="h-7 w-7 text-primary-600" />
           </div>
-          <CardTitle className="text-2xl">{t("login.title")}</CardTitle>
+          <h1 className="text-2xl font-semibold leading-none tracking-tight">{t("login.title")}</h1>
           <CardDescription>
             {t("login.subtitle")}
           </CardDescription>
@@ -89,12 +89,16 @@ export default function LoginPage() {
                 <Input
                   id="email"
                   type="email"
+                  name="email"
                   placeholder={t("login.emailPlaceholder")}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="pl-10"
                   required
                   autoComplete="email"
+                  spellCheck={false}
+                  autoCorrect="off"
+                  autoCapitalize="off"
                   disabled={isLoading}
                 />
               </div>
@@ -115,6 +119,7 @@ export default function LoginPage() {
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
+                  name="password"
                   placeholder={t("login.passwordPlaceholder")}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}

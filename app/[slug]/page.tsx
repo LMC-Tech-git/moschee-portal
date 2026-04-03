@@ -130,6 +130,7 @@ export default async function MosqueDashboard({
                   src={`${PB_URL}/api/files/mosques/${mosque.id}/${mosque.brand_logo}`}
                   alt={mosque.name}
                   fill
+                  priority
                   className="object-contain"
                   sizes="160px"
                 />
@@ -310,6 +311,7 @@ export default async function MosqueDashboard({
                       <Link
                         key={event.id}
                         href={`/events/${event.id}`}
+                        aria-label={event.title}
                       >
                         <EventCard event={event} compact />
                       </Link>

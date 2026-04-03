@@ -27,7 +27,6 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 
 export default function RegisterPage() {
@@ -135,7 +134,7 @@ export default function RegisterPage() {
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100">
             <UserPlus className="h-7 w-7 text-emerald-600" />
           </div>
-          <CardTitle className="text-2xl">{t("register.title")}</CardTitle>
+          <h1 className="text-2xl font-semibold leading-none tracking-tight">{t("register.title")}</h1>
           <CardDescription>
             {t("register.subtitle")}
           </CardDescription>
@@ -159,6 +158,7 @@ export default function RegisterPage() {
                   <Input
                     id="first_name"
                     type="text"
+                    name="given-name"
                     placeholder={t("register.firstNamePlaceholder")}
                     value={formData.first_name}
                     onChange={(e) => updateField("first_name", e.target.value)}
@@ -174,6 +174,7 @@ export default function RegisterPage() {
                 <Input
                   id="last_name"
                   type="text"
+                  name="family-name"
                   placeholder={t("register.lastNamePlaceholder")}
                   value={formData.last_name}
                   onChange={(e) => updateField("last_name", e.target.value)}
@@ -212,12 +213,16 @@ export default function RegisterPage() {
                 <Input
                   id="email"
                   type="email"
+                  name="email"
                   placeholder={t("register.emailPlaceholder")}
                   value={formData.email}
                   onChange={(e) => updateField("email", e.target.value)}
                   className="pl-10"
                   required
                   autoComplete="email"
+                  spellCheck={false}
+                  autoCorrect="off"
+                  autoCapitalize="off"
                   disabled={isLoading}
                 />
               </div>
@@ -231,6 +236,7 @@ export default function RegisterPage() {
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
+                  name="new-password"
                   placeholder={t("register.passwordPlaceholder")}
                   value={formData.password}
                   onChange={(e) => updateField("password", e.target.value)}

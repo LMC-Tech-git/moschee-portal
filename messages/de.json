@@ -1390,6 +1390,7 @@
       "uploadLogo": "Logo hochladen",
       "removeLogo": "Entfernen",
       "logoHint": "Empfohlen: quadratisch, mindestens 200×200 px",
+      "logoSizeWarning": "Dieses Bild ist über 300 KB. Für beste Ladezeit empfehlen wir kleinere Bilder.",
       "colorScheme": "Farbschema",
       "colorSchemeDesc": "Wähle ein Farbschema oder definiere eigene Farben.",
       "primaryColor": "Primärfarbe",

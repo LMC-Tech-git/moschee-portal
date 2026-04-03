@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { KeyRound, Mail, ArrowLeft, CheckCircle } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -47,7 +47,7 @@ export default function ForgotPasswordPage() {
             <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100">
               <CheckCircle className="h-7 w-7 text-emerald-600" />
             </div>
-            <CardTitle className="text-2xl">{t("sentTitle")}</CardTitle>
+            <h1 className="text-2xl font-semibold leading-none tracking-tight">{t("sentTitle")}</h1>
             <CardDescription>{t("sentDesc")}</CardDescription>
           </CardHeader>
           <CardContent>
@@ -74,7 +74,7 @@ export default function ForgotPasswordPage() {
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary-100">
             <KeyRound className="h-7 w-7 text-primary-600" />
           </div>
-          <CardTitle className="text-2xl">{t("title")}</CardTitle>
+          <h1 className="text-2xl font-semibold leading-none tracking-tight">{t("title")}</h1>
           <CardDescription>{t("subtitle")}</CardDescription>
         </CardHeader>
 
@@ -93,12 +93,16 @@ export default function ForgotPasswordPage() {
                 <Input
                   id="email"
                   type="email"
+                  name="email"
                   placeholder={t("emailPlaceholder")}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="pl-10"
                   required
                   autoComplete="email"
+                  spellCheck={false}
+                  autoCorrect="off"
+                  autoCapitalize="off"
                   disabled={isLoading}
                 />
               </div>

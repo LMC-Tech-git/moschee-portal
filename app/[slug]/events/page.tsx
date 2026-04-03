@@ -194,6 +194,7 @@ export default async function EventsPage({
                       <Link
                         key={event.id}
                         href={`/events/${event.id}`}
+                        aria-label={event.title}
                         className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 rounded-xl"
                       >
                         <EventCard event={event} />
@@ -214,6 +215,7 @@ export default async function EventsPage({
                       <Link
                         key={event.id}
                         href={`/events/${event.id}`}
+                        aria-label={event.title}
                         className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 rounded-xl"
                       >
                         <EventCard event={event} />

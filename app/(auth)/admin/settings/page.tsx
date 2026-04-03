@@ -586,6 +586,11 @@ function BrandingTab({
             <p className="text-xs text-gray-400">
               {t("branding.logoHint")}
             </p>
+            {logoFile && logoFile.size > 300 * 1024 && (
+              <p className="text-xs text-amber-600">
+                ⚠ {t("branding.logoSizeWarning")}
+              </p>
+            )}
             <input
               ref={fileInputRef}
               type="file"

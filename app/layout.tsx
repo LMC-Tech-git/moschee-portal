@@ -48,12 +48,21 @@ export const metadata: Metadata = {
     title: "moschee.app — Die digitale Plattform für Moscheegemeinden",
     description:
       "Die digitale Plattform für muslimische Gemeinden in Deutschland. Gebetszeiten, Veranstaltungen, Spenden und mehr.",
+    images: [
+      {
+        url: "https://moschee.app/og-default.png",
+        width: 1200,
+        height: 630,
+        alt: "moschee.app — Die digitale Plattform für Moscheegemeinden",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "moschee.app — Die digitale Plattform für Moscheegemeinden",
     description:
       "Die digitale Plattform für muslimische Gemeinden in Deutschland.",
+    images: ["https://moschee.app/og-default.png"],
   },
   manifest: "/manifest.json",
   appleWebApp: {

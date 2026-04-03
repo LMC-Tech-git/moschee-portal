@@ -1390,6 +1390,7 @@
       "uploadLogo": "Logo Yükle",
       "removeLogo": "Kaldır",
       "logoHint": "Önerilen: kare, en az 200×200 piksel",
+      "logoSizeWarning": "Bu görsel 300 KB'ın üzerinde. Daha hızlı yükleme için daha küçük görseller öneriyoruz.",
       "colorScheme": "Renk Şeması",
       "colorSchemeDesc": "Bir renk şeması seçin veya özel renkler tanımlayın.",
       "primaryColor": "Ana Renk",
