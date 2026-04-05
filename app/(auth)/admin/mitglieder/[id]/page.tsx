@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import {
   ArrowLeft,
   Save,
@@ -46,6 +47,7 @@ import { ROLE_OPTIONS } from "@/lib/constants";
 import type { User as UserType, Donation, EventRegistration, Student } from "@/types";
 
 export default function MitgliedBearbeitenPage() {
+  const t = useTranslations("adminMemberDetail");
   const params = useParams();
   const router = useRouter();
   const { user } = useAuth();
@@ -78,7 +80,7 @@ export default function MitgliedBearbeitenPage() {
       try {
         const result = await getMemberById(memberId, mosqueId);
         if (!result.success || !result.data) {
-          setError(result.error || "Mitglied konnte nicht geladen werden.");
+          setError(result.error || t("loadError"));
           setIsLoading(false);
           return;
         }
@@ -93,7 +95,7 @@ export default function MitgliedBearbeitenPage() {
         setStatus(m.status || "pending");
       } catch (err) {
         console.error("Mitglied laden Fehler:", err);
-        setError("Mitglied konnte nicht geladen werden.");
+        setError(t("loadError"));
       } finally {
         setIsLoading(false);
       }
@@ -138,15 +140,15 @@ export default function MitgliedBearbeitenPage() {
       });
 
       if (result.success) {
-        toast.success("Mitglied erfolgreich aktualisiert");
+        toast.success(t("saveSuccess"));
         router.push("/admin/mitglieder");
       } else {
-        setError(result.error || "Fehler beim Speichern");
-        toast.error(result.error || "Fehler beim Speichern");
+        setError(result.error || t("saveError"));
+        toast.error(result.error || t("saveError"));
       }
     } catch (err) {
-      setError("Fehler beim Speichern");
-      toast.error("Fehler beim Speichern");
+      setError(t("saveError"));
+      toast.error(t("saveError"));
     } finally {
       setIsSaving(false);
     }
@@ -174,7 +176,7 @@ export default function MitgliedBearbeitenPage() {
         <Button asChild variant="outline">
           <Link href="/admin/mitglieder">
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Zurück zur Liste
+            {t("backLink")}
           </Link>
         </Button>
       </div>
@@ -194,20 +196,20 @@ export default function MitgliedBearbeitenPage() {
         <Link
           href="/admin/mitglieder"
           className="rounded-lg p-2 text-gray-500 hover:bg-gray-100"
-          aria-label="Zurück zur Mitgliederliste"
+          aria-label={t("backLink")}
         >
           <ArrowLeft className="h-5 w-5" />
         </Link>
         <div className="flex-1">
           <h1 className="text-2xl font-bold text-gray-900">
-            Mitglied bearbeiten
+            {t("title")}
           </h1>
           <p className="mt-0.5 text-sm text-gray-500">
-            Registriert am {member ? formatDate(member.created) : ""}
+            {t("registeredAt", { date: member ? formatDate(member.created) : "" })}
           </p>
         </div>
         <Badge className={STATUS_COLORS[status] || "bg-gray-100 text-gray-600"}>
-          {status === "pending" ? "Ausstehend" : status === "active" ? "Aktiv" : "Inaktiv"}
+          {status === "pending" ? t("statusPending") : status === "active" ? t("statusActive") : t("statusInactive")}
         </Badge>
       </div>
 
@@ -225,12 +227,12 @@ export default function MitgliedBearbeitenPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
                 <User className="h-5 w-5 text-gray-500" />
-                Persönliche Daten
+                {t("personalData")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="fullName">Vollständiger Name</Label>
+                <Label htmlFor="fullName">{t("fullName")}</Label>
                 <Input
                   id="fullName"
                   value={fullName}
@@ -240,7 +242,7 @@ export default function MitgliedBearbeitenPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email">E-Mail-Adresse</Label>
+                <Label htmlFor="email">{t("email")}</Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                   <Input
@@ -252,12 +254,12 @@ export default function MitgliedBearbeitenPage() {
                   />
                 </div>
                 <p className="text-xs text-gray-400">
-                  E-Mail kann nur vom Benutzer selbst geändert werden
+                  {t("emailHint")}
                 </p>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="phone">Telefon</Label>
+                <Label htmlFor="phone">{t("phone")}</Label>
                 <div className="relative">
                   <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                   <Input
@@ -265,13 +267,13 @@ export default function MitgliedBearbeitenPage() {
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     className="pl-10"
-                    placeholder="Optional"
+                    placeholder={t("phonePlaceholder")}
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="membershipNumber">Mitgliedsnummer</Label>
+                <Label htmlFor="membershipNumber">{t("membershipNumber")}</Label>
                 <div className="relative">
                   <Hash className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                   <Input
@@ -279,7 +281,7 @@ export default function MitgliedBearbeitenPage() {
                     value={membershipNumber}
                     onChange={(e) => setMembershipNumber(e.target.value)}
                     className="pl-10"
-                    placeholder="z.B. M-001"
+                    placeholder={t("membershipNumberPlaceholder")}
                   />
                 </div>
               </div>
@@ -291,15 +293,15 @@ export default function MitgliedBearbeitenPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
                 <Shield className="h-5 w-5 text-gray-500" />
-                Rolle und Status
+                {t("roleAndStatus")}
               </CardTitle>
               <CardDescription>
-                Berechtigung und Aktivierungsstatus des Mitglieds
+                {t("roleAndStatusDesc")}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="role">Rolle</Label>
+                <Label htmlFor="role">{t("role")}</Label>
                 <select
                   id="role"
                   value={role}
@@ -315,23 +317,22 @@ export default function MitgliedBearbeitenPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="status">Status</Label>
+                <Label htmlFor="status">{t("status")}</Label>
                 <select
                   id="status"
                   value={status}
                   onChange={(e) => setStatus(e.target.value)}
                   className="w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                 >
-                  <option value="pending">Ausstehend</option>
-                  <option value="active">Aktiv</option>
-                  <option value="inactive">Inaktiv</option>
+                  <option value="pending">{t("statusPending")}</option>
+                  <option value="active">{t("statusActive")}</option>
+                  <option value="inactive">{t("statusInactive")}</option>
                 </select>
               </div>
 
               {status === "pending" && (
                 <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-700">
-                  Dieses Mitglied wartet auf Freischaltung. Setzen Sie den
-                  Status auf &quot;Aktiv&quot; um den Zugang zu gewähren.
+                  {t("pendingHint")}
                 </div>
               )}
 
@@ -349,7 +350,7 @@ export default function MitgliedBearbeitenPage() {
         {/* Speichern */}
         <div className="mt-6 flex justify-end gap-3">
           <Button asChild variant="outline">
-            <Link href="/admin/mitglieder">Abbrechen</Link>
+            <Link href="/admin/mitglieder">{t("cancel")}</Link>
           </Button>
           <Button
             type="submit"
@@ -359,12 +360,12 @@ export default function MitgliedBearbeitenPage() {
             {isSaving ? (
               <span className="flex items-center gap-2">
                 <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                Speichern...
+                {t("saving")}
               </span>
             ) : (
               <span className="flex items-center gap-2">
                 <Save className="h-4 w-4" />
-                Änderungen speichern
+                {t("save")}
               </span>
             )}
           </Button>
@@ -378,7 +379,7 @@ export default function MitgliedBearbeitenPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
               <CreditCard className="h-5 w-5 text-gray-500" />
-              Spendenhistorie
+              {t("donationTitle")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -390,7 +391,7 @@ export default function MitgliedBearbeitenPage() {
               </div>
             ) : donations.length === 0 ? (
               <p className="py-4 text-center text-sm text-gray-400">
-                Keine Spenden vorhanden.
+                {t("noDonations")}
               </p>
             ) : (
               <div className="divide-y">
@@ -416,13 +417,13 @@ export default function MitgliedBearbeitenPage() {
                       }
                     >
                       {d.status === "paid"
-                        ? "Bezahlt"
+                        ? t("donationPaid")
                         : d.status === "failed"
-                        ? "Fehlgeschlagen"
+                        ? t("donationFailed")
                         : d.status === "refunded"
-                        ? "Erstattet"
+                        ? t("donationRefunded")
                         : d.status === "created"
-                        ? "Offen"
+                        ? t("donationOpen")
                         : d.status}
                     </Badge>
                   </div>
@@ -437,7 +438,7 @@ export default function MitgliedBearbeitenPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
               <CalendarDays className="h-5 w-5 text-gray-500" />
-              Event-Teilnahmen
+              {t("eventTitle")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -449,7 +450,7 @@ export default function MitgliedBearbeitenPage() {
               </div>
             ) : events.length === 0 ? (
               <p className="py-4 text-center text-sm text-gray-400">
-                Keine Event-Teilnahmen vorhanden.
+                {t("noEvents")}
               </p>
             ) : (
               <div className="divide-y">
@@ -477,13 +478,13 @@ export default function MitgliedBearbeitenPage() {
                       }
                     >
                       {evt.status === "registered"
-                        ? "Angemeldet"
+                        ? t("eventRegistered")
                         : evt.status === "attended"
-                        ? "Teilgenommen"
+                        ? t("eventAttended")
                         : evt.status === "cancelled"
-                        ? "Abgemeldet"
+                        ? t("eventCancelled")
                         : evt.status === "no_show"
-                        ? "Nicht erschienen"
+                        ? t("eventNoShow")
                         : evt.status}
                     </Badge>
                   </div>
@@ -499,7 +500,7 @@ export default function MitgliedBearbeitenPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg">
             <GraduationCap className="h-5 w-5 text-gray-500" />
-            Kinder (Madrasa)
+            {t("childrenTitle")}
             {children.length > 0 && (
               <span className="ml-1 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">
                 {children.length}
@@ -516,13 +517,13 @@ export default function MitgliedBearbeitenPage() {
             </div>
           ) : children.length === 0 ? (
             <div className="py-4 text-center text-sm text-gray-400">
-              <p>Keine Kinder in der Madrasa.</p>
+              <p>{t("noChildrenInMadrasa")}</p>
               <Link
                 href="/admin/madrasa/schueler"
                 className="mt-1 inline-flex items-center gap-1 text-xs text-emerald-600 hover:underline"
               >
                 <ExternalLink className="h-3 w-3" />
-                Zur Schülerliste
+                {t("toStudentList")}
               </Link>
             </div>
           ) : (
@@ -548,12 +549,12 @@ export default function MitgliedBearbeitenPage() {
                           : "rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500"
                       }
                     >
-                      {child.status === "active" ? "Aktiv" : "Inaktiv"}
+                      {child.status === "active" ? t("childStatusActive") : t("childStatusInactive")}
                     </span>
                     <Link
                       href={`/admin/madrasa/schueler/${child.id}`}
                       className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
-                      title="Schüler-Details / Eltern verwalten"
+                      title={t("studentDetailTitle")}
                     >
                       <ExternalLink className="h-3.5 w-3.5" />
                     </Link>

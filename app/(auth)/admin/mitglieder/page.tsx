@@ -406,7 +406,7 @@ export default function MitgliederListePage() {
                           {(childrenCounts[member.id] ?? 0) > 0 && (
                             <span
                               className="inline-flex items-center gap-0.5 rounded-full bg-emerald-50 px-1.5 py-0.5 text-xs font-medium text-emerald-700"
-                              title={`${childrenCounts[member.id]} Kinder (Madrasa)`}
+                              title={t("childrenBadge", { count: childrenCounts[member.id] })}
                             >
                               <GraduationCap className="h-3 w-3" />
                               {childrenCounts[member.id]}
