@@ -310,7 +310,7 @@ export const PERFORMANCE_LEVELS = [
 ];
 
 export function getPerformanceLevel(value?: number | null) {
-  if (!value) return null;
+  if (value == null || value < 1 || value > 5) return null;
   return PERFORMANCE_LEVELS.find((l) => l.value === value) ?? null;
 }
 

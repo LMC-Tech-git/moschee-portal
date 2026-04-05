@@ -18,7 +18,7 @@ function mapRecordToAttendance(record: RecordModel): Attendance {
     status: record.status || "absent",
     notes: record.notes || "",
     marked_by: record.marked_by || "",
-    performance: record.performance != null ? (record.performance as 1 | 2 | 3 | 4 | 5) : undefined,
+    performance: record.performance != null && record.performance > 0 ? (record.performance as 1 | 2 | 3 | 4 | 5) : undefined,
     created: record.created || "",
     updated: record.updated || "",
   };
@@ -591,7 +591,7 @@ export async function getParentAttendanceOverview(
             : null;
 
         // Performance-Aggregation (nur Records mit Wert)
-        const withPerf = recs.filter((r) => r.performance != null);
+        const withPerf = recs.filter((r) => r.performance != null && (r.performance as number) > 0);
         const lastPerformance = withPerf[0]?.performance as number | undefined;
         const performanceCount = withPerf.length;
         const avgPerformance =
@@ -738,7 +738,7 @@ export async function getCoursePerformanceStats(
     const totalSessions = new Set(records.map((r) => (r.session_date as string).slice(0, 10))).size;
     const ratedSessionCount = new Set(
       records
-        .filter((r) => r.performance != null)
+        .filter((r) => r.performance != null && (r.performance as number) > 0)
         .map((r) => (r.session_date as string).slice(0, 10))
     ).size;
 
@@ -760,7 +760,7 @@ export async function getCoursePerformanceStats(
       // filter: nur present/late mit performance (filter erhält DESC-Reihenfolge)
       const withPerf = recs.filter(
         (r) =>
-          r.performance != null &&
+          r.performance != null && (r.performance as number) > 0 &&
           (r.status === "present" || r.status === "late")
       );
       const performanceCount = withPerf.length;
