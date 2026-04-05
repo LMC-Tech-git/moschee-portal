@@ -1859,7 +1859,7 @@
     "today": "Heute — {day}",
     "otherCourses": "Weitere Kurse",
     "students": "{count} Schüler",
-    "enterAttendance": "Anwesenheit eintragen",
+    "enterAttendance": "Anwesenheit & Leistung",
     "attendance": {
       "backLink": "Zurück zu Meine Kurse",
       "courseNotFound": "Kurs nicht gefunden",
@@ -1884,10 +1884,19 @@
       "noStudents": "Keine eingeschriebenen Schüler in diesem Kurs.",
       "saving": "Wird gespeichert…",
       "saveBtn": "Anwesenheit speichern",
+      "tabPerformance": "Leistung",
       "performance": {
         "label": "Leistung",
         "rate": "Bewerten",
-        "notRated": "Nicht bewertet"
+        "notRated": "Nicht bewertet",
+        "overview": "Leistungsübersicht",
+        "ratedSessions": "{rated} von {total} Stunden bewertet",
+        "avgClass": "Ø Schülerleistung",
+        "ratedStudents": "Bewertete Schüler",
+        "notRatedYet": "Noch nicht bewertet",
+        "ratings": "{count} Bewertungen",
+        "aboveAvg": "{diff} über Ø",
+        "belowAvg": "{diff} unter Ø"
       },
       "stats": {
         "noData": "Keine Daten verfügbar.",

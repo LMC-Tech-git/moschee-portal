@@ -1859,7 +1859,7 @@
     "today": "Bugün — {day}",
     "otherCourses": "Diğer Dersler",
     "students": "{count} Öğrenci",
-    "enterAttendance": "Yoklama Al",
+    "enterAttendance": "Yoklama & Performans",
     "attendance": {
       "backLink": "Derslerime Dön",
       "courseNotFound": "Ders bulunamadı",
@@ -1884,10 +1884,19 @@
       "noStudents": "Bu derste kayıtlı öğrenci yok.",
       "saving": "Kaydediliyor…",
       "saveBtn": "Yoklamayı Kaydet",
+      "tabPerformance": "Performans",
       "performance": {
         "label": "Performans",
         "rate": "Değerlendir",
-        "notRated": "Değerlendirilmedi"
+        "notRated": "Değerlendirilmedi",
+        "overview": "Performans Özeti",
+        "ratedSessions": "{total} dersten {rated} tanesi değerlendirildi",
+        "avgClass": "Ø Öğrenci Performansı",
+        "ratedStudents": "Değerlendirilen Öğrenciler",
+        "notRatedYet": "Henüz değerlendirilmedi",
+        "ratings": "{count} değerlendirme",
+        "aboveAvg": "{diff} ortalamanın üstünde",
+        "belowAvg": "{diff} ortalamanın altında"
       },
       "stats": {
         "noData": "Veri yok.",

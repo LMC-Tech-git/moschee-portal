@@ -13,8 +13,10 @@ import {
   saveAttendanceBulk,
   getCourseSessions,
   getCourseAttendanceStats,
+  getCoursePerformanceStats,
   deleteAttendanceSession,
   type CourseAttendanceStats,
+  type CoursePerformanceStats,
 } from "@/lib/actions/attendance";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,6 +33,7 @@ import {
 } from "@/lib/constants";
 import type { Course, CourseEnrollment, Attendance } from "@/types";
 import AttendanceStats from "@/components/madrasa/AttendanceStats";
+import PerformanceStats from "@/components/madrasa/PerformanceStats";
 import { DemoHint } from "@/components/demo/DemoHint";
 
 type AttendanceStatus = "present" | "absent" | "late" | "excused";
@@ -63,6 +66,10 @@ export default function AttendancePage() {
   // Statistik
   const [courseStats, setCourseStats] = useState<CourseAttendanceStats | null>(null);
   const [isLoadingStats, setIsLoadingStats] = useState(false);
+
+  // Leistung
+  const [performanceStats, setPerformanceStats] = useState<CoursePerformanceStats | null>(null);
+  const [isLoadingPerf, setIsLoadingPerf] = useState(false);
 
   // Session löschen
   const [deletingSession, setDeletingSession] = useState<string | null>(null);
@@ -136,9 +143,22 @@ export default function AttendancePage() {
     setIsLoadingStats(false);
   }, [mosqueId, courseId]);
 
+  const loadPerformanceStats = useCallback(async () => {
+    if (!mosqueId || !courseId) return;
+    setIsLoadingPerf(true);
+    const result = await getCoursePerformanceStats(courseId, mosqueId);
+    if (result.success && result.data) {
+      setPerformanceStats(result.data);
+    }
+    setIsLoadingPerf(false);
+  }, [mosqueId, courseId]);
+
   function handleTabChange(value: string) {
     if (value === "stats" && !courseStats && !isLoadingStats) {
       loadStats();
+    }
+    if (value === "performance" && !performanceStats && !isLoadingPerf) {
+      loadPerformanceStats();
     }
   }
 
@@ -182,8 +202,8 @@ export default function AttendancePage() {
       if (!pastSessions.includes(sessionDate)) {
         setPastSessions((prev) => [sessionDate, ...prev]);
       }
-      // Statistik invalidieren, damit sie beim nächsten Tab-Wechsel neu geladen wird
       setCourseStats(null);
+      setPerformanceStats(null);
     } else {
       setError(result.error || "Speichern fehlgeschlagen");
     }
@@ -201,6 +221,7 @@ export default function AttendancePage() {
         setStudents([]);
       }
       setCourseStats(null);
+      setPerformanceStats(null);
     } else {
       setError(result.error || "Session konnte nicht gelöscht werden");
     }
@@ -277,6 +298,14 @@ export default function AttendancePage() {
             {pastSessions.length > 0 && (
               <span className="ml-1.5 rounded-full bg-gray-200 px-1.5 py-0.5 text-xs font-medium text-gray-600">
                 {pastSessions.length}
+              </span>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="performance" className="flex-1 sm:flex-none">
+            Leistung
+            {(performanceStats?.ratedStudentsCount ?? 0) > 0 && (
+              <span className="ml-1.5 rounded-full bg-gray-200 px-1.5 py-0.5 text-xs font-medium text-gray-600">
+                {performanceStats!.ratedStudentsCount}
               </span>
             )}
           </TabsTrigger>
@@ -531,6 +560,11 @@ export default function AttendancePage() {
         {/* ── Statistik ── */}
         <TabsContent value="stats" className="mt-4">
           <AttendanceStats stats={courseStats} isLoading={isLoadingStats} />
+        </TabsContent>
+
+        {/* ── Leistung ── */}
+        <TabsContent value="performance" className="mt-4">
+          <PerformanceStats stats={performanceStats} isLoading={isLoadingPerf} />
         </TabsContent>
       </Tabs>
     </div>

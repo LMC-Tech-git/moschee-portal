@@ -2,6 +2,7 @@
 
 import { getAdminPB } from "@/lib/pocketbase-admin";
 import { logAudit } from "@/lib/audit";
+import { PERFORMANCE_LEVELS } from "@/lib/constants";
 import type { Attendance } from "@/types";
 import type { RecordModel } from "pocketbase";
 
@@ -601,14 +602,10 @@ export async function getParentAttendanceOverview(
             : undefined;
         // Trend: letzte 3 Bewertungen (DESC → slice(0,3) = neueste 3)
         const last3 = withPerf.slice(0, 3).map((r) => r.performance as number);
-        const trend: "up" | "down" | "stable" | undefined =
-          last3.length >= 2
-            ? last3[0] > last3[last3.length - 1]
-              ? "up"
-              : last3[0] < last3[last3.length - 1]
-              ? "down"
-              : "stable"
-            : undefined;
+        const trendDiff = last3.length >= 3 ? last3[0] - last3[last3.length - 1] : NaN;
+        const trend: "up" | "down" | "stable" | undefined = !isNaN(trendDiff)
+          ? trendDiff > 0 ? "up" : trendDiff < 0 ? "down" : "stable"
+          : undefined;
 
         return {
           courseId,
@@ -670,5 +667,162 @@ export async function getCourseSessions(
   } catch (error) {
     console.error("[Attendance] Fehler beim Laden:", error);
     return { success: false, error: "Sessions konnten nicht geladen werden" };
+  }
+}
+
+// ─── Leistungsübersicht eines Kurses ─────────────────────────────────────────
+
+export interface StudentPerformanceStat {
+  student_id: string;
+  student_name: string;
+  avgPerformance?: number;
+  lastPerformance?: number;
+  performanceCount: number;
+  trend?: "up" | "down" | "stable";
+  recentSessions: {
+    date: string;
+    performance: number;
+    label: string;
+    icon: string;
+  }[];
+}
+
+export interface CoursePerformanceStats {
+  studentStats: StudentPerformanceStat[];
+  ratedSessionCount: number;
+  totalSessions: number;
+  enrolledCount: number;
+  avgClassPerformance?: number;
+  ratedStudentsCount: number;
+}
+
+/**
+ * Leistungsübersicht für einen Kurs (letzte 12 Monate).
+ * Aggregiert Bewertungen pro Schüler: Ø, letzte Bewertung, Trend, Timeline.
+ */
+export async function getCoursePerformanceStats(
+  courseId: string,
+  mosqueId: string
+): Promise<ActionResult<CoursePerformanceStats>> {
+  try {
+    const pb = await getAdminPB();
+
+    const course = await pb.collection("courses").getOne(courseId);
+    if (course.mosque_id !== mosqueId) {
+      return { success: false, error: "Kurs nicht gefunden" };
+    }
+
+    // Eingeschriebene Schüler
+    const enrollments = await pb.collection("course_enrollments").getFullList({
+      filter: `course_id = "${courseId}" && status = "enrolled"`,
+      fields: "student_id",
+      expand: "student_id",
+    });
+    const studentMap = new Map<string, string>();
+    enrollments.forEach((e) => {
+      const s = e.expand?.student_id as RecordModel | undefined;
+      const name = s ? `${s.first_name || ""} ${s.last_name || ""}`.trim() : e.student_id;
+      studentMap.set(e.student_id as string, name || e.student_id);
+    });
+
+    // Attendance records: letzte 12 Monate, status + performance
+    const fromDate = new Date(Date.now() - 1000 * 60 * 60 * 24 * 365)
+      .toISOString()
+      .slice(0, 10);
+    const records = await pb.collection("attendance").getFullList({
+      filter: `course_id = "${courseId}" && mosque_id = "${mosqueId}" && session_date >= "${fromDate}"`,
+      fields: "student_id,performance,status,session_date,created",
+      sort: "-session_date,-created",
+    });
+
+    // Session-Counts aus geladenen Records (kein extra Query)
+    const totalSessions = new Set(records.map((r) => (r.session_date as string).slice(0, 10))).size;
+    const ratedSessionCount = new Set(
+      records
+        .filter((r) => r.performance != null)
+        .map((r) => (r.session_date as string).slice(0, 10))
+    ).size;
+
+    // levelMap einmalig (kein doppeltes .find() pro Record)
+    const levelMap = new Map(PERFORMANCE_LEVELS.map((l) => [l.value as number, l]));
+
+    // Gruppieren nach student_id (Records sind bereits DESC sortiert)
+    const grouped = new Map<string, RecordModel[]>();
+    records.forEach((r) => {
+      const sid = r.student_id as string;
+      if (!grouped.has(sid)) grouped.set(sid, []);
+      grouped.get(sid)!.push(r);
+    });
+
+    // Pro Schüler aggregieren
+    const studentStats: StudentPerformanceStat[] = [];
+    studentMap.forEach((studentName, sid) => {
+      const recs = grouped.get(sid) ?? [];
+      // filter: nur present/late mit performance (filter erhält DESC-Reihenfolge)
+      const withPerf = recs.filter(
+        (r) =>
+          r.performance != null &&
+          (r.status === "present" || r.status === "late")
+      );
+      const performanceCount = withPerf.length;
+      const lastPerformance = performanceCount > 0 ? (withPerf[0].performance as number) : undefined;
+      const avgPerformance =
+        performanceCount > 0
+          ? Number(
+              (
+                withPerf.reduce((s, r) => s + (r.performance as number), 0) / performanceCount
+              ).toFixed(1)
+            )
+          : undefined;
+      const last3 = withPerf.slice(0, 3).map((r) => r.performance as number);
+      const trendDiff = last3.length >= 3 ? last3[0] - last3[last3.length - 1] : NaN;
+      const trend: "up" | "down" | "stable" | undefined = !isNaN(trendDiff)
+        ? trendDiff > 0 ? "up" : trendDiff < 0 ? "down" : "stable"
+        : undefined;
+      const recentSessions = withPerf.slice(0, 10).map((r) => {
+        const level = levelMap.get(r.performance as number);
+        return {
+          date: (r.session_date as string).slice(0, 10),
+          performance: r.performance as number,
+          label: level?.shortLabel ?? "",
+          icon: level?.icon ?? "",
+        };
+      });
+      studentStats.push({ student_id: sid, student_name: studentName, avgPerformance, lastPerformance, performanceCount, trend, recentSessions });
+    });
+
+    // Sortierung: avgPerformance desc (undefined ans Ende), dann alphabetisch
+    studentStats.sort((a, b) => {
+      if (a.avgPerformance == null) return 1;
+      if (b.avgPerformance == null) return -1;
+      if (b.avgPerformance !== a.avgPerformance) return b.avgPerformance - a.avgPerformance;
+      return a.student_name.localeCompare(b.student_name);
+    });
+
+    // Ø Schülerleistung (Ø der Schüler-Durchschnitte)
+    const avgs = studentStats
+      .filter((s) => s.avgPerformance != null)
+      .map((s) => s.avgPerformance as number);
+    const avgClassPerformance =
+      avgs.length > 0
+        ? Number((avgs.reduce((a, b) => a + b, 0) / avgs.length).toFixed(1))
+        : undefined;
+
+    const ratedStudentsCount = studentStats.filter((s) => s.performanceCount > 0).length;
+
+    return {
+      success: true,
+      data: {
+        studentStats,
+        ratedSessionCount,
+        totalSessions,
+        enrolledCount: studentMap.size,
+        avgClassPerformance,
+        ratedStudentsCount,
+      },
+    };
+  } catch (error) {
+    console.error("[Attendance] Fehler bei Leistungsübersicht:", error);
+    return { success: false, error: "Leistungsübersicht konnte nicht geladen werden" };
   }
 }
