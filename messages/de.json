@@ -1998,6 +1998,27 @@
     "filtered": "{filtered} von {total}",
     "backLink": "Zur Madrasa-Übersicht"
   },
+  "adminStudentDetail": {
+    "backLink": "Schülerliste",
+    "notFound": "Schüler nicht gefunden",
+    "cardInfo": "Schüler-Details",
+    "fieldDob": "Geburtsdatum",
+    "fieldGender": "Geschlecht",
+    "genderMale": "Männlich",
+    "genderFemale": "Weiblich",
+    "fieldSchool": "Schule",
+    "fieldClass": "Klasse",
+    "fieldNotes": "Notizen",
+    "parentsTitle": "Eltern",
+    "noParents": "Noch keine Eltern zugewiesen.",
+    "removeParentTitle": "Elternteil entfernen",
+    "addParentTitle": "Elternteil hinzufügen",
+    "searchPlaceholder": "Name oder Telefon suchen...",
+    "noResults": "Keine Mitglieder gefunden",
+    "addButton": "Hinzufügen",
+    "errorAdd": "Fehler beim Hinzufügen",
+    "errorRemove": "Fehler beim Entfernen"
+  },
   "studentImport": {
     "title": "Schüler importieren",
     "description": "Importieren Sie Schüler aus einer CSV- oder Excel-Datei in die Schülerliste.",

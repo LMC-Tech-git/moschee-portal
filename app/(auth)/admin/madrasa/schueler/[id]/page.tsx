@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { ChevronLeft, UserPlus, Trash2, Search, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -39,7 +40,8 @@ function formatDate(dateStr: string) {
 
 export default function StudentDetailPage() {
   const params = useParams();
-  const router = useRouter();
+  const t = useTranslations("adminStudentDetail");
+  const tL = useTranslations("labels");
   const { mosqueId } = useMosque();
   const { user } = useAuth();
 
@@ -66,7 +68,7 @@ export default function StudentDetailPage() {
     ]);
 
     if (!studentRes.success || !studentRes.data) {
-      setError("Schüler nicht gefunden");
+      setError(t("notFound"));
       setIsLoading(false);
       return;
     }
@@ -103,7 +105,7 @@ export default function StudentDetailPage() {
       setSearchQuery("");
       await loadData();
     } else {
-      setError(res.error ?? "Fehler beim Hinzufügen");
+      setError(res.error ?? t("errorAdd"));
     }
     setIsAdding(false);
   }
@@ -117,7 +119,7 @@ export default function StudentDetailPage() {
     if (res.success) {
       await loadData();
     } else {
-      setError(res.error ?? "Fehler beim Entfernen");
+      setError(res.error ?? t("errorRemove"));
     }
     setRemovingId(null);
   }
@@ -140,7 +142,7 @@ export default function StudentDetailPage() {
           className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4"
         >
           <ChevronLeft className="h-4 w-4" />
-          Schülerliste
+          {t("backLink")}
         </Link>
         <p className="text-destructive">{error}</p>
       </div>
@@ -160,12 +162,12 @@ export default function StudentDetailPage() {
           className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-3"
         >
           <ChevronLeft className="h-4 w-4" />
-          Schülerliste
+          {t("backLink")}
         </Link>
         <div className="flex items-center gap-3">
           <h1 className="text-2xl font-bold">{studentName}</h1>
           <Badge variant={student.status === "active" ? "default" : "secondary"}>
-            {student.status === "active" ? "Aktiv" : "Inaktiv"}
+            {tL(`student.status.${student.status}`)}
           </Badge>
         </div>
       </div>
@@ -173,36 +175,36 @@ export default function StudentDetailPage() {
       {/* Schüler-Info */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Schüler-Details</CardTitle>
+          <CardTitle className="text-base">{t("cardInfo")}</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-2 gap-4 text-sm">
           {student.date_of_birth && (
             <div>
-              <p className="text-muted-foreground">Geburtsdatum</p>
+              <p className="text-muted-foreground">{t("fieldDob")}</p>
               <p>{formatDate(student.date_of_birth)}</p>
             </div>
           )}
           {student.gender && (
             <div>
-              <p className="text-muted-foreground">Geschlecht</p>
-              <p>{student.gender === "male" ? "Männlich" : "Weiblich"}</p>
+              <p className="text-muted-foreground">{t("fieldGender")}</p>
+              <p>{student.gender === "male" ? t("genderMale") : t("genderFemale")}</p>
             </div>
           )}
           {student.school_name && (
             <div>
-              <p className="text-muted-foreground">Schule</p>
+              <p className="text-muted-foreground">{t("fieldSchool")}</p>
               <p>{student.school_name}</p>
             </div>
           )}
           {student.school_class && (
             <div>
-              <p className="text-muted-foreground">Klasse</p>
+              <p className="text-muted-foreground">{t("fieldClass")}</p>
               <p>{student.school_class}</p>
             </div>
           )}
           {student.notes && (
             <div className="col-span-2">
-              <p className="text-muted-foreground">Notizen</p>
+              <p className="text-muted-foreground">{t("fieldNotes")}</p>
               <p>{student.notes}</p>
             </div>
           )}
@@ -214,7 +216,7 @@ export default function StudentDetailPage() {
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
             <User className="h-4 w-4" />
-            Eltern
+            {t("parentsTitle")}
             {parents.length > 0 && (
               <Badge variant="secondary" className="ml-1">
                 {parents.length}
@@ -230,7 +232,7 @@ export default function StudentDetailPage() {
           {/* Zugewiesene Eltern */}
           {parents.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              Noch keine Eltern zugewiesen.
+              {t("noParents")}
             </p>
           ) : (
             <div className="space-y-2">
@@ -253,7 +255,7 @@ export default function StudentDetailPage() {
                     size="icon"
                     onClick={() => handleRemoveParent(parent.id)}
                     disabled={removingId === parent.id}
-                    title="Elternteil entfernen"
+                    title={t("removeParentTitle")}
                   >
                     <Trash2 className="h-4 w-4 text-destructive" />
                   </Button>
@@ -266,11 +268,11 @@ export default function StudentDetailPage() {
 
           {/* Elternteil hinzufügen */}
           <div className="space-y-3">
-            <p className="text-sm font-medium">Elternteil hinzufügen</p>
+            <p className="text-sm font-medium">{t("addParentTitle")}</p>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Name oder Telefon suchen..."
+                placeholder={t("searchPlaceholder")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9"
@@ -281,7 +283,7 @@ export default function StudentDetailPage() {
               <div className="border rounded-md divide-y max-h-52 overflow-y-auto">
                 {filteredCandidates.length === 0 ? (
                   <p className="p-3 text-sm text-muted-foreground">
-                    Keine Mitglieder gefunden
+                    {t("noResults")}
                   </p>
                 ) : (
                   filteredCandidates.map((candidate) => (
@@ -304,7 +306,7 @@ export default function StudentDetailPage() {
                         disabled={isAdding}
                       >
                         <UserPlus className="h-3.5 w-3.5 mr-1" />
-                        Hinzufügen
+                        {t("addButton")}
                       </Button>
                     </div>
                   ))

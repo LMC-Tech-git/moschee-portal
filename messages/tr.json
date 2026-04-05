@@ -1998,6 +1998,27 @@
     "filtered": "{filtered} / {total}",
     "backLink": "Medrese Modülü"
   },
+  "adminStudentDetail": {
+    "backLink": "Öğrenci Listesi",
+    "notFound": "Öğrenci bulunamadı",
+    "cardInfo": "Öğrenci Detayları",
+    "fieldDob": "Doğum Tarihi",
+    "fieldGender": "Cinsiyet",
+    "genderMale": "Erkek",
+    "genderFemale": "Kız",
+    "fieldSchool": "Okul",
+    "fieldClass": "Sınıf",
+    "fieldNotes": "Notlar",
+    "parentsTitle": "Veliler",
+    "noParents": "Henüz veli atanmamış.",
+    "removeParentTitle": "Veli kaldır",
+    "addParentTitle": "Veli ekle",
+    "searchPlaceholder": "Ad veya telefon ara...",
+    "noResults": "Üye bulunamadı",
+    "addButton": "Ekle",
+    "errorAdd": "Ekleme sırasında hata oluştu",
+    "errorRemove": "Kaldırma sırasında hata oluştu"
+  },
   "studentImport": {
     "title": "Öğrenci İçe Aktar",
     "description": "CSV veya Excel dosyasından öğrenci listesine öğrenci aktarın.",
