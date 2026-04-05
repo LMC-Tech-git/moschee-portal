@@ -8,6 +8,17 @@ Der User deployed dann selbst via `git pull && npm run build && pm2 restart mosc
 
 ---
 
+## Pflichtregeln — bereits beim Planen berücksichtigen
+
+Diese Punkte gehören **in jeden Plan**, nicht erst beim Commit. Beim Erstellen eines Implementierungsplans immer explizit prüfen und als eigene Plan-Schritte aufnehmen wenn zutreffend:
+
+- **Texte geändert/neu?** → `messages/de.json` + `messages/tr.json` als Plan-Schritt
+- **Neues Feld oder neue Collection?** → `scripts/seed-demo-full.mjs` + Demo-Reset-Button als Plan-Schritt
+- **Neue UI-Komponente?** → Mobile/PWA-Verhalten explizit im Plan adressieren
+- **Neue `logAudit()`-Aktion?** → Audit-Labels in beiden JSON-Dateien als Plan-Schritt
+
+---
+
 ## Pflichtregeln bei jeder Änderung
 
 ### 1. Türkische Übersetzung mitpflegen
