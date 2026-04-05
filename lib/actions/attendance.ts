@@ -715,7 +715,6 @@ export async function getCoursePerformanceStats(
     // Eingeschriebene Schüler
     const enrollments = await pb.collection("course_enrollments").getFullList({
       filter: `course_id = "${courseId}" && status = "enrolled"`,
-      fields: "student_id",
       expand: "student_id",
     });
     const studentMap = new Map<string, string>();

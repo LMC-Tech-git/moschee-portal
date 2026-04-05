@@ -12,11 +12,16 @@ interface PerformanceStatsProps {
   isLoading: boolean;
 }
 
-function perfColor(avg?: number): string {
-  if (avg == null) return "bg-gray-100 text-gray-500";
-  if (avg >= 4) return "bg-emerald-100 text-emerald-700";
-  if (avg >= 3) return "bg-amber-100 text-amber-700";
-  return "bg-red-100 text-red-700";
+function renderStars(value: number, size: "sm" | "lg" = "sm") {
+  const full = Math.round(value);
+  const cls = size === "lg" ? "text-lg" : "text-sm";
+  return (
+    <span className={cn(cls, "tracking-tight leading-none")} aria-label={`${value} von 5`}>
+      {Array.from({ length: 5 }, (_, i) => (
+        <span key={i} className={i < full ? "text-amber-400" : "text-gray-300"}>★</span>
+      ))}
+    </span>
+  );
 }
 
 function trendIcon(trend?: "up" | "down" | "stable"): string {
@@ -76,10 +81,15 @@ function StudentRow({
 
         {/* Rechte Seite: Badge + Trend + Anzahl + Expand */}
         <div className="flex items-center gap-1.5 shrink-0">
-          {/* Ø Badge */}
-          <span className={cn("rounded-full px-2 py-0.5 text-xs font-semibold tabular-nums", perfColor(student.avgPerformance))}>
-            {student.avgPerformance != null ? `Ø ${student.avgPerformance}` : "Ø —"}
-          </span>
+          {/* Sterne */}
+          {student.avgPerformance != null ? (
+            <span className="flex items-center gap-1">
+              {renderStars(student.avgPerformance)}
+              <span className="text-xs text-gray-500 tabular-nums">{student.avgPerformance}</span>
+            </span>
+          ) : (
+            <span className="text-xs text-gray-400">—</span>
+          )}
 
           {/* Trend */}
           {student.trend && (
@@ -164,9 +174,10 @@ export default function PerformanceStats({ stats, isLoading }: PerformanceStatsP
           <CardContent className="p-4 text-center">
             {stats.avgClassPerformance != null ? (
               <>
-                <p className={cn("inline-block rounded-full px-3 py-1 text-2xl font-bold", perfColor(stats.avgClassPerformance))}>
-                  {stats.avgClassPerformance}
-                </p>
+                <div className="flex flex-col items-center gap-1">
+                  {renderStars(stats.avgClassPerformance, "lg")}
+                  <span className="text-sm text-gray-500 tabular-nums">{stats.avgClassPerformance}</span>
+                </div>
                 <p className="mt-1 text-xs text-gray-500">{t("attendance.performance.avgClass")}</p>
               </>
             ) : (

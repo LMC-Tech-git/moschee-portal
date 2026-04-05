@@ -727,7 +727,11 @@ function ChildrenTab({
                                   <span className={`rounded-full border px-1.5 py-0.5 text-xs font-medium ${lvl.color}`}>
                                     {lvl.icon} {lvl.shortLabel}
                                     {course.avgPerformance != null && (
-                                      <span className="ml-1 opacity-70">Ø {course.avgPerformance}</span>
+                                      <span className="ml-1 opacity-70" aria-label={`Ø ${course.avgPerformance} von 5`}>
+                                        {Array.from({ length: 5 }, (_, i) => (
+                                          <span key={i} className={i < Math.round(course.avgPerformance!) ? "text-amber-400" : "text-gray-300"}>★</span>
+                                        ))}
+                                      </span>
                                     )}
                                   </span>
                                 ) : null;

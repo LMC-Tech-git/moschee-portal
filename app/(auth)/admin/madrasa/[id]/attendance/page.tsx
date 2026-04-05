@@ -487,7 +487,14 @@ export default function AttendancePage() {
                               )}
                             >
                               {student.performance
-                                ? `${getPerformanceLevel(student.performance)?.icon} ${getPerformanceLevel(student.performance)?.shortLabel} ✎`
+                                ? <>
+                                    <span className="tracking-tight">
+                                      {Array.from({ length: 5 }, (_, i) => (
+                                        <span key={i} className={i < student.performance! ? "text-amber-400" : "text-gray-300"}>★</span>
+                                      ))}
+                                    </span>
+                                    {" "}{getPerformanceLevel(student.performance)?.shortLabel} ✎
+                                  </>
                                 : "Bewerten"}
                             </button>
                             {openRatingFor === student.student_id && (
@@ -512,7 +519,11 @@ export default function AttendancePage() {
                                         : "text-gray-700"
                                     )}
                                   >
-                                    <span className="text-base">{level.icon}</span>
+                                    <span className="tracking-tight">
+                                      {Array.from({ length: 5 }, (_, i) => (
+                                        <span key={i} className={i < level.value ? "text-amber-400" : "text-gray-300"}>★</span>
+                                      ))}
+                                    </span>
                                     <span>{level.shortLabel}</span>
                                     {student.performance === level.value && (
                                       <Check className="ml-auto h-3.5 w-3.5" />
