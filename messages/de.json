@@ -1205,7 +1205,8 @@
       "settings": "Einstellungen",
       "mosques": "Moschee",
       "sponsors": "Förderpartner",
-      "team_members": "Team"
+      "team_members": "Team",
+      "parent_child_relations": "Eltern-Kind-Verknüpfung"
     },
     "action": {
       "post": {
@@ -1319,6 +1320,10 @@
       },
       "team_members": {
         "reordered": "Team neu sortiert"
+      },
+      "parent_child": {
+        "linked": "Elternteil verknüpft",
+        "unlinked": "Elternteil entfernt"
       }
     },
     "field": {

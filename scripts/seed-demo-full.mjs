@@ -1235,6 +1235,34 @@ async function seedSponsors() {
   else console.log("  ⏭️  Alle Förderpartner vorhanden\n");
 }
 
+async function seedParentChildRelations(users, studentIds) {
+  console.log("👨‍👩‍👧 Eltern-Kind-Verknüpfungen...");
+
+  // Verknüpfe erste 3 Mitglieder mit den ersten Schülern (2 Kinder pro Elternteil)
+  const links = [];
+  if (users.memberIds?.length >= 3 && studentIds.length >= 6) {
+    links.push({ parent: users.memberIds[0], student: studentIds[0] });
+    links.push({ parent: users.memberIds[0], student: studentIds[1] });
+    links.push({ parent: users.memberIds[1], student: studentIds[2] });
+    links.push({ parent: users.memberIds[1], student: studentIds[3] });
+    links.push({ parent: users.memberIds[2], student: studentIds[4] });
+    links.push({ parent: users.memberIds[2], student: studentIds[5] });
+  }
+
+  let created = 0;
+  for (const link of links) {
+    const { created: c } = await findOrCreate(
+      "parent_child_relations",
+      `mosque_id="${MOSQUE_ID}" && parent_user="${link.parent}" && student="${link.student}"`,
+      { mosque_id: MOSQUE_ID, parent_user: link.parent, student: link.student }
+    );
+    if (c) created++;
+  }
+
+  if (created) console.log(`  ✅ ${created} Verknüpfungen erstellt\n`);
+  else console.log("  ⏭️  Alle Verknüpfungen vorhanden\n");
+}
+
 // ─── 5. Main ─────────────────────────────────────────────────────────────────
 
 async function main() {
@@ -1253,6 +1281,7 @@ async function main() {
   const yearIds     = await seedAcademicYears();
   const courseIds   = await seedCourses(yearIds, users);
   const studentIds  = await seedStudents();
+  await seedParentChildRelations(users, studentIds);
   await seedEnrollments(courseIds, studentIds);
   await seedAttendance(courseIds, studentIds, users.teacher1);
   await seedStudentFees(studentIds, users.admin);

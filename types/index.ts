@@ -371,6 +371,20 @@ export interface AcademicYear {
   updated: string;
 }
 
+// --- 13a. ParentChildRelation (Eltern ↔ Kinder Junction Table) ---
+export interface ParentChildRelation {
+  id: string;
+  mosque_id: string;
+  parent_user: string; // Relation → users
+  student: string;     // Relation → students
+  created: string;
+  updated: string;
+  expand?: {
+    parent_user?: User;
+    student?: Student;
+  };
+}
+
 // --- 13. Courses (Madrasa-Kurse) ---
 export interface Course {
   id: string;

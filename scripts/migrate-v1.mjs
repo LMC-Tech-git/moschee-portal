@@ -827,6 +827,8 @@ function patchRelations(schema, collectionMap) {
         targetCollection = "recurring_subscriptions";
       else if (name === "course_id") targetCollection = "courses";
       else if (name === "academic_year_id") targetCollection = "academic_years";
+      else if (name === "parent_user") targetCollection = "users";
+      else if (name === "student") targetCollection = "students";
 
       if (targetCollection && collectionMap[targetCollection]) {
         return {
@@ -838,6 +840,22 @@ function patchRelations(schema, collectionMap) {
     return field;
   });
 }
+
+// Verknüpfung Eltern ↔ Kinder (junction table, many-to-many)
+const PARENT_CHILD_RELATIONS_COLLECTION = {
+  name: "parent_child_relations",
+  type: "base",
+  schema: [
+    { name: "mosque_id",   type: "relation", required: true, options: { collectionId: "", maxSelect: 1 } },
+    { name: "parent_user", type: "relation", required: true, options: { collectionId: "", maxSelect: 1, cascadeDelete: true } },
+    { name: "student",     type: "relation", required: true, options: { collectionId: "", maxSelect: 1, cascadeDelete: true } },
+  ],
+  indexes: [
+    "CREATE UNIQUE INDEX idx_parent_child_unique    ON parent_child_relations (mosque_id, parent_user, student)",
+    "CREATE INDEX        idx_parent_child_by_parent ON parent_child_relations (mosque_id, parent_user)",
+    "CREATE INDEX        idx_parent_child_by_student ON parent_child_relations (mosque_id, student)",
+  ],
+};
 
 async function main() {
   console.log("=== Moschee-Portal V1 Migration ===\n");
@@ -875,6 +893,7 @@ async function main() {
     STUDENT_FEES_COLLECTION,
     SPONSORS_COLLECTION,
     TEAM_MEMBERS_COLLECTION,
+    PARENT_CHILD_RELATIONS_COLLECTION,
   ];
 
   for (const colDef of newCollections) {

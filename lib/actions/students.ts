@@ -75,6 +75,8 @@ export async function getStudentsByMosque(
 
 /**
  * Schüler eines bestimmten Elternteils laden (für Member-Profil).
+ * Kombiniert Legacy-Felder (parent_id, father_user_id, mother_user_id)
+ * mit der neuen parent_child_relations junction table.
  */
 export async function getStudentsByParent(
   parentId: string,
@@ -82,11 +84,33 @@ export async function getStudentsByParent(
 ): Promise<ActionResult<Student[]>> {
   try {
     const pb = await getAdminPB();
-    const records = await pb.collection("students").getFullList({
+
+    // Legacy: Kinder über alte Felder laden
+    const legacyRecords = await pb.collection("students").getFullList({
       filter: `mosque_id = "${mosqueId}" && (parent_id = "${parentId}" || father_user_id = "${parentId}" || mother_user_id = "${parentId}") && status = "active"`,
       sort: "last_name,first_name",
     });
-    return { success: true, data: records.map(mapRecord) };
+    const legacyStudents = legacyRecords.map(mapRecord);
+
+    // Neu: Kinder über parent_child_relations laden
+    const relResult = await pb.collection("parent_child_relations").getList(1, 200, {
+      filter: `mosque_id = "${mosqueId}" && parent_user = "${parentId}"`,
+      expand: "student",
+    });
+    const relStudents = relResult.items
+      .filter((r) => r.expand && r.expand.student)
+      .map((r) => mapRecord(r.expand!.student));
+
+    // Deduplizieren (ein Schüler könnte in beiden Quellen vorhanden sein)
+    const all = [...legacyStudents, ...relStudents];
+    const seen = new Set<string>();
+    const deduped = all.filter((s) => {
+      if (seen.has(s.id)) return false;
+      seen.add(s.id);
+      return true;
+    });
+
+    return { success: true, data: deduped };
   } catch (error) {
     console.error("[Students] Fehler beim Laden der Kinder:", error);
     return { success: false, error: "Kinder konnten nicht geladen werden" };

@@ -1205,7 +1205,8 @@
       "settings": "Ayarlar",
       "mosques": "Cami",
       "sponsors": "Destekçi",
-      "team_members": "Ekip"
+      "team_members": "Ekip",
+      "parent_child_relations": "Veli-Çocuk İlişkisi"
     },
     "action": {
       "post": {
@@ -1319,6 +1320,10 @@
       },
       "team_members": {
         "reordered": "Ekip yeniden sıralandı"
+      },
+      "parent_child": {
+        "linked": "Veli eklendi",
+        "unlinked": "Veli kaldırıldı"
       }
     },
     "field": {
