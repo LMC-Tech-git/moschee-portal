@@ -59,52 +59,53 @@ function StudentRow({
 
   return (
     <div className={cn("border-b last:border-b-0", isBelowAvg && "bg-red-50/50")}>
-      <div className="flex items-center gap-3 px-4 py-3">
-        {/* Name */}
+      <div className="flex items-start gap-2 px-4 py-3">
+        {/* Name + Diff (zweite Zeile auf Mobile) */}
         <div className="flex-1 min-w-0">
           <p className={cn("text-sm font-medium truncate", !hasData && "text-gray-400")}>
             {student.student_name}
           </p>
+          {diff != null && diff !== 0 && (
+            <p className={cn("text-xs font-medium mt-0.5", diff > 0 ? "text-emerald-600" : "text-red-500")}>
+              {diff > 0
+                ? t("attendance.performance.aboveAvg", { diff: `+${diff}` })
+                : t("attendance.performance.belowAvg", { diff: String(diff) })}
+            </p>
+          )}
         </div>
 
-        {/* Ø Badge */}
-        <span className={cn("rounded-full px-2 py-0.5 text-xs font-semibold tabular-nums", perfColor(student.avgPerformance))}>
-          {student.avgPerformance != null ? `Ø ${student.avgPerformance}` : "Ø —"}
-        </span>
-
-        {/* Trend */}
-        {student.trend && (
-          <span className={cn("text-sm font-medium", trendColor(student.trend))}>
-            {trendIcon(student.trend)}
+        {/* Rechte Seite: Badge + Trend + Anzahl + Expand */}
+        <div className="flex items-center gap-1.5 shrink-0">
+          {/* Ø Badge */}
+          <span className={cn("rounded-full px-2 py-0.5 text-xs font-semibold tabular-nums", perfColor(student.avgPerformance))}>
+            {student.avgPerformance != null ? `Ø ${student.avgPerformance}` : "Ø —"}
           </span>
-        )}
 
-        {/* Anzahl */}
-        {hasData && (
-          <span className="text-xs text-gray-400 tabular-nums">
-            ({student.performanceCount})
-          </span>
-        )}
+          {/* Trend */}
+          {student.trend && (
+            <span className={cn("text-sm font-medium", trendColor(student.trend))}>
+              {trendIcon(student.trend)}
+            </span>
+          )}
 
-        {/* Vergleich mit Ø */}
-        {diff != null && diff !== 0 && (
-          <span className={cn("text-xs font-medium", diff > 0 ? "text-emerald-600" : "text-red-500")}>
-            {diff > 0
-              ? t("attendance.performance.aboveAvg", { diff: `+${diff}` })
-              : t("attendance.performance.belowAvg", { diff: String(diff) })}
-          </span>
-        )}
+          {/* Anzahl */}
+          {hasData && (
+            <span className="text-xs text-gray-400 tabular-nums">
+              ({student.performanceCount})
+            </span>
+          )}
 
-        {/* Expand */}
-        {hasData && student.recentSessions.length > 0 && (
-          <button
-            type="button"
-            onClick={() => setExpanded((v) => !v)}
-            className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
-          >
-            {expanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
-          </button>
-        )}
+          {/* Expand */}
+          {hasData && student.recentSessions.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setExpanded((v) => !v)}
+              className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
+            >
+              {expanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Mini-Timeline */}
