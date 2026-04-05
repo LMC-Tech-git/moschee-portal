@@ -225,6 +225,17 @@ const ATTENDANCE_MATRIX = [
   ["present","present","present","present","late",   "present","present","present","absent", "present"],
 ];
 
+// Performance-Matrix: 6 Sitzungen × 10 Schüler (0 = nicht bewertet)
+// Nur bei present/late sinnvoll — absent/excused wird im Code übersprungen
+const PERFORMANCE_MATRIX = [
+  [5, 4, 0, 5, 0, 4, 0, 5, 4, 0],
+  [4, 0, 5, 4, 4, 5, 3, 0, 4, 0],
+  [5, 5, 4, 0, 3, 4, 5, 0, 0, 4],
+  [4, 3, 0, 5, 4, 0, 4, 5, 5, 3],
+  [0, 4, 5, 4, 3, 5, 0, 4, 4, 5],
+  [5, 4, 3, 5, 0, 4, 5, 3, 0, 4],
+];
+
 // Gebühren-Muster: status + Zahlungsmethode pro Schüler (3 Monate)
 // Format: [{ status, method }] für jeden Monat
 const FEE_PATTERNS = [
@@ -621,7 +632,10 @@ async function seedAttendance(courseIds, studentIds, teacherId) {
   for (let si = 0; si < sessions.length; si++) {
     for (let ki = 0; ki < firstTen.length; ki++) {
       const status = ATTENDANCE_MATRIX[si][ki];
-      records.push({
+      const perfRaw = PERFORMANCE_MATRIX[si][ki];
+      const canHavePerf = status === "present" || status === "late";
+      const performance = canHavePerf && perfRaw > 0 ? perfRaw : undefined;
+      const rec = {
         mosque_id: MOSQUE_ID,
         course_id: courseId,
         student_id: firstTen[ki],
@@ -629,7 +643,9 @@ async function seedAttendance(courseIds, studentIds, teacherId) {
         status,
         notes: NOTES[status] || "",
         marked_by: teacherId,
-      });
+      };
+      if (performance != null) rec.performance = performance;
+      records.push(rec);
     }
   }
 

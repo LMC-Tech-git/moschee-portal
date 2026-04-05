@@ -477,7 +477,12 @@ export default function LehrerAttendancePage() {
                                 : t("attendance.performance.rate")}
                             </button>
                             {openRatingFor === student.student_id && (
-                              <div className="absolute right-0 top-full z-10 mt-1 w-52 rounded-lg border border-gray-200 bg-white p-2 shadow-lg">
+                              <>
+                              <div
+                                className="fixed inset-0 z-10"
+                                onClick={() => setOpenRatingFor(null)}
+                              />
+                              <div className="absolute right-0 top-full z-20 mt-1 w-52 rounded-lg border border-gray-200 bg-white p-2 shadow-lg">
                                 <p className="mb-2 text-xs font-medium text-gray-500">
                                   {t("attendance.performance.label")}:
                                 </p>
@@ -517,6 +522,7 @@ export default function LehrerAttendancePage() {
                                   </>
                                 )}
                               </div>
+                              </>
                             )}
                           </div>
                         )}
