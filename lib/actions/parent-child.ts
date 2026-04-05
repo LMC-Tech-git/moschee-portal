@@ -257,6 +257,7 @@ export async function getParentsMapForStudents(
 
 /**
  * Anzahl verknüpfter Kinder pro Mitglied — für die Mitgliederliste (Badge).
+ * Kombiniert Legacy-Felder + junction table; dedupliziert via Set.
  * Gibt Record<memberId, count> zurück; silent fail = leeres Objekt.
  */
 export async function getChildrenCountsForMembers(
@@ -266,9 +267,22 @@ export async function getChildrenCountsForMembers(
   if (memberIds.length === 0) return {};
   try {
     const pb = await getAdminPB();
-    const counts: Record<string, number> = {};
+    const memberIdSet = new Set(memberIds);
+    // Set<"parentId:studentId"> für saubere Deduplizierung beider Quellen
+    const pairs = new Set<string>();
 
-    // Chunking: max. 20 IDs pro Query — verhindert PB-Filterlimit bei großen Seiten
+    // 1. Legacy: eine Query für alle Schüler der Moschee mit gesetztem parent_id/father_user_id/mother_user_id
+    const legacyRecords = await pb.collection("students").getFullList({
+      filter: `mosque_id="${mosqueId}" && (parent_id != "" || father_user_id != "" || mother_user_id != "")`,
+      sort: "id",
+    });
+    for (const s of legacyRecords) {
+      [s.parent_id, s.father_user_id, s.mother_user_id].forEach((pid: string) => {
+        if (pid && memberIdSet.has(pid)) pairs.add(`${pid}:${s.id}`);
+      });
+    }
+
+    // 2. Junction table — Chunking + Pagination-Loop
     const CHUNK = 20;
     for (let i = 0; i < memberIds.length; i += CHUNK) {
       const chunk = memberIds.slice(i, i + CHUNK);
@@ -276,20 +290,21 @@ export async function getChildrenCountsForMembers(
         `mosque_id="${mosqueId}" && (` +
         chunk.map((id) => `parent_user="${id}"`).join(" || ") +
         `)`;
-
-      // Pagination-Loop — konsistent mit restlichem Design
       let page = 1;
       while (true) {
-        const res = await pb
-          .collection("parent_child_relations")
-          .getList(page, 200, { filter });
-        res.items.forEach((r) => {
-          counts[r.parent_user] = (counts[r.parent_user] || 0) + 1;
-        });
+        const res = await pb.collection("parent_child_relations").getList(page, 200, { filter });
+        res.items.forEach((r) => pairs.add(`${r.parent_user}:${r.student}`));
         if (res.page >= res.totalPages) break;
         page++;
       }
     }
+
+    // Counts aus deduplizierten Pairs ableiten
+    const counts: Record<string, number> = {};
+    pairs.forEach((pair) => {
+      const parentId = pair.split(":")[0];
+      counts[parentId] = (counts[parentId] || 0) + 1;
+    });
 
     return counts;
   } catch {
