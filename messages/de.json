@@ -1238,7 +1238,8 @@
       "member": {
         "status_changed": "Status geändert",
         "role_changed": "Rolle geändert",
-        "updated": "Mitglied bearbeitet"
+        "updated": "Mitglied bearbeitet",
+        "deleted": "Mitglied gelöscht"
       },
       "invite": {
         "created": "Einladung erstellt",
@@ -1254,10 +1255,15 @@
       "student": {
         "created": "Schüler erstellt",
         "updated": "Schüler bearbeitet",
-        "imported": "Schüler importiert"
+        "imported": "Schüler importiert",
+        "created_by_parent": "Schüler von Elternteil erstellt",
+        "updated_by_parent": "Schüler von Elternteil bearbeitet"
       },
       "enrollment": {
-        "created": "Einschreibung erstellt"
+        "created": "Einschreibung erstellt",
+        "completed": "Kurs abgeschlossen",
+        "dropped": "Kurs abgebrochen",
+        "on_hold": "Kurs pausiert"
       },
       "attendance": {
         "saved": "Anwesenheit gespeichert",
@@ -1266,7 +1272,8 @@
       "academic_year": {
         "created": "Schuljahr erstellt",
         "updated": "Schuljahr bearbeitet",
-        "archived": "Schuljahr archiviert"
+        "archived": "Schuljahr archiviert",
+        "activated": "Schuljahr aktiviert"
       },
       "student_fees": {
         "bulk_created": "Gebühren erstellt"
@@ -1285,6 +1292,7 @@
         "bulk_sent": "Gebühren-Erinnerungen (Sammel) gesendet",
         "auto_sent": "Gebühren-Erinnerungen (Automatisch) gesendet"
       },
+      "payment_settings_updated": "Zahlungseinstellungen aktualisiert",
       "update_branding": "Branding aktualisiert",
       "update_prayer_settings": "Gebetszeiten aktualisiert",
       "update_default_settings": "Standardeinstellungen aktualisiert",
@@ -1339,8 +1347,35 @@
       "old_status": "Alter Status",
       "new_status": "Neuer Status",
       "new_role": "Neue Rolle",
+      "old_role": "Alte Rolle",
       "new_name": "Neuer Name",
-      "student_name": "Schüler"
+      "full_name": "Name",
+      "student_name": "Schüler",
+      "student": "Schüler",
+      "student_id": "Schüler-ID",
+      "course_id": "Kurs-ID",
+      "event_id": "Veranstaltungs-ID",
+      "session_date": "Sitzungsdatum",
+      "count": "Anzahl",
+      "deleted_count": "Gelöscht",
+      "error_count": "Fehler",
+      "enrolled": "Eingeschrieben",
+      "guest_email": "Gast-E-Mail",
+      "parent_email": "Eltern-E-Mail",
+      "segment": "Empfängergruppe",
+      "recipient_count": "Empfänger",
+      "sort_order": "Reihenfolge",
+      "is_active": "Aktiv",
+      "is_approved": "Genehmigt",
+      "notification_sent": "Benachrichtigung gesendet",
+      "max_uses": "Max. Nutzungen",
+      "start_month_key": "Startmonat",
+      "start_date": "Startdatum",
+      "end_date": "Enddatum",
+      "duration_months": "Laufzeit (Monate)",
+      "subject": "Betreff",
+      "type": "Typ",
+      "group": "Gruppe"
     }
   },
   "settings": {

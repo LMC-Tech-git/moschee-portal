@@ -1238,7 +1238,8 @@
       "member": {
         "status_changed": "Durum değiştirildi",
         "role_changed": "Rol değiştirildi",
-        "updated": "Üye düzenlendi"
+        "updated": "Üye düzenlendi",
+        "deleted": "Üye silindi"
       },
       "invite": {
         "created": "Davet oluşturuldu",
@@ -1254,10 +1255,15 @@
       "student": {
         "created": "Öğrenci oluşturuldu",
         "updated": "Öğrenci düzenlendi",
-        "imported": "Öğrenci içe aktarıldı"
+        "imported": "Öğrenci içe aktarıldı",
+        "created_by_parent": "Öğrenci veli tarafından oluşturuldu",
+        "updated_by_parent": "Öğrenci veli tarafından düzenlendi"
       },
       "enrollment": {
-        "created": "Kayıt oluşturuldu"
+        "created": "Kayıt oluşturuldu",
+        "completed": "Ders tamamlandı",
+        "dropped": "Dersten ayrıldı",
+        "on_hold": "Ders askıya alındı"
       },
       "attendance": {
         "saved": "Yoklama kaydedildi",
@@ -1266,7 +1272,8 @@
       "academic_year": {
         "created": "Öğretim yılı oluşturuldu",
         "updated": "Öğretim yılı düzenlendi",
-        "archived": "Öğretim yılı arşivlendi"
+        "archived": "Öğretim yılı arşivlendi",
+        "activated": "Öğretim yılı etkinleştirildi"
       },
       "student_fees": {
         "bulk_created": "Ücretler oluşturuldu"
@@ -1285,6 +1292,7 @@
         "bulk_sent": "Ücret hatırlatmaları (Toplu) gönderildi",
         "auto_sent": "Ücret hatırlatmaları (Otomatik) gönderildi"
       },
+      "payment_settings_updated": "Ödeme ayarları güncellendi",
       "update_branding": "Marka güncellendi",
       "update_prayer_settings": "Namaz vakti ayarları güncellendi",
       "update_default_settings": "Varsayılan ayarlar güncellendi",
@@ -1339,8 +1347,35 @@
       "old_status": "Eski Durum",
       "new_status": "Yeni Durum",
       "new_role": "Yeni Rol",
+      "old_role": "Eski Rol",
       "new_name": "Yeni Ad",
-      "student_name": "Öğrenci"
+      "full_name": "Ad Soyad",
+      "student_name": "Öğrenci",
+      "student": "Öğrenci",
+      "student_id": "Öğrenci ID",
+      "course_id": "Ders ID",
+      "event_id": "Etkinlik ID",
+      "session_date": "Oturum Tarihi",
+      "count": "Sayı",
+      "deleted_count": "Silinen",
+      "error_count": "Hata",
+      "enrolled": "Kayıt Edildi",
+      "guest_email": "Misafir E-postası",
+      "parent_email": "Veli E-postası",
+      "segment": "Alıcı Grubu",
+      "recipient_count": "Alıcı Sayısı",
+      "sort_order": "Sıralama",
+      "is_active": "Aktif",
+      "is_approved": "Onaylandı",
+      "notification_sent": "Bildirim Gönderildi",
+      "max_uses": "Maks. Kullanım",
+      "start_month_key": "Başlangıç Ayı",
+      "start_date": "Başlangıç Tarihi",
+      "end_date": "Bitiş Tarihi",
+      "duration_months": "Süre (Ay)",
+      "subject": "Konu",
+      "type": "Tür",
+      "group": "Grup"
     }
   },
   "settings": {
