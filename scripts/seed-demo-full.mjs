@@ -1204,6 +1204,37 @@ async function seedSettings() {
   }
 }
 
+async function seedSponsors() {
+  console.log("🤝 Förderpartner...");
+  const sponsors = [
+    {
+      name: "LMC Tech",
+      description: "IT-Dienstleistungen und digitale Lösungen für Unternehmen und Organisationen.",
+      website_url: "https://lmctech.de",
+      category: "it_technik",
+      is_active: true,
+      is_approved: true,
+      notification_sent: false,
+      sort_order: 1,
+      payment_status: "paid",
+      payment_method: "transfer",
+      amount_cents: 50000,
+    },
+  ];
+  let created = 0;
+  for (const s of sponsors) {
+    const { created: c } = await findOrCreate(
+      "sponsors",
+      `mosque_id="${MOSQUE_ID}" && name="${s.name}"`,
+      { ...s, mosque_id: MOSQUE_ID }
+    );
+    if (c) created++;
+    else console.log(`  ⏭️  ${s.name}`);
+  }
+  if (created) console.log(`  ✅ ${created} Förderpartner\n`);
+  else console.log("  ⏭️  Alle Förderpartner vorhanden\n");
+}
+
 // ─── 5. Main ─────────────────────────────────────────────────────────────────
 
 async function main() {
@@ -1216,6 +1247,7 @@ async function main() {
   await verifyMosque();
 
   await seedSettings();
+  await seedSponsors();
   const users       = await seedUsers();
   await seedTeamMembers();
   const yearIds     = await seedAcademicYears();

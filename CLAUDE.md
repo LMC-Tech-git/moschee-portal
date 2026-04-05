@@ -17,6 +17,17 @@ Bei jeder Textänderung (neue Labels, Fehlermeldungen, UI-Texte, Banner-Texte us
 
 Kein Commit ohne beide Dateien, wenn Text geändert wurde.
 
+### 3. Audit-Labels bei neuen Actions prüfen
+Bei jeder neuen oder geänderten `logAudit({ action: "..." })`-Verwendung immer prüfen, ob ein Label in `messages/de.json` + `messages/tr.json` vorhanden ist:
+- `audit.action.<action>` — Anzeige-Label für die Aktion
+- `audit.entity.<entityType>` — Anzeige-Label für den Entity-Typ
+- `audit.entityFilter.<entityType>` — Label für den Filter-Dropdown im Audit-Log
+
+Fehlende Labels eintragen. Kein Commit ohne passende Labels für neue Actions.
+
+### 4. Seed-Script bei neuen Feldern/Collections erweitern
+Bei jedem neu hinzugefügten Feld oder jeder neuen Collection prüfen, ob `scripts/seed-demo-full.mjs` Beispieldaten dafür enthält. Falls nicht: Beispieldaten ergänzen, damit die Demo-Moschee repräsentativ befüllt bleibt.
+
 ### 2. Mobile / PWA mitdenken
 Bei jeder UI-Änderung die mobile Darstellung mitberücksichtigen:
 - Grid-Layouts brauchen `grid-cols-1` als Mobile-Basis (nicht nur `lg:grid-cols-X`)

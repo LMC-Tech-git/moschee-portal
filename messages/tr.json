@@ -1181,7 +1181,9 @@
       "madrasa": "Medrese",
       "student_fees": "Ücretler",
       "newsletter": "Bülten",
-      "settings": "Ayarlar"
+      "settings": "Ayarlar",
+      "sponsors": "Destekçiler",
+      "team": "Ekip"
     },
     "entity": {
       "post": "Haber",
@@ -1201,7 +1203,9 @@
       "student_fee": "Ücret",
       "newsletter": "Bülten",
       "settings": "Ayarlar",
-      "mosques": "Cami"
+      "mosques": "Cami",
+      "sponsors": "Destekçi",
+      "team_members": "Ekip"
     },
     "action": {
       "post": {
@@ -1284,7 +1288,30 @@
       "update_branding": "Marka güncellendi",
       "update_prayer_settings": "Namaz vakti ayarları güncellendi",
       "update_default_settings": "Varsayılan ayarlar güncellendi",
-      "update_madrasa_fee_settings": "Medrese ayarları güncellendi"
+      "update_madrasa_fee_settings": "Medrese ayarları güncellendi",
+      "update_contact_settings": "İletişim formu ayarları güncellendi",
+      "update_team_settings": "Ekip ayarları güncellendi",
+      "update_sponsors_settings": "Destekçi ayarları güncellendi",
+      "sponsor": {
+        "created": "Destekçi oluşturuldu",
+        "updated": "Destekçi düzenlendi",
+        "deleted": "Destekçi silindi",
+        "approved": "Destekçi onaylandı",
+        "unapproved": "Onay geri alındı",
+        "activated": "Destekçi etkinleştirildi",
+        "deactivated": "Destekçi devre dışı bırakıldı",
+        "marked_paid": "Ödeme onaylandı"
+      },
+      "team_member": {
+        "created": "Ekip üyesi oluşturuldu",
+        "updated": "Ekip üyesi düzenlendi",
+        "deleted": "Ekip üyesi silindi",
+        "activated": "Ekip üyesi etkinleştirildi",
+        "deactivated": "Ekip üyesi devre dışı bırakıldı"
+      },
+      "team_members": {
+        "reordered": "Ekip yeniden sıralandı"
+      }
     },
     "field": {
       "title": "Başlık",

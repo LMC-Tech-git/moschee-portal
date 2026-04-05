@@ -1181,7 +1181,9 @@
       "madrasa": "Madrasa",
       "student_fees": "Gebühren",
       "newsletter": "Newsletter",
-      "settings": "Einstellungen"
+      "settings": "Einstellungen",
+      "sponsors": "Förderpartner",
+      "team": "Team"
     },
     "entity": {
       "post": "Post",
@@ -1201,7 +1203,9 @@
       "student_fee": "Gebühr",
       "newsletter": "Newsletter",
       "settings": "Einstellungen",
-      "mosques": "Moschee"
+      "mosques": "Moschee",
+      "sponsors": "Förderpartner",
+      "team_members": "Team"
     },
     "action": {
       "post": {
@@ -1284,7 +1288,30 @@
       "update_branding": "Branding aktualisiert",
       "update_prayer_settings": "Gebetszeiten aktualisiert",
       "update_default_settings": "Standardeinstellungen aktualisiert",
-      "update_madrasa_fee_settings": "Madrasa-Einstellungen aktualisiert"
+      "update_madrasa_fee_settings": "Madrasa-Einstellungen aktualisiert",
+      "update_contact_settings": "Kontaktformular-Einstellungen aktualisiert",
+      "update_team_settings": "Team-Einstellungen aktualisiert",
+      "update_sponsors_settings": "Förderpartner-Einstellungen aktualisiert",
+      "sponsor": {
+        "created": "Förderpartner erstellt",
+        "updated": "Förderpartner bearbeitet",
+        "deleted": "Förderpartner gelöscht",
+        "approved": "Förderpartner genehmigt",
+        "unapproved": "Genehmigung zurückgezogen",
+        "activated": "Förderpartner aktiviert",
+        "deactivated": "Förderpartner deaktiviert",
+        "marked_paid": "Zahlung bestätigt"
+      },
+      "team_member": {
+        "created": "Team-Mitglied erstellt",
+        "updated": "Team-Mitglied bearbeitet",
+        "deleted": "Team-Mitglied gelöscht",
+        "activated": "Team-Mitglied aktiviert",
+        "deactivated": "Team-Mitglied deaktiviert"
+      },
+      "team_members": {
+        "reordered": "Team neu sortiert"
+      }
     },
     "field": {
       "title": "Titel",
