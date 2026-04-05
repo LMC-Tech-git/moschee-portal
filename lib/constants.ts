@@ -298,6 +298,23 @@ export const attendanceStatusColors: Record<Attendance["status"], string> = {
 };
 
 // =========================================
+// Madrasa - Leistungsbeurteilung
+// =========================================
+
+export const PERFORMANCE_LEVELS = [
+  { value: 5 as const, shortLabel: "Sehr gut",      icon: "⬆", color: "bg-emerald-100 text-emerald-700 border-emerald-300" },
+  { value: 4 as const, shortLabel: "Gut",           icon: "↗", color: "bg-green-100 text-green-700 border-green-300"    },
+  { value: 3 as const, shortLabel: "Befriedigend",  icon: "→", color: "bg-amber-100 text-amber-700 border-amber-300"    },
+  { value: 2 as const, shortLabel: "Schlecht",      icon: "↘", color: "bg-orange-100 text-orange-700 border-orange-300"  },
+  { value: 1 as const, shortLabel: "Sehr schlecht", icon: "⬇", color: "bg-red-100 text-red-700 border-red-300"        },
+];
+
+export function getPerformanceLevel(value?: number | null) {
+  if (!value) return null;
+  return PERFORMANCE_LEVELS.find((l) => l.value === value) ?? null;
+}
+
+// =========================================
 // Madrasa - Schüler-Status
 // =========================================
 

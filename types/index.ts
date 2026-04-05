@@ -439,6 +439,7 @@ export interface Attendance {
   status: "present" | "absent" | "late" | "excused";
   notes: string;
   marked_by: string; // Relation → users (Lehrer/Admin)
+  performance?: 1 | 2 | 3 | 4 | 5; // Leistungsbeurteilung: 1=sehr schlecht … 5=sehr gut
   created: string;
   updated: string;
   expand?: {

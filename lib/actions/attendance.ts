@@ -17,6 +17,7 @@ function mapRecordToAttendance(record: RecordModel): Attendance {
     status: record.status || "absent",
     notes: record.notes || "",
     marked_by: record.marked_by || "",
+    performance: record.performance != null ? (record.performance as 1 | 2 | 3 | 4 | 5) : undefined,
     created: record.created || "",
     updated: record.updated || "",
   };
@@ -82,7 +83,7 @@ export async function saveAttendanceBulk(
   userId: string,
   courseId: string,
   sessionDate: string,
-  entries: { student_id: string; status: "present" | "absent" | "late" | "excused"; notes?: string }[]
+  entries: { student_id: string; status: "present" | "absent" | "late" | "excused"; notes?: string; performance?: number }[]
 ): Promise<ActionResult> {
   try {
     const pb = await getAdminPB();
@@ -110,16 +111,31 @@ export async function saveAttendanceBulk(
       const entry = entries[i];
       const existingRecord = existingMap[entry.student_id];
 
+      // Performance nur bei anwesend/verspätet sinnvoll; nicht schreiben wenn absent/excused
+      const canHavePerformance = entry.status === "present" || entry.status === "late";
+      // Validierung: 1–5 oder undefined
+      if (entry.performance != null && (entry.performance < 1 || entry.performance > 5)) {
+        return { success: false, error: "Ungültiger Leistungswert" };
+      }
+      const performanceValue = canHavePerformance && entry.performance != null ? entry.performance : null;
+
       if (existingRecord) {
         // Aktualisieren
-        await pb.collection("attendance").update(existingRecord.id, {
+        const updateData: Record<string, unknown> = {
           status: entry.status,
           notes: entry.notes || "",
           marked_by: userId,
-        });
+        };
+        // Performance nur setzen wenn explizit übergeben (null = löschen bei absent/excused)
+        if (canHavePerformance && entry.performance != null) {
+          updateData.performance = performanceValue;
+        } else if (!canHavePerformance) {
+          updateData.performance = null;
+        }
+        await pb.collection("attendance").update(existingRecord.id, updateData);
       } else {
         // Neu erstellen
-        await pb.collection("attendance").create({
+        const createData: Record<string, unknown> = {
           mosque_id: mosqueId,
           course_id: courseId,
           student_id: entry.student_id,
@@ -127,7 +143,9 @@ export async function saveAttendanceBulk(
           status: entry.status,
           notes: entry.notes || "",
           marked_by: userId,
-        });
+        };
+        if (performanceValue != null) createData.performance = performanceValue;
+        await pb.collection("attendance").create(createData);
       }
     }
 
@@ -410,6 +428,10 @@ export interface ChildCourseAttendanceSummary {
   excused: number;
   rate: number; // (present + late) / total * 100
   todayStatus: "present" | "absent" | "late" | "excused" | null;
+  lastPerformance?: number;
+  avgPerformance?: number;
+  performanceCount: number;
+  trend?: "up" | "down" | "stable";
 }
 
 export interface ChildAttendanceOverview {
@@ -426,10 +448,20 @@ function chunkArray<T>(arr: T[], size: number): T[][] {
   return out;
 }
 
+// Sortierung: session_date desc, dann created desc (neueste zuerst)
+function sortByDateDesc(a: RecordModel, b: RecordModel): number {
+  const dateA = (a.session_date as string) || "";
+  const dateB = (b.session_date as string) || "";
+  if (dateA !== dateB) return dateA > dateB ? -1 : 1;
+  const creA = (a.created as string) || "";
+  const creB = (b.created as string) || "";
+  return creA > creB ? -1 : 1;
+}
+
 /**
  * Anwesenheitsübersicht aller Kinder eines Elternteils.
  * Liefert pro Kind eine Liste der eingeschriebenen Kurse mit aggregierten Stats
- * (letzte 12 Monate) sowie dem heutigen Anwesenheitsstatus.
+ * (letzte 6 Monate) sowie dem heutigen Anwesenheitsstatus und Leistungsdaten.
  */
 export async function getParentAttendanceOverview(
   mosqueId: string,
@@ -438,29 +470,30 @@ export async function getParentAttendanceOverview(
   try {
     const pb = await getAdminPB();
 
-    // 1. Aktive Kinder des Elternteils
-    const studentsRecords = await pb.collection("students").getFullList({
-      filter: `parent_id = "${parentUserId}" && mosque_id = "${mosqueId}" && status = "active"`,
-      fields: "id,first_name,last_name",
-    });
+    // 1. Kinder des Elternteils — nutzt korrekte Dual-Source-Abfrage (Legacy + Junction Table)
+    const { getChildrenOfParent } = await import("@/lib/actions/parent-child");
+    const childrenResult = await getChildrenOfParent(mosqueId, parentUserId);
+    if (!childrenResult.success) {
+      return { success: false, error: childrenResult.error };
+    }
+    const studentsRecords = childrenResult.data ?? [];
     if (studentsRecords.length === 0) {
       return { success: true, data: [] };
     }
 
-    const studentIds = studentsRecords.map((s) => s.id as string);
+    const studentIds = studentsRecords.map((s) => s.id);
     const nameMap: Record<string, string> = {};
     studentsRecords.forEach((s) => {
-      nameMap[s.id as string] = `${s.first_name || ""} ${s.last_name || ""}`.trim();
+      nameMap[s.id] = [s.first_name, s.last_name].filter(Boolean).join(" ") || "Unbekannt";
     });
 
     const buildOrFilter = (field: string, ids: string[]) =>
       ids.map((id) => `${field} = "${id}"`).join(" || ");
 
     // 2. Aktive Einschreibungen (mit Kursname)
-    const enrollmentChunks = chunkArray(studentIds, 10);
     const enrollmentRecords = (
       await Promise.all(
-        enrollmentChunks.map((chunk) =>
+        chunkArray(studentIds, 10).map((chunk) =>
           pb.collection("course_enrollments").getFullList({
             filter: `(${buildOrFilter("student_id", chunk)}) && status = "enrolled" && mosque_id = "${mosqueId}"`,
             expand: "course_id",
@@ -471,7 +504,6 @@ export async function getParentAttendanceOverview(
 
     // enrollmentMap: studentId → [{courseId, courseName}]
     const enrollmentMap: Record<string, { courseId: string; courseName: string }[]> = {};
-    // enrolledSet: "studentId:courseId" für Whitelist
     const enrolledSet = new Set<string>();
     enrollmentRecords.forEach((r) => {
       const sid = r.student_id as string;
@@ -483,76 +515,111 @@ export async function getParentAttendanceOverview(
       enrolledSet.add(`${sid}:${cid}`);
     });
 
-    // 3. Attendance Stats (letzte 12 Monate)
-    const fromDate = new Date();
-    fromDate.setMonth(fromDate.getMonth() - 12);
-    const fromDateStr = fromDate.toLocaleDateString("en-CA");
+    // 3. Attendance Stats + Performance (letzte 6 Monate, stabiles ISO-Datum)
+    const fromDateStr = new Date(Date.now() - 1000 * 60 * 60 * 24 * 180)
+      .toISOString()
+      .slice(0, 10);
 
     const statsRecords = (
       await Promise.all(
         chunkArray(studentIds, 10).map((chunk) =>
           pb.collection("attendance").getFullList({
             filter: `mosque_id = "${mosqueId}" && (${buildOrFilter("student_id", chunk)}) && session_date >= "${fromDateStr}"`,
-            fields: "student_id,course_id,status",
+            fields: "id,student_id,course_id,status,performance,session_date,created",
           })
         )
       )
     ).flat();
 
     // 4. Heute-Status
-    const today = new Date().toLocaleDateString("en-CA");
+    const today = new Date().toISOString().slice(0, 10);
     const todayRecords = (
       await Promise.all(
         chunkArray(studentIds, 10).map((chunk) =>
           pb.collection("attendance").getFullList({
             filter: `mosque_id = "${mosqueId}" && (${buildOrFilter("student_id", chunk)}) && session_date ~ "${today}"`,
-            fields: "student_id,course_id,status",
+            fields: "student_id,course_id,status,performance,session_date,created",
           })
         )
       )
     ).flat();
 
-    // todayMap: "studentId:courseId" → status
-    const todayMap: Record<string, string> = {};
-    todayRecords.forEach((r) => {
-      todayMap[`${r.student_id}:${r.course_id}`] = r.status as string;
-    });
-
-    // Aggregation per (studentId, courseId)
-    type StatsEntry = { present: number; absent: number; late: number; excused: number; total: number };
-    const statsMap: Record<string, StatsEntry> = {};
+    // Gruppierung: "studentId:courseId" → Records (sortiert desc)
+    const grouped = new Map<string, RecordModel[]>();
     statsRecords.forEach((r) => {
       const key = `${r.student_id}:${r.course_id}`;
-      if (!enrolledSet.has(key)) return; // nur eingeschriebene Kurse
-      if (!statsMap[key]) statsMap[key] = { present: 0, absent: 0, late: 0, excused: 0, total: 0 };
-      const s = statsMap[key];
-      s.total++;
-      if (r.status === "present") s.present++;
-      else if (r.status === "absent") s.absent++;
-      else if (r.status === "late") s.late++;
-      else if (r.status === "excused") s.excused++;
+      if (!enrolledSet.has(key)) return;
+      if (!grouped.has(key)) grouped.set(key, []);
+      grouped.get(key)!.push(r);
     });
+    grouped.forEach((recs) => recs.sort(sortByDateDesc));
+
+    // Today-Records nach (studentId, courseId) gruppieren, neueste zuerst
+    const todayGrouped = new Map<string, RecordModel[]>();
+    todayRecords.forEach((r) => {
+      const key = `${r.student_id}:${r.course_id}`;
+      if (!todayGrouped.has(key)) todayGrouped.set(key, []);
+      todayGrouped.get(key)!.push(r);
+    });
+    todayGrouped.forEach((recs) => recs.sort(sortByDateDesc));
 
     // Ergebnis zusammenstellen
     const result: ChildAttendanceOverview[] = studentIds.map((sid) => {
       const courses = (enrollmentMap[sid] || []).map(({ courseId, courseName }) => {
         const key = `${sid}:${courseId}`;
-        const s = statsMap[key] || { present: 0, absent: 0, late: 0, excused: 0, total: 0 };
-        const rate = s.total > 0 ? Math.round(((s.present + s.late) / s.total) * 100) : 0;
-        const todayStatusRaw = todayMap[key];
+        const recs = grouped.get(key) ?? [];
+
+        // Anwesenheits-Aggregation
+        let present = 0, absent = 0, late = 0, excused = 0;
+        recs.forEach((r) => {
+          if (r.status === "present") present++;
+          else if (r.status === "absent") absent++;
+          else if (r.status === "late") late++;
+          else if (r.status === "excused") excused++;
+        });
+        const total = present + absent + late + excused;
+        const rate = total > 0 ? Math.round(((present + late) / total) * 100) : 0;
+
+        // Heute-Status (neueste Session des Tages)
+        const todayRec = (todayGrouped.get(key) ?? [])[0];
+        const todayStatusRaw = todayRec?.status as string | undefined;
         const todayStatus: "present" | "absent" | "late" | "excused" | null =
-          todayStatusRaw === "present" ||
-          todayStatusRaw === "absent" ||
-          todayStatusRaw === "late" ||
-          todayStatusRaw === "excused"
+          todayStatusRaw === "present" || todayStatusRaw === "absent" ||
+          todayStatusRaw === "late" || todayStatusRaw === "excused"
             ? (todayStatusRaw as "present" | "absent" | "late" | "excused")
             : null;
+
+        // Performance-Aggregation (nur Records mit Wert)
+        const withPerf = recs.filter((r) => r.performance != null);
+        const lastPerformance = withPerf[0]?.performance as number | undefined;
+        const performanceCount = withPerf.length;
+        const avgPerformance =
+          performanceCount > 0
+            ? Number(
+                (withPerf.reduce((s, r) => s + (r.performance as number), 0) / performanceCount).toFixed(1)
+              )
+            : undefined;
+        // Trend: letzte 3 Bewertungen (DESC → slice(0,3) = neueste 3)
+        const last3 = withPerf.slice(0, 3).map((r) => r.performance as number);
+        const trend: "up" | "down" | "stable" | undefined =
+          last3.length >= 2
+            ? last3[0] > last3[last3.length - 1]
+              ? "up"
+              : last3[0] < last3[last3.length - 1]
+              ? "down"
+              : "stable"
+            : undefined;
+
         return {
           courseId,
           courseName,
-          ...s,
+          total, present, absent, late, excused,
           rate,
           todayStatus,
+          lastPerformance,
+          avgPerformance,
+          performanceCount,
+          trend,
         };
       });
       // Kurse nach Rate absteigend sortieren

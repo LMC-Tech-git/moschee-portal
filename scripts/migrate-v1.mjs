@@ -527,6 +527,7 @@ const MADRASA_ATTENDANCE_COLLECTION = {
     },
     { name: "notes", type: "text" },
     { name: "marked_by", type: "relation", options: { collectionId: "", maxSelect: 1 } },
+    { name: "performance", type: "number", required: false, options: { min: 1, max: 5 } },
   ],
   indexes: [
     'CREATE INDEX idx_attendance_course ON attendance (course_id, session_date)',
@@ -1379,6 +1380,22 @@ async function main() {
     });
   } else {
     console.log(`   ⏭️  "contact_messages" existiert bereits`);
+  }
+
+  // 15. attendance: performance-Feld hinzufügen
+  if (collectionMap.attendance) {
+    const attCol = (await getExistingCollections()).find((c) => c.name === "attendance");
+    const existingFieldNames = (attCol?.schema || []).map((f) => f.name);
+    if (!existingFieldNames.includes("performance")) {
+      const newSchema = [
+        ...(attCol?.schema || []),
+        { name: "performance", type: "number", required: false, options: { min: 1, max: 5 } },
+      ];
+      await updateCollection("attendance", { schema: newSchema });
+      console.log("   ✅ attendance: performance-Feld hinzugefügt");
+    } else {
+      console.log("   ⏭️  attendance: performance-Feld bereits vorhanden");
+    }
   }
 
   console.log("\n=== ✅ Migration abgeschlossen ===\n");

@@ -55,6 +55,7 @@ import {
   ChevronUp,
 } from "lucide-react";
 import { formatCurrencyCents } from "@/lib/utils";
+import { getPerformanceLevel } from "@/lib/constants";
 import type { Donation, EventRegistration } from "@/types";
 
 type Tab = "profile" | "children" | "donations" | "events" | "madrasa" | "sponsor";
@@ -720,6 +721,17 @@ function ChildrenTab({
                                   {course.rate}%
                                 </span>
                               )}
+                              {course.lastPerformance != null && (() => {
+                                const lvl = getPerformanceLevel(course.lastPerformance);
+                                return lvl ? (
+                                  <span className={`rounded-full border px-1.5 py-0.5 text-xs font-medium ${lvl.color}`}>
+                                    {lvl.icon} {lvl.shortLabel}
+                                    {course.avgPerformance != null && (
+                                      <span className="ml-1 opacity-70">Ø {course.avgPerformance}</span>
+                                    )}
+                                  </span>
+                                ) : null;
+                              })()}
                               {course.todayStatus && (
                                 <span className={`rounded-full px-1.5 py-0.5 text-xs font-medium ${todayColor[course.todayStatus]}`}>
                                   {todayLabel[course.todayStatus]}

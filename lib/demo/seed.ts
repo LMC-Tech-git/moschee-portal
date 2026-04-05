@@ -116,6 +116,16 @@ const ATTENDANCE_MATRIX = [
   ["present","present","present","present","late",   "present","present","present","absent", "present"],
 ];
 
+// 0 = nicht bewertet; nur für Schüler die in ATTENDANCE_MATRIX present/late sind
+const PERFORMANCE_MATRIX = [
+  [5, 4, 0, 5, 0, 4, 0, 5, 4, 0],
+  [4, 0, 5, 4, 4, 5, 3, 0, 4, 0],
+  [5, 5, 4, 0, 3, 4, 5, 0, 0, 4],
+  [4, 3, 0, 5, 4, 0, 4, 5, 5, 3],
+  [0, 4, 5, 4, 3, 5, 0, 4, 4, 5],
+  [5, 4, 3, 5, 0, 4, 5, 3, 0, 4],
+];
+
 const FEE_PATTERNS = [
   [{ s:"paid",m:"cash"    },{ s:"paid",m:"cash"     },{ s:"open",  m:""       }],
   [{ s:"paid",m:"transfer"},{ s:"open",m:""         },{ s:"open",  m:""       }],
@@ -301,7 +311,10 @@ async function seedAttendance(pb: PocketBase, mosqueId: string, courseId: string
   for (let si = 0; si < sessions.length; si++)
     for (let ki = 0; ki < firstTen.length; ki++) {
       const status = ATTENDANCE_MATRIX[si][ki];
-      items.push({ mosque_id: mosqueId, course_id: courseId, student_id: firstTen[ki], session_date: sessions[si], status, notes: NOTES[status] ?? "", marked_by: teacherId });
+      const perfRaw = PERFORMANCE_MATRIX[si][ki];
+      const canHavePerf = status === "present" || status === "late";
+      const performance = canHavePerf && perfRaw > 0 ? perfRaw : undefined;
+      items.push({ mosque_id: mosqueId, course_id: courseId, student_id: firstTen[ki], session_date: sessions[si], status, notes: NOTES[status] ?? "", marked_by: teacherId, ...(performance != null ? { performance } : {}) });
     }
   return await batchCreate(pb, "attendance", items);
 }

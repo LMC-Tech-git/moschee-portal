@@ -1884,6 +1884,11 @@
       "noStudents": "Bu derste kayıtlı öğrenci yok.",
       "saving": "Kaydediliyor…",
       "saveBtn": "Yoklamayı Kaydet",
+      "performance": {
+        "label": "Performans",
+        "rate": "Değerlendir",
+        "notRated": "Değerlendirilmedi"
+      },
       "stats": {
         "noData": "Veri yok.",
         "noSessions": "Henüz ders oturumu girilmedi.",

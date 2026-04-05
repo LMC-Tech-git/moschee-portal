@@ -25,6 +25,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import {
   attendanceStatusColors,
+  PERFORMANCE_LEVELS,
+  getPerformanceLevel,
 } from "@/lib/constants";
 import type { Course, CourseEnrollment, Attendance } from "@/types";
 import AttendanceStats from "@/components/madrasa/AttendanceStats";
@@ -36,6 +38,7 @@ interface StudentRow {
   student_name: string;
   status: AttendanceStatus;
   notes: string;
+  performance?: number;
 }
 
 export default function LehrerAttendancePage() {
@@ -65,6 +68,9 @@ export default function LehrerAttendancePage() {
   // Session löschen
   const [deletingSession, setDeletingSession] = useState<string | null>(null);
   const [isDeletingSession, setIsDeletingSession] = useState(false);
+
+  // Performance-Rating Popover
+  const [openRatingFor, setOpenRatingFor] = useState<string | null>(null);
 
   // Kurs + Sessions laden
   useEffect(() => {
@@ -112,6 +118,7 @@ export default function LehrerAttendancePage() {
           student_name: e.student_name || e.student_id,
           status: existing ? existing.status : "present",
           notes: existing?.notes || "",
+          performance: existing?.performance ?? undefined,
         };
       });
 
@@ -142,6 +149,13 @@ export default function LehrerAttendancePage() {
     );
   }
 
+  function setStudentPerformance(studentId: string, value: number | undefined) {
+    setStudents((prev) =>
+      prev.map((s) => (s.student_id === studentId ? { ...s, performance: value } : s))
+    );
+    setOpenRatingFor(null);
+  }
+
   async function handleSave() {
     if (!user) return;
     setIsSaving(true);
@@ -152,6 +166,7 @@ export default function LehrerAttendancePage() {
       student_id: s.student_id,
       status: s.status,
       notes: s.notes,
+      performance: s.performance,
     }));
 
     const result = await saveAttendanceBulk(
@@ -417,28 +432,94 @@ export default function LehrerAttendancePage() {
                       <div className="text-sm font-medium text-gray-900">
                         {student.student_name}
                       </div>
-                      <div className="flex items-center gap-1">
-                        {statusButtons.map((sb) => {
-                          const Icon = sb.icon;
-                          const isActive = student.status === sb.status;
-                          return (
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1">
+                          {statusButtons.map((sb) => {
+                            const Icon = sb.icon;
+                            const isActive = student.status === sb.status;
+                            return (
+                              <button
+                                key={sb.status}
+                                type="button"
+                                onClick={() => setStudentStatus(student.student_id, sb.status)}
+                                title={sb.label}
+                                aria-label={t("attendance.markAs", { name: student.student_name, status: sb.label })}
+                                className={cn(
+                                  "rounded-lg border p-2 text-xs font-medium transition-colors",
+                                  isActive
+                                    ? attendanceStatusColors[sb.status] + " border-current"
+                                    : "border-gray-200 text-gray-400 hover:text-gray-600"
+                                )}
+                              >
+                                <Icon className="h-4 w-4" />
+                              </button>
+                            );
+                          })}
+                        </div>
+                        {(student.status === "present" || student.status === "late") && (
+                          <div className="relative">
                             <button
-                              key={sb.status}
                               type="button"
-                              onClick={() => setStudentStatus(student.student_id, sb.status)}
-                              title={sb.label}
-                              aria-label={t("attendance.markAs", { name: student.student_name, status: sb.label })}
+                              onClick={() =>
+                                setOpenRatingFor(
+                                  openRatingFor === student.student_id ? null : student.student_id
+                                )
+                              }
                               className={cn(
-                                "rounded-lg border p-2 text-xs font-medium transition-colors",
-                                isActive
-                                  ? attendanceStatusColors[sb.status] + " border-current"
-                                  : "border-gray-200 text-gray-400 hover:text-gray-600"
+                                "rounded-lg border px-2.5 py-2 text-xs font-medium transition-colors",
+                                student.performance
+                                  ? getPerformanceLevel(student.performance)?.color + " border-current"
+                                  : "border-gray-200 text-gray-400 hover:border-gray-300 hover:text-gray-600"
                               )}
                             >
-                              <Icon className="h-4 w-4" />
+                              {student.performance
+                                ? `${getPerformanceLevel(student.performance)?.icon} ${getPerformanceLevel(student.performance)?.shortLabel} ✎`
+                                : t("attendance.performance.rate")}
                             </button>
-                          );
-                        })}
+                            {openRatingFor === student.student_id && (
+                              <div className="absolute right-0 top-full z-10 mt-1 w-52 rounded-lg border border-gray-200 bg-white p-2 shadow-lg">
+                                <p className="mb-2 text-xs font-medium text-gray-500">
+                                  {t("attendance.performance.label")}:
+                                </p>
+                                {PERFORMANCE_LEVELS.map((level) => (
+                                  <button
+                                    key={level.value}
+                                    type="button"
+                                    onClick={() =>
+                                      setStudentPerformance(student.student_id, level.value)
+                                    }
+                                    className={cn(
+                                      "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors hover:bg-gray-50",
+                                      student.performance === level.value
+                                        ? level.color + " font-medium"
+                                        : "text-gray-700"
+                                    )}
+                                  >
+                                    <span className="text-base">{level.icon}</span>
+                                    <span>{level.shortLabel}</span>
+                                    {student.performance === level.value && (
+                                      <Check className="ml-auto h-3.5 w-3.5" />
+                                    )}
+                                  </button>
+                                ))}
+                                {student.performance != null && (
+                                  <>
+                                    <div className="my-1.5 border-t border-gray-100" />
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        setStudentPerformance(student.student_id, undefined)
+                                      }
+                                      className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-xs text-gray-400 hover:bg-gray-50"
+                                    >
+                                      {t("attendance.performance.notRated")}
+                                    </button>
+                                  </>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}

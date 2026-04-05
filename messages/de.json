@@ -1884,6 +1884,11 @@
       "noStudents": "Keine eingeschriebenen Schüler in diesem Kurs.",
       "saving": "Wird gespeichert…",
       "saveBtn": "Anwesenheit speichern",
+      "performance": {
+        "label": "Leistung",
+        "rate": "Bewerten",
+        "notRated": "Nicht bewertet"
+      },
       "stats": {
         "noData": "Keine Daten verfügbar.",
         "noSessions": "Noch keine Unterrichtsstunden eingetragen.",
