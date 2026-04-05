@@ -306,6 +306,26 @@ async function seedAttendance(pb: PocketBase, mosqueId: string, courseId: string
   return await batchCreate(pb, "attendance", items);
 }
 
+async function seedParentChildRelations(
+  pb: PocketBase,
+  mosqueId: string,
+  users: { admin: string; memberIds: string[] },
+  studentIds: string[]
+): Promise<number> {
+  const links = [
+    { parent: users.admin,          student: studentIds[8] },
+    { parent: users.admin,          student: studentIds[9] },
+    { parent: users.memberIds[0],   student: studentIds[0] },
+    { parent: users.memberIds[0],   student: studentIds[1] },
+    { parent: users.memberIds[1],   student: studentIds[2] },
+    { parent: users.memberIds[1],   student: studentIds[3] },
+    { parent: users.memberIds[2],   student: studentIds[4] },
+    { parent: users.memberIds[2],   student: studentIds[5] },
+  ].filter((l) => l.parent && l.student);
+  const items = links.map((l) => ({ mosque_id: mosqueId, parent_user: l.parent, student: l.student }));
+  return await batchCreate(pb, "parent_child_relations", items);
+}
+
 async function seedStudentFees(pb: PocketBase, mosqueId: string, studentIds: string[], adminId: string): Promise<number> {
   const months = [monthKey(monthsAgo(2)), monthKey(monthsAgo(1)), monthKey(new Date())];
   const items: Record<string,unknown>[] = [];
@@ -436,7 +456,7 @@ export async function resetDemoData(mosqueId: string): Promise<ResetResult> {
   // ── Schritt 1: Cleanup (parallel pro Collection, FK-Reihenfolge) ──────────
   let deletedCount = 0;
   // Abhängige Collections zuerst löschen
-  for (const col of ["contact_messages","student_fees","attendance","course_enrollments","students","courses","academic_years","donations","event_registrations","events","campaigns","posts","sponsors","team_members","email_outbox","audit_logs"] as const) {
+  for (const col of ["contact_messages","parent_child_relations","student_fees","attendance","course_enrollments","students","courses","academic_years","donations","event_registrations","events","campaigns","posts","sponsors","team_members","email_outbox","audit_logs"] as const) {
     deletedCount += await deleteAllFor(pb, col, mosqueId);
   }
 
@@ -460,12 +480,13 @@ export async function resetDemoData(mosqueId: string): Promise<ResetResult> {
   createdCount += studentIds.length;
 
   // Unabhängige Madrasa-Sections parallel
-  const [enrollCount, attendCount, feesCount] = await Promise.all([
+  const [enrollCount, attendCount, feesCount, parentChildCount] = await Promise.all([
     seedEnrollments(pb, mosqueId, courseIds, studentIds),
     seedAttendance(pb, mosqueId, courseIds[0], studentIds, users.teacher1),
     seedStudentFees(pb, mosqueId, studentIds, users.admin),
+    seedParentChildRelations(pb, mosqueId, users, studentIds),
   ]);
-  createdCount += enrollCount + attendCount + feesCount;
+  createdCount += enrollCount + attendCount + feesCount + parentChildCount;
 
   // Posts, Events und Kampagnen parallel starten
   const [postsCount, events, campaignIds] = await Promise.all([
