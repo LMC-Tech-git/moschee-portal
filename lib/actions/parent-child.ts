@@ -174,7 +174,9 @@ export async function unlinkParentFromStudent(
 }
 
 /**
- * Alle Kinder eines Elternteils über die neue junction table laden.
+ * Alle Kinder eines Elternteils laden.
+ * Kombiniert Legacy-Felder (parent_id, father_user_id, mother_user_id)
+ * mit der junction table — identisch zur Logik in getStudentsByParent().
  */
 export async function getChildrenOfParent(
   mosqueId: string,
@@ -182,28 +184,74 @@ export async function getChildrenOfParent(
 ): Promise<ActionResult<Student[]>> {
   try {
     const pb = await getAdminPB();
-    const all: Student[] = [];
-    let page = 1;
 
+    // Legacy: Kinder über alte Felder laden
+    const legacyRecords = await pb.collection("students").getFullList({
+      filter: `mosque_id="${mosqueId}" && (parent_id="${parentUserId}" || father_user_id="${parentUserId}" || mother_user_id="${parentUserId}")`,
+      sort: "last_name,first_name",
+    });
+    const all: Student[] = legacyRecords.map(mapStudent);
+
+    // Neu: Kinder über parent_child_relations laden
+    let page = 1;
     while (true) {
       const res = await pb.collection("parent_child_relations").getList(page, 200, {
         filter: `mosque_id="${mosqueId}" && parent_user="${parentUserId}"`,
         expand: "student",
       });
-
       for (const r of res.items) {
         if (!r.expand || !r.expand.student) continue;
         all.push(mapStudent(r.expand.student));
       }
-
       if (res.page >= res.totalPages) break;
       page++;
     }
 
-    return { success: true, data: all };
+    // Deduplizieren
+    const seen = new Set<string>();
+    return {
+      success: true,
+      data: all.filter((s) => {
+        if (seen.has(s.id)) return false;
+        seen.add(s.id);
+        return true;
+      }),
+    };
   } catch (error) {
     console.error("[ParentChild] Fehler beim Laden der Kinder:", error);
     return { success: false, error: "Kinder konnten nicht geladen werden" };
+  }
+}
+
+/**
+ * Alle Elternteile aller Schüler einer Moschee — für die Schülerliste.
+ * Gibt Record<studentId, User[]> zurück; silent fail = leeres Objekt.
+ */
+export async function getParentsMapForStudents(
+  mosqueId: string
+): Promise<Record<string, User[]>> {
+  try {
+    const pb = await getAdminPB();
+    const result: Record<string, User[]> = {};
+    let page = 1;
+
+    while (true) {
+      const res = await pb.collection("parent_child_relations").getList(page, 200, {
+        filter: `mosque_id="${mosqueId}"`,
+        expand: "parent_user",
+      });
+      for (const r of res.items) {
+        if (!r.expand || !r.expand.parent_user) continue;
+        if (!result[r.student]) result[r.student] = [];
+        result[r.student].push(mapUser(r.expand.parent_user));
+      }
+      if (res.page >= res.totalPages) break;
+      page++;
+    }
+
+    return result;
+  } catch {
+    return {};
   }
 }
 

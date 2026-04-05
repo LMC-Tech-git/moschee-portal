@@ -9,6 +9,8 @@ import { useAuth } from "@/lib/auth-context";
 import { getStudentsByMosque, updateStudent } from "@/lib/actions/students";
 import { getStudentEnrollmentsMap, enrollStudent } from "@/lib/actions/enrollments";
 import { getCoursesByMosque } from "@/lib/actions/courses";
+import { getParentsMapForStudents } from "@/lib/actions/parent-child";
+import type { User } from "@/types";
 import { AdminStudentDialog } from "@/components/madrasa/AdminStudentDialog";
 import { StudentImportDialog } from "@/components/madrasa/StudentImportDialog";
 import type { Student } from "@/types";
@@ -34,6 +36,7 @@ export default function AdminStudentsPage() {
   const [enrolledIds, setEnrolledIds] = useState<Set<string>>(new Set());
   const [enrollmentMap, setEnrollmentMap] = useState<Record<string, { courseId: string; courseName: string }[]>>({});
   const [courses, setCourses] = useState<Course[]>([]);
+  const [parentsMap, setParentsMap] = useState<Record<string, User[]>>({});
   const [isLoading, setIsLoading] = useState(true);
 
   // Filters
@@ -59,10 +62,11 @@ export default function AdminStudentsPage() {
   async function loadAll() {
     if (!mosqueId) return;
     setIsLoading(true);
-    const [studentsRes, enrollmentsRes, coursesRes] = await Promise.all([
+    const [studentsRes, enrollmentsRes, coursesRes, parentsMapRes] = await Promise.all([
       getStudentsByMosque(mosqueId, true), // load all to handle inactive toggle client-side
       getStudentEnrollmentsMap(mosqueId),
       getCoursesByMosque(mosqueId, { status: "active", limit: 200 }),
+      getParentsMapForStudents(mosqueId),
     ]);
     if (studentsRes.success && studentsRes.data) setStudents(studentsRes.data);
     if (enrollmentsRes.success && enrollmentsRes.data) {
@@ -72,6 +76,7 @@ export default function AdminStudentsPage() {
     if (coursesRes.success && coursesRes.data) {
       setCourses(coursesRes.data.map((c) => ({ id: c.id, title: c.title })));
     }
+    setParentsMap(parentsMapRes);
     setIsLoading(false);
   }
 
@@ -362,9 +367,16 @@ export default function AdminStudentsPage() {
               {filtered.map((student) => {
                 const isSelected = selectedIds.has(student.id);
                 const hasEnrollment = enrolledIds.has(student.id);
-                const parentDisplay = student.mother_name && student.father_name
+                // Junction-table Eltern haben Vorrang vor Legacy-Feldern
+                const junctionParents = parentsMap[student.id] || [];
+                const parentDisplay = junctionParents.length > 0
+                  ? junctionParents
+                      .map((p) => p.full_name || `${p.first_name} ${p.last_name}`.trim() || p.email)
+                      .join(" / ")
+                  : student.mother_name && student.father_name
                   ? `${student.mother_name} / ${student.father_name}`
                   : student.mother_name || student.father_name || student.parent_name || "—";
+                const isPortalUser = junctionParents.length > 0 || !!student.parent_id;
                 return (
                   <tr
                     key={student.id}
@@ -419,12 +431,12 @@ export default function AdminStudentsPage() {
                       )}
                     </td>
                     <td className="hidden px-4 py-3 md:table-cell">
-                      {student.parent_id ? (
-                        <div className="text-emerald-700 font-medium">{student.parent_name || parentDisplay}</div>
+                      {isPortalUser ? (
+                        <div className="text-emerald-700 font-medium">{parentDisplay}</div>
                       ) : (
                         <div className="text-gray-700">{parentDisplay}</div>
                       )}
-                      {student.parent_id && (
+                      {isPortalUser && (
                         <div className="text-xs text-emerald-500">{t("portalUser")}</div>
                       )}
                       {student.parent_is_member && (
