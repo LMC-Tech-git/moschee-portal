@@ -10,7 +10,7 @@ export function DemoReturnButton() {
   function handleReturn() {
     getClientPB().authStore.clear();
     const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN;
-    window.location.href = rootDomain ? `https://${rootDomain}` : "/";
+    window.location.href = rootDomain ? `https://${rootDomain}?noredirect=1` : "/?noredirect=1";
   }
   return (
     <button
