@@ -15,6 +15,8 @@ import {
   CreditCard,
   CalendarDays,
   Trash2,
+  GraduationCap,
+  ExternalLink,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
@@ -25,6 +27,7 @@ import {
   getMemberDonations,
   getMemberEventHistory,
 } from "@/lib/actions/members";
+import { getChildrenOfParent } from "@/lib/actions/parent-child";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -40,7 +43,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { formatDate, formatCurrency } from "@/lib/utils";
 import { ROLE_OPTIONS } from "@/lib/constants";
-import type { User as UserType, Donation, EventRegistration } from "@/types";
+import type { User as UserType, Donation, EventRegistration, Student } from "@/types";
 
 export default function MitgliedBearbeitenPage() {
   const params = useParams();
@@ -65,6 +68,7 @@ export default function MitgliedBearbeitenPage() {
   // Historie
   const [donations, setDonations] = useState<Donation[]>([]);
   const [events, setEvents] = useState<(EventRegistration & { event_title?: string; event_start_at?: string })[]>([]);
+  const [children, setChildren] = useState<Student[]>([]);
   const [historyLoading, setHistoryLoading] = useState(true);
 
   useEffect(() => {
@@ -104,12 +108,14 @@ export default function MitgliedBearbeitenPage() {
 
     async function loadHistory() {
       setHistoryLoading(true);
-      const [donRes, evtRes] = await Promise.all([
+      const [donRes, evtRes, childrenRes] = await Promise.all([
         getMemberDonations(memberId, mosqueId),
         getMemberEventHistory(memberId, mosqueId),
+        getChildrenOfParent(mosqueId, memberId),
       ]);
       if (donRes.success && donRes.data) setDonations(donRes.data);
       if (evtRes.success && evtRes.data) setEvents(evtRes.data);
+      if (childrenRes.success && childrenRes.data) setChildren(childrenRes.data);
       setHistoryLoading(false);
     }
 
@@ -479,6 +485,77 @@ export default function MitgliedBearbeitenPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Kinder (Madrasa) */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <GraduationCap className="h-5 w-5 text-gray-500" />
+            Kinder (Madrasa)
+            {children.length > 0 && (
+              <span className="ml-1 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                {children.length}
+              </span>
+            )}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {historyLoading ? (
+            <div className="space-y-2">
+              {Array.from({ length: 2 }).map((_, i) => (
+                <Skeleton key={i} className="h-10 w-full" />
+              ))}
+            </div>
+          ) : children.length === 0 ? (
+            <div className="py-4 text-center text-sm text-gray-400">
+              <p>Keine Kinder in der Madrasa.</p>
+              <Link
+                href="/admin/madrasa/schueler"
+                className="mt-1 inline-flex items-center gap-1 text-xs text-emerald-600 hover:underline"
+              >
+                <ExternalLink className="h-3 w-3" />
+                Zur Schülerliste
+              </Link>
+            </div>
+          ) : (
+            <div className="divide-y">
+              {children.map((child) => (
+                <div key={child.id} className="flex items-center justify-between py-2.5">
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">
+                      {`${child.first_name} ${child.last_name}`.trim()}
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      {child.school_class && `Klasse ${child.school_class}`}
+                      {child.school_class && child.date_of_birth && " · "}
+                      {child.date_of_birth &&
+                        new Date(child.date_of_birth).toLocaleDateString("de-DE")}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={
+                        child.status === "active"
+                          ? "rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700"
+                          : "rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500"
+                      }
+                    >
+                      {child.status === "active" ? "Aktiv" : "Inaktiv"}
+                    </span>
+                    <Link
+                      href={`/admin/madrasa/schueler/${child.id}`}
+                      className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+                      title="Schüler-Details / Eltern verwalten"
+                    >
+                      <ExternalLink className="h-3.5 w-3.5" />
+                    </Link>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

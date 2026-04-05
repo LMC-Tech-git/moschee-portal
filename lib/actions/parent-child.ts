@@ -208,6 +208,48 @@ export async function getChildrenOfParent(
 }
 
 /**
+ * Anzahl verknüpfter Kinder pro Mitglied — für die Mitgliederliste (Badge).
+ * Gibt Record<memberId, count> zurück; silent fail = leeres Objekt.
+ */
+export async function getChildrenCountsForMembers(
+  mosqueId: string,
+  memberIds: string[]
+): Promise<Record<string, number>> {
+  if (memberIds.length === 0) return {};
+  try {
+    const pb = await getAdminPB();
+    const counts: Record<string, number> = {};
+
+    // Chunking: max. 20 IDs pro Query — verhindert PB-Filterlimit bei großen Seiten
+    const CHUNK = 20;
+    for (let i = 0; i < memberIds.length; i += CHUNK) {
+      const chunk = memberIds.slice(i, i + CHUNK);
+      const filter =
+        `mosque_id="${mosqueId}" && (` +
+        chunk.map((id) => `parent_user="${id}"`).join(" || ") +
+        `)`;
+
+      // Pagination-Loop — konsistent mit restlichem Design
+      let page = 1;
+      while (true) {
+        const res = await pb
+          .collection("parent_child_relations")
+          .getList(page, 200, { filter });
+        res.items.forEach((r) => {
+          counts[r.parent_user] = (counts[r.parent_user] || 0) + 1;
+        });
+        if (res.page >= res.totalPages) break;
+        page++;
+      }
+    }
+
+    return counts;
+  } catch {
+    return {};
+  }
+}
+
+/**
  * Alle Elternteile eines Schülers über die junction table laden.
  */
 export async function getParentsOfStudent(

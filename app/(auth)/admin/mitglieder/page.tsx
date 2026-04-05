@@ -15,11 +15,13 @@ import {
   Trash2,
   TrendingUp,
   Clock,
+  GraduationCap,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 import { useMosque } from "@/lib/mosque-context";
 import { getMembersByMosque, updateMemberStatus, deleteMember, getMemberStats } from "@/lib/actions/members";
+import { getChildrenCountsForMembers } from "@/lib/actions/parent-child";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -75,6 +77,7 @@ export default function MitgliederListePage() {
   const [deletingMemberId, setDeletingMemberId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const canDelete = user?.role === "admin" || user?.role === "super_admin";
+  const [childrenCounts, setChildrenCounts] = useState<Record<string, number>>({});
 
   // Stats / Charts
   const [stats, setStats] = useState<{
@@ -104,6 +107,9 @@ export default function MitgliederListePage() {
         setMembers(result.data);
         setTotalPages(result.totalPages || 1);
         setTotalItems(result.totalItems || 0);
+        // Kinder-Counts für diese Seite nachladen (non-blocking)
+        const ids = result.data.map((m: User) => m.id);
+        getChildrenCountsForMembers(mosqueId, ids).then(setChildrenCounts);
       } else {
         toast.error(result.error || t("loadError"));
       }
@@ -395,7 +401,18 @@ export default function MitgliederListePage() {
                       onClick={() => router.push(`/admin/mitglieder/${member.id}`)}
                     >
                       <td className="px-4 py-3 font-medium text-gray-900">
-                        {member.full_name || "—"}
+                        <span className="flex items-center gap-2">
+                          {member.full_name || "—"}
+                          {(childrenCounts[member.id] ?? 0) > 0 && (
+                            <span
+                              className="inline-flex items-center gap-0.5 rounded-full bg-emerald-50 px-1.5 py-0.5 text-xs font-medium text-emerald-700"
+                              title={`${childrenCounts[member.id]} Kinder (Madrasa)`}
+                            >
+                              <GraduationCap className="h-3 w-3" />
+                              {childrenCounts[member.id]}
+                            </span>
+                          )}
+                        </span>
                       </td>
                       <td className="px-4 py-3 hidden sm:table-cell text-gray-600">
                         {member.email}
