@@ -312,15 +312,30 @@ async function seedParentChildRelations(
   users: { admin: string; memberIds: string[] },
   studentIds: string[]
 ): Promise<number> {
+  // Jeder Schüler ist einem Mitglied korrekt nach Familienname zugeordnet.
+  // Schüler 0–9 haben Anwesenheitseinträge (seedAttendance nutzt slice(0,10)).
   const links = [
-    { parent: users.admin,          student: studentIds[8] },
-    { parent: users.admin,          student: studentIds[9] },
-    { parent: users.memberIds[0],   student: studentIds[0] },
-    { parent: users.memberIds[0],   student: studentIds[1] },
-    { parent: users.memberIds[1],   student: studentIds[2] },
-    { parent: users.memberIds[1],   student: studentIds[3] },
-    { parent: users.memberIds[2],   student: studentIds[4] },
-    { parent: users.memberIds[2],   student: studentIds[5] },
+    // ── Eltern mit Kindern die Anwesenheiten haben ───────────────────────────
+    { parent: users.memberIds[0],  student: studentIds[0]  },  // Mehmet Yilmaz  → Fatima Yilmaz
+    { parent: users.memberIds[1],  student: studentIds[1]  },  // Ayse Kaya      → Musa Kaya
+    { parent: users.memberIds[2],  student: studentIds[2]  },  // Mustafa Demir  → Elif Demir
+    { parent: users.memberIds[4],  student: studentIds[3]  },  // Abdullah Celik → Ibrahim Celik
+    { parent: users.memberIds[3],  student: studentIds[4]  },  // Fatma Arslan   → Zeynep Arslan
+    { parent: users.memberIds[5],  student: studentIds[5]  },  // Hatice Sahin   → Ali Sahin
+    { parent: users.memberIds[6],  student: studentIds[6]  },  // Hasan Ozturk   → Hatice Ozturk
+    { parent: users.memberIds[7],  student: studentIds[7]  },  // Nalan Kurt     → Yusuf Kurt
+    { parent: users.memberIds[8],  student: studentIds[8]  },  // Ali Polat      → Merve Polat
+    { parent: users.memberIds[9],  student: studentIds[9]  },  // Zeynep Yildiz  → Osman Yildiz
+    // ── Eltern mit Kindern ohne Anwesenheiten (eingeschrieben / Gebühren) ───
+    { parent: users.memberIds[10], student: studentIds[10] },  // Hans Müller    → Safiye Müller
+    { parent: users.memberIds[11], student: studentIds[11] },  // Sabine Fischer → Davut Fischer
+    { parent: users.memberIds[12], student: studentIds[12] },  // Klaus Wagner   → Rümeysa Wagner
+    { parent: users.memberIds[14], student: studentIds[17] },  // Thomas Becker  → Suleiman Becker
+    { parent: users.memberIds[15], student: studentIds[14] },  // Ahmed Al-Hassan→ Nisa Al-Hassan
+    { parent: users.memberIds[16], student: studentIds[15] },  // Sara Ibrahim   → Tariq Ibrahim
+    { parent: users.memberIds[17], student: studentIds[16] },  // Omar Khalil    → Meryem Khalil
+    { parent: users.memberIds[18], student: studentIds[19] },  // Leila Mansouri → Hamza Mansouri
+    { parent: users.memberIds[19], student: studentIds[18] },  // Daniel Hoffmann→ Esra Hoffmann
   ].filter((l) => l.parent && l.student);
   const items = links.map((l) => ({ mosque_id: mosqueId, parent_user: l.parent, student: l.student }));
   return await batchCreate(pb, "parent_child_relations", items);
