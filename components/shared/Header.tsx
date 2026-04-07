@@ -363,7 +363,7 @@ export default function Header() {
               </p>
               <Link
                 href={isEditor ? "/admin/posts" : "/admin"}
-                className="flex items-center gap-2 rounded-lg px-4 py-3 text-sm font-medium text-gray-700 hover:bg-emerald-50 hover:text-emerald-600"
+                className="flex items-center gap-2 rounded-lg px-4 py-3 text-sm font-medium bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
                 onClick={closeMobileMenu}
               >
                 {isSuperAdmin ? <Crown className="h-4 w-4" /> : isEditor ? <Edit3 className="h-4 w-4" /> : <Shield className="h-4 w-4" />}
