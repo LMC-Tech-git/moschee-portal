@@ -150,12 +150,10 @@ export async function unlinkParentFromStudent(
   try {
     const pb = await getAdminPB();
 
-    const filter = relationType
-      ? `mosque_id="${mosqueId}" && parent_user="${parentUserId}" && student="${studentId}" && relation_type="${relationType}"`
-      : `mosque_id="${mosqueId}" && parent_user="${parentUserId}" && student="${studentId}"`;
-
+    // Kein relation_type im Filter — (mosque_id, parent_user, student) ist der de-facto Unique Key.
+    // Ein relation_type-Filter würde fehlschlagen wenn DB-Records noch keinen Wert haben.
     const existing = await pb.collection("parent_child_relations").getList(1, 1, {
-      filter,
+      filter: `mosque_id="${mosqueId}" && parent_user="${parentUserId}" && student="${studentId}"`,
     });
 
     if (existing.items.length === 0) {

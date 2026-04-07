@@ -179,8 +179,8 @@ export function AdminStudentForm({ mosqueId, userId, student, onSuccess, onCance
     setFatherUser(candidate);
     setFatherQuery("");
     setShowFatherDropdown(false);
-    if (!form.father_name) set("father_name", candidate.name);
-    if (!form.father_phone) set("father_phone", candidate.phone);
+    set("father_name", candidate.name);
+    if (candidate.phone) set("father_phone", candidate.phone);
   }
 
   function clearFatherUser() {
@@ -192,8 +192,8 @@ export function AdminStudentForm({ mosqueId, userId, student, onSuccess, onCance
     setMotherUser(candidate);
     setMotherQuery("");
     setShowMotherDropdown(false);
-    if (!form.mother_name) set("mother_name", candidate.name);
-    if (!form.mother_phone) set("mother_phone", candidate.phone);
+    set("mother_name", candidate.name);
+    if (candidate.phone) set("mother_phone", candidate.phone);
   }
 
   function clearMotherUser() {
