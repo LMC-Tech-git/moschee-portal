@@ -123,12 +123,12 @@ export default function StudentDetailPage() {
     setIsAdding(false);
   }
 
-  async function handleRemoveParent(parentUserId: string) {
+  async function handleRemoveParent(parentUserId: string, relationType: RelationType) {
     if (!mosqueId || !user) return;
     setRemovingId(parentUserId);
     setError(null);
 
-    const res = await unlinkParentFromStudent(mosqueId, user.id, parentUserId, studentId);
+    const res = await unlinkParentFromStudent(mosqueId, user.id, parentUserId, studentId, relationType);
     if (res.success) {
       await loadData();
     } else {
@@ -288,7 +288,7 @@ export default function StudentDetailPage() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => handleRemoveParent(parent.id)}
+                        onClick={() => handleRemoveParent(parent.id, parent.relation_type)}
                         disabled={removingId === parent.id}
                         title={t("removeParentTitle")}
                       >

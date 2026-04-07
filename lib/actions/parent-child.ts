@@ -122,9 +122,10 @@ export async function linkParentToStudent(
       entityId: relation.id,
       details: {
         parent_user_id: parentUserId,
-        student_id: studentId,
         parent_name: `${parent.first_name || ""} ${parent.last_name || ""}`.trim() || parent.email,
-        student_name: `${student.first_name || ""} ${student.last_name || ""}`.trim(),
+        student_id: studentId,
+        student: `${student.first_name || ""} ${student.last_name || ""}`.trim(),
+        relation_type: relationType,
       },
     });
 
@@ -143,13 +144,18 @@ export async function unlinkParentFromStudent(
   mosqueId: string,
   actorId: string,
   parentUserId: string,
-  studentId: string
+  studentId: string,
+  relationType?: RelationType
 ): Promise<ActionResult<void>> {
   try {
     const pb = await getAdminPB();
 
+    const filter = relationType
+      ? `mosque_id="${mosqueId}" && parent_user="${parentUserId}" && student="${studentId}" && relation_type="${relationType}"`
+      : `mosque_id="${mosqueId}" && parent_user="${parentUserId}" && student="${studentId}"`;
+
     const existing = await pb.collection("parent_child_relations").getList(1, 1, {
-      filter: `mosque_id="${mosqueId}" && parent_user="${parentUserId}" && student="${studentId}"`,
+      filter,
     });
 
     if (existing.items.length === 0) {
@@ -157,6 +163,16 @@ export async function unlinkParentFromStudent(
     }
 
     const record = existing.items[0];
+    const recordRelationType = relationType ?? record.relation_type ?? "";
+
+    // Load human-readable names before deleting
+    const [studentRecord, parentRecord] = await Promise.all([
+      pb.collection("students").getOne(studentId, { fields: "first_name,last_name" }),
+      pb.collection("users").getOne(parentUserId, { fields: "first_name,last_name,email" }),
+    ]);
+    const studentName = `${studentRecord.first_name || ""} ${studentRecord.last_name || ""}`.trim();
+    const parentName = `${parentRecord.first_name || ""} ${parentRecord.last_name || ""}`.trim() || parentRecord.email || "";
+
     await pb.collection("parent_child_relations").delete(record.id);
 
     await logAudit({
@@ -165,7 +181,13 @@ export async function unlinkParentFromStudent(
       action: "parent_child.unlinked",
       entityType: "parent_child_relations",
       entityId: record.id,
-      details: { parent_user_id: parentUserId, student_id: studentId },
+      details: {
+        parent_user_id: parentUserId,
+        parent_name: parentName,
+        student_id: studentId,
+        student: studentName,
+        relation_type: recordRelationType,
+      },
     });
 
     return { success: true };

@@ -1381,7 +1381,10 @@
       "duration_months": "Süre (Ay)",
       "subject": "Konu",
       "type": "Tür",
-      "group": "Grup"
+      "group": "Grup",
+      "parent_user_id": "Portal Kullanıcısı",
+      "parent_name": "Veli",
+      "relation_type": "İlişki"
     }
   },
   "settings": {
@@ -2161,7 +2164,11 @@
     "membershipStatusNone": "Üye Değil",
     "membershipStatusPlanned": "Üyelik Planlanıyor",
     "address": "Adres",
-    "addressPlaceholder": "Sokak, Posta Kodu, Şehir"
+    "addressPlaceholder": "Sokak, Posta Kodu, Şehir",
+    "searchPortalUser": "Portal kullanıcısı ara...",
+    "parentSamePersonError": "Baba ve anne aynı kişi olamaz",
+    "linkFatherError": "Baba bağlanamadı",
+    "linkMotherError": "Anne bağlanamadı"
   },
   "studentLookup": {
     "sectionTitle": "Öğrenci Kaydet",

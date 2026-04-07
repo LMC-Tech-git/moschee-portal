@@ -1381,7 +1381,10 @@
       "duration_months": "Laufzeit (Monate)",
       "subject": "Betreff",
       "type": "Typ",
-      "group": "Gruppe"
+      "group": "Gruppe",
+      "parent_user_id": "Portal-Benutzer",
+      "parent_name": "Elternteil",
+      "relation_type": "Beziehung"
     }
   },
   "settings": {
@@ -2161,7 +2164,11 @@
     "membershipStatusNone": "Kein Mitglied",
     "membershipStatusPlanned": "Mitgliedschaft geplant",
     "address": "Anschrift",
-    "addressPlaceholder": "Straße, PLZ, Stadt"
+    "addressPlaceholder": "Straße, PLZ, Stadt",
+    "searchPortalUser": "Portal-Benutzer suchen...",
+    "parentSamePersonError": "Vater und Mutter können nicht dieselbe Person sein",
+    "linkFatherError": "Vater konnte nicht verknüpft werden",
+    "linkMotherError": "Mutter konnte nicht verknüpft werden"
   },
   "studentLookup": {
     "sectionTitle": "Schüler einschreiben",
