@@ -189,8 +189,6 @@ export default function AdminStudentsPage() {
       last_year_teacher: student.last_year_teacher || "",
       whatsapp_contact: (student.whatsapp_contact as "mother" | "father" | "both" | "") || "",
       parent_is_member: student.parent_is_member ?? false,
-      father_user_id: student.father_user_id || "",
-      mother_user_id: student.mother_user_id || "",
       notes: student.notes || "",
       status: newStatus,
     };

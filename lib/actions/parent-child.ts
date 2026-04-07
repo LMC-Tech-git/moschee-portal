@@ -2,7 +2,7 @@
 
 import { getAdminPB } from "@/lib/pocketbase-admin";
 import { logAudit } from "@/lib/audit";
-import type { Student, User } from "@/types";
+import type { Student, User, RelationType } from "@/types";
 import type { RecordModel } from "pocketbase";
 
 // --- Helpers ---
@@ -76,7 +76,8 @@ export async function linkParentToStudent(
   mosqueId: string,
   actorId: string,
   parentUserId: string,
-  studentId: string
+  studentId: string,
+  relationType: RelationType
 ): Promise<ActionResult<void>> {
   try {
     // Self-link guard (unterschiedliche Collections, aber trotzdem absichern)
@@ -98,11 +99,11 @@ export async function linkParentToStudent(
 
     // Duplikat-Prüfung
     const existing = await pb.collection("parent_child_relations").getList(1, 1, {
-      filter: `mosque_id="${mosqueId}" && parent_user="${parentUserId}" && student="${studentId}"`,
+      filter: `student="${studentId}" && parent_user="${parentUserId}" && mosque_id="${mosqueId}"`,
     });
 
-    if (existing.items.length > 0) {
-      return { success: false, error: "Relation bereits vorhanden" };
+    if (existing.totalItems > 0) {
+      return { success: false, error: "Dieser Benutzer ist bereits als Elternteil verknüpft." };
     }
 
     // Relation erstellen
@@ -110,6 +111,7 @@ export async function linkParentToStudent(
       mosque_id: mosqueId,
       parent_user: parentUserId,
       student: studentId,
+      relation_type: relationType,
     });
 
     await logAudit({
@@ -312,16 +314,20 @@ export async function getChildrenCountsForMembers(
   }
 }
 
+export interface ParentWithRelation extends User {
+  relation_type: RelationType;
+}
+
 /**
  * Alle Elternteile eines Schülers über die junction table laden.
  */
 export async function getParentsOfStudent(
   mosqueId: string,
   studentId: string
-): Promise<ActionResult<User[]>> {
+): Promise<ActionResult<ParentWithRelation[]>> {
   try {
     const pb = await getAdminPB();
-    const all: User[] = [];
+    const all: ParentWithRelation[] = [];
     let page = 1;
 
     while (true) {
@@ -332,7 +338,10 @@ export async function getParentsOfStudent(
 
       for (const r of res.items) {
         if (!r.expand || !r.expand.parent_user) continue;
-        all.push(mapUser(r.expand.parent_user));
+        all.push({
+          ...mapUser(r.expand.parent_user),
+          relation_type: (r.relation_type as RelationType) || "other",
+        });
       }
 
       if (res.page >= res.totalPages) break;
