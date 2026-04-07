@@ -2077,7 +2077,18 @@
     "noResults": "Üye bulunamadı",
     "addButton": "Ekle",
     "errorAdd": "Ekleme sırasında hata oluştu",
-    "errorRemove": "Kaldırma sırasında hata oluştu"
+    "errorRemove": "Kaldırma sırasında hata oluştu",
+    "linkParentTitle": "Portal Kullanıcısı Bağla",
+    "linkParentHint": "Sadece portal hesabı olan kişiler burada görünür. Hesabı olmayan kişileri düzenleme formunda girebilirsiniz.",
+    "relationFather": "Baba",
+    "relationMother": "Anne",
+    "relationGuardian": "Vasi",
+    "relationOther": "Diğer",
+    "selectRelation": "\u201E{name}\u201C ile ilişkiyi seçin:",
+    "selectRelationGeneric": "İlişki seçin:",
+    "selectPlaceholder": "— Lütfen seçin —",
+    "cancelButton": "İptal",
+    "confirmAddButton": "Ekle"
   },
   "studentImport": {
     "title": "Öğrenci İçe Aktar",

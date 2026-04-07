@@ -261,10 +261,10 @@ export default function StudentDetailPage() {
                 })
                 .map((parent) => {
                   const relationLabel: Record<string, string> = {
-                    father: "Vater",
-                    mother: "Mutter",
-                    guardian: "Vormund",
-                    other: "Sonstiges",
+                    father: t("relationFather"),
+                    mother: t("relationMother"),
+                    guardian: t("relationGuardian"),
+                    other: t("relationOther"),
                   };
                   return (
                     <div
@@ -305,9 +305,9 @@ export default function StudentDetailPage() {
           {/* Portal-Benutzer verknüpfen */}
           <div className="space-y-3">
             <div>
-              <p className="text-sm font-medium">Portal-Benutzer verknüpfen</p>
+              <p className="text-sm font-medium">{t("linkParentTitle")}</p>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Nur Personen mit einem Portal-Account erscheinen hier. Kontakte ohne Account tragen Sie im Bearbeitungsformular ein.
+                {t("linkParentHint")}
               </p>
             </div>
             <div className="relative">
@@ -368,7 +368,7 @@ export default function StudentDetailPage() {
                 <p className="text-xs font-medium text-blue-800">
                   {(() => {
                     const c = candidates.find((x) => x.id === pendingCandidateId);
-                    return c ? `Beziehung zu „${c.name}" auswählen:` : "Beziehung auswählen:";
+                    return c ? t("selectRelation", { name: c.name }) : t("selectRelationGeneric");
                   })()}
                 </p>
                 <select
@@ -376,11 +376,11 @@ export default function StudentDetailPage() {
                   value={selectedRelationType}
                   onChange={(e) => setSelectedRelationType(e.target.value as RelationType | "")}
                 >
-                  <option value="">— Bitte auswählen —</option>
-                  <option value={RELATION_TYPES.FATHER}>Vater</option>
-                  <option value={RELATION_TYPES.MOTHER}>Mutter</option>
-                  <option value={RELATION_TYPES.GUARDIAN}>Vormund</option>
-                  <option value={RELATION_TYPES.OTHER}>Sonstiges</option>
+                  <option value="">{t("selectPlaceholder")}</option>
+                  <option value={RELATION_TYPES.FATHER}>{t("relationFather")}</option>
+                  <option value={RELATION_TYPES.MOTHER}>{t("relationMother")}</option>
+                  <option value={RELATION_TYPES.GUARDIAN}>{t("relationGuardian")}</option>
+                  <option value={RELATION_TYPES.OTHER}>{t("relationOther")}</option>
                 </select>
                 <div className="flex gap-2">
                   <Button
@@ -389,14 +389,14 @@ export default function StudentDetailPage() {
                     disabled={!selectedRelationType || isAdding}
                   >
                     <UserPlus className="h-3.5 w-3.5 mr-1" />
-                    Hinzufügen
+                    {t("confirmAddButton")}
                   </Button>
                   <Button
                     size="sm"
                     variant="ghost"
                     onClick={() => { setPendingCandidateId(null); setSelectedRelationType(""); }}
                   >
-                    Abbrechen
+                    {t("cancelButton")}
                   </Button>
                 </div>
               </div>

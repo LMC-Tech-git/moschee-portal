@@ -1261,26 +1261,26 @@ async function seedParentChildRelations(users, studentIds) {
 
   // Admin Demo → Schüler 8 + 9 (beide in Quran A, Quran B, Islamkunde eingeschrieben)
   if (users.admin && studentIds.length >= 10) {
-    links.push({ parent: users.admin, student: studentIds[8], label: "Admin → Kind 1" });
-    links.push({ parent: users.admin, student: studentIds[9], label: "Admin → Kind 2" });
+    links.push({ parent: users.admin, student: studentIds[8], label: "Admin → Kind 1", relation_type: "father" });
+    links.push({ parent: users.admin, student: studentIds[9], label: "Admin → Kind 2", relation_type: "father" });
   }
 
   // Demo-Member-01 → Schüler 0 + 1 (in Quran A, Tajweed eingeschrieben)
   if (users.memberIds?.length >= 1 && studentIds.length >= 2) {
-    links.push({ parent: users.memberIds[0], student: studentIds[0], label: "Member-01 → Kind 1" });
-    links.push({ parent: users.memberIds[0], student: studentIds[1], label: "Member-01 → Kind 2" });
+    links.push({ parent: users.memberIds[0], student: studentIds[0], label: "Member-01 → Kind 1", relation_type: "mother" });
+    links.push({ parent: users.memberIds[0], student: studentIds[1], label: "Member-01 → Kind 2", relation_type: "mother" });
   }
 
   // Demo-Member-02 → Schüler 2 + 3 (in Quran A, Islamkunde eingeschrieben)
   if (users.memberIds?.length >= 2 && studentIds.length >= 4) {
-    links.push({ parent: users.memberIds[1], student: studentIds[2], label: "Member-02 → Kind 1" });
-    links.push({ parent: users.memberIds[1], student: studentIds[3], label: "Member-02 → Kind 2" });
+    links.push({ parent: users.memberIds[1], student: studentIds[2], label: "Member-02 → Kind 1", relation_type: "father" });
+    links.push({ parent: users.memberIds[1], student: studentIds[3], label: "Member-02 → Kind 2", relation_type: "father" });
   }
 
   // Demo-Member-03 → Schüler 4 + 5 (in Quran A, Islamkunde, Tajweed eingeschrieben)
   if (users.memberIds?.length >= 3 && studentIds.length >= 6) {
-    links.push({ parent: users.memberIds[2], student: studentIds[4], label: "Member-03 → Kind 1" });
-    links.push({ parent: users.memberIds[2], student: studentIds[5], label: "Member-03 → Kind 2" });
+    links.push({ parent: users.memberIds[2], student: studentIds[4], label: "Member-03 → Kind 1", relation_type: "guardian" });
+    links.push({ parent: users.memberIds[2], student: studentIds[5], label: "Member-03 → Kind 2", relation_type: "guardian" });
   }
 
   let created = 0;
@@ -1288,7 +1288,7 @@ async function seedParentChildRelations(users, studentIds) {
     const { created: c } = await findOrCreate(
       "parent_child_relations",
       `mosque_id="${MOSQUE_ID}" && parent_user="${link.parent}" && student="${link.student}"`,
-      { mosque_id: MOSQUE_ID, parent_user: link.parent, student: link.student }
+      { mosque_id: MOSQUE_ID, parent_user: link.parent, student: link.student, relation_type: link.relation_type || "other" }
     );
     if (c) {
       created++;

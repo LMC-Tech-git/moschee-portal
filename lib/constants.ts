@@ -491,3 +491,15 @@ export const TEAM_ROLE_KEYS = [
 ] as const;
 export type TeamRoleKey = typeof TEAM_ROLE_KEYS[number];
 export const TEAM_ROLE_OPTIONS = TEAM_ROLE_KEYS.map((k) => ({ value: k, labelKey: `roles.${k}` as const }));
+
+// =========================================
+// Eltern-Kind-Beziehungstypen
+// =========================================
+
+export const RELATION_TYPES = {
+  FATHER: 'father',
+  MOTHER: 'mother',
+  GUARDIAN: 'guardian',
+  OTHER: 'other',
+} as const;
+export type RelationType = typeof RELATION_TYPES[keyof typeof RELATION_TYPES];

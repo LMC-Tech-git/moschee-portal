@@ -850,6 +850,12 @@ const PARENT_CHILD_RELATIONS_COLLECTION = {
     { name: "mosque_id",   type: "relation", required: true, options: { collectionId: "", maxSelect: 1 } },
     { name: "parent_user", type: "relation", required: true, options: { collectionId: "", maxSelect: 1, cascadeDelete: true } },
     { name: "student",     type: "relation", required: true, options: { collectionId: "", maxSelect: 1, cascadeDelete: true } },
+    {
+      name: "relation_type",
+      type: "select",
+      required: false,
+      options: { values: ["father", "mother", "guardian", "other"], maxSelect: 1 },
+    },
   ],
   indexes: [
     "CREATE UNIQUE INDEX idx_parent_child_unique    ON parent_child_relations (mosque_id, parent_user, student)",

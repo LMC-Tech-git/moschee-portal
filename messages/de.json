@@ -2077,7 +2077,18 @@
     "noResults": "Keine Mitglieder gefunden",
     "addButton": "Hinzufügen",
     "errorAdd": "Fehler beim Hinzufügen",
-    "errorRemove": "Fehler beim Entfernen"
+    "errorRemove": "Fehler beim Entfernen",
+    "linkParentTitle": "Portal-Benutzer verknüpfen",
+    "linkParentHint": "Nur Personen mit einem Portal-Account erscheinen hier. Kontakte ohne Account tragen Sie im Bearbeitungsformular ein.",
+    "relationFather": "Vater",
+    "relationMother": "Mutter",
+    "relationGuardian": "Vormund",
+    "relationOther": "Sonstiges",
+    "selectRelation": "Beziehung zu \u201E{name}\u201C ausw\u00e4hlen:",
+    "selectRelationGeneric": "Beziehung auswählen:",
+    "selectPlaceholder": "— Bitte auswählen —",
+    "cancelButton": "Abbrechen",
+    "confirmAddButton": "Hinzufügen"
   },
   "studentImport": {
     "title": "Schüler importieren",

@@ -3,6 +3,9 @@
 // 11 PocketBase Collections + Hilfstypen
 // =========================================
 
+// Inline-Typ für Eltern-Kind-Beziehungstyp (gespiegelt aus lib/constants.ts, um Zirkularimporte zu vermeiden)
+export type RelationType = 'father' | 'mother' | 'guardian' | 'other';
+
 // --- 1. Mosques (Moscheen / Vereine) ---
 export interface Mosque {
   id: string;
@@ -348,7 +351,9 @@ export interface Student {
   parent_is_member: boolean;
   privacy_accepted_at: string;
   // Neue Felder (v4) — Vater/Mutter als eigenständige Portal-Benutzer
+  /** @deprecated — use parent_child_relations */
   father_user_id?: string;
+  /** @deprecated — use parent_child_relations */
   mother_user_id?: string;
   notes: string;
   status: "active" | "inactive";
@@ -377,6 +382,7 @@ export interface ParentChildRelation {
   mosque_id: string;
   parent_user: string; // Relation → users
   student: string;     // Relation → students
+  relation_type: RelationType;
   created: string;
   updated: string;
   expand?: {
