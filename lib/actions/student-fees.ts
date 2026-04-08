@@ -408,7 +408,7 @@ export async function createFeeStripeCheckout(
     const stripe = new Stripe(stripeKey, { apiVersion: "2024-06-20" });
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
-      payment_method_types: ["card"],
+      payment_method_types: ["card", "sepa_debit"],
       customer_email: parentEmail,
       line_items: [
         {
@@ -534,7 +534,7 @@ export async function createMultiMonthFeeCheckout(
     const stripe = new Stripe(stripeKey, { apiVersion: "2024-06-20" });
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
-      payment_method_types: ["card"],
+      payment_method_types: ["card", "sepa_debit"],
       customer_email: parentEmail,
       line_items: [
         {

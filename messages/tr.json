@@ -1284,7 +1284,10 @@
       "student_fee": {
         "marked_paid": "Ücret ödendi (Nakit/Havale)",
         "paid_stripe": "Ücret ödendi (Stripe)",
-        "waived": "Ücret muaf tutuldu"
+        "failed_stripe": "Stripe ödemesi başarısız",
+        "waived": "Ücret muaf tutuldu",
+        "multi_paid_stripe": "Çok aylık ücretler ödendi (Stripe)",
+        "multi_failed_stripe": "Çok aylık Stripe ödemesi başarısız"
       },
       "newsletter": {
         "queued": "Bülten kuyruğa eklendi",

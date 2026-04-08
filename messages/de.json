@@ -1284,7 +1284,10 @@
       "student_fee": {
         "marked_paid": "Gebühr bezahlt (Bar/Überweisung)",
         "paid_stripe": "Gebühr bezahlt (Stripe)",
-        "waived": "Gebühr erlassen"
+        "failed_stripe": "Stripe-Zahlung fehlgeschlagen",
+        "waived": "Gebühr erlassen",
+        "multi_paid_stripe": "Mehrmonatige Gebühren bezahlt (Stripe)",
+        "multi_failed_stripe": "Mehrmonatige Stripe-Zahlung fehlgeschlagen"
       },
       "newsletter": {
         "queued": "Newsletter eingereiht",

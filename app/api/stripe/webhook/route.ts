@@ -6,6 +6,76 @@ import { sendEmailDirect } from "@/lib/email";
 import { renderDonationReceipt } from "@/lib/email/templates";
 import { notifyAdmins } from "@/lib/email/notify-admin";
 
+// ─── Helpers ────────────────────────────────────────────────────────────────
+
+/**
+ * Markiert alle offenen Gebühren eines Elternteils für mehrere Monate als bezahlt.
+ * Kombiniert Legacy parent_id + parent_child_relations Junction Table.
+ */
+async function markFeeMultiPaid(
+  pb: Awaited<ReturnType<typeof getAdminPB>>,
+  mosqueId: string,
+  parentUserId: string,
+  startMonthKey: string,
+  months: number,
+  amountTotal: number | null
+): Promise<void> {
+  // Monatsliste
+  const monthKeys: string[] = [];
+  const [sy, sm] = startMonthKey.split("-").map(Number);
+  for (let i = 0; i < months; i++) {
+    const d = new Date(sy, sm - 1 + i, 1);
+    monthKeys.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`);
+  }
+
+  // Kinder laden: Legacy + Junction Table
+  const legacyStudents = await pb.collection("students").getFullList({
+    filter: `mosque_id = "${mosqueId}" && status = "active" && (parent_id = "${parentUserId}" || father_user_id = "${parentUserId}" || mother_user_id = "${parentUserId}")`,
+    fields: "id",
+  });
+  const studentIds = new Set<string>(legacyStudents.map((s) => s.id));
+
+  let page = 1;
+  while (true) {
+    const res = await pb.collection("parent_child_relations").getList(page, 200, {
+      filter: `mosque_id = "${mosqueId}" && parent_user = "${parentUserId}"`,
+      fields: "student",
+    });
+    res.items.forEach((r) => { if (r.student) studentIds.add(r.student); });
+    if (res.page >= res.totalPages) break;
+    page++;
+  }
+
+  const paidNow = new Date().toISOString();
+  for (const studentId of studentIds) {
+    for (const monthKey of monthKeys) {
+      const fees = await pb.collection("student_fees").getFullList({
+        filter: `mosque_id = "${mosqueId}" && student_id = "${studentId}" && month_key = "${monthKey}"`,
+      });
+      for (const fee of fees) {
+        if (fee.status === "open") {
+          await pb.collection("student_fees").update(fee.id, {
+            status: "paid",
+            paid_at: paidNow,
+            payment_method: "stripe",
+          });
+        }
+      }
+    }
+  }
+
+  console.log(`[Stripe Webhook] fee_multi: ${studentIds.size} Schüler × ${months} Monate bezahlt`);
+  logAudit({
+    mosqueId,
+    action: "student_fee.multi_paid_stripe",
+    entityType: "student_fees",
+    entityId: parentUserId,
+    details: { months, start_month_key: startMonthKey, amount_cents: amountTotal },
+  });
+}
+
+// ─── Webhook Handler ─────────────────────────────────────────────────────────
+
 /**
  * POST /api/stripe/webhook
  * Stripe Webhook Handler.
@@ -104,43 +174,9 @@ export async function POST(request: NextRequest) {
             break;
           }
           if (session.payment_status === "paid") {
-            // Monatsliste berechnen
-            const monthKeys: string[] = [];
-            const [sy, sm] = startMonthKey.split("-").map(Number);
-            for (let i = 0; i < months; i++) {
-              const d = new Date(sy, sm - 1 + i, 1);
-              monthKeys.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`);
-            }
-            // Aktive Kinder laden
-            const students = await pb.collection("students").getFullList({
-              filter: `mosque_id = "${mosqueId}" && parent_id = "${parentUserId}" && status = "active"`,
-            });
-            const paidNow = new Date().toISOString();
-            for (const student of students) {
-              for (const monthKey of monthKeys) {
-                const fees = await pb.collection("student_fees").getFullList({
-                  filter: `mosque_id = "${mosqueId}" && student_id = "${student.id}" && month_key = "${monthKey}"`,
-                });
-                for (const fee of fees) {
-                  if (fee.status === "open") {
-                    await pb.collection("student_fees").update(fee.id, {
-                      status: "paid",
-                      paid_at: paidNow,
-                      payment_method: "stripe",
-                    });
-                  }
-                }
-              }
-            }
-            console.log(`[Stripe Webhook] fee_multi: ${students.length} Schüler × ${months} Monate bezahlt`);
-            logAudit({
-              mosqueId,
-              action: "student_fee.multi_paid_stripe",
-              entityType: "student_fees",
-              entityId: parentUserId,
-              details: { months, start_month_key: startMonthKey, amount_cents: session.amount_total },
-            });
+            await markFeeMultiPaid(pb, mosqueId, parentUserId, startMonthKey, months, session.amount_total);
           }
+          // SEPA: payment_status = "unpaid" → async_payment_succeeded wird separat gefeuert
           break;
         }
 
@@ -260,24 +296,51 @@ export async function POST(request: NextRequest) {
       case "checkout.session.async_payment_succeeded": {
         // SEPA-Lastschrift: Payment kommt verzögert
         const session = event.data.object as Stripe.Checkout.Session;
+        const paymentTypeAsync = session.metadata?.payment_type;
+        const mosqueIdAsync = session.metadata?.mosque_id;
         const donationId = session.metadata?.donation_id;
-        const mosqueId = session.metadata?.mosque_id;
 
         if (donationId) {
+          // Spende
           await pb.collection("donations").update(donationId, {
             status: "paid",
             paid_at: new Date().toISOString(),
           });
-          console.log(`[Stripe Webhook] Async-Payment ${donationId} bezahlt`);
-
-          if (mosqueId) {
+          console.log(`[Stripe Webhook] Async-Payment Spende ${donationId} bezahlt`);
+          if (mosqueIdAsync) {
             logAudit({
-              mosqueId,
+              mosqueId: mosqueIdAsync,
               action: "donation.paid",
               entityType: "donation",
               entityId: donationId,
               details: { async: true, provider: "stripe" },
             });
+          }
+        } else if (paymentTypeAsync === "fee" && mosqueIdAsync) {
+          // Einzelne Madrasa-Gebühr (SEPA)
+          const feeId = session.metadata?.fee_id;
+          if (feeId) {
+            await pb.collection("student_fees").update(feeId, {
+              status: "paid",
+              paid_at: new Date().toISOString(),
+              payment_method: "stripe",
+            });
+            console.log(`[Stripe Webhook] Async-Payment Gebühr ${feeId} bezahlt`);
+            logAudit({
+              mosqueId: mosqueIdAsync,
+              action: "student_fee.paid_stripe",
+              entityType: "student_fees",
+              entityId: feeId,
+              details: { async: true },
+            });
+          }
+        } else if (paymentTypeAsync === "fee_multi" && mosqueIdAsync) {
+          // Mehrmonatige Vorauszahlung (SEPA)
+          const parentUserId = session.metadata?.parent_user_id;
+          const startMonthKey = session.metadata?.start_month_key;
+          const months = parseInt(session.metadata?.months || "1", 10);
+          if (parentUserId && startMonthKey) {
+            await markFeeMultiPaid(pb, mosqueIdAsync, parentUserId, startMonthKey, months, session.amount_total);
           }
         }
         break;
@@ -285,24 +348,46 @@ export async function POST(request: NextRequest) {
 
       case "checkout.session.async_payment_failed": {
         const session = event.data.object as Stripe.Checkout.Session;
+        const paymentTypeFailed = session.metadata?.payment_type;
+        const mosqueIdFailed = session.metadata?.mosque_id;
         const donationId = session.metadata?.donation_id;
-        const mosqueId = session.metadata?.mosque_id;
 
         if (donationId) {
-          await pb.collection("donations").update(donationId, {
-            status: "failed",
-          });
-          console.log(`[Stripe Webhook] Payment ${donationId} fehlgeschlagen`);
-
-          if (mosqueId) {
+          // Spende
+          await pb.collection("donations").update(donationId, { status: "failed" });
+          console.log(`[Stripe Webhook] Payment Spende ${donationId} fehlgeschlagen`);
+          if (mosqueIdFailed) {
             logAudit({
-              mosqueId,
+              mosqueId: mosqueIdFailed,
               action: "donation.failed",
               entityType: "donation",
               entityId: donationId,
               details: { provider: "stripe" },
             });
           }
+        } else if (paymentTypeFailed === "fee" && mosqueIdFailed) {
+          // Einzelne Madrasa-Gebühr
+          const feeId = session.metadata?.fee_id;
+          if (feeId) {
+            console.log(`[Stripe Webhook] SEPA-Zahlung Gebühr ${feeId} fehlgeschlagen`);
+            logAudit({
+              mosqueId: mosqueIdFailed,
+              action: "student_fee.failed_stripe",
+              entityType: "student_fees",
+              entityId: feeId,
+              details: { async: true },
+            });
+          }
+        } else if (paymentTypeFailed === "fee_multi" && mosqueIdFailed) {
+          const parentUserId = session.metadata?.parent_user_id;
+          console.log(`[Stripe Webhook] SEPA-Zahlung fee_multi für ${parentUserId} fehlgeschlagen`);
+          logAudit({
+            mosqueId: mosqueIdFailed,
+            action: "student_fee.multi_failed_stripe",
+            entityType: "student_fees",
+            entityId: parentUserId || "",
+            details: { async: true },
+          });
         }
         break;
       }
