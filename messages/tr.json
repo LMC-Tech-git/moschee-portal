@@ -1383,9 +1383,11 @@
       "subject": "Konu",
       "type": "Tür",
       "group": "Grup",
-      "parent_user_id": "Portal Kullanıcısı",
       "parent_name": "Veli",
-      "relation_type": "İlişki"
+      "relation_type": "İlişki",
+      "invite_type": "Davet Türü",
+      "assigned_role": "Atanan Rol",
+      "assigned_status": "Atanan Durum"
     }
   },
   "settings": {

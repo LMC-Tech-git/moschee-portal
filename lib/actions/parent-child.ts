@@ -121,9 +121,7 @@ export async function linkParentToStudent(
       entityType: "parent_child_relations",
       entityId: relation.id,
       details: {
-        parent_user_id: parentUserId,
         parent_name: `${parent.first_name || ""} ${parent.last_name || ""}`.trim() || parent.email,
-        student_id: studentId,
         student: `${student.first_name || ""} ${student.last_name || ""}`.trim(),
         relation_type: relationType,
       },
@@ -180,9 +178,7 @@ export async function unlinkParentFromStudent(
       entityType: "parent_child_relations",
       entityId: record.id,
       details: {
-        parent_user_id: parentUserId,
         parent_name: parentName,
-        student_id: studentId,
         student: studentName,
         relation_type: recordRelationType,
       },

@@ -1383,9 +1383,11 @@
       "subject": "Betreff",
       "type": "Typ",
       "group": "Gruppe",
-      "parent_user_id": "Portal-Benutzer",
       "parent_name": "Elternteil",
-      "relation_type": "Beziehung"
+      "relation_type": "Beziehung",
+      "invite_type": "Einladungstyp",
+      "assigned_role": "Zugewiesene Rolle",
+      "assigned_status": "Zugeteilter Status"
     }
   },
   "settings": {
