@@ -280,6 +280,47 @@ export async function getOrCreateFee(
 }
 
 /**
+ * Lädt alle aktiven Kinder eines Elternteils — kombiniert Legacy-Felder
+ * (parent_id, father_user_id, mother_user_id) mit der junction table.
+ */
+async function loadActiveChildrenForParent(
+  pb: Awaited<ReturnType<typeof getAdminPB>>,
+  mosqueId: string,
+  parentUserId: string
+): Promise<Student[]> {
+  // 1. Legacy-Felder
+  const legacyRecords = await pb.collection("students").getFullList({
+    filter: `mosque_id = "${mosqueId}" && status = "active" && (parent_id = "${parentUserId}" || father_user_id = "${parentUserId}" || mother_user_id = "${parentUserId}")`,
+    sort: "first_name,last_name",
+  });
+  const all: Student[] = legacyRecords as unknown as Student[];
+
+  // 2. Junction Table parent_child_relations
+  let page = 1;
+  while (true) {
+    const res = await pb.collection("parent_child_relations").getList(page, 200, {
+      filter: `mosque_id = "${mosqueId}" && parent_user = "${parentUserId}"`,
+      expand: "student",
+    });
+    for (const r of res.items) {
+      if (!r.expand?.student) continue;
+      const s = r.expand.student as unknown as Student;
+      if (s.status === "active") all.push(s);
+    }
+    if (res.page >= res.totalPages) break;
+    page++;
+  }
+
+  // 3. Deduplizieren
+  const seen = new Set<string>();
+  return all.filter((s) => {
+    if (seen.has(s.id)) return false;
+    seen.add(s.id);
+    return true;
+  });
+}
+
+/**
  * Eltern-Ansicht: Eigene Kinder + deren Gebühren-Status für einen Monat.
  */
 export async function getParentFeeOverview(
@@ -290,11 +331,8 @@ export async function getParentFeeOverview(
   try {
     const pb = await getAdminPB();
 
-    // Kinder des Elternteils laden
-    const studentsResult = await pb.collection("students").getFullList({
-      filter: `mosque_id = "${mosqueId}" && parent_id = "${parentUserId}" && status = "active"`,
-      sort: "first_name,last_name",
-    });
+    // Kinder des Elternteils laden (Legacy + Junction Table)
+    const studentsResult = await loadActiveChildrenForParent(pb, mosqueId, parentUserId);
 
     if (studentsResult.length === 0) {
       return { success: true, data: [] };
@@ -447,11 +485,8 @@ export async function createMultiMonthFeeCheckout(
         ? settingsResult.data.madrasa_default_fee_cents
         : 1000;
 
-    // Aktive Kinder laden
-    const students = await pb.collection("students").getFullList({
-      filter: `mosque_id = "${mosqueId}" && parent_id = "${parentUserId}" && status = "active"`,
-      sort: "first_name",
-    });
+    // Aktive Kinder laden (Legacy + Junction Table)
+    const students = await loadActiveChildrenForParent(pb, mosqueId, parentUserId);
 
     if (students.length === 0) {
       return { success: false, error: "Keine aktiven Kinder gefunden" };
