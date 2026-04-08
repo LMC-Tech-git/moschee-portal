@@ -169,8 +169,8 @@ export async function createInvite(
         const mosque = await pb.collection("mosques").getOne(mosqueId, {
           fields: "id,name,slug,brand_primary_color",
         });
-        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://moschee.app";
-        const inviteUrl = `${baseUrl}/${mosque.slug}/invite/${token}`;
+        const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "moschee.app";
+        const inviteUrl = `https://${mosque.slug}.${rootDomain}/invite/${token}`;
         const html = renderInviteEmail({
           mosqueName: mosque.name,
           inviteUrl,

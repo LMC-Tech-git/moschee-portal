@@ -61,7 +61,7 @@ export async function middleware(request: NextRequest) {
     const slug = hostname.replace(`.${rootDomain}`, "");
     const PASS_THROUGH = [
       `/${slug}`,   // Verhindert Doppel-Rewrite bei bestehenden /{slug}/... Links
-      "/login", "/register", "/api", "/invite",
+      "/login", "/register", "/api",
       "/admin", "/member", "/lehrer", "/imam",
       "/impressum", "/datenschutz", "/agb",
       "/passwort-vergessen", "/passwort-zuruecksetzen",

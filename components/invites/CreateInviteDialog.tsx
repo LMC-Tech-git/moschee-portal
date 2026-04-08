@@ -119,8 +119,8 @@ export function CreateInviteDialog({
       }
 
       const token = result.data.token;
-      const baseUrl = window.location.origin;
-      const link = `${baseUrl}/${mosqueSlug}/invite/${token}`;
+      const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "moschee.app";
+      const link = `https://${mosqueSlug}.${rootDomain}/invite/${token}`;
       setCreatedLink(link);
       setCreatedEmail(result.data.email || "");
       setStep("success");
