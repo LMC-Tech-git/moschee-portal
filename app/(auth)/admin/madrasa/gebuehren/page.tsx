@@ -510,7 +510,16 @@ export default function AdminMadrasaGebuehrenPage() {
                         {row.student.first_name} {row.student.last_name}
                       </td>
                       <td className="px-4 py-3 text-gray-700">
-                        {row.fee ? formatCurrencyCents(row.fee.amount_cents) : (
+                        {row.fee ? (
+                          <div className="flex flex-col gap-0.5">
+                            <span>{formatCurrencyCents(row.fee.amount_cents)}</span>
+                            {row.fee.discount_applied_cents > 0 && (
+                              <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+                                {t("siblingDiscount")} −{formatCurrencyCents(row.fee.discount_applied_cents)}
+                              </span>
+                            )}
+                          </div>
+                        ) : (
                           <span className="text-gray-400">—</span>
                         )}
                       </td>

@@ -68,6 +68,10 @@ export interface Settings {
   madrasa_default_fee_cents: number;  // z.B. 1000 = 10 €
   fee_reminder_enabled: boolean;      // Automatische Gebühren-Erinnerung
   fee_reminder_day: number;           // Tag im Monat (1-28)
+  // Geschwister-Rabatt
+  sibling_discount_enabled: boolean;
+  sibling_discount_2nd_percent: number; // 0–100
+  sibling_discount_3rd_percent: number; // 0–100 (gilt ab 3. Kind)
   // Förderpartner
   sponsors_enabled: boolean;
   sponsors_visibility: "public" | "members";
@@ -548,6 +552,8 @@ export interface StudentFee {
   provider_ref: string;       // Stripe Session ID
   notes: string;
   reminder_sent_at: string;   // ISO-Datum der letzten Mahnung
+  discount_applied_cents: number; // Ersparnis durch Geschwister-Rabatt (0 = kein Rabatt)
+  sibling_rank: number;           // Position in der Geschwister-Gruppe (1=erstes, 2=zweites, 3+=drittes+)
   created_by: string;         // Relation → users
   created: string;
   updated: string;

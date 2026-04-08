@@ -330,6 +330,9 @@ export async function getMadrasaFeeSettings(mosqueId: string): Promise<{
     madrasa_default_fee_cents: number;
     fee_reminder_enabled: boolean;
     fee_reminder_day: number;
+    sibling_discount_enabled: boolean;
+    sibling_discount_2nd_percent: number;
+    sibling_discount_3rd_percent: number;
   };
   error?: string;
 }> {
@@ -346,6 +349,9 @@ export async function getMadrasaFeeSettings(mosqueId: string): Promise<{
           madrasa_default_fee_cents: record.madrasa_default_fee_cents || 1000,
           fee_reminder_enabled: record.fee_reminder_enabled || false,
           fee_reminder_day: record.fee_reminder_day || 15,
+          sibling_discount_enabled: record.sibling_discount_enabled || false,
+          sibling_discount_2nd_percent: record.sibling_discount_2nd_percent || 0,
+          sibling_discount_3rd_percent: record.sibling_discount_3rd_percent || 0,
         },
       };
     } catch {
@@ -356,6 +362,9 @@ export async function getMadrasaFeeSettings(mosqueId: string): Promise<{
           madrasa_default_fee_cents: 1000,
           fee_reminder_enabled: false,
           fee_reminder_day: 15,
+          sibling_discount_enabled: false,
+          sibling_discount_2nd_percent: 0,
+          sibling_discount_3rd_percent: 0,
         },
       };
     }
@@ -373,6 +382,9 @@ export async function updateMadrasaFeeSettings(
     madrasa_default_fee_cents: number;
     fee_reminder_enabled: boolean;
     fee_reminder_day: number;
+    sibling_discount_enabled: boolean;
+    sibling_discount_2nd_percent: number;
+    sibling_discount_3rd_percent: number;
   }
 ): Promise<{ success: boolean; error?: string }> {
   try {

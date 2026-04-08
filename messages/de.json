@@ -820,7 +820,8 @@
       "bulkReminderSending": "Sende Mahnungen…",
       "bulkReminderResult": "{sent} gesendet, {skipped} übersprungen, {failed} fehlgeschlagen.",
       "notePlaceholder": "Notiz (optional)",
-      "btnConfirm": "Bestätigen"
+      "btnConfirm": "Bestätigen",
+      "siblingDiscount": "Geschwister-Rabatt"
     }
   },
   "donations": {
@@ -1578,7 +1579,18 @@
       "reminderEnabledDesc": "Sendet am eingestellten Tag automatisch Erinnerungsmails an Eltern mit offenen Gebühren.",
       "reminderDay": "Tag im Monat",
       "reminderDayDesc": "An welchem Tag sollen die Erinnerungen gesendet werden? (1–28)",
-      "reminderDayHint": "Tipp: Wählen Sie einen Tag nach dem typischen Gehaltseingang, z.\u00a0B. den 5. oder 15."
+      "reminderDayHint": "Tipp: Wählen Sie einen Tag nach dem typischen Gehaltseingang, z.\u00a0B. den 5. oder 15.",
+      "siblingDiscount": {
+        "title": "Geschwister-Rabatt",
+        "desc": "Familien mit mehreren Kindern in der Madrasa automatisch vergünstigen.",
+        "enabled": "Geschwister-Rabatt aktivieren",
+        "enabledDesc": "Ab dem 2. Kind derselben Familie wird ein Rabatt auf die Monatsgebühr gewährt.",
+        "2nd": "2. Kind Rabatt (%)",
+        "3rd": "Ab 3. Kind Rabatt (%)",
+        "preview": "Vorschau",
+        "child": "Kind",
+        "hint": "Der Rabatt wird beim monatlichen Erstellen der Gebühren automatisch berechnet und gespeichert."
+      }
     },
     "email": {
       "resendTitle": "Resend API (App-E-Mails)",

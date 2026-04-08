@@ -654,6 +654,10 @@ const SETTINGS_MADRASA_FIELDS = [
   { name: "madrasa_default_fee_cents", type: "number", options: { min: 0, default: 1000 } },
   { name: "fee_reminder_enabled", type: "bool", options: { default: false } },
   { name: "fee_reminder_day", type: "number", options: { min: 1, max: 28, default: 15 } },
+  // Geschwister-Rabatt (Session 24)
+  { name: "sibling_discount_enabled", type: "bool", options: { default: false } },
+  { name: "sibling_discount_2nd_percent", type: "number", options: { min: 0, max: 100, default: 0 } },
+  { name: "sibling_discount_3rd_percent", type: "number", options: { min: 0, max: 100, default: 0 } },
 ];
 
 const SETTINGS_SPONSORS_FIELDS = [
@@ -1197,6 +1201,23 @@ async function main() {
       console.log("   ✅ student_fees: reminder_sent_at hinzugefügt");
     } else {
       console.log("   ⏭️  student_fees: reminder_sent_at bereits vorhanden");
+    }
+  }
+
+  // 9d. student_fees: Geschwister-Rabatt-Felder hinzufügen (Session 24)
+  if (collectionMap.student_fees) {
+    const feesCol = (await getExistingCollections()).find((c) => c.name === "student_fees");
+    const existingFieldNames = (feesCol?.schema || []).map((f) => f.name);
+    const newFeeFields = [
+      { name: "discount_applied_cents", type: "number", options: { min: 0, default: 0 } },
+      { name: "sibling_rank", type: "number", options: { min: 1, default: 1 } },
+    ].filter((f) => !existingFieldNames.includes(f.name));
+    if (newFeeFields.length > 0) {
+      const newSchema = [...(feesCol?.schema || []), ...newFeeFields];
+      await updateCollection("student_fees", { schema: newSchema });
+      console.log(`   ✅ student_fees: ${newFeeFields.map((f) => f.name).join(", ")} hinzugefügt`);
+    } else {
+      console.log("   ⏭️  student_fees: Geschwister-Rabatt-Felder bereits vorhanden");
     }
   }
 

@@ -23,12 +23,99 @@ function mapRecordToFee(record: RecordModel): StudentFee {
     notes: record.notes || "",
     created_by: record.created_by || "",
     reminder_sent_at: record.reminder_sent_at || "",
+    discount_applied_cents: record.discount_applied_cents || 0,
+    sibling_rank: record.sibling_rank || 1,
     created: record.created || "",
     updated: record.updated || "",
     expand: record.expand
       ? { student_id: record.expand.student_id as Student | undefined }
       : undefined,
   };
+}
+
+/**
+ * Ermittelt den Geschwister-Rang jedes Schülers innerhalb seiner Familie.
+ * Rang 1 = erstes Kind (Vollpreis), 2 = zweites Kind, 3 = drittes Kind oder mehr.
+ *
+ * Algorithmus:
+ * - Lädt alle parent_child_relations der Moschee in einem einzigen Query
+ * - Bezieht Legacy-Felder (parent_id, father_user_id, mother_user_id) aus dem
+ *   bereits vorhandenen students-Array (kein zusätzlicher DB-Call)
+ * - Pro Schüler: minimaler Rang über alle Elterngruppen (bester Rabatt)
+ *
+ * @param pb      PocketBase Admin-Client
+ * @param mosqueId  Mosque ID für Tenant-Isolation
+ * @param students  Bereits geladene aktive Schüler
+ * @returns Map studentId → siblingRank (1, 2 oder 3)
+ */
+async function buildSiblingRankMap(
+  pb: Awaited<ReturnType<typeof getAdminPB>>,
+  mosqueId: string,
+  students: RecordModel[]
+): Promise<Map<string, number>> {
+  // Map: parentId → [studentId, ...] sortiert nach student.created ASC
+  const parentToStudents = new Map<string, string[]>();
+
+  // 1. Legacy-Felder aus dem students-Array (kein extra DB-Call)
+  students.forEach((s) => {
+    const legacyParents: string[] = [];
+    if (s.parent_id) legacyParents.push(s.parent_id);
+    if (s.father_user_id) legacyParents.push(s.father_user_id);
+    if (s.mother_user_id) legacyParents.push(s.mother_user_id);
+    legacyParents.forEach((pid) => {
+      if (!parentToStudents.has(pid)) parentToStudents.set(pid, []);
+      const list = parentToStudents.get(pid)!;
+      if (!list.includes(s.id)) list.push(s.id);
+    });
+  });
+
+  // 2. Junction Table in einem einzigen Query laden
+  const relations = await pb.collection("parent_child_relations").getFullList({
+    filter: `mosque_id = "${mosqueId}"`,
+    fields: "parent_user,student",
+    sort: "created",
+  });
+  relations.forEach((r) => {
+    if (!r.parent_user || !r.student) return;
+    if (!parentToStudents.has(r.parent_user)) parentToStudents.set(r.parent_user, []);
+    const list = parentToStudents.get(r.parent_user)!;
+    if (!list.includes(r.student)) list.push(r.student);
+  });
+
+  // 3. Jede Elterngruppe nach student.created ASC sortieren
+  // (Die student-Objekte sind bereits im students-Array vorhanden)
+  const createdByStudentId = new Map<string, string>();
+  students.forEach((s) => createdByStudentId.set(s.id, s.created || ""));
+
+  parentToStudents.forEach((ids, parentId) => {
+    ids.sort((a, b) => {
+      const ca = createdByStudentId.get(a) || "";
+      const cb = createdByStudentId.get(b) || "";
+      return ca < cb ? -1 : ca > cb ? 1 : 0;
+    });
+    parentToStudents.set(parentId, ids);
+  });
+
+  // 4. Pro Schüler: minimalen Rang über alle Elterngruppen berechnen
+  const rankMap = new Map<string, number>();
+  students.forEach((s) => rankMap.set(s.id, 1)); // Default: Rang 1
+
+  parentToStudents.forEach((ids) => {
+    ids.forEach((studentId, index) => {
+      const rank = index + 1; // 0-basierter Index → 1-basierter Rang
+      const cappedRank = rank >= 3 ? 3 : rank;
+      const currentRank = rankMap.get(studentId);
+      // Nur überschreiben wenn der neue Rang HÖHER ist (schlechterer Rabatt)
+      // → wir wollen den NIEDRIGSTEN (besten) Rang behalten, also nur wenn currentRank = 1 und rank > 1
+      // Nein: wir wollen den höchsten Rang (2. Kind eines Elternteils bleibt Rang 2,
+      // auch wenn es bei einem anderen Elternteil Rang 1 wäre → bester Rabatt = niedrigster Rang)
+      if (currentRank === undefined || cappedRank < currentRank) {
+        rankMap.set(studentId, cappedRank);
+      }
+    });
+  });
+
+  return rankMap;
 }
 
 interface ActionResult<T = void> {
@@ -87,21 +174,33 @@ export async function getMonthlyFeeOverview(
 /**
  * Erstellt offene Gebühren-Records für alle aktiven Schüler eines Monats.
  * Überspringt Schüler, die bereits einen Record für diesen Monat haben.
+ * Wendet Geschwister-Rabatt an, wenn in den Settings aktiviert.
  */
 export async function createMonthlyFees(
   mosqueId: string,
   userId: string,
   monthKey: string,
   amountCents: number
-): Promise<ActionResult<{ created: number; skipped: number }>> {
+): Promise<ActionResult<{ created: number; skipped: number; discounted: number }>> {
   try {
     const pb = await getAdminPB();
 
-    // Alle aktiven Schüler laden
+    // Settings laden (Geschwister-Rabatt)
+    const settingsResult = await getMadrasaFeeSettings(mosqueId);
+    const siblingDiscountEnabled = settingsResult.data?.sibling_discount_enabled || false;
+    const discount2nd = settingsResult.data?.sibling_discount_2nd_percent || 0;
+    const discount3rd = settingsResult.data?.sibling_discount_3rd_percent || 0;
+
+    // Alle aktiven Schüler laden (mit allen Feldern für Rang-Berechnung)
     const studentsResult = await pb.collection("students").getFullList({
       filter: `mosque_id = "${mosqueId}" && status = "active"`,
-      fields: "id",
+      sort: "created",
     });
+
+    // Geschwister-Rang-Map aufbauen (nur 1 extra Query)
+    const rankMap = siblingDiscountEnabled
+      ? await buildSiblingRankMap(pb, mosqueId, studentsResult)
+      : new Map<string, number>();
 
     // Bestehende Records für diesen Monat laden
     const existingResult = await pb.collection("student_fees").getFullList({
@@ -112,6 +211,7 @@ export async function createMonthlyFees(
 
     let created = 0;
     let skipped = 0;
+    let discounted = 0;
 
     for (let i = 0; i < studentsResult.length; i++) {
       const student = studentsResult[i];
@@ -119,15 +219,29 @@ export async function createMonthlyFees(
         skipped++;
         continue;
       }
+
+      // Rabatt berechnen
+      const rank = rankMap.get(student.id) || 1;
+      let finalAmount = amountCents;
+      if (siblingDiscountEnabled && rank === 2 && discount2nd > 0) {
+        finalAmount = Math.round(amountCents * (1 - discount2nd / 100));
+      } else if (siblingDiscountEnabled && rank >= 3 && discount3rd > 0) {
+        finalAmount = Math.round(amountCents * (1 - discount3rd / 100));
+      }
+      const discountApplied = amountCents - finalAmount;
+
       await pb.collection("student_fees").create({
         mosque_id: mosqueId,
         student_id: student.id,
         month_key: monthKey,
-        amount_cents: amountCents,
+        amount_cents: finalAmount,
         status: "open",
         created_by: userId,
+        discount_applied_cents: discountApplied,
+        sibling_rank: rank,
       });
       created++;
+      if (discountApplied > 0) discounted++;
     }
 
     await logAudit({
@@ -136,10 +250,10 @@ export async function createMonthlyFees(
       action: "student_fees.bulk_created",
       entityType: "student_fees",
       entityId: monthKey,
-      details: { month_key: monthKey, created, skipped, amount_cents: amountCents },
+      details: { month_key: monthKey, created, skipped, amount_cents: amountCents, discounted },
     });
 
-    return { success: true, data: { created, skipped } };
+    return { success: true, data: { created, skipped, discounted } };
   } catch (error) {
     console.error("[StudentFees] createMonthlyFees:", error);
     return { success: false, error: "Gebühren konnten nicht erstellt werden" };

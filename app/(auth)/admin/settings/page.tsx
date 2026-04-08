@@ -118,7 +118,10 @@ export default function AdminSettingsPage() {
     madrasa_default_fee_cents: number;
     fee_reminder_enabled: boolean;
     fee_reminder_day: number;
-  }>({ madrasa_fees_enabled: false, madrasa_default_fee_cents: 1000, fee_reminder_enabled: false, fee_reminder_day: 15 });
+    sibling_discount_enabled: boolean;
+    sibling_discount_2nd_percent: number;
+    sibling_discount_3rd_percent: number;
+  }>({ madrasa_fees_enabled: false, madrasa_default_fee_cents: 1000, fee_reminder_enabled: false, fee_reminder_day: 15, sibling_discount_enabled: false, sibling_discount_2nd_percent: 0, sibling_discount_3rd_percent: 0 });
 
   useEffect(() => {
     if (!mosqueId) return;
@@ -1387,20 +1390,31 @@ function MadrasaTab({
 }: {
   mosqueId: string;
   userId: string;
-  feeSettings: { madrasa_fees_enabled: boolean; madrasa_default_fee_cents: number; fee_reminder_enabled: boolean; fee_reminder_day: number };
+  feeSettings: { madrasa_fees_enabled: boolean; madrasa_default_fee_cents: number; fee_reminder_enabled: boolean; fee_reminder_day: number; sibling_discount_enabled: boolean; sibling_discount_2nd_percent: number; sibling_discount_3rd_percent: number };
   donationProvider: string;
-  onSaved: (updated: { madrasa_fees_enabled: boolean; madrasa_default_fee_cents: number; fee_reminder_enabled: boolean; fee_reminder_day: number }) => void;
+  onSaved: (updated: { madrasa_fees_enabled: boolean; madrasa_default_fee_cents: number; fee_reminder_enabled: boolean; fee_reminder_day: number; sibling_discount_enabled: boolean; sibling_discount_2nd_percent: number; sibling_discount_3rd_percent: number }) => void;
 }) {
   const t = useTranslations("settings");
   const [feesEnabled, setFeesEnabled] = useState(feeSettings.madrasa_fees_enabled);
   const [defaultFeeCents, setDefaultFeeCents] = useState(feeSettings.madrasa_default_fee_cents);
   const [reminderEnabled, setReminderEnabled] = useState(feeSettings.fee_reminder_enabled);
   const [reminderDay, setReminderDay] = useState(feeSettings.fee_reminder_day);
+  const [siblingDiscountEnabled, setSiblingDiscountEnabled] = useState(feeSettings.sibling_discount_enabled);
+  const [discount2nd, setDiscount2nd] = useState(feeSettings.sibling_discount_2nd_percent);
+  const [discount3rd, setDiscount3rd] = useState(feeSettings.sibling_discount_3rd_percent);
   const [isSaving, setIsSaving] = useState(false);
   const [status, setStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
   const defaultFeeEur = (defaultFeeCents / 100).toFixed(2);
   const stripeEnabled = donationProvider === "stripe";
+
+  // Vorschau-Beträge für Geschwister-Rabatt
+  const preview2nd = siblingDiscountEnabled && discount2nd > 0
+    ? Math.round(defaultFeeCents * (1 - discount2nd / 100))
+    : defaultFeeCents;
+  const preview3rd = siblingDiscountEnabled && discount3rd > 0
+    ? Math.round(defaultFeeCents * (1 - discount3rd / 100))
+    : defaultFeeCents;
 
   async function handleSave() {
     setIsSaving(true);
@@ -1410,6 +1424,9 @@ function MadrasaTab({
       madrasa_default_fee_cents: defaultFeeCents,
       fee_reminder_enabled: reminderEnabled,
       fee_reminder_day: reminderDay,
+      sibling_discount_enabled: siblingDiscountEnabled,
+      sibling_discount_2nd_percent: discount2nd,
+      sibling_discount_3rd_percent: discount3rd,
     });
     setIsSaving(false);
     if (result.success) {
@@ -1419,6 +1436,9 @@ function MadrasaTab({
         madrasa_default_fee_cents: defaultFeeCents,
         fee_reminder_enabled: reminderEnabled,
         fee_reminder_day: reminderDay,
+        sibling_discount_enabled: siblingDiscountEnabled,
+        sibling_discount_2nd_percent: discount2nd,
+        sibling_discount_3rd_percent: discount3rd,
       });
     } else {
       setStatus({ type: "error", message: result.error || t("madrasaFee.saveError") });
@@ -1430,6 +1450,9 @@ function MadrasaTab({
     setDefaultFeeCents(feeSettings.madrasa_default_fee_cents);
     setReminderEnabled(feeSettings.fee_reminder_enabled);
     setReminderDay(feeSettings.fee_reminder_day);
+    setSiblingDiscountEnabled(feeSettings.sibling_discount_enabled);
+    setDiscount2nd(feeSettings.sibling_discount_2nd_percent);
+    setDiscount3rd(feeSettings.sibling_discount_3rd_percent);
     setStatus(null);
   }
 
@@ -1487,6 +1510,92 @@ function MadrasaTab({
               </div>
               <span className="text-sm text-gray-500">{defaultFeeCents} {t("madrasaFee.cents")}</span>
             </div>
+          </SectionCard>
+
+          <SectionCard
+            title={t("madrasaFee.siblingDiscount.title")}
+            description={t("madrasaFee.siblingDiscount.desc")}
+          >
+            <label className="flex cursor-pointer items-center justify-between gap-4 rounded-xl border border-gray-200 p-4 hover:bg-gray-50">
+              <div>
+                <p className="font-medium text-gray-900">{t("madrasaFee.siblingDiscount.enabled")}</p>
+                <p className="mt-0.5 text-sm text-gray-500">
+                  {t("madrasaFee.siblingDiscount.enabledDesc")}
+                </p>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={siblingDiscountEnabled}
+                onClick={() => setSiblingDiscountEnabled((p) => !p)}
+                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 ${
+                  siblingDiscountEnabled ? "bg-emerald-600" : "bg-gray-300"
+                }`}
+              >
+                <span
+                  className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow ring-0 transition-transform ${
+                    siblingDiscountEnabled ? "translate-x-5" : "translate-x-0"
+                  }`}
+                />
+              </button>
+            </label>
+
+            {siblingDiscountEnabled && (
+              <div className="mt-4 space-y-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div className="space-y-1">
+                    <label className="block text-sm font-medium text-gray-700">
+                      {t("madrasaFee.siblingDiscount.2nd")}
+                    </label>
+                    <div className="relative w-32">
+                      <input
+                        type="number"
+                        min={0}
+                        max={100}
+                        step={5}
+                        value={discount2nd}
+                        onChange={(e) => setDiscount2nd(Math.max(0, Math.min(100, parseInt(e.target.value) || 0)))}
+                        className="w-full rounded-lg border border-gray-300 px-3 py-2 pr-8 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                      />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">%</span>
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="block text-sm font-medium text-gray-700">
+                      {t("madrasaFee.siblingDiscount.3rd")}
+                    </label>
+                    <div className="relative w-32">
+                      <input
+                        type="number"
+                        min={0}
+                        max={100}
+                        step={5}
+                        value={discount3rd}
+                        onChange={(e) => setDiscount3rd(Math.max(0, Math.min(100, parseInt(e.target.value) || 0)))}
+                        className="w-full rounded-lg border border-gray-300 px-3 py-2 pr-8 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                      />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">%</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Vorschau */}
+                <div className="rounded-lg border border-emerald-100 bg-emerald-50 p-3">
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-emerald-700">
+                    {t("madrasaFee.siblingDiscount.preview")}
+                  </p>
+                  <div className="flex flex-wrap gap-3 text-sm text-emerald-800">
+                    <span>1. {t("madrasaFee.siblingDiscount.child")}: <strong>{(defaultFeeCents / 100).toFixed(2)} €</strong></span>
+                    <span className="text-emerald-400">·</span>
+                    <span>2. {t("madrasaFee.siblingDiscount.child")}: <strong>{(preview2nd / 100).toFixed(2)} €</strong>{discount2nd > 0 && <span className="ml-1 text-xs text-emerald-600">(-{discount2nd}%)</span>}</span>
+                    <span className="text-emerald-400">·</span>
+                    <span>3.+ {t("madrasaFee.siblingDiscount.child")}: <strong>{(preview3rd / 100).toFixed(2)} €</strong>{discount3rd > 0 && <span className="ml-1 text-xs text-emerald-600">(-{discount3rd}%)</span>}</span>
+                  </div>
+                </div>
+
+                <p className="text-xs text-gray-400">{t("madrasaFee.siblingDiscount.hint")}</p>
+              </div>
+            )}
           </SectionCard>
 
           <SectionCard

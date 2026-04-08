@@ -820,7 +820,8 @@
       "bulkReminderSending": "Hatırlatmalar gönderiliyor…",
       "bulkReminderResult": "{sent} gönderildi, {skipped} atlandı, {failed} başarısız.",
       "notePlaceholder": "Not (isteğe bağlı)",
-      "btnConfirm": "Onayla"
+      "btnConfirm": "Onayla",
+      "siblingDiscount": "Kardeş İndirimi"
     }
   },
   "donations": {
@@ -1578,7 +1579,18 @@
       "reminderEnabledDesc": "Belirlenen günde, açık ücreti olan velilere otomatik hatırlatma e-postası gönderir.",
       "reminderDay": "Ayın günü",
       "reminderDayDesc": "Hatırlatmalar hangi gün gönderilsin? (1–28)",
-      "reminderDayHint": "İpucu: Maaş günü sonrasına bir tarih seçin, örn. 5 veya 15."
+      "reminderDayHint": "İpucu: Maaş günü sonrasına bir tarih seçin, örn. 5 veya 15.",
+      "siblingDiscount": {
+        "title": "Kardeş İndirimi",
+        "desc": "Medresede birden fazla çocuğu olan ailelere otomatik indirim uygulayın.",
+        "enabled": "Kardeş indirimini etkinleştir",
+        "enabledDesc": "Aynı ailenin 2. çocuğundan itibaren aylık ücrete indirim uygulanır.",
+        "2nd": "2. Çocuk İndirimi (%)",
+        "3rd": "3. Çocuktan İtibaren İndirim (%)",
+        "preview": "Önizleme",
+        "child": "Çocuk",
+        "hint": "İndirim, aylık ücretler oluşturulurken otomatik hesaplanır ve kaydedilir."
+      }
     },
     "email": {
       "resendTitle": "Resend API (Uygulama E-postaları)",

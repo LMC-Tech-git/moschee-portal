@@ -682,11 +682,22 @@ async function seedStudentFees(studentIds, adminId) {
       );
       if (existing?.items?.length > 0) continue;
 
+      // Demo: erste 4 Schüler haben Geschwister-Rabatt (rank 2 = 20%, rank 3 = 30%)
+      const siblingRank = ki < 2 ? 1 : ki < 4 ? 2 : ki < 6 ? 3 : 1;
+      const discount2nd = 20; // 20% für 2. Kind
+      const discount3rd = 30; // 30% ab 3. Kind
+      let finalAmount = FEE_CENTS;
+      if (siblingRank === 2) finalAmount = Math.round(FEE_CENTS * (1 - discount2nd / 100));
+      else if (siblingRank >= 3) finalAmount = Math.round(FEE_CENTS * (1 - discount3rd / 100));
+      const discountApplied = FEE_CENTS - finalAmount;
+
       await pbCreate("student_fees", {
         mosque_id: MOSQUE_ID,
         student_id: sid,
         month_key: mk,
-        amount_cents: FEE_CENTS,
+        amount_cents: finalAmount,
+        discount_applied_cents: discountApplied,
+        sibling_rank: siblingRank,
         status,
         payment_method: method,
         paid_at: status === "paid" ? `${mk}-15 12:00:00.000Z` : "",
@@ -1205,6 +1216,11 @@ async function seedSettings() {
     contact_notify_admin: true,
     prayer_provider: "aladhan",
     prayer_method: 13,
+    madrasa_fees_enabled: true,
+    madrasa_default_fee_cents: 1500,
+    sibling_discount_enabled: true,
+    sibling_discount_2nd_percent: 20,
+    sibling_discount_3rd_percent: 30,
   };
 
   if (existing?.items?.length > 0) {
