@@ -56,11 +56,21 @@ const VALUE_FIELD_MAP: Record<string, string> = {
   invite_type: "type",
 };
 
+// Nur diese Felder haben Enum-Werte die übersetzt werden — Freitext-Felder werden nie übersetzt
+const VALUE_TRANSLATABLE_FIELDS = new Set([
+  "relation_type",
+  "role", "assigned_role", "new_role", "old_role",
+  "status", "assigned_status", "initial_status", "old_status", "new_status",
+  "type", "invite_type",
+  "payment_method",
+  "visibility",
+]);
+
 function formatValue(v: unknown, field?: string, vLabel?: (f: string, v: string) => string): string {
   if (v === null || v === undefined || v === "") return "—";
   if (typeof v === "boolean") return v ? "Ja" : "Nein";
   const str = String(v);
-  if (field && vLabel) return vLabel(field, str);
+  if (field && vLabel && VALUE_TRANSLATABLE_FIELDS.has(field)) return vLabel(field, str);
   return str;
 }
 
