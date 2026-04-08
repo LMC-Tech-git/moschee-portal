@@ -5,22 +5,54 @@
  * Erstellt realistische, vollständige Testdaten für eine bereits vorhandene Demo-Moschee.
  * Idempotent: kann beliebig oft ausgeführt werden (findOrCreate-Muster).
  *
- * Verwendung:
- *   node scripts/seed-demo-full.mjs <pb-url> <admin-email> <admin-password> <mosque-id>
+ * Liest Zugangsdaten aus .env.local:
+ *   POCKETBASE_URL / NEXT_PUBLIC_POCKETBASE_URL
+ *   PB_ADMIN_EMAIL
+ *   PB_ADMIN_PASSWORD
+ *   NEXT_PUBLIC_DEMO_MOSQUE_ID   ← Moschee-ID der Demo-Gemeinde
  *
- * Beispiel:
- *   node scripts/seed-demo-full.mjs http://localhost:8090 admin@example.com secret 43xvclzp4v1cija
+ * Verwendung:
+ *   node scripts/seed-demo-full.mjs
  */
+
+import { readFileSync } from "fs";
+import { resolve, dirname } from "path";
+import { fileURLToPath } from "url";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
+function loadEnv() {
+  const envPath = resolve(__dirname, "../.env.local");
+  try {
+    const raw = readFileSync(envPath, "utf-8");
+    const env = {};
+    for (const line of raw.split(/\r?\n/)) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith("#")) continue;
+      const idx = trimmed.indexOf("=");
+      if (idx === -1) continue;
+      env[trimmed.slice(0, idx).trim()] = trimmed.slice(idx + 1).trim();
+    }
+    return env;
+  } catch {
+    return {};
+  }
+}
 
 // ─── Konfiguration ───────────────────────────────────────────────────────────
 
-const PB_URL        = process.argv[2];
-const ADMIN_EMAIL   = process.argv[3];
-const ADMIN_PASSWORD = process.argv[4];
-const MOSQUE_ID     = process.argv[5];
+const env = loadEnv();
+const PB_URL         = env.POCKETBASE_URL || env.NEXT_PUBLIC_POCKETBASE_URL;
+const ADMIN_EMAIL    = env.PB_ADMIN_EMAIL;
+const ADMIN_PASSWORD = env.PB_ADMIN_PASSWORD;
+const MOSQUE_ID      = env.NEXT_PUBLIC_DEMO_MOSQUE_ID;
 
-if (!PB_URL || !ADMIN_EMAIL || !ADMIN_PASSWORD || !MOSQUE_ID) {
-  console.error("Verwendung: node scripts/seed-demo-full.mjs <pb-url> <admin-email> <admin-password> <mosque-id>");
+if (!PB_URL || !ADMIN_EMAIL || !ADMIN_PASSWORD) {
+  console.error("Fehler: POCKETBASE_URL, PB_ADMIN_EMAIL und PB_ADMIN_PASSWORD müssen in .env.local gesetzt sein.");
+  process.exit(1);
+}
+if (!MOSQUE_ID) {
+  console.error("Fehler: NEXT_PUBLIC_DEMO_MOSQUE_ID muss in .env.local gesetzt sein.");
   process.exit(1);
 }
 
@@ -682,8 +714,11 @@ async function seedStudentFees(studentIds, adminId) {
       );
       if (existing?.items?.length > 0) continue;
 
-      // Demo: erste 4 Schüler haben Geschwister-Rabatt (rank 2 = 20%, rank 3 = 30%)
-      const siblingRank = ki < 2 ? 1 : ki < 4 ? 2 : ki < 6 ? 3 : 1;
+      // Geschwister-Rang passend zu seedParentChildRelations:
+      // Member-01: Kinder 0(rank1), 1(rank2), 2(rank3) | Member-02: Kind 3(rank1)
+      // Member-03: Kinder 4(rank1), 5(rank2) | Admin: Kinder 8(rank1), 9(rank2)
+      const DEMO_RANKS = [1, 2, 3, 1, 1, 2, 1, 1, 1, 2, 1, 1];
+      const siblingRank = DEMO_RANKS[ki] ?? 1;
       const discount2nd = 20; // 20% für 2. Kind
       const discount3rd = 30; // 30% ab 3. Kind
       let finalAmount = FEE_CENTS;
@@ -1281,22 +1316,22 @@ async function seedParentChildRelations(users, studentIds) {
     links.push({ parent: users.admin, student: studentIds[9], label: "Admin → Kind 2", relation_type: "father" });
   }
 
-  // Demo-Member-01 → Schüler 0 + 1 (in Quran A, Tajweed eingeschrieben)
-  if (users.memberIds?.length >= 1 && studentIds.length >= 2) {
-    links.push({ parent: users.memberIds[0], student: studentIds[0], label: "Member-01 → Kind 1", relation_type: "mother" });
-    links.push({ parent: users.memberIds[0], student: studentIds[1], label: "Member-01 → Kind 2", relation_type: "mother" });
+  // Demo-Member-01 → Schüler 0, 1, 2 (3 Kinder → zeigt alle 3 Rabattstufen)
+  if (users.memberIds?.length >= 1 && studentIds.length >= 3) {
+    links.push({ parent: users.memberIds[0], student: studentIds[0], label: "Member-01 → Kind 1 (Vollpreis)", relation_type: "mother" });
+    links.push({ parent: users.memberIds[0], student: studentIds[1], label: "Member-01 → Kind 2 (-20%)", relation_type: "mother" });
+    links.push({ parent: users.memberIds[0], student: studentIds[2], label: "Member-01 → Kind 3 (-30%)", relation_type: "mother" });
   }
 
-  // Demo-Member-02 → Schüler 2 + 3 (in Quran A, Islamkunde eingeschrieben)
+  // Demo-Member-02 → Schüler 3 (Einzelkind, Vollpreis)
   if (users.memberIds?.length >= 2 && studentIds.length >= 4) {
-    links.push({ parent: users.memberIds[1], student: studentIds[2], label: "Member-02 → Kind 1", relation_type: "father" });
-    links.push({ parent: users.memberIds[1], student: studentIds[3], label: "Member-02 → Kind 2", relation_type: "father" });
+    links.push({ parent: users.memberIds[1], student: studentIds[3], label: "Member-02 → Kind 1 (Vollpreis)", relation_type: "father" });
   }
 
-  // Demo-Member-03 → Schüler 4 + 5 (in Quran A, Islamkunde, Tajweed eingeschrieben)
+  // Demo-Member-03 → Schüler 4 + 5 (2 Kinder → zeigt 2er-Geschwister-Rabatt)
   if (users.memberIds?.length >= 3 && studentIds.length >= 6) {
-    links.push({ parent: users.memberIds[2], student: studentIds[4], label: "Member-03 → Kind 1", relation_type: "guardian" });
-    links.push({ parent: users.memberIds[2], student: studentIds[5], label: "Member-03 → Kind 2", relation_type: "guardian" });
+    links.push({ parent: users.memberIds[2], student: studentIds[4], label: "Member-03 → Kind 1 (Vollpreis)", relation_type: "guardian" });
+    links.push({ parent: users.memberIds[2], student: studentIds[5], label: "Member-03 → Kind 2 (-20%)", relation_type: "guardian" });
   }
 
   let created = 0;
@@ -1322,8 +1357,7 @@ async function seedParentChildRelations(users, studentIds) {
 async function main() {
   console.log("🌱 seed-demo-full.mjs gestartet");
   console.log("   PocketBase: " + PB_URL);
-  console.log("   Moschee-ID: " + MOSQUE_ID);
-  console.log("   Passwort:   " + DEMO_PASSWORD + "\n");
+  console.log("   Moschee-ID: " + MOSQUE_ID + "\n");
 
   await authenticate();
   await verifyMosque();

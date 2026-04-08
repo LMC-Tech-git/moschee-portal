@@ -325,30 +325,34 @@ async function seedParentChildRelations(
   users: { admin: string; memberIds: string[] },
   studentIds: string[]
 ): Promise<number> {
-  // Jeder Schüler ist einem Mitglied korrekt nach Familienname zugeordnet.
-  // Schüler 0–9 haben Anwesenheitseinträge (seedAttendance nutzt slice(0,10)).
+  // Geschwister-Gruppen für Gebühren-Demo:
+  // member[0]: 3 Kinder (rank 1, 2, 3) — zeigt alle Rabattstufen
+  // member[1]: 1 Kind (rank 1)
+  // member[2]: 2 Kinder (rank 1, 2)
+  // Alle übrigen: 1 Kind je Elternteil
   const links = [
-    // ── Eltern mit Kindern die Anwesenheiten haben ───────────────────────────
-    { parent: users.memberIds[0],  student: studentIds[0]  },  // Mehmet Yilmaz  → Fatima Yilmaz
-    { parent: users.memberIds[1],  student: studentIds[1]  },  // Ayse Kaya      → Musa Kaya
-    { parent: users.memberIds[2],  student: studentIds[2]  },  // Mustafa Demir  → Elif Demir
-    { parent: users.memberIds[4],  student: studentIds[3]  },  // Abdullah Celik → Ibrahim Celik
-    { parent: users.memberIds[3],  student: studentIds[4]  },  // Fatma Arslan   → Zeynep Arslan
-    { parent: users.memberIds[5],  student: studentIds[5]  },  // Hatice Sahin   → Ali Sahin
-    { parent: users.memberIds[6],  student: studentIds[6]  },  // Hasan Ozturk   → Hatice Ozturk
-    { parent: users.memberIds[7],  student: studentIds[7]  },  // Nalan Kurt     → Yusuf Kurt
-    { parent: users.memberIds[8],  student: studentIds[8]  },  // Ali Polat      → Merve Polat
-    { parent: users.memberIds[9],  student: studentIds[9]  },  // Zeynep Yildiz  → Osman Yildiz
-    // ── Eltern mit Kindern ohne Anwesenheiten (eingeschrieben / Gebühren) ───
-    { parent: users.memberIds[10], student: studentIds[10] },  // Hans Müller    → Safiye Müller
-    { parent: users.memberIds[11], student: studentIds[11] },  // Sabine Fischer → Davut Fischer
-    { parent: users.memberIds[12], student: studentIds[12] },  // Klaus Wagner   → Rümeysa Wagner
-    { parent: users.memberIds[14], student: studentIds[17] },  // Thomas Becker  → Suleiman Becker
-    { parent: users.memberIds[15], student: studentIds[14] },  // Ahmed Al-Hassan→ Nisa Al-Hassan
-    { parent: users.memberIds[16], student: studentIds[15] },  // Sara Ibrahim   → Tariq Ibrahim
-    { parent: users.memberIds[17], student: studentIds[16] },  // Omar Khalil    → Meryem Khalil
-    { parent: users.memberIds[18], student: studentIds[19] },  // Leila Mansouri → Hamza Mansouri
-    { parent: users.memberIds[19], student: studentIds[18] },  // Daniel Hoffmann→ Esra Hoffmann
+    // ── Geschwister-Gruppe 1: 3 Kinder (alle Rabattstufen sichtbar) ─────────
+    { parent: users.memberIds[0],  student: studentIds[0]  },  // Mehmet Yilmaz → Fatima (rank 1)
+    { parent: users.memberIds[0],  student: studentIds[1]  },  // Mehmet Yilmaz → Musa (rank 2, -20%)
+    { parent: users.memberIds[0],  student: studentIds[2]  },  // Mehmet Yilmaz → Elif (rank 3, -30%)
+    // ── Geschwister-Gruppe 2: 2 Kinder ──────────────────────────────────────
+    { parent: users.memberIds[2],  student: studentIds[4]  },  // Mustafa Demir → Zeynep (rank 1)
+    { parent: users.memberIds[2],  student: studentIds[5]  },  // Mustafa Demir → Ali (rank 2, -20%)
+    // ── Einzelkinder ────────────────────────────────────────────────────────
+    { parent: users.memberIds[1],  student: studentIds[3]  },  // Ayse Kaya      → Ibrahim (rank 1)
+    { parent: users.memberIds[4],  student: studentIds[6]  },  // Abdullah Celik → Hatice
+    { parent: users.memberIds[5],  student: studentIds[7]  },  // Hatice Sahin   → Yusuf
+    { parent: users.memberIds[6],  student: studentIds[8]  },  // Hasan Ozturk   → Merve
+    { parent: users.memberIds[7],  student: studentIds[9]  },  // Nalan Kurt     → Osman
+    { parent: users.memberIds[8],  student: studentIds[10] },  // Ali Polat      → Safiye
+    { parent: users.memberIds[9],  student: studentIds[11] },  // Zeynep Yildiz  → Davut
+    { parent: users.memberIds[10], student: studentIds[12] },  // Hans Müller    → Rümeysa
+    { parent: users.memberIds[14], student: studentIds[17] },  // Thomas Becker  → Suleiman
+    { parent: users.memberIds[15], student: studentIds[14] },  // Ahmed Al-Hassan→ Nisa
+    { parent: users.memberIds[16], student: studentIds[15] },  // Sara Ibrahim   → Tariq
+    { parent: users.memberIds[17], student: studentIds[16] },  // Omar Khalil    → Meryem
+    { parent: users.memberIds[18], student: studentIds[19] },  // Leila Mansouri → Hamza
+    { parent: users.memberIds[19], student: studentIds[18] },  // Daniel Hoffmann→ Esra
   ].filter((l) => l.parent && l.student);
   const items = links.map((l) => ({ mosque_id: mosqueId, parent_user: l.parent, student: l.student }));
   return await batchCreate(pb, "parent_child_relations", items);
@@ -356,11 +360,32 @@ async function seedParentChildRelations(
 
 async function seedStudentFees(pb: PocketBase, mosqueId: string, studentIds: string[], adminId: string): Promise<number> {
   const months = [monthKey(monthsAgo(2)), monthKey(monthsAgo(1)), monthKey(new Date())];
+  const FEE_CENTS = 1500;
+  const DISCOUNT_2ND = 20; // %
+  const DISCOUNT_3RD = 30; // %
+  // Geschwister-Rang passend zu seedParentChildRelations:
+  // member[0]: Kinder idx 0(rank1), 1(rank2), 2(rank3) | member[1]: idx 3(rank1)
+  // member[2]: Kinder idx 4(rank1), 5(rank2) | Reste: rank 1
+  const DEMO_RANKS = [1, 2, 3, 1, 1, 2, 1, 1, 1, 1, 1, 1];
   const items: Record<string,unknown>[] = [];
   studentIds.slice(0, 12).forEach((sid, ki) =>
     months.forEach((mk, mi) => {
       const { s: status, m: method } = FEE_PATTERNS[ki][mi];
-      items.push({ mosque_id: mosqueId, student_id: sid, month_key: mk, amount_cents: 1500, status, payment_method: method, paid_at: status === "paid" ? `${mk}-15 12:00:00.000Z` : "", notes: status === "waived" ? "Soziale Ermäßigung gewährt." : "", provider_ref: "", created_by: adminId });
+      const rank = DEMO_RANKS[ki] ?? 1;
+      let finalAmount = FEE_CENTS;
+      if (rank === 2) finalAmount = Math.round(FEE_CENTS * (1 - DISCOUNT_2ND / 100));
+      else if (rank >= 3) finalAmount = Math.round(FEE_CENTS * (1 - DISCOUNT_3RD / 100));
+      const discountApplied = FEE_CENTS - finalAmount;
+      items.push({
+        mosque_id: mosqueId, student_id: sid, month_key: mk,
+        amount_cents: finalAmount,
+        discount_applied_cents: discountApplied,
+        sibling_rank: rank,
+        status, payment_method: method,
+        paid_at: status === "paid" ? `${mk}-15 12:00:00.000Z` : "",
+        notes: status === "waived" ? "Soziale Ermäßigung gewährt." : "",
+        provider_ref: "", created_by: adminId,
+      });
     })
   );
   return await batchCreate(pb, "student_fees", items);
@@ -475,6 +500,33 @@ async function seedSponsors(pb: PocketBase, mosqueId: string): Promise<number> {
   return await batchCreate(pb, "sponsors", items);
 }
 
+async function seedSettings(pb: PocketBase, mosqueId: string): Promise<void> {
+  const data = {
+    madrasa_fees_enabled: true,
+    madrasa_default_fee_cents: 1500,
+    fee_reminder_enabled: false,
+    fee_reminder_day: 5,
+    sibling_discount_enabled: true,
+    sibling_discount_2nd_percent: 20,
+    sibling_discount_3rd_percent: 30,
+    contact_enabled: true,
+    contact_auto_reply: true,
+    contact_notify_admin: true,
+    prayer_provider: "aladhan",
+    prayer_method: 13,
+    sponsors_enabled: true,
+    sponsors_visibility: "public",
+    team_enabled: true,
+    team_visibility: "public",
+  };
+  try {
+    const existing = await pb.collection("settings").getFirstListItem(`mosque_id = "${mosqueId}"`);
+    await pb.collection("settings").update(existing.id, data);
+  } catch {
+    await pb.collection("settings").create({ mosque_id: mosqueId, ...data });
+  }
+}
+
 // ─── Haupt-Export ─────────────────────────────────────────────────────────────
 
 export async function resetDemoData(mosqueId: string): Promise<ResetResult> {
@@ -493,6 +545,9 @@ export async function resetDemoData(mosqueId: string): Promise<ResetResult> {
 
   const users = await seedUsers(pb, mosqueId);
   createdCount += 6 + users.memberIds.length;
+
+  // Settings (Madrasa-Gebühren + Geschwister-Rabatt) sicherstellen
+  await seedSettings(pb, mosqueId);
 
   // Unabhängige Sections parallel starten
   const [teamCount, yearIds] = await Promise.all([
