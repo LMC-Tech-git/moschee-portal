@@ -47,8 +47,11 @@ async function markFeeMultiPaid(
   }
 
   const paidNow = new Date().toISOString();
-  for (const studentId of studentIds) {
-    for (const monthKey of monthKeys) {
+  const studentIdList = Array.from(studentIds);
+  for (let si = 0; si < studentIdList.length; si++) {
+    const studentId = studentIdList[si];
+    for (let mi = 0; mi < monthKeys.length; mi++) {
+      const monthKey = monthKeys[mi];
       const fees = await pb.collection("student_fees").getFullList({
         filter: `mosque_id = "${mosqueId}" && student_id = "${studentId}" && month_key = "${monthKey}"`,
       });
