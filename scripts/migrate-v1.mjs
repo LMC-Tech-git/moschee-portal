@@ -2,22 +2,44 @@
 /**
  * Moschee-Portal V1 - PocketBase Migration Script
  *
- * Erstellt alle V1-Collections und aktualisiert bestehende.
+ * Liest Zugangsdaten aus .env.local (POCKETBASE_URL / PB_ADMIN_EMAIL / PB_ADMIN_PASSWORD).
  *
  * Nutzung:
- *   node scripts/migrate-v1.mjs <PB_URL> <ADMIN_EMAIL> <ADMIN_PASSWORD>
- *
- * Beispiel:
- *   node scripts/migrate-v1.mjs http://91.98.142.128:8090 admin@example.com meinpasswort
+ *   node scripts/migrate-v1.mjs
  */
 
-const PB_URL = process.argv[2];
-const ADMIN_EMAIL = process.argv[3];
-const ADMIN_PASSWORD = process.argv[4];
+import { readFileSync } from "fs";
+import { resolve, dirname } from "path";
+import { fileURLToPath } from "url";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
+function loadEnv() {
+  const envPath = resolve(__dirname, "../.env.local");
+  try {
+    const raw = readFileSync(envPath, "utf-8");
+    const env = {};
+    for (const line of raw.split(/\r?\n/)) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith("#")) continue;
+      const idx = trimmed.indexOf("=");
+      if (idx === -1) continue;
+      env[trimmed.slice(0, idx).trim()] = trimmed.slice(idx + 1).trim();
+    }
+    return env;
+  } catch {
+    return {};
+  }
+}
+
+const env = loadEnv();
+const PB_URL = env.POCKETBASE_URL || env.NEXT_PUBLIC_POCKETBASE_URL;
+const ADMIN_EMAIL = env.PB_ADMIN_EMAIL;
+const ADMIN_PASSWORD = env.PB_ADMIN_PASSWORD;
 
 if (!PB_URL || !ADMIN_EMAIL || !ADMIN_PASSWORD) {
   console.error(
-    "Nutzung: node scripts/migrate-v1.mjs <PB_URL> <ADMIN_EMAIL> <ADMIN_PASSWORD>"
+    "Fehler: POCKETBASE_URL, PB_ADMIN_EMAIL und PB_ADMIN_PASSWORD müssen in .env.local gesetzt sein."
   );
   process.exit(1);
 }
@@ -1428,11 +1450,8 @@ async function main() {
   console.log("\n=== ✅ Migration abgeschlossen ===\n");
 
   // 7. .env.local Hinweis
-  console.log("📝 Bitte füge folgende Zeilen zu .env.local hinzu:\n");
-  console.log(`   PB_ADMIN_EMAIL=${ADMIN_EMAIL}`);
-  console.log(`   PB_ADMIN_PASSWORD=${ADMIN_PASSWORD}`);
-  console.log(`   POCKETBASE_URL=${PB_URL}`);
-  console.log(`   STRIPE_WEBHOOK_SECRET=whsec_xxx  (von Stripe Dashboard)`);
+  console.log("📝 Stelle sicher, dass folgende Keys in .env.local gesetzt sind:");
+  console.log("   PB_ADMIN_EMAIL, PB_ADMIN_PASSWORD, POCKETBASE_URL, STRIPE_WEBHOOK_SECRET");
   console.log("");
 }
 
