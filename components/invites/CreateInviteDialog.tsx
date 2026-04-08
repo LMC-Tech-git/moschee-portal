@@ -329,9 +329,11 @@ export function CreateInviteDialog({
 
             <div className="space-y-4 py-2">
               {createdEmail?.trim() && (
-                <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                  <Mail className="h-4 w-4 flex-shrink-0" />
-                  {tI("dialog.emailDispatchInfo", { email: createdEmail })}
+                <p className="flex items-start gap-1.5 text-sm text-muted-foreground">
+                  <Mail className="h-4 w-4 flex-shrink-0 mt-0.5" />
+                  <span className="min-w-0 break-words">
+                    {tI("dialog.emailDispatchInfo", { email: createdEmail })}
+                  </span>
                 </p>
               )}
 
