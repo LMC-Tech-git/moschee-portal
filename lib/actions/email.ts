@@ -1,5 +1,6 @@
 "use server";
 
+import type { RecordModel } from "pocketbase";
 import { getAdminPB } from "@/lib/pocketbase-admin";
 import { processEmailQueue, sendEmailDirect } from "@/lib/email";
 import { renderFeeReminder, renderSponsorExpiryReminder } from "@/lib/email/templates";
@@ -83,6 +84,59 @@ export async function getEmailQueueStats(mosqueId: string): Promise<{
 // =========================================
 
 /**
+ * Sucht das Elternteil eines Schülers über alle bekannten Verknüpfungs-Mechanismen:
+ * 1. parent_child_relations (neue Junction-Tabelle, höchste Priorität)
+ * 2. father_user_id (deprecated v4-Feld)
+ * 3. mother_user_id (deprecated v4-Feld)
+ * 4. parent_id (Legacy-Feld)
+ * Gibt den ersten User zurück, der eine E-Mail-Adresse hat, oder null.
+ */
+async function resolveParentForStudent(
+  pb: Awaited<ReturnType<typeof getAdminPB>>,
+  student: RecordModel
+): Promise<RecordModel | null> {
+  // 1. parent_child_relations (neue Tabelle)
+  try {
+    const rels = await pb.collection("parent_child_relations").getList(1, 10, {
+      filter: `student = "${student.id}"`,
+      expand: "parent_user",
+    });
+    for (let i = 0; i < rels.items.length; i++) {
+      const u = rels.items[i].expand?.parent_user as RecordModel | undefined;
+      if (u?.email) return u;
+    }
+  } catch {
+    // Collection existiert möglicherweise nicht auf älteren Instanzen
+  }
+
+  // 2. father_user_id (deprecated)
+  if (student.father_user_id) {
+    try {
+      const u = await pb.collection("users").getOne(student.father_user_id);
+      if (u?.email) return u;
+    } catch { /* ignorieren */ }
+  }
+
+  // 3. mother_user_id (deprecated)
+  if (student.mother_user_id) {
+    try {
+      const u = await pb.collection("users").getOne(student.mother_user_id);
+      if (u?.email) return u;
+    } catch { /* ignorieren */ }
+  }
+
+  // 4. parent_id (Legacy)
+  if (student.parent_id) {
+    try {
+      const u = await pb.collection("users").getOne(student.parent_id);
+      if (u?.email) return u;
+    } catch { /* ignorieren */ }
+  }
+
+  return null;
+}
+
+/**
  * Sendet eine Mahnungs-E-Mail an die Eltern für eine offene Madrasa-Gebühr.
  */
 export async function sendFeeReminderEmail(
@@ -104,14 +158,11 @@ export async function sendFeeReminderEmail(
 
     // Schüler laden
     const student = await pb.collection("students").getOne(fee.student_id);
-    if (!student.parent_id) {
-      return { success: false, error: "Kein Elternteil dem Schüler zugeordnet" };
-    }
 
-    // Elternteil laden
-    const parent = await pb.collection("users").getOne(student.parent_id);
-    if (!parent.email) {
-      return { success: false, error: "Elternteil hat keine E-Mail-Adresse" };
+    // Elternteil über alle Verknüpfungs-Mechanismen suchen
+    const parent = await resolveParentForStudent(pb, student);
+    if (!parent) {
+      return { success: false, error: "Kein Elternteil dem Schüler zugeordnet" };
     }
 
     // Moschee für Namen laden
@@ -224,14 +275,10 @@ export async function sendBulkFeeReminders(
 
         // Schüler laden
         const student = await pb.collection("students").getOne(fee.student_id);
-        if (!student.parent_id) {
-          skippedNoContact++;
-          continue;
-        }
 
-        // Elternteil laden
-        const parent = await pb.collection("users").getOne(student.parent_id);
-        if (!parent.email) {
+        // Elternteil über alle Verknüpfungs-Mechanismen suchen
+        const parent = await resolveParentForStudent(pb, student);
+        if (!parent) {
           skippedNoContact++;
           continue;
         }
