@@ -827,12 +827,12 @@ function BrandingTab({
 // =========================================
 
 const TUNE_LABELS: { key: keyof TuneOffsets; label: string }[] = [
-  { key: "fajr",    label: "Fajr"    },
-  { key: "sunrise", label: "Shuruk"  },
-  { key: "dhuhr",   label: "Dhuhr"   },
-  { key: "asr",     label: "Asr"     },
-  { key: "maghrib", label: "Maghrib" },
-  { key: "isha",    label: "Isha"    },
+  { key: "fajr",    label: "FADJR"   },
+  { key: "sunrise", label: "SHURUK"  },
+  { key: "dhuhr",   label: "DUHR"    },
+  { key: "asr",     label: "ASSR"    },
+  { key: "maghrib", label: "MAGHRIB" },
+  { key: "isha",    label: "ISHAA"   },
 ];
 
 function parseTune(raw: string): TuneOffsets {

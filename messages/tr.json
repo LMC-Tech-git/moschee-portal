@@ -271,7 +271,7 @@
   "mosque": {
     "dashboard": {
       "prayerTimes": "Bugünün Namaz Vakitleri",
-      "sunrise": "Güneş Doğuşu",
+      "sunrise": "GÜNEŞ",
       "posts": "Haberler",
       "noPosts": "Henüz haber yayımlanmadı.",
       "events": "Etkinlikler",
@@ -293,11 +293,11 @@
       "donors": "Bağışçı",
       "communityStats": "Cemaat İstatistikleri",
       "donations": "Bağışlar",
-      "fajr": "İmsak",
-      "dhuhr": "Öğle",
-      "asr": "İkindi",
-      "maghrib": "Akşam",
-      "isha": "Yatsı"
+      "fajr": "İMSAK",
+      "dhuhr": "ÖĞLE",
+      "asr": "İKİNDİ",
+      "maghrib": "AKŞAM",
+      "isha": "YATSI"
     }
   },
   "postCard": {
@@ -1648,11 +1648,11 @@
       "sunday": "Pazar"
     },
     "prayer": {
-      "fajr": "İmsak",
-      "dhuhr": "Öğle",
-      "asr": "İkindi",
-      "maghrib": "Akşam",
-      "isha": "Yatsı"
+      "fajr": "İMSAK",
+      "dhuhr": "ÖĞLE",
+      "asr": "İKİNDİ",
+      "maghrib": "AKŞAM",
+      "isha": "YATSI"
     },
     "role": {
       "member": "Üye",

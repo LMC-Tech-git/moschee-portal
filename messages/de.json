@@ -271,7 +271,7 @@
   "mosque": {
     "dashboard": {
       "prayerTimes": "Heutige Gebetszeiten",
-      "sunrise": "Aufgang",
+      "sunrise": "SHURUK",
       "posts": "Beiträge",
       "noPosts": "Noch keine Beiträge veröffentlicht.",
       "events": "Veranstaltungen",
@@ -293,11 +293,11 @@
       "donors": "Spender",
       "communityStats": "Gemeinde-Statistiken",
       "donations": "Spenden",
-      "fajr": "Fajr",
-      "dhuhr": "Dhuhr",
-      "asr": "Asr",
-      "maghrib": "Maghrib",
-      "isha": "Isha"
+      "fajr": "FADJR",
+      "dhuhr": "DUHR",
+      "asr": "ASSR",
+      "maghrib": "MAGHRIB",
+      "isha": "ISHAA"
     }
   },
   "postCard": {
@@ -1648,11 +1648,11 @@
       "sunday": "Sonntag"
     },
     "prayer": {
-      "fajr": "Fajr",
-      "dhuhr": "Dhuhr",
-      "asr": "Asr",
-      "maghrib": "Maghrib",
-      "isha": "Isha"
+      "fajr": "FADJR",
+      "dhuhr": "DUHR",
+      "asr": "ASSR",
+      "maghrib": "MAGHRIB",
+      "isha": "ISHAA"
     },
     "role": {
       "member": "Mitglied",
