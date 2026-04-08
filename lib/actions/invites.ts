@@ -5,6 +5,7 @@ import { getAdminPB } from "@/lib/pocketbase-admin";
 import { logAudit } from "@/lib/audit";
 import { sendEmailDirect } from "@/lib/email";
 import { renderInviteEmail } from "@/lib/email/templates";
+import { inviteEmailSchema } from "@/lib/validations";
 import type { Invite } from "@/types";
 import type { RecordModel } from "pocketbase";
 
@@ -118,6 +119,13 @@ export async function createInvite(
   data: CreateInviteData
 ): Promise<ActionResult<Invite>> {
   try {
+    if (data.email !== undefined) {
+      const parsed = inviteEmailSchema.safeParse(data.email);
+      if (!parsed.success) {
+        return { success: false, error: "Ungültige E-Mail-Adresse." };
+      }
+    }
+
     const pb = await getAdminPB();
 
     // 64-char hex token (256 Bit Entropie)

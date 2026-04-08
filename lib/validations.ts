@@ -302,3 +302,8 @@ export const attendanceSchema = z.object({
 });
 export type AttendanceInput = z.infer<typeof attendanceSchema>;
 
+// --- Invites ---
+
+/** Valides E-Mail-Format oder leer (optionales Feld). */
+export const inviteEmailSchema = z.string().email().or(z.literal(""));
+

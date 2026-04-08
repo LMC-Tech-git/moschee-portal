@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { Copy, Check, Link2, Users, UserPlus } from "lucide-react";
+import { Copy, Check, Link2, Mail, Users, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { createInvite } from "@/lib/actions/invites";
 import { Button } from "@/components/ui/button";
@@ -70,6 +70,7 @@ export function CreateInviteDialog({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [createdLink, setCreatedLink] = useState("");
+  const [createdEmail, setCreatedEmail] = useState("");
   const [copied, setCopied] = useState(false);
 
   function resetForm() {
@@ -83,6 +84,7 @@ export function CreateInviteDialog({
     setExpiresAt("");
     setError("");
     setCreatedLink("");
+    setCreatedEmail("");
     setCopied(false);
   }
 
@@ -120,6 +122,7 @@ export function CreateInviteDialog({
       const baseUrl = window.location.origin;
       const link = `${baseUrl}/${mosqueSlug}/invite/${token}`;
       setCreatedLink(link);
+      setCreatedEmail(result.data.email || "");
       setStep("success");
       onSuccess();
     } catch {
@@ -325,6 +328,13 @@ export function CreateInviteDialog({
             </DialogHeader>
 
             <div className="space-y-4 py-2">
+              {createdEmail?.trim() && (
+                <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                  <Mail className="h-4 w-4 flex-shrink-0" />
+                  {tI("dialog.emailDispatchInfo", { email: createdEmail })}
+                </p>
+              )}
+
               <div className="space-y-2">
                 <Label>{tI("dialog.linkLabel")}</Label>
                 <div className="flex gap-2">
