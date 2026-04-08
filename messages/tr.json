@@ -1649,6 +1649,7 @@
     },
     "prayer": {
       "fajr": "İMSAK",
+      "sunrise": "GÜNEŞ",
       "dhuhr": "ÖĞLE",
       "asr": "İKİNDİ",
       "maghrib": "AKŞAM",

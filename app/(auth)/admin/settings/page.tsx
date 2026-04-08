@@ -826,14 +826,6 @@ function BrandingTab({
 // Tab: Gebetszeiten
 // =========================================
 
-const TUNE_LABELS: { key: keyof TuneOffsets; label: string }[] = [
-  { key: "fajr",    label: "FADJR"   },
-  { key: "sunrise", label: "SHURUK"  },
-  { key: "dhuhr",   label: "DUHR"    },
-  { key: "asr",     label: "ASSR"    },
-  { key: "maghrib", label: "MAGHRIB" },
-  { key: "isha",    label: "ISHAA"   },
-];
 
 function parseTune(raw: string): TuneOffsets {
   try {
@@ -863,6 +855,15 @@ function PrayerTab({
   }) => void;
 }) {
   const t = useTranslations("settings");
+  const tL = useTranslations("labels");
+  const tuneLabels: { key: keyof TuneOffsets; label: string }[] = [
+    { key: "fajr",    label: tL("prayer.fajr")    },
+    { key: "sunrise", label: tL("prayer.sunrise")  },
+    { key: "dhuhr",   label: tL("prayer.dhuhr")   },
+    { key: "asr",     label: tL("prayer.asr")     },
+    { key: "maghrib", label: tL("prayer.maghrib") },
+    { key: "isha",    label: tL("prayer.isha")    },
+  ];
   const [prayerProvider, setPrayerProvider] = useState<"aladhan" | "off">(
     (settings.prayer_provider as "aladhan" | "off") || "aladhan"
   );
@@ -1083,7 +1084,7 @@ function PrayerTab({
 
             {showTune && (
               <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
-                {TUNE_LABELS.map(({ key, label }) => (
+                {tuneLabels.map(({ key, label }) => (
                   <div key={key}>
                     <label className="mb-1 block text-xs font-medium text-gray-600">
                       {label}
@@ -1112,7 +1113,7 @@ function PrayerTab({
 
             {!showTune && Object.values(tune).some((v) => v !== 0) && (
               <p className="mt-2 text-xs text-amber-600">
-                Aktive Offsets: {TUNE_LABELS.filter(({ key }) => tune[key] !== 0)
+                Aktive Offsets: {tuneLabels.filter(({ key }) => tune[key] !== 0)
                   .map(({ key, label }) => `${label} ${tune[key] > 0 ? "+" : ""}${tune[key]}`)
                   .join(", ")}
               </p>

@@ -1649,6 +1649,7 @@
     },
     "prayer": {
       "fajr": "FADJR",
+      "sunrise": "SHURUK",
       "dhuhr": "DUHR",
       "asr": "ASSR",
       "maghrib": "MAGHRIB",
