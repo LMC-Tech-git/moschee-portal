@@ -45,13 +45,34 @@ function formatAuditDate(dateStr: string): string {
   }).format(new Date(dateStr));
 }
 
-function formatValue(v: unknown): string {
+const VALUE_FIELD_MAP: Record<string, string> = {
+  assigned_role: "role",
+  new_role: "role",
+  old_role: "role",
+  assigned_status: "status",
+  initial_status: "status",
+  old_status: "status",
+  new_status: "status",
+  invite_type: "type",
+};
+
+function formatValue(v: unknown, field?: string, vLabel?: (f: string, v: string) => string): string {
   if (v === null || v === undefined || v === "") return "—";
-  if (typeof v === "boolean") return v ? "ja" : "nein";
-  return String(v);
+  if (typeof v === "boolean") return v ? "Ja" : "Nein";
+  const str = String(v);
+  if (field && vLabel) return vLabel(field, str);
+  return str;
 }
 
-function AuditChanges({ log, fieldLabel }: { log: AuditLog; fieldLabel: (key: string) => string }) {
+function AuditChanges({
+  log,
+  fieldLabel,
+  valueLabel,
+}: {
+  log: AuditLog;
+  fieldLabel: (key: string) => string;
+  valueLabel: (field: string, val: string) => string;
+}) {
   let before: Record<string, unknown> | null = null;
   let after: Record<string, unknown> | null = null;
   let details: Record<string, unknown> | null = null;
@@ -74,9 +95,9 @@ function AuditChanges({ log, fieldLabel }: { log: AuditLog; fieldLabel: (key: st
         {changed.map((k) => (
           <div key={k} className="flex flex-wrap items-baseline gap-1 text-xs">
             <span className="font-medium text-gray-500">{fieldLabel(k)}:</span>
-            <span className="line-through text-red-400">{formatValue(before![k])}</span>
+            <span className="line-through text-red-400">{formatValue(before![k], k, valueLabel)}</span>
             <span className="text-gray-300">→</span>
-            <span className="text-emerald-600">{formatValue(after![k])}</span>
+            <span className="text-emerald-600">{formatValue(after![k], k, valueLabel)}</span>
           </div>
         ))}
       </div>
@@ -92,7 +113,7 @@ function AuditChanges({ log, fieldLabel }: { log: AuditLog; fieldLabel: (key: st
         {entries.map(([k, v]) => (
           <div key={k} className="flex flex-wrap gap-1 text-xs">
             <span className="font-medium text-gray-500">{fieldLabel(k)}:</span>
-            <span className="text-gray-700">{formatValue(v)}</span>
+            <span className="text-gray-700">{formatValue(v, k, valueLabel)}</span>
           </div>
         ))}
       </div>
@@ -108,7 +129,7 @@ function AuditChanges({ log, fieldLabel }: { log: AuditLog; fieldLabel: (key: st
         {entries.map(([k, v]) => (
           <div key={k} className="flex flex-wrap gap-1 text-xs">
             <span className="font-medium text-gray-500">{fieldLabel(k)}:</span>
-            <span className="text-gray-500 line-through">{formatValue(v)}</span>
+            <span className="text-gray-500 line-through">{formatValue(v, k, valueLabel)}</span>
           </div>
         ))}
       </div>
@@ -123,7 +144,7 @@ function AuditChanges({ log, fieldLabel }: { log: AuditLog; fieldLabel: (key: st
         {entries.map(([k, v]) => (
           <div key={k} className="flex flex-wrap gap-1 text-xs">
             <span className="font-medium text-gray-500">{fieldLabel(k)}:</span>
-            <span className="text-gray-700">{formatValue(v)}</span>
+            <span className="text-gray-700">{formatValue(v, k, valueLabel)}</span>
           </div>
         ))}
       </div>
@@ -164,6 +185,16 @@ export default function AuditLogPage() {
       return t(`field.${key}` as Parameters<typeof t>[0]) || key;
     } catch {
       return key;
+    }
+  }
+
+  function valueLabel(field: string, val: string): string {
+    const normalizedField = VALUE_FIELD_MAP[field] || field;
+    try {
+      const translated = t(`value.${normalizedField}.${val}` as Parameters<typeof t>[0]);
+      return translated || val;
+    } catch {
+      return val;
     }
   }
 
@@ -287,7 +318,7 @@ export default function AuditLogPage() {
 
                       {/* Änderungen */}
                       <td className="px-4 py-3 align-top">
-                        <AuditChanges log={log} fieldLabel={fieldLabel} />
+                        <AuditChanges log={log} fieldLabel={fieldLabel} valueLabel={valueLabel} />
                       </td>
                     </tr>
                   ))}

@@ -1388,6 +1388,48 @@
       "invite_type": "Einladungstyp",
       "assigned_role": "Zugewiesene Rolle",
       "assigned_status": "Zugeteilter Status"
+    },
+    "value": {
+      "relation_type": {
+        "father": "Vater",
+        "mother": "Mutter",
+        "guardian": "Vormund",
+        "other": "Sonstiges"
+      },
+      "role": {
+        "member": "Mitglied",
+        "teacher": "Lehrer/in",
+        "admin": "Administrator",
+        "imam": "Imam",
+        "editor": "Editor",
+        "madrasa_admin": "Madrasa-Leitung",
+        "treasurer": "Kassenwart",
+        "secretary": "Sekretariat"
+      },
+      "status": {
+        "pending": "Ausstehend",
+        "active": "Aktiv",
+        "inactive": "Inaktiv",
+        "rejected": "Abgelehnt",
+        "paid": "Bezahlt",
+        "open": "Offen",
+        "waived": "Erlassen"
+      },
+      "type": {
+        "personal": "Persönlich",
+        "group": "Gruppe"
+      },
+      "payment_method": {
+        "cash": "Bar",
+        "transfer": "Überweisung",
+        "stripe": "Online",
+        "waived": "Erlassen"
+      },
+      "visibility": {
+        "public": "Öffentlich",
+        "members": "Mitglieder",
+        "private": "Privat"
+      }
     }
   },
   "settings": {

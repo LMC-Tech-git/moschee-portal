@@ -1388,6 +1388,48 @@
       "invite_type": "Davet Türü",
       "assigned_role": "Atanan Rol",
       "assigned_status": "Atanan Durum"
+    },
+    "value": {
+      "relation_type": {
+        "father": "Baba",
+        "mother": "Anne",
+        "guardian": "Vasi",
+        "other": "Diğer"
+      },
+      "role": {
+        "member": "Üye",
+        "teacher": "Öğretmen",
+        "admin": "Yönetici",
+        "imam": "İmam",
+        "editor": "Editör",
+        "madrasa_admin": "Medrese Yöneticisi",
+        "treasurer": "Veznedar",
+        "secretary": "Sekreter"
+      },
+      "status": {
+        "pending": "Beklemede",
+        "active": "Aktif",
+        "inactive": "Pasif",
+        "rejected": "Reddedildi",
+        "paid": "Ödendi",
+        "open": "Açık",
+        "waived": "Muaf"
+      },
+      "type": {
+        "personal": "Kişisel",
+        "group": "Grup"
+      },
+      "payment_method": {
+        "cash": "Nakit",
+        "transfer": "Havale",
+        "stripe": "Online",
+        "waived": "Muaf"
+      },
+      "visibility": {
+        "public": "Herkese Açık",
+        "members": "Üyeler",
+        "private": "Gizli"
+      }
     }
   },
   "settings": {
