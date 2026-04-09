@@ -54,7 +54,7 @@ import {
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
-import { formatCurrencyCents } from "@/lib/utils";
+import { formatCurrencyCents, cn } from "@/lib/utils";
 import { getPerformanceLevel } from "@/lib/constants";
 import type { Donation, EventRegistration } from "@/types";
 
@@ -566,6 +566,29 @@ function EmailChangeSection({
   );
 }
 
+// --- Kinder-Tab Helpers ---
+
+function getAttendanceColor(rate: number) {
+  if (rate >= 90) return "bg-emerald-500";
+  if (rate >= 70) return "bg-amber-400";
+  return "bg-red-400";
+}
+
+function getAttendanceTextColor(rate: number) {
+  if (rate >= 90) return "text-emerald-700";
+  if (rate >= 70) return "text-amber-700";
+  return "text-red-600";
+}
+
+function AttendanceBar({ rate }: { rate: number }) {
+  const color = getAttendanceColor(rate);
+  return (
+    <div className="h-1.5 w-full rounded-full bg-gray-100">
+      <div className={`h-1.5 rounded-full ${color} transition-all`} style={{ width: `${rate}%` }} />
+    </div>
+  );
+}
+
 // --- Kinder-Tab ---
 
 function ChildrenTab({
@@ -631,6 +654,12 @@ function ChildrenTab({
     absent: "bg-red-100 text-red-700",
     late: "bg-amber-100 text-amber-700",
     excused: "bg-blue-100 text-blue-700",
+  };
+
+  const trendLabel: Record<string, string> = {
+    up:     t("member.profile.children.attendance.trendUp"),
+    down:   t("member.profile.children.attendance.trendDown"),
+    stable: t("member.profile.children.attendance.trendStable"),
   };
 
   function rateColor(rate: number) {
@@ -710,57 +739,95 @@ function ChildrenTab({
                     ) : (
                       <div className="space-y-2">
                         {visibleCourses.map((course) => (
-                          <div key={course.courseId} className="rounded-md bg-white border border-gray-100 px-3 py-2">
-                            <div className="flex items-center gap-2 flex-wrap">
+                          <div key={course.courseId} className="rounded-md bg-white border border-gray-100 px-3 py-2.5 space-y-1.5">
+                            {/* Kursname */}
+                            <div className="flex items-center gap-1.5">
                               <BookOpen className="h-3.5 w-3.5 shrink-0 text-gray-400" />
-                              <span className="text-xs font-medium text-gray-700 flex-1 min-w-0 truncate">
-                                {course.courseName}
-                              </span>
-                              {course.total > 0 && (
-                                <span className={`rounded-full px-1.5 py-0.5 text-xs font-semibold ${rateColor(course.rate)}`}>
-                                  {course.rate}%
+                              <span className="text-xs font-semibold text-gray-700 truncate">{course.courseName}</span>
+                            </div>
+
+                            {/* Info-Zeilen */}
+                            <div className="pl-5 text-xs space-y-1">
+                              {/* Heute */}
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-gray-400 min-w-[90px] shrink-0">
+                                  {t("member.profile.children.attendance.todayLabel")}:
                                 </span>
+                                {course.todayStatus ? (
+                                  <span className={`rounded-full px-1.5 py-0.5 text-xs font-medium ${todayColor[course.todayStatus]}`}>
+                                    {todayLabel[course.todayStatus]}
+                                  </span>
+                                ) : (
+                                  <span className="text-gray-700 font-medium">
+                                    {t("member.profile.children.attendance.todayNoLesson")}
+                                  </span>
+                                )}
+                              </div>
+
+                              {/* Anwesenheit + Progress Bar */}
+                              {course.total > 0 && (
+                                <div className="flex flex-col gap-0.5">
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="text-gray-400 min-w-[90px] shrink-0">
+                                      {t("member.profile.children.attendance.attendanceLabel")}:
+                                    </span>
+                                    <span className={`text-xs font-semibold ${getAttendanceTextColor(course.rate)}`}>
+                                      {course.rate}%
+                                    </span>
+                                  </div>
+                                  <div className="ml-[90px]">
+                                    <AttendanceBar rate={course.rate ?? 0} />
+                                  </div>
+                                </div>
                               )}
+
+                              {/* Entwicklung */}
+                              {course.trend && (
+                                <div className="flex items-center gap-1.5">
+                                  <span className="text-gray-400 min-w-[90px] shrink-0">
+                                    {t("member.profile.children.attendance.developmentLabel")}:
+                                  </span>
+                                  <span className={cn(
+                                    "text-xs font-medium",
+                                    course.trend === "up" && "text-emerald-600",
+                                    course.trend === "down" && "text-red-500",
+                                    course.trend === "stable" && "text-gray-500"
+                                  )}>
+                                    {trendLabel[course.trend]}
+                                  </span>
+                                </div>
+                              )}
+
+                              {/* Lehrerbewertung */}
                               {course.lastPerformance != null && (() => {
                                 const lvl = getPerformanceLevel(course.lastPerformance);
                                 return lvl ? (
-                                  <span className={`rounded-full border px-1.5 py-0.5 text-xs font-medium ${lvl.color}`}>
-                                    {lvl.icon} {lvl.shortLabel}
-                                    {course.avgPerformance != null && (
-                                      <span className="ml-1 opacity-70" aria-label={`Ø ${course.avgPerformance} von 5`}>
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="text-gray-400 min-w-[90px] shrink-0">
+                                      {t("member.profile.children.attendance.ratingLabel")}:
+                                    </span>
+                                    <span className="text-gray-700 flex items-center gap-0.5">
+                                      {lvl.shortLabel}
+                                      <span className="ml-1">
                                         {Array.from({ length: 5 }, (_, i) => (
-                                          <span key={i} className={i < Math.round(course.avgPerformance!) ? "text-amber-400" : "text-gray-300"}>★</span>
+                                          <span key={i} className={i < Math.floor(course.lastPerformance!) ? "text-amber-400" : "text-gray-300"}>★</span>
                                         ))}
                                       </span>
-                                    )}
-                                  </span>
+                                    </span>
+                                  </div>
                                 ) : null;
                               })()}
-                              {course.todayStatus && (
-                                <span className={`rounded-full px-1.5 py-0.5 text-xs font-medium ${todayColor[course.todayStatus]}`}>
-                                  {todayLabel[course.todayStatus]}
-                                </span>
-                              )}
                             </div>
+
+                            {/* Zähler */}
                             {course.total > 0 && (
-                              <div className="mt-1 flex flex-wrap gap-x-3 text-xs text-gray-500">
-                                <span className="flex items-center gap-0.5">
-                                  <CheckCircle className="h-3 w-3 text-emerald-500" />
-                                  {course.present} {t("member.profile.children.attendance.present")}
-                                </span>
-                                <span className="flex items-center gap-0.5">
-                                  <XCircle className="h-3 w-3 text-red-400" />
-                                  {course.absent} {t("member.profile.children.attendance.absent")}
-                                </span>
+                              <div className="pl-5 pt-1 border-t border-gray-50 flex flex-wrap gap-x-3 text-xs text-gray-500">
+                                <span>{course.present} {t("member.profile.children.attendance.present")}</span>
+                                <span>{course.absent} {t("member.profile.children.attendance.absent")}</span>
                                 {course.late > 0 && (
-                                  <span className="flex items-center gap-0.5">
-                                    <Clock className="h-3 w-3 text-amber-400" />
-                                    {course.late} {t("member.profile.children.attendance.late")}
-                                  </span>
+                                  <span>{course.late} {t("member.profile.children.attendance.late")}</span>
                                 )}
-                                <span className="text-gray-400">
-                                  ({course.total} {t("member.profile.children.attendance.sessions")})
-                                </span>
+                                <span className="text-gray-400">({course.total} {t("member.profile.children.attendance.sessions")})</span>
                               </div>
                             )}
                           </div>
