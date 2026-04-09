@@ -170,8 +170,8 @@
 | Feature | Beschreibung | Aufwand |
 |---|---|---|
 | **Stripe Connect** | Getrennte Auszahlungen pro Moschee für Pilot-Betrieb | M |
-| **Admin: Schüler ↔ Eltern verknüpfen** | Bestehenden Portal-User nachträglich als `parent_id` zuweisen | S |
-| **Gebühren: CSV-Export** | Gebühren-Übersicht als CSV/Excel exportieren | S |
+| ~~**Admin: Schüler ↔ Eltern verknüpfen**~~ | ✅ Erledigt — flexibles Junction-Table-System direkt im Bearbeiten-Dialog | — |
+| ~~**Gebühren: CSV-Export**~~ | ✅ Erledigt — 9 Felder, kursfilterbar, client-seitig in Gebühren-Übersicht | — |
 
 ### P2 — Mittlere Priorität (UX-Verbesserungen)
 
@@ -181,7 +181,7 @@
 | **Öffentliche Gebetszeiten-Seite** | `/[slug]/gebetszeiten` — volle Monatsansicht | S |
 | **Member: Profil-Bild** | Upload + Anzeige im Profil | S |
 | **Dashboard-Widgets konfigurierbar** | Admin wählt welche Widgets öffentlich sichtbar sind | M |
-| **Spenden: Wiederkehrende Spenden** | Stripe Subscriptions für monatliche Daueraufträge | L |
+| ~~**Spenden: Wiederkehrende Spenden**~~ | ⏸ Zurückgestellt — Types + Schema vorhanden, keine Implementierung geplant | — |
 
 ### P3 — Niedrige Priorität / Nice-to-have
 
@@ -275,9 +275,7 @@ E-Mail-Infrastruktur          ████████████ 100%
 **Ziel: Pilot-Moschee live schalten**
 
 1. **Stripe Connect** — Getrennte Auszahlungen pro Moschee (wichtig für Produktionsbetrieb)
-2. **Gebühren: CSV-Export** — Buchhaltungsexport für Madrasa-Gebühren
-3. **Schüler ↔ Parent-Verknüpfung** — Nachträgliche Zuweisung im Admin
-4. **SEPA-Lastschrift produktiv** — Aktuell nur Demo-Flag
+2. **SEPA-Lastschrift produktiv** — Aktuell nur Demo-Flag
 
 Das System ist produktionsbereit. Alle V1-Kernfunktionen sind implementiert.
 

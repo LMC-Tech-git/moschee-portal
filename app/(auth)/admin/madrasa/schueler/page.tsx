@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useTranslations, useLocale } from "next-intl";
-import { Search, Plus, Upload, UserCheck, UserX, Baby, CheckSquare, Square, X, ChevronLeft, ExternalLink } from "lucide-react";
+import { Search, Plus, Upload, UserCheck, UserX, Baby, CheckSquare, Square, X, ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import { useMosque } from "@/lib/mosque-context";
 import { useAuth } from "@/lib/auth-context";
@@ -455,14 +455,6 @@ export default function AdminStudentsPage() {
                     </td>
                     <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center justify-end gap-2">
-                        <Link
-                          href={`/admin/madrasa/schueler/${student.id}`}
-                          title="Details / Eltern verwalten"
-                          className="rounded p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors inline-flex"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <ExternalLink className="h-4 w-4" />
-                        </Link>
                         <button
                           title={t("editTitle")}
                           onClick={() => { setEditStudent(student); setEditDialogOpen(true); }}

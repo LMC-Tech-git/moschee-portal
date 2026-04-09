@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { createStudent, updateStudent, getParentCandidates } from "@/lib/actions/students";
 import { getTeachersByMosque } from "@/lib/actions/courses";
@@ -9,6 +8,7 @@ import {
   getParentsOfStudent,
   linkParentToStudent,
   unlinkParentFromStudent,
+  type ParentWithRelation,
 } from "@/lib/actions/parent-child";
 import { studentSchema, type StudentInput } from "@/lib/validations";
 import { RELATION_TYPES } from "@/lib/constants";
@@ -113,7 +113,7 @@ const emptyForm: FormData = {
 export function AdminStudentForm({ mosqueId, userId, student, onSuccess, onCancel }: Props) {
   const t = useTranslations("memberStudent");
   const tAdmin = useTranslations("adminStudent");
-  const router = useRouter();
+  const tDetail = useTranslations("adminStudentDetail");
   const isEdit = !!student;
 
   const [form, setForm] = useState<FormData>(student ? toFormData(student) : emptyForm);
@@ -122,16 +122,20 @@ export function AdminStudentForm({ mosqueId, userId, student, onSuccess, onCance
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
 
-  // Portal-user selection state
+  // Kandidaten für Portal-User-Suche
   const [candidates, setCandidates] = useState<ParentCandidate[]>([]);
-  const [fatherUser, setFatherUser] = useState<ParentCandidate | null>(null);
-  const [motherUser, setMotherUser] = useState<ParentCandidate | null>(null);
-  const [originalFatherUserId, setOriginalFatherUserId] = useState<string | null>(null);
-  const [originalMotherUserId, setOriginalMotherUserId] = useState<string | null>(null);
-  const [fatherQuery, setFatherQuery] = useState("");
-  const [motherQuery, setMotherQuery] = useState("");
-  const [showFatherDropdown, setShowFatherDropdown] = useState(false);
-  const [showMotherDropdown, setShowMotherDropdown] = useState(false);
+
+  // Flexible Elternverwaltung (junction table)
+  const [linkedParents, setLinkedParents] = useState<ParentWithRelation[]>([]);
+  const [parentSearch, setParentSearch] = useState("");
+  const [pendingCandidateId, setPendingCandidateId] = useState<string | null>(null);
+  const [selectedRelationType, setSelectedRelationType] = useState<RelationType | "">("");
+  const [isAddingParent, setIsAddingParent] = useState(false);
+  const [removingParentId, setRemovingParentId] = useState<string | null>(null);
+  // Nur für CREATE-Modus: Eltern puffern bis Schüler-ID bekannt
+  const [pendingParents, setPendingParents] = useState<
+    { parentId: string; parentName: string; relationType: RelationType }[]
+  >([]);
 
   useEffect(() => {
     getTeachersByMosque(mosqueId).then((res) => {
@@ -143,33 +147,9 @@ export function AdminStudentForm({ mosqueId, userId, student, onSuccess, onCance
   }, [mosqueId]);
 
   useEffect(() => {
-    if (!isEdit || !student || !mosqueId) return;
+    if (!isEdit || !student?.id || !mosqueId) return;
     getParentsOfStudent(mosqueId, student.id).then((res) => {
-      if (!res.success || !res.data) return;
-      const fathers = res.data.filter((p) => p.relation_type === "father");
-      const mothers = res.data.filter((p) => p.relation_type === "mother");
-      const father = fathers[0] ?? null;
-      const mother = mothers[0] ?? null;
-      if (father) {
-        const candidate: ParentCandidate = {
-          id: father.id,
-          name: `${father.first_name} ${father.last_name}`.trim(),
-          phone: father.phone ?? "",
-          address: "",
-        };
-        setFatherUser(candidate);
-        setOriginalFatherUserId(father.id);
-      }
-      if (mother) {
-        const candidate: ParentCandidate = {
-          id: mother.id,
-          name: `${mother.first_name} ${mother.last_name}`.trim(),
-          phone: mother.phone ?? "",
-          address: "",
-        };
-        setMotherUser(candidate);
-        setOriginalMotherUserId(mother.id);
-      }
+      if (res.success) setLinkedParents(res.data ?? []);
     });
   }, [isEdit, student?.id, mosqueId]);
 
@@ -178,58 +158,85 @@ export function AdminStudentForm({ mosqueId, userId, student, onSuccess, onCance
     setErrors((prev) => ({ ...prev, [key]: "" }));
   }
 
-  function handleFatherSelect(candidate: ParentCandidate) {
-    setFatherUser(candidate);
-    setFatherQuery("");
-    setShowFatherDropdown(false);
-    set("father_name", candidate.name);
-    if (candidate.phone) set("father_phone", candidate.phone);
+  // Bereits verknüpfte IDs (für Filterung der Kandidaten)
+  const linkedAndPendingIds = useMemo(() => {
+    const ids = new Set<string>();
+    linkedParents.forEach((p) => ids.add(p.id));
+    pendingParents.forEach((p) => ids.add(p.parentId));
+    return ids;
+  }, [linkedParents, pendingParents]);
+
+  const filteredParentCandidates = useMemo(() => {
+    return candidates.filter((c) => {
+      if (linkedAndPendingIds.has(c.id)) return false;
+      if (!parentSearch.trim()) return false;
+      const q = parentSearch.toLowerCase();
+      return c.name.toLowerCase().includes(q) || c.phone.includes(q);
+    });
+  }, [candidates, linkedAndPendingIds, parentSearch]);
+
+  // Edit-Modus: Elternteil sofort in PB hinzufügen
+  async function handleAddParent() {
+    if (!isEdit || !student || !pendingCandidateId || !selectedRelationType) return;
+    setIsAddingParent(true);
+    const res = await linkParentToStudent(
+      mosqueId,
+      userId,
+      pendingCandidateId,
+      student.id,
+      selectedRelationType as RelationType
+    );
+    if (res.success) {
+      const fresh = await getParentsOfStudent(mosqueId, student.id);
+      setLinkedParents(fresh.data ?? []);
+      setParentSearch("");
+      setPendingCandidateId(null);
+      setSelectedRelationType("");
+    }
+    setIsAddingParent(false);
   }
 
-  function clearFatherUser() {
-    setFatherUser(null);
-    setFatherQuery("");
+  // Edit-Modus: Elternteil sofort in PB entfernen
+  async function handleRemoveLinkedParent(parentUserId: string, relationType: RelationType) {
+    if (!isEdit || !student) return;
+    setRemovingParentId(parentUserId);
+    const res = await unlinkParentFromStudent(mosqueId, userId, parentUserId, student.id, relationType);
+    if (res.success) {
+      const fresh = await getParentsOfStudent(mosqueId, student.id);
+      setLinkedParents(fresh.data ?? []);
+    }
+    setRemovingParentId(null);
   }
 
-  function handleMotherSelect(candidate: ParentCandidate) {
-    setMotherUser(candidate);
-    setMotherQuery("");
-    setShowMotherDropdown(false);
-    set("mother_name", candidate.name);
-    if (candidate.phone) set("mother_phone", candidate.phone);
+  // Create-Modus: Elternteil in Puffer hinzufügen
+  function handleAddPendingParent() {
+    if (!pendingCandidateId || !selectedRelationType) return;
+    const candidate = candidates.find((c) => c.id === pendingCandidateId);
+    if (!candidate) return;
+    setPendingParents((prev) => [
+      ...prev,
+      { parentId: pendingCandidateId, parentName: candidate.name, relationType: selectedRelationType as RelationType },
+    ]);
+    setParentSearch("");
+    setPendingCandidateId(null);
+    setSelectedRelationType("");
   }
 
-  function clearMotherUser() {
-    setMotherUser(null);
-    setMotherQuery("");
+  function handleRemovePendingParent(parentId: string) {
+    setPendingParents((prev) => prev.filter((p) => p.parentId !== parentId));
   }
 
-  const filteredFatherCandidates = candidates.filter((c) => {
-    if (fatherUser?.id === c.id) return false;
-    if (motherUser?.id === c.id) return false;
-    if (!fatherQuery.trim()) return false;
-    const q = fatherQuery.toLowerCase();
-    return c.name.toLowerCase().includes(q) || c.phone.includes(q);
-  });
-
-  const filteredMotherCandidates = candidates.filter((c) => {
-    if (motherUser?.id === c.id) return false;
-    if (fatherUser?.id === c.id) return false;
-    if (!motherQuery.trim()) return false;
-    const q = motherQuery.toLowerCase();
-    return c.name.toLowerCase().includes(q) || c.phone.includes(q);
-  });
+  const relationLabel: Record<string, string> = {
+    father: tDetail("relationFather"),
+    mother: tDetail("relationMother"),
+    guardian: tDetail("relationGuardian"),
+    other: tDetail("relationOther"),
+  };
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setErrors({});
     setSubmitError("");
-
-    // Prevent same person for both roles
-    if (fatherUser?.id && fatherUser.id === motherUser?.id) {
-      setSubmitError(tAdmin("parentSamePersonError"));
-      return;
-    }
 
     const input: StudentInput = {
       ...form,
@@ -258,39 +265,13 @@ export function AdminStudentForm({ mosqueId, userId, student, onSuccess, onCance
       if (result.success) {
         if (!isEdit && result.data?.id) {
           const newId = result.data.id;
-          const linkErrors: string[] = [];
-          if (fatherUser) {
-            const res = await linkParentToStudent(mosqueId, userId, fatherUser.id, newId, RELATION_TYPES.FATHER as RelationType);
-            if (!res.success) linkErrors.push(tAdmin("linkFatherError"));
+          // Gepufferte Eltern verknüpfen
+          for (const p of pendingParents) {
+            await linkParentToStudent(mosqueId, userId, p.parentId, newId, p.relationType);
           }
-          if (motherUser) {
-            const res = await linkParentToStudent(mosqueId, userId, motherUser.id, newId, RELATION_TYPES.MOTHER as RelationType);
-            if (!res.success) linkErrors.push(tAdmin("linkMotherError"));
-          }
-          if (linkErrors.length) {
-            setSubmitError(linkErrors.join(", "));
-            setIsSubmitting(false);
-            router.push(`/admin/madrasa/schueler/${newId}`);
-            return;
-          }
-          router.push(`/admin/madrasa/schueler/${newId}`);
+          onSuccess();
         } else {
-          // EDIT mode: handle portal user changes
-          const newFatherId = fatherUser?.id ?? null;
-          const newMotherId = motherUser?.id ?? null;
-
-          if (newFatherId !== originalFatherUserId) {
-            if (originalFatherUserId)
-              await unlinkParentFromStudent(mosqueId, userId, originalFatherUserId, student!.id, RELATION_TYPES.FATHER as RelationType);
-            if (newFatherId)
-              await linkParentToStudent(mosqueId, userId, newFatherId, student!.id, RELATION_TYPES.FATHER as RelationType);
-          }
-          if (newMotherId !== originalMotherUserId) {
-            if (originalMotherUserId)
-              await unlinkParentFromStudent(mosqueId, userId, originalMotherUserId, student!.id, RELATION_TYPES.MOTHER as RelationType);
-            if (newMotherId)
-              await linkParentToStudent(mosqueId, userId, newMotherId, student!.id, RELATION_TYPES.MOTHER as RelationType);
-          }
+          // Edit: Elternänderungen wurden bereits sofort gespeichert
           onSuccess();
         }
       } else {
@@ -307,6 +288,13 @@ export function AdminStudentForm({ mosqueId, userId, student, onSuccess, onCance
   const inputCls = "w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500";
   const fieldErr = (key: string) =>
     errors[key] ? <p className="text-xs text-red-600 mt-1">{errors[key]}</p> : null;
+
+  const sortedRelationTypes: RelationType[] = [
+    RELATION_TYPES.FATHER,
+    RELATION_TYPES.MOTHER,
+    RELATION_TYPES.GUARDIAN,
+    RELATION_TYPES.OTHER,
+  ];
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -391,101 +379,159 @@ export function AdminStudentForm({ mosqueId, userId, student, onSuccess, onCance
         )}
       </div>
 
-      {/* Elternteil / Kontakt */}
+      {/* Portal-Eltern (junction table) */}
+      <div className="border-t pt-4">
+        <p className="text-sm font-semibold text-gray-700 mb-3">{tDetail("parentsTitle")}</p>
+
+        {/* Verknüpfte Eltern */}
+        {(isEdit ? linkedParents : pendingParents).length === 0 ? (
+          <p className="text-sm text-gray-500 mb-3">{tDetail("noParents")}</p>
+        ) : (
+          <div className="space-y-2 mb-3">
+            {isEdit
+              ? [...linkedParents]
+                  .sort(
+                    (a, b) =>
+                      sortedRelationTypes.indexOf(a.relation_type) -
+                      sortedRelationTypes.indexOf(b.relation_type)
+                  )
+                  .map((parent) => (
+                    <div
+                      key={parent.id}
+                      className="flex items-center justify-between p-2 rounded-lg border border-gray-200 bg-gray-50"
+                    >
+                      <div>
+                        <span className="text-sm font-medium">
+                          {`${parent.first_name} ${parent.last_name}`.trim() || parent.email}
+                        </span>
+                        <span className="ml-2 inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">
+                          {relationLabel[parent.relation_type] ?? parent.relation_type}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveLinkedParent(parent.id, parent.relation_type)}
+                        disabled={removingParentId === parent.id}
+                        title={tDetail("removeParentTitle")}
+                        className="text-xs text-gray-400 hover:text-red-600 px-2 py-0.5 rounded disabled:opacity-40"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))
+              : pendingParents.map((p) => (
+                  <div
+                    key={p.parentId}
+                    className="flex items-center justify-between p-2 rounded-lg border border-gray-200 bg-gray-50"
+                  >
+                    <div>
+                      <span className="text-sm font-medium">{p.parentName}</span>
+                      <span className="ml-2 inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">
+                        {relationLabel[p.relationType] ?? p.relationType}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleRemovePendingParent(p.parentId)}
+                      title={tDetail("removeParentTitle")}
+                      className="text-xs text-gray-400 hover:text-red-600 px-2 py-0.5 rounded"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+          </div>
+        )}
+
+        {/* Neuen Elternteil verknüpfen */}
+        <p className="text-sm font-medium text-gray-700 mb-1">{tDetail("linkParentTitle")}</p>
+        <p className="text-xs text-gray-500 mb-2">{tDetail("linkParentHint")}</p>
+        <input
+          className={inputCls}
+          placeholder={tDetail("searchPlaceholder")}
+          value={parentSearch}
+          onChange={(e) => {
+            setParentSearch(e.target.value);
+            setPendingCandidateId(null);
+            setSelectedRelationType("");
+          }}
+        />
+
+        {parentSearch.trim() && (
+          <div className="mt-1 border rounded-lg divide-y max-h-40 overflow-y-auto">
+            {filteredParentCandidates.length === 0 ? (
+              <p className="p-3 text-sm text-gray-500">{tDetail("noResults")}</p>
+            ) : (
+              filteredParentCandidates.map((c) => (
+                <div key={c.id} className="flex items-center justify-between px-3 py-2">
+                  <div>
+                    <p className="text-sm font-medium">{c.name}</p>
+                    {c.phone && <p className="text-xs text-gray-500">{c.phone}</p>}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPendingCandidateId(c.id);
+                      setSelectedRelationType("");
+                    }}
+                    className="text-xs rounded-md border border-gray-300 px-2 py-1 hover:bg-gray-50"
+                  >
+                    {tDetail("addButton")}
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
+        {pendingCandidateId && (
+          <div className="mt-2 rounded-lg border border-blue-200 bg-blue-50 p-3 space-y-2">
+            <p className="text-xs font-medium text-blue-800">
+              {(() => {
+                const c = candidates.find((x) => x.id === pendingCandidateId);
+                return c
+                  ? tDetail("selectRelation", { name: c.name })
+                  : tDetail("selectRelationGeneric");
+              })()}
+            </p>
+            <select
+              className={inputCls}
+              value={selectedRelationType}
+              onChange={(e) => setSelectedRelationType(e.target.value as RelationType | "")}
+            >
+              <option value="">{tDetail("selectPlaceholder")}</option>
+              <option value="father">{tDetail("relationFather")}</option>
+              <option value="mother">{tDetail("relationMother")}</option>
+              <option value="guardian">{tDetail("relationGuardian")}</option>
+              <option value="other">{tDetail("relationOther")}</option>
+            </select>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                disabled={!selectedRelationType || isAddingParent}
+                onClick={isEdit ? handleAddParent : handleAddPendingParent}
+                className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
+              >
+                {tDetail("confirmAddButton")}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setPendingCandidateId(null);
+                  setSelectedRelationType("");
+                }}
+                className="rounded-lg border border-gray-300 px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50"
+              >
+                {tDetail("cancelButton")}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Kontaktinfo (Freetext) */}
       <div className="border-t pt-4">
         <p className="text-sm font-semibold text-gray-700 mb-3">{tAdmin("parentSection")}</p>
-
-        {/* Portal-User Lookup: Vater */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-3">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              {tAdmin("fatherPortalUser")}
-            </label>
-            {fatherUser ? (
-              <div className="flex items-center gap-2 p-2 bg-emerald-50 border border-emerald-200 rounded-lg">
-                <span className="text-sm font-medium text-emerald-800 flex-1">{fatherUser.name}</span>
-                <button
-                  type="button"
-                  onClick={clearFatherUser}
-                  className="text-xs text-gray-500 hover:text-red-600 px-2 py-0.5 rounded"
-                >
-                  ✕
-                </button>
-              </div>
-            ) : (
-              <div className="relative">
-                <input
-                  className={inputCls}
-                  placeholder={tAdmin("searchPortalUser")}
-                  value={fatherQuery}
-                  onChange={(e) => { setFatherQuery(e.target.value); setShowFatherDropdown(true); }}
-                  onFocus={() => setShowFatherDropdown(true)}
-                  onBlur={() => setTimeout(() => setShowFatherDropdown(false), 200)}
-                />
-                {showFatherDropdown && filteredFatherCandidates.length > 0 && (
-                  <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                    {filteredFatherCandidates.map((c) => (
-                      <button
-                        key={c.id}
-                        type="button"
-                        className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 border-b last:border-0"
-                        onMouseDown={() => handleFatherSelect(c)}
-                      >
-                        <span className="font-medium">{c.name}</span>
-                        {c.phone && <span className="text-gray-500 text-xs ml-2">{c.phone}</span>}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Portal-User Lookup: Mutter */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              {tAdmin("motherPortalUser")}
-            </label>
-            {motherUser ? (
-              <div className="flex items-center gap-2 p-2 bg-emerald-50 border border-emerald-200 rounded-lg">
-                <span className="text-sm font-medium text-emerald-800 flex-1">{motherUser.name}</span>
-                <button
-                  type="button"
-                  onClick={clearMotherUser}
-                  className="text-xs text-gray-500 hover:text-red-600 px-2 py-0.5 rounded"
-                >
-                  ✕
-                </button>
-              </div>
-            ) : (
-              <div className="relative">
-                <input
-                  className={inputCls}
-                  placeholder={tAdmin("searchPortalUser")}
-                  value={motherQuery}
-                  onChange={(e) => { setMotherQuery(e.target.value); setShowMotherDropdown(true); }}
-                  onFocus={() => setShowMotherDropdown(true)}
-                  onBlur={() => setTimeout(() => setShowMotherDropdown(false), 200)}
-                />
-                {showMotherDropdown && filteredMotherCandidates.length > 0 && (
-                  <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                    {filteredMotherCandidates.map((c) => (
-                      <button
-                        key={c.id}
-                        type="button"
-                        className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 border-b last:border-0"
-                        onMouseDown={() => handleMotherSelect(c)}
-                      >
-                        <span className="font-medium">{c.name}</span>
-                        {c.phone && <span className="text-gray-500 text-xs ml-2">{c.phone}</span>}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
 
         {/* Namen (Freitext) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
