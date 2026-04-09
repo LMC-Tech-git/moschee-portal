@@ -191,6 +191,7 @@ export default function AdminStudentsPage() {
       parent_is_member: student.parent_is_member ?? false,
       notes: student.notes || "",
       status: newStatus,
+      custom_discount_percent: student.custom_discount_percent ?? 0,
     };
     await updateStudent(student.id, mosqueId, user.id, input);
     await loadAll();
