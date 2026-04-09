@@ -98,21 +98,21 @@ async function buildSiblingRankMap(
     parentToStudents.set(parentId, ids);
   });
 
-  // 4. Pro Schüler: minimalen Rang über alle Elterngruppen berechnen
+  // 4. Pro Schüler: höchsten Rang über alle Elterngruppen berechnen
+  // Höherer Rang = höherer Geschwister-Index = mehr Rabatt
+  // Bei mehreren Eltern: besten (höchsten) Rang behalten
   const rankMap = new Map<string, number>();
-  students.forEach((s) => rankMap.set(s.id, 1)); // Default: Rang 1
+  students.forEach((s) => rankMap.set(s.id, 1)); // Default: Rang 1 (kein Rabatt)
 
   parentToStudents.forEach((ids) => {
     ids.forEach((studentId, index) => {
       const rank = index + 1; // 0-basierter Index → 1-basierter Rang
       const cappedRank = rank >= 3 ? 3 : rank;
       const currentRank = rankMap.get(studentId);
-      // Nur überschreiben wenn der neue Rang HÖHER ist (schlechterer Rabatt)
-      // → wir wollen den NIEDRIGSTEN (besten) Rang behalten, also nur wenn currentRank = 1 und rank > 1
-      // Nein: wir wollen den höchsten Rang (2. Kind eines Elternteils bleibt Rang 2,
-      // auch wenn es bei einem anderen Elternteil Rang 1 wäre → bester Rabatt = niedrigster Rang)
-      if (currentRank === undefined || cappedRank < currentRank) {
+      // Höchsten Rang behalten (= maximaler Rabatt über alle Eltern)
+      if (currentRank === undefined || cappedRank > currentRank) {
         rankMap.set(studentId, cappedRank);
+        console.log("[student-fees] Sibling rank assigned", { studentId, rank: cappedRank });
       }
     });
   });
