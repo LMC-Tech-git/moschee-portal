@@ -53,6 +53,7 @@ type FormData = {
   membership_status: "active" | "none" | "planned" | "";
   notes: string;
   status: "active" | "inactive";
+  custom_discount_percent: number;
 };
 
 function toFormData(s: Student): FormData {
@@ -79,6 +80,7 @@ function toFormData(s: Student): FormData {
     membership_status: (s.membership_status as "active" | "none" | "planned" | "") || "",
     notes: s.notes,
     status: s.status === "inactive" ? "inactive" : "active",
+    custom_discount_percent: s.custom_discount_percent ?? 0,
   };
 }
 
@@ -105,6 +107,7 @@ const emptyForm: FormData = {
   membership_status: "",
   notes: "",
   status: "active",
+  custom_discount_percent: 0,
 };
 
 export function AdminStudentForm({ mosqueId, userId, student, onSuccess, onCancel }: Props) {
@@ -232,6 +235,7 @@ export function AdminStudentForm({ mosqueId, userId, student, onSuccess, onCance
       ...form,
       last_year_attended: form.last_year_attended ?? false,
       parent_is_member: form.parent_is_member ?? false,
+      custom_discount_percent: form.custom_discount_percent ?? 0,
     };
 
     const parsed = studentSchema.safeParse(input);
@@ -604,6 +608,25 @@ export function AdminStudentForm({ mosqueId, userId, student, onSuccess, onCance
             </select>
           </div>
         )}
+      </div>
+
+      {/* Gebühren & Rabatte */}
+      <div className="border-t pt-4 space-y-4">
+        <p className="text-sm font-semibold text-gray-700">{tAdmin("feeSection")}</p>
+        <div className="max-w-xs">
+          <label className="block text-sm font-medium text-gray-700 mb-1">{tAdmin("customDiscountPercent")}</label>
+          <input
+            type="number"
+            min={0}
+            max={100}
+            step={1}
+            className={inputCls}
+            value={form.custom_discount_percent}
+            onChange={(e) => set("custom_discount_percent", Math.min(100, Math.max(0, parseInt(e.target.value) || 0)))}
+          />
+          <p className="text-xs text-gray-500 mt-1">{tAdmin("customDiscountPercentDesc")}</p>
+          {fieldErr("custom_discount_percent")}
+        </div>
       </div>
 
       {/* Notizen */}

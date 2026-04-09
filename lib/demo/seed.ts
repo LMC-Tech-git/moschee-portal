@@ -271,7 +271,7 @@ async function seedCourses(pb: PocketBase, mosqueId: string, yearIds: { active: 
 async function seedStudents(pb: PocketBase, mosqueId: string): Promise<string[]> {
   const cy = new Date().getFullYear();
   const records = await Promise.all(
-    STUDENT_DATA.map((s) =>
+    STUDENT_DATA.map((s, idx) =>
       pb.collection("students").create({
         mosque_id: mosqueId, first_name: s.first, last_name: s.last,
         date_of_birth: s.dob(cy), gender: s.g,
@@ -280,6 +280,8 @@ async function seedStudents(pb: PocketBase, mosqueId: string): Promise<string[]>
         address: "Berlin", school_name: "Grundschule Berlin-Mitte", school_class: "",
         health_notes: "", status: "active", membership_status: "none",
         whatsapp_contact: "both", notes: "",
+        // Indices 6+7: Demo für individuellen Rabatt (50%)
+        custom_discount_percent: (idx === 6 || idx === 7) ? 50 : 0,
       })
     )
   );
@@ -360,27 +362,38 @@ async function seedParentChildRelations(
 
 async function seedStudentFees(pb: PocketBase, mosqueId: string, studentIds: string[], adminId: string): Promise<number> {
   const months = [monthKey(monthsAgo(2)), monthKey(monthsAgo(1)), monthKey(new Date())];
-  const FEE_CENTS = 1500;
+  const FEE_CENTS = 5000;
   const DISCOUNT_2ND = 20; // %
   const DISCOUNT_3RD = 30; // %
   // Geschwister-Rang passend zu seedParentChildRelations:
   // member[0]: Kinder idx 0(rank1), 1(rank2), 2(rank3) | member[1]: idx 3(rank1)
   // member[2]: Kinder idx 4(rank1), 5(rank2) | Reste: rank 1
   const DEMO_RANKS = [1, 2, 3, 1, 1, 2, 1, 1, 1, 1, 1, 1];
+  // Individueller Rabatt: Schüler 6+7 haben 50% custom_discount_percent
+  const DEMO_CUSTOM_PCT = [0, 0, 0, 0, 0, 0, 50, 50, 0, 0, 0, 0];
   const items: Record<string,unknown>[] = [];
   studentIds.slice(0, 12).forEach((sid, ki) =>
     months.forEach((mk, mi) => {
       const { s: status, m: method } = FEE_PATTERNS[ki][mi];
       const rank = DEMO_RANKS[ki] ?? 1;
-      let finalAmount = FEE_CENTS;
-      if (rank === 2) finalAmount = Math.round(FEE_CENTS * (1 - DISCOUNT_2ND / 100));
-      else if (rank >= 3) finalAmount = Math.round(FEE_CENTS * (1 - DISCOUNT_3RD / 100));
+      const siblingPct = rank === 2 ? DISCOUNT_2ND : rank >= 3 ? DISCOUNT_3RD : 0;
+      const customPct = DEMO_CUSTOM_PCT[ki] ?? 0;
+      const effectivePct = Math.max(siblingPct, customPct);
+      const finalAmount = effectivePct > 0
+        ? Math.round(FEE_CENTS * (1 - effectivePct / 100))
+        : FEE_CENTS;
       const discountApplied = FEE_CENTS - finalAmount;
+      const discountType: "none" | "sibling" | "custom" =
+        effectivePct === 0 ? "none"
+        : customPct >= siblingPct && customPct > 0 ? "custom"
+        : "sibling";
       items.push({
         mosque_id: mosqueId, student_id: sid, month_key: mk,
         amount_cents: finalAmount,
         discount_applied_cents: discountApplied,
         sibling_rank: rank,
+        discount_type: discountType,
+        discount_percent_applied: effectivePct,
         status, payment_method: method,
         paid_at: status === "paid" ? `${mk}-15 12:00:00.000Z` : "",
         notes: status === "waived" ? "Soziale Ermäßigung gewährt." : "",
@@ -503,7 +516,7 @@ async function seedSponsors(pb: PocketBase, mosqueId: string): Promise<number> {
 async function seedSettings(pb: PocketBase, mosqueId: string): Promise<void> {
   const data = {
     madrasa_fees_enabled: true,
-    madrasa_default_fee_cents: 1500,
+    madrasa_default_fee_cents: 5000,
     fee_reminder_enabled: false,
     fee_reminder_day: 5,
     sibling_discount_enabled: true,

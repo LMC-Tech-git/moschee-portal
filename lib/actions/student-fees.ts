@@ -25,6 +25,8 @@ function mapRecordToFee(record: RecordModel): StudentFee {
     reminder_sent_at: record.reminder_sent_at || "",
     discount_applied_cents: record.discount_applied_cents || 0,
     sibling_rank: record.sibling_rank || 1,
+    discount_type: (record.discount_type as "none" | "sibling" | "custom") || "none",
+    discount_percent_applied: record.discount_percent_applied || 0,
     created: record.created || "",
     updated: record.updated || "",
     expand: record.expand
@@ -187,11 +189,12 @@ export async function createMonthlyFees(
 
     // Settings laden (Geschwister-Rabatt)
     const settingsResult = await getMadrasaFeeSettings(mosqueId);
-    const siblingDiscountEnabled = settingsResult.data?.sibling_discount_enabled || false;
+    // Expliziter === true Check — null/false/undefined → deaktiviert
+    const siblingDiscountEnabled = settingsResult.data?.sibling_discount_enabled === true;
     const discount2nd = settingsResult.data?.sibling_discount_2nd_percent || 0;
     const discount3rd = settingsResult.data?.sibling_discount_3rd_percent || 0;
 
-    // Alle aktiven Schüler laden (mit allen Feldern für Rang-Berechnung)
+    // Alle aktiven Schüler laden (mit allen Feldern für Rang-Berechnung + custom_discount_percent)
     const studentsResult = await pb.collection("students").getFullList({
       filter: `mosque_id = "${mosqueId}" && status = "active"`,
       sort: "created",
@@ -220,15 +223,27 @@ export async function createMonthlyFees(
         continue;
       }
 
-      // Rabatt berechnen
+      // Geschwister-Rabatt (Prozentsatz)
       const rank = rankMap.get(student.id) || 1;
-      let finalAmount = amountCents;
-      if (siblingDiscountEnabled && rank === 2 && discount2nd > 0) {
-        finalAmount = Math.round(amountCents * (1 - discount2nd / 100));
-      } else if (siblingDiscountEnabled && rank >= 3 && discount3rd > 0) {
-        finalAmount = Math.round(amountCents * (1 - discount3rd / 100));
-      }
+      const siblingPct = siblingDiscountEnabled
+        ? rank === 2 ? discount2nd : rank >= 3 ? discount3rd : 0
+        : 0;
+
+      // Individueller Rabatt vom Schüler-Record
+      const customPct: number = student.custom_discount_percent || 0;
+
+      // Bester Rabatt gewinnt
+      const effectivePct = Math.max(siblingPct, customPct);
+      const finalAmount = effectivePct > 0
+        ? Math.round(amountCents * (1 - effectivePct / 100))
+        : amountCents;
       const discountApplied = amountCents - finalAmount;
+
+      // Welcher Mechanismus hat gewonnen?
+      const discountType: "none" | "sibling" | "custom" =
+        effectivePct === 0 ? "none"
+        : customPct >= siblingPct && customPct > 0 ? "custom"
+        : "sibling";
 
       await pb.collection("student_fees").create({
         mosque_id: mosqueId,
@@ -239,6 +254,8 @@ export async function createMonthlyFees(
         created_by: userId,
         discount_applied_cents: discountApplied,
         sibling_rank: rank,
+        discount_type: discountType,
+        discount_percent_applied: effectivePct,
       });
       created++;
       if (discountApplied > 0) discounted++;

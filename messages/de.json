@@ -821,7 +821,10 @@
       "bulkReminderResult": "{sent} gesendet, {skipped} übersprungen, {failed} fehlgeschlagen.",
       "notePlaceholder": "Notiz (optional)",
       "btnConfirm": "Bestätigen",
-      "siblingDiscount": "Geschwister-Rabatt"
+      "siblingDiscount": "Geschwister-Rabatt",
+      "customDiscount": "Individuell",
+      "siblingDiscountInactive": "Geschwister-Rabatt ist nicht aktiv.",
+      "siblingDiscountInactiveLink": "In Einstellungen aktivieren →"
     }
   },
   "donations": {
@@ -2229,7 +2232,10 @@
     "searchPortalUser": "Portal-Benutzer suchen...",
     "parentSamePersonError": "Vater und Mutter können nicht dieselbe Person sein",
     "linkFatherError": "Vater konnte nicht verknüpft werden",
-    "linkMotherError": "Mutter konnte nicht verknüpft werden"
+    "linkMotherError": "Mutter konnte nicht verknüpft werden",
+    "feeSection": "Gebühren & Rabatte",
+    "customDiscountPercent": "Individueller Rabatt (%)",
+    "customDiscountPercentDesc": "0 = kein Rabatt. Überschreibt Geschwister-Rabatt wenn höher."
   },
   "studentLookup": {
     "sectionTitle": "Schüler einschreiben",

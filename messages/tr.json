@@ -821,7 +821,10 @@
       "bulkReminderResult": "{sent} gönderildi, {skipped} atlandı, {failed} başarısız.",
       "notePlaceholder": "Not (isteğe bağlı)",
       "btnConfirm": "Onayla",
-      "siblingDiscount": "Kardeş İndirimi"
+      "siblingDiscount": "Kardeş İndirimi",
+      "customDiscount": "Bireysel",
+      "siblingDiscountInactive": "Kardeş indirimi aktif değil.",
+      "siblingDiscountInactiveLink": "Ayarlarda etkinleştir →"
     }
   },
   "donations": {
@@ -2229,7 +2232,10 @@
     "searchPortalUser": "Portal kullanıcısı ara...",
     "parentSamePersonError": "Baba ve anne aynı kişi olamaz",
     "linkFatherError": "Baba bağlanamadı",
-    "linkMotherError": "Anne bağlanamadı"
+    "linkMotherError": "Anne bağlanamadı",
+    "feeSection": "Ücretler ve İndirimler",
+    "customDiscountPercent": "Bireysel İndirim (%)",
+    "customDiscountPercentDesc": "0 = indirim yok. Kardeş indiriminden yüksekse geçerli olur."
   },
   "studentLookup": {
     "sectionTitle": "Öğrenci Kaydet",

@@ -359,6 +359,8 @@ export interface Student {
   father_user_id?: string;
   /** @deprecated — use parent_child_relations */
   mother_user_id?: string;
+  // Neue Felder (v5) — Individueller Rabatt
+  custom_discount_percent?: number; // 0–100, 0 = kein Rabatt
   notes: string;
   status: "active" | "inactive";
   created: string;
@@ -552,8 +554,10 @@ export interface StudentFee {
   provider_ref: string;       // Stripe Session ID
   notes: string;
   reminder_sent_at: string;   // ISO-Datum der letzten Mahnung
-  discount_applied_cents: number; // Ersparnis durch Geschwister-Rabatt (0 = kein Rabatt)
+  discount_applied_cents: number; // Ersparnis durch Rabatt (0 = kein Rabatt)
   sibling_rank: number;           // Position in der Geschwister-Gruppe (1=erstes, 2=zweites, 3+=drittes+)
+  discount_type: "none" | "sibling" | "custom"; // Welcher Rabatt-Mechanismus gewonnen hat
+  discount_percent_applied: number; // Tatsächlich angewendeter Rabatt-Prozentsatz (Snapshot)
   created_by: string;         // Relation → users
   created: string;
   updated: string;

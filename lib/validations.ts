@@ -162,6 +162,7 @@ export const studentSchema = z.object({
   parent_is_member: z.boolean().default(false),
   notes: z.string().optional().default(""),
   status: z.enum(["active", "inactive"]).default("active"),
+  custom_discount_percent: z.number().min(0).max(100).optional().default(0),
 });
 export type StudentInput = z.infer<typeof studentSchema>;
 

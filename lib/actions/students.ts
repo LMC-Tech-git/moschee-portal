@@ -39,6 +39,7 @@ function mapRecord(record: RecordModel): Student {
     mother_user_id: record.mother_user_id || "",
     notes: record.notes || "",
     status: record.status || "active",
+    custom_discount_percent: record.custom_discount_percent ?? 0,
     created: record.created || "",
     updated: record.updated || "",
   };
@@ -184,6 +185,7 @@ export async function createStudent(
       parent_is_member: validated.parent_is_member ?? false,
       notes: validated.notes || "",
       status: validated.status,
+      custom_discount_percent: validated.custom_discount_percent ?? 0,
     });
 
     await logAudit({
@@ -251,6 +253,7 @@ export async function updateStudent(
       parent_is_member: validated.parent_is_member ?? false,
       notes: validated.notes || "",
       status: validated.status,
+      custom_discount_percent: validated.custom_discount_percent ?? 0,
     });
 
     await logAudit({

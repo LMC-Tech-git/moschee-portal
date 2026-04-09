@@ -60,6 +60,7 @@ export default function AdminMadrasaGebuehrenPage() {
   const [rows, setRows] = useState<FeeOverviewRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [defaultFeeCents, setDefaultFeeCents] = useState(1000);
+  const [siblingDiscountEnabled, setSiblingDiscountEnabled] = useState<boolean | null>(null);
   const [customAmountCents, setCustomAmountCents] = useState<number | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [createResult, setCreateResult] = useState<{ created: number; skipped: number } | null>(null);
@@ -88,6 +89,7 @@ export default function AdminMadrasaGebuehrenPage() {
       if (settingsResult.success && settingsResult.data) {
         setDefaultFeeCents(settingsResult.data.madrasa_default_fee_cents);
         setCustomAmountCents(settingsResult.data.madrasa_default_fee_cents);
+        setSiblingDiscountEnabled(settingsResult.data.sibling_discount_enabled === true);
       }
       if (coursesResult.success && coursesResult.data) {
         setCourses(coursesResult.data);
@@ -397,6 +399,19 @@ export default function AdminMadrasaGebuehrenPage() {
         </div>
       )}
 
+      {/* Info-Banner: Geschwister-Rabatt nicht aktiv */}
+      {siblingDiscountEnabled === false && (
+        <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+          <span>
+            {t("siblingDiscountInactive")}{" "}
+            <Link href="/admin/settings" className="underline font-medium hover:text-amber-900">
+              {t("siblingDiscountInactiveLink")}
+            </Link>
+          </span>
+        </div>
+      )}
+
       {/* Gebühren erstellen */}
       <div className="rounded-xl border border-gray-200 bg-white p-5">
         <h2 className="mb-3 font-semibold text-gray-900">{t("createSection", { month: formatMonthKey(monthKey) })}</h2>
@@ -513,7 +528,12 @@ export default function AdminMadrasaGebuehrenPage() {
                         {row.fee ? (
                           <div className="flex flex-col gap-0.5">
                             <span>{formatCurrencyCents(row.fee.amount_cents)}</span>
-                            {row.fee.discount_applied_cents > 0 && (
+                            {row.fee.discount_type === "custom" && (
+                              <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">
+                                {t("customDiscount")} −{row.fee.discount_percent_applied}%
+                              </span>
+                            )}
+                            {row.fee.discount_type === "sibling" && (
                               <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
                                 {t("siblingDiscount")} −{formatCurrencyCents(row.fee.discount_applied_cents)}
                               </span>

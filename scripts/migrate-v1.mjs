@@ -673,7 +673,7 @@ const STUDENT_FEES_COLLECTION = {
 
 const SETTINGS_MADRASA_FIELDS = [
   { name: "madrasa_fees_enabled", type: "bool", options: { default: false } },
-  { name: "madrasa_default_fee_cents", type: "number", options: { min: 0, default: 1000 } },
+  { name: "madrasa_default_fee_cents", type: "number", options: { min: 0, default: 5000 } },
   { name: "fee_reminder_enabled", type: "bool", options: { default: false } },
   { name: "fee_reminder_day", type: "number", options: { min: 1, max: 28, default: 15 } },
   // Geschwister-Rabatt (Session 24)
@@ -1226,20 +1226,38 @@ async function main() {
     }
   }
 
-  // 9d. student_fees: Geschwister-Rabatt-Felder hinzufügen (Session 24)
+  // 9d. student_fees: Geschwister-Rabatt-Felder + individueller Rabatt
   if (collectionMap.student_fees) {
     const feesCol = (await getExistingCollections()).find((c) => c.name === "student_fees");
     const existingFieldNames = (feesCol?.schema || []).map((f) => f.name);
     const newFeeFields = [
       { name: "discount_applied_cents", type: "number", options: { min: 0, default: 0 } },
       { name: "sibling_rank", type: "number", options: { min: 1, default: 1 } },
+      { name: "discount_type", type: "select", options: { values: ["none", "sibling", "custom"], maxSelect: 1 } },
+      { name: "discount_percent_applied", type: "number", options: { min: 0, max: 100, default: 0 } },
     ].filter((f) => !existingFieldNames.includes(f.name));
     if (newFeeFields.length > 0) {
       const newSchema = [...(feesCol?.schema || []), ...newFeeFields];
       await updateCollection("student_fees", { schema: newSchema });
       console.log(`   ✅ student_fees: ${newFeeFields.map((f) => f.name).join(", ")} hinzugefügt`);
     } else {
-      console.log("   ⏭️  student_fees: Geschwister-Rabatt-Felder bereits vorhanden");
+      console.log("   ⏭️  student_fees: alle Rabatt-Felder vorhanden");
+    }
+  }
+
+  // 9e. students: individueller Rabatt (v5)
+  if (collectionMap.students) {
+    const studentsCol = (await getExistingCollections()).find((c) => c.name === "students");
+    const existingFieldNames = (studentsCol?.schema || []).map((f) => f.name);
+    const studentsV5Fields = [
+      { name: "custom_discount_percent", type: "number", options: { min: 0, max: 100, default: 0 } },
+    ].filter((f) => !existingFieldNames.includes(f.name));
+    if (studentsV5Fields.length > 0) {
+      const newSchema = [...(studentsCol?.schema || []), ...studentsV5Fields];
+      await updateCollection("students", { schema: newSchema });
+      console.log(`   ✅ students: ${studentsV5Fields.map((f) => f.name).join(", ")} hinzugefügt`);
+    } else {
+      console.log("   ⏭️  students: custom_discount_percent bereits vorhanden");
     }
   }
 
