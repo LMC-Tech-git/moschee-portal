@@ -184,8 +184,19 @@ export function MemberStudentForm({ parentId, parentName, parentPhone, parentAdd
 
   const privacyPath = locale === "tr" ? "/datenschutz" : "/datenschutz";
 
+  const hasErrors = Object.keys(errors).length > 0;
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Allgemeiner Fehler-Banner */}
+      {hasErrors && (
+        <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+          {locale === "tr"
+            ? "Lütfen tüm zorunlu alanları doldurun."
+            : "Bitte fülle alle Pflichtfelder aus (mit * markiert)."}
+        </div>
+      )}
+
       {/* Basisdaten */}
       <div className="grid grid-cols-2 gap-4">
         <div>
@@ -227,7 +238,7 @@ export function MemberStudentForm({ parentId, parentName, parentPhone, parentAdd
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            {t("gender")}
+            {t("gender")} *
           </label>
           <select
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
@@ -245,7 +256,7 @@ export function MemberStudentForm({ parentId, parentName, parentPhone, parentAdd
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            {t("school")}
+            {t("school")} *
           </label>
           <input
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
@@ -257,7 +268,7 @@ export function MemberStudentForm({ parentId, parentName, parentPhone, parentAdd
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            {t("class")}
+            {t("class")} *
           </label>
           <input
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
@@ -330,7 +341,7 @@ export function MemberStudentForm({ parentId, parentName, parentPhone, parentAdd
       {/* WhatsApp-Kontakt */}
       <div className="border-t pt-4">
         <p className="text-sm font-semibold text-gray-700 mb-3">{t("whatsappSection")}</p>
-        <label className="block text-sm text-gray-700 mb-2">{t("whatsappContact")}</label>
+        <label className="block text-sm text-gray-700 mb-2">{t("whatsappContact")} *</label>
         <div className="flex gap-4">
           {(["mother", "father", "both"] as const).map((val) => (
             <label key={val} className="flex items-center gap-2 cursor-pointer">
