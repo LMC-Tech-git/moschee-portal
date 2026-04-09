@@ -198,7 +198,7 @@ export function MemberStudentForm({ parentId, parentName, parentPhone, parentAdd
       )}
 
       {/* Basisdaten */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             {t("firstName")} *
@@ -223,7 +223,7 @@ export function MemberStudentForm({ parentId, parentName, parentPhone, parentAdd
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             {t("dateOfBirth")} *
@@ -253,7 +253,7 @@ export function MemberStudentForm({ parentId, parentName, parentPhone, parentAdd
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             {t("school")} *
@@ -360,7 +360,7 @@ export function MemberStudentForm({ parentId, parentName, parentPhone, parentAdd
         </div>
         {errors.whatsapp_contact && <p className="text-xs text-red-600 mt-1">{errors.whatsapp_contact}</p>}
 
-        <div className="mt-3 grid grid-cols-2 gap-4">
+        <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               {t("motherName")}
@@ -384,7 +384,7 @@ export function MemberStudentForm({ parentId, parentName, parentPhone, parentAdd
         </div>
 
         {(needsMotherPhone || needsFatherPhone) && (
-          <div className="mt-3 grid grid-cols-2 gap-4">
+          <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-4">
             {needsMotherPhone && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">

@@ -583,8 +583,8 @@ function getAttendanceTextColor(rate: number) {
 function AttendanceBar({ rate }: { rate: number }) {
   const color = getAttendanceColor(rate);
   return (
-    <div className="h-1.5 w-full rounded-full bg-gray-100">
-      <div className={`h-1.5 rounded-full ${color} transition-all`} style={{ width: `${rate}%` }} />
+    <div className="h-2 sm:h-1.5 w-full rounded-full bg-gray-100">
+      <div className={`h-2 sm:h-1.5 rounded-full ${color} transition-all`} style={{ width: `${rate}%` }} />
     </div>
   );
 }
@@ -747,35 +747,35 @@ function ChildrenTab({
                             </div>
 
                             {/* Info-Zeilen */}
-                            <div className="pl-5 text-xs space-y-1">
+                            <div className="pl-3 sm:pl-5 text-xs space-y-1">
                               {/* Heute */}
-                              <div className="flex items-center gap-1.5">
-                                <span className="text-gray-400 min-w-[90px] shrink-0">
+                              <div className="flex items-center gap-2">
+                                <div className="w-[70px] sm:w-[90px] text-gray-400 shrink-0">
                                   {t("member.profile.children.attendance.todayLabel")}:
-                                </span>
-                                {course.todayStatus ? (
-                                  <span className={`rounded-full px-1.5 py-0.5 text-xs font-medium ${todayColor[course.todayStatus]}`}>
-                                    {todayLabel[course.todayStatus]}
-                                  </span>
-                                ) : (
-                                  <span className="text-gray-700 font-medium">
-                                    {t("member.profile.children.attendance.todayNoLesson")}
-                                  </span>
-                                )}
+                                </div>
+                                <div className="flex-1">
+                                  {course.todayStatus ? (
+                                    <span className={`rounded-full px-1.5 py-0.5 text-xs font-medium ${todayColor[course.todayStatus]}`}>
+                                      {todayLabel[course.todayStatus]}
+                                    </span>
+                                  ) : (
+                                    <span className="text-gray-700 font-medium">
+                                      {t("member.profile.children.attendance.todayNoLesson")}
+                                    </span>
+                                  )}
+                                </div>
                               </div>
 
                               {/* Anwesenheit + Progress Bar */}
                               {course.total > 0 && (
-                                <div className="flex flex-col gap-0.5">
-                                  <div className="flex items-center gap-1.5">
-                                    <span className="text-gray-400 min-w-[90px] shrink-0">
-                                      {t("member.profile.children.attendance.attendanceLabel")}:
-                                    </span>
+                                <div className="flex items-start gap-2">
+                                  <div className="w-[70px] sm:w-[90px] text-gray-400 shrink-0 pt-0.5">
+                                    {t("member.profile.children.attendance.attendanceLabel")}:
+                                  </div>
+                                  <div className="flex-1">
                                     <span className={`text-xs font-semibold ${getAttendanceTextColor(course.rate)}`}>
                                       {course.rate}%
                                     </span>
-                                  </div>
-                                  <div className="ml-[90px]">
                                     <AttendanceBar rate={course.rate ?? 0} />
                                   </div>
                                 </div>
@@ -783,18 +783,18 @@ function ChildrenTab({
 
                               {/* Entwicklung */}
                               {course.trend && (
-                                <div className="flex items-center gap-1.5">
-                                  <span className="text-gray-400 min-w-[90px] shrink-0">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-[70px] sm:w-[90px] text-gray-400 shrink-0">
                                     {t("member.profile.children.attendance.developmentLabel")}:
-                                  </span>
-                                  <span className={cn(
-                                    "text-xs font-medium",
+                                  </div>
+                                  <div className={cn(
+                                    "flex-1 text-xs font-medium",
                                     course.trend === "up" && "text-emerald-600",
                                     course.trend === "down" && "text-red-500",
                                     course.trend === "stable" && "text-gray-500"
                                   )}>
                                     {trendLabel[course.trend]}
-                                  </span>
+                                  </div>
                                 </div>
                               )}
 
@@ -802,18 +802,18 @@ function ChildrenTab({
                               {course.lastPerformance != null && (() => {
                                 const lvl = getPerformanceLevel(course.lastPerformance);
                                 return lvl ? (
-                                  <div className="flex items-center gap-1.5">
-                                    <span className="text-gray-400 min-w-[90px] shrink-0">
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-[70px] sm:w-[90px] text-gray-400 shrink-0">
                                       {t("member.profile.children.attendance.ratingLabel")}:
-                                    </span>
-                                    <span className="text-gray-700 flex items-center gap-0.5">
+                                    </div>
+                                    <div className="flex-1 flex items-center gap-0.5 text-gray-700">
                                       {lvl.shortLabel}
                                       <span className="ml-1">
                                         {Array.from({ length: 5 }, (_, i) => (
                                           <span key={i} className={i < Math.floor(course.lastPerformance!) ? "text-amber-400" : "text-gray-300"}>★</span>
                                         ))}
                                       </span>
-                                    </span>
+                                    </div>
                                   </div>
                                 ) : null;
                               })()}
@@ -821,7 +821,7 @@ function ChildrenTab({
 
                             {/* Zähler */}
                             {course.total > 0 && (
-                              <div className="pl-5 pt-1 border-t border-gray-50 flex flex-wrap gap-x-3 text-xs text-gray-500">
+                              <div className="pl-3 sm:pl-5 pt-1 border-t border-gray-50 flex flex-wrap gap-x-3 text-xs text-gray-500">
                                 <span>{course.present} {t("member.profile.children.attendance.present")}</span>
                                 <span>{course.absent} {t("member.profile.children.attendance.absent")}</span>
                                 {course.late > 0 && (

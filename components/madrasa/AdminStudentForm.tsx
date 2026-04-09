@@ -474,7 +474,7 @@ export function AdminStudentForm({ mosqueId, userId, student, onSuccess, onCance
                       setPendingCandidateId(c.id);
                       setSelectedRelationType("");
                     }}
-                    className="text-xs rounded-md border border-gray-300 px-2 py-1 hover:bg-gray-50"
+                    className="text-xs rounded-md border border-gray-300 px-3 py-1.5 hover:bg-gray-50"
                   >
                     {tDetail("addButton")}
                   </button>
@@ -510,7 +510,7 @@ export function AdminStudentForm({ mosqueId, userId, student, onSuccess, onCance
                 type="button"
                 disabled={!selectedRelationType || isAddingParent}
                 onClick={isEdit ? handleAddParent : handleAddPendingParent}
-                className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
+                className="rounded-lg bg-emerald-600 px-3 py-2.5 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
               >
                 {tDetail("confirmAddButton")}
               </button>
@@ -520,7 +520,7 @@ export function AdminStudentForm({ mosqueId, userId, student, onSuccess, onCance
                   setPendingCandidateId(null);
                   setSelectedRelationType("");
                 }}
-                className="rounded-lg border border-gray-300 px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50"
+                className="rounded-lg border border-gray-300 px-3 py-2.5 text-xs text-gray-700 hover:bg-gray-50"
               >
                 {tDetail("cancelButton")}
               </button>
