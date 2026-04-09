@@ -1465,6 +1465,36 @@ async function main() {
     }
   }
 
+  // Daten-Migration: sibling_discount_enabled für bestehende Settings-Records setzen
+  // Hintergrund: PB setzt bei neuen Feldern null für bestehende Records — kein Default.
+  // Wenn Prozentsätze konfiguriert sind aber sibling_discount_enabled null ist, auf true setzen.
+  console.log("\n=== Daten-Migration: sibling_discount_enabled ===");
+  {
+    let settingsRecords = [];
+    try {
+      const res = await pbFetch(
+        `/api/collections/settings/records?perPage=500`
+      );
+      settingsRecords = res?.items ?? [];
+    } catch (e) {
+      console.log("   ⚠️  Settings-Collection konnte nicht geladen werden:", e.message);
+    }
+    let updated = 0;
+    for (const rec of settingsRecords) {
+      const d2 = rec.sibling_discount_2nd_percent || 0;
+      const d3 = rec.sibling_discount_3rd_percent || 0;
+      if (rec.sibling_discount_enabled != null) continue; // bereits explizit gesetzt
+      if (d2 === 0 && d3 === 0) continue; // keine Prozentsätze konfiguriert
+      await pbFetch(`/api/collections/settings/records/${rec.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ sibling_discount_enabled: true }),
+      });
+      console.log(`   ✅ ${rec.mosque_id} → sibling_discount_enabled: true`);
+      updated++;
+    }
+    if (updated === 0) console.log("   ⏭️  Alle Records bereits konfiguriert");
+  }
+
   console.log("\n=== ✅ Migration abgeschlossen ===\n");
 
   // 7. .env.local Hinweis

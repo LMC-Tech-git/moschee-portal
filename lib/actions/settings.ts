@@ -345,6 +345,19 @@ export async function getMadrasaFeeSettings(mosqueId: string): Promise<{
       const record = await pb
         .collection("settings")
         .getFirstListItem(`mosque_id = "${mosqueId}"`);
+
+      // 3-Wege-Logik: null ≠ false (PB setzt null für neue Felder in bestehenden Records)
+      const discount2nd = record.sibling_discount_2nd_percent || 0;
+      const discount3rd = record.sibling_discount_3rd_percent || 0;
+      const hasDiscountConfig = discount2nd > 0 || discount3rd > 0;
+      if (record.sibling_discount_enabled == null && hasDiscountConfig) {
+        console.warn("[settings] sibling_discount_enabled fallback für Settings-Record:", record.id);
+      }
+      const siblingDiscountEnabled: boolean =
+        record.sibling_discount_enabled === true ? true
+        : record.sibling_discount_enabled === false ? false
+        : hasDiscountConfig;
+
       return {
         success: true,
         data: {
@@ -352,9 +365,9 @@ export async function getMadrasaFeeSettings(mosqueId: string): Promise<{
           madrasa_default_fee_cents: record.madrasa_default_fee_cents || 1000,
           fee_reminder_enabled: record.fee_reminder_enabled || false,
           fee_reminder_day: record.fee_reminder_day || 15,
-          sibling_discount_enabled: record.sibling_discount_enabled || false,
-          sibling_discount_2nd_percent: record.sibling_discount_2nd_percent || 0,
-          sibling_discount_3rd_percent: record.sibling_discount_3rd_percent || 0,
+          sibling_discount_enabled: siblingDiscountEnabled,
+          sibling_discount_2nd_percent: discount2nd,
+          sibling_discount_3rd_percent: discount3rd,
         },
       };
     } catch {
