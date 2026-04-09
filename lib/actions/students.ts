@@ -351,7 +351,21 @@ export async function updateStudentByParent(
 
     // Prüfen: Schüler gehört zu diesem Elternteil
     const existing = await pb.collection("students").getOne(studentId);
-    if (existing.mosque_id !== mosqueId || existing.parent_id !== userId) {
+
+    // Mandant-Check (immer)
+    if (existing.mosque_id !== mosqueId) {
+      return { success: false, error: "Schüler nicht gefunden" };
+    }
+
+    // Eltern-Berechtigung: Legacy parent_id ODER junction table (parent_child_relations)
+    let isAuthorized = existing.parent_id === userId;
+    if (!isAuthorized) {
+      const rel = await pb.collection("parent_child_relations").getList(1, 1, {
+        filter: `parent_user = "${userId}" && student = "${studentId}"`,
+      });
+      isAuthorized = rel.totalItems > 0;
+    }
+    if (!isAuthorized) {
       return { success: false, error: "Schüler nicht gefunden" };
     }
 
