@@ -554,6 +554,15 @@ export async function getEventRegistrations(
       user_agent: record.user_agent || "",
       created: record.created || "",
       updated: record.updated || "",
+      // Zahlungsfelder
+      payment_status: record.payment_status || undefined,
+      payment_method: record.payment_method || undefined,
+      original_payment_method: record.original_payment_method || undefined,
+      payment_ref: record.payment_ref || undefined,
+      checkout_url: record.checkout_url || undefined,
+      expires_at: record.expires_at || undefined,
+      paid_at: record.paid_at || undefined,
+      cancel_reason: record.cancel_reason || undefined,
     }));
 
     // Mitglieds-Namen und E-Mails nachladen
@@ -620,37 +629,63 @@ export async function exportRegistrationsCSV(
       "E-Mail",
       "Typ",
       "Status",
+      "Zahlung",
+      "Zahlungsmethode",
+      "Abbruchgrund",
+      "Bezahlt am",
       "Registriert am",
-      "Verifiziert am",
     ].join(";");
+
+    const STATUS_LABELS: Record<string, string> = {
+      registered: "Registriert",
+      attended: "Teilgenommen",
+      cancelled: "Storniert",
+      no_show: "Nicht erschienen",
+      pending: "Ausstehend",
+      expired: "Abgelaufen",
+    };
+    const PAYMENT_STATUS_LABELS: Record<string, string> = {
+      free: "Kostenlos",
+      pending: "Ausstehend",
+      pending_sepa: "SEPA läuft",
+      paid: "Bezahlt",
+      expired: "Abgelaufen",
+      failed: "Fehlgeschlagen",
+    };
+    const PAYMENT_METHOD_LABELS: Record<string, string> = {
+      card: "Karte",
+      sepa: "SEPA",
+      cash: "Bar",
+    };
 
     // CSV Rows
     const rows = registrations.map((reg) => {
       const name =
         reg.registrant_type === "guest"
           ? reg.guest_name
-          : `Mitglied (${reg.user_id})`;
+          : reg.member_name || "Mitglied";
       const email =
-        reg.registrant_type === "guest" ? reg.guest_email : "";
-      const typ =
-        reg.registrant_type === "guest" ? "Gast" : "Mitglied";
-      const status =
-        reg.status === "registered"
-          ? "Registriert"
-          : reg.status === "cancelled"
-            ? "Storniert"
-            : reg.status === "attended"
-              ? "Teilgenommen"
-              : "Nicht erschienen";
+        reg.registrant_type === "guest"
+          ? reg.guest_email
+          : reg.member_email || "";
+      const typ = reg.registrant_type === "guest" ? "Gast" : "Mitglied";
+      const status = STATUS_LABELS[reg.status] ?? reg.status;
+      const paymentStatus = reg.payment_status
+        ? (PAYMENT_STATUS_LABELS[reg.payment_status] ?? reg.payment_status)
+        : "";
+      const paymentMethod = reg.payment_method
+        ? (PAYMENT_METHOD_LABELS[reg.payment_method] ?? reg.payment_method)
+        : "";
+      const cancelReason = reg.cancel_reason || "";
+      const paidAt = reg.paid_at
+        ? new Date(reg.paid_at).toLocaleString("de-DE")
+        : "";
       const registeredAt = reg.registered_at
         ? new Date(reg.registered_at).toLocaleString("de-DE")
         : "";
-      const verifiedAt = reg.verified_at
-        ? new Date(reg.verified_at).toLocaleString("de-DE")
-        : "";
 
-      return [name, email, typ, status, registeredAt, verifiedAt]
-        .map((v) => `"${v.replace(/"/g, '""')}"`)
+      return [name, email, typ, status, paymentStatus, paymentMethod, cancelReason, paidAt, registeredAt]
+        .map((v) => `"${(v ?? "").replace(/"/g, '""')}"`)
         .join(";");
     });
 
