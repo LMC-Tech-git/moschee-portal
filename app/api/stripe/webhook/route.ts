@@ -197,6 +197,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Logging: Event-Typ und relevante Metadata für Debugging
+    const _meta = (event.data.object as Stripe.Checkout.Session | Stripe.PaymentIntent)?.metadata;
+    console.log("[Stripe Webhook]", {
+      type: event.type,
+      id: event.id,
+      payment_type: _meta?.payment_type,
+      registration_id: _meta?.registration_id,
+      fee_id: _meta?.fee_id,
+    });
+
     const pb = await getAdminPB();
 
     switch (event.type) {
@@ -553,6 +563,41 @@ export async function POST(request: NextRequest) {
             });
           } catch {
             console.warn("[Stripe Webhook] Donation für Refund nicht gefunden");
+          }
+        }
+        break;
+      }
+
+      // SEPA-Fallback: payment_intent.succeeded kommt wenn checkout.session.async_payment_succeeded
+      // nicht geliefert wird (je nach Stripe-Konfiguration)
+      case "payment_intent.succeeded": {
+        const pi = event.data.object as Stripe.PaymentIntent;
+        const registrationId = pi.metadata?.registration_id;
+        if (registrationId && pi.metadata?.payment_type === "event") {
+          await finalizeEventRegistration(pb, registrationId, "sepa", pi.id);
+          console.log(`[Stripe Webhook] payment_intent.succeeded → Event-Registrierung ${registrationId} finalisiert`);
+        }
+        break;
+      }
+
+      case "payment_intent.payment_failed": {
+        const pi = event.data.object as Stripe.PaymentIntent;
+        const registrationId = pi.metadata?.registration_id;
+        if (registrationId && pi.metadata?.payment_type === "event") {
+          try {
+            const reg = await pb.collection("event_registrations").getOne(registrationId);
+            if (reg.payment_status !== "paid") {
+              await pb.collection("event_registrations").update(registrationId, {
+                status: "pending",
+                payment_status: "pending",
+                payment_method: "cash",
+                original_payment_method: reg.payment_method || "sepa",
+                cancel_reason: "sepa_failed",
+              });
+              console.log(`[Stripe Webhook] payment_intent.payment_failed → Registrierung ${registrationId} auf Cash umgestellt`);
+            }
+          } catch {
+            console.warn(`[Stripe Webhook] payment_intent.payment_failed: Registrierung ${registrationId} nicht gefunden`);
           }
         }
         break;

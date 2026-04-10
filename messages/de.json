@@ -1242,6 +1242,7 @@
         "cancelled": "Abmeldung",
         "paid_stripe": "Event-Registrierung bezahlt (Stripe)",
         "paid_cash": "Event-Registrierung bar bezahlt",
+        "paid_manual": "Zahlung manuell bestätigt",
         "sepa_failed": "SEPA-Zahlung fehlgeschlagen"
       },
       "campaign": {

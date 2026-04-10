@@ -1242,6 +1242,7 @@
         "cancelled": "Kayıt iptal edildi",
         "paid_stripe": "Etkinlik kaydı ödendi (Stripe)",
         "paid_cash": "Etkinlik kaydı nakit ödendi",
+        "paid_manual": "Ödeme manuel olarak onaylandı",
         "sepa_failed": "SEPA ödemesi başarısız"
       },
       "campaign": {

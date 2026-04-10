@@ -1101,6 +1101,16 @@ export async function createEventStripeCheckout(
         registration_id: regRecord.id,
         user_id: userId,
       },
+      // Metadata auch auf PaymentIntent → payment_intent.succeeded Webhook
+      payment_intent_data: {
+        metadata: {
+          payment_type: "event",
+          mosque_id: mosqueId,
+          event_id: eventId,
+          registration_id: regRecord.id,
+          user_id: userId,
+        },
+      },
       success_url: `${baseUrl}/${slug}/events?payment_success=true`,
       cancel_url: `${baseUrl}/${slug}/events`,
     });
@@ -1181,6 +1191,15 @@ export async function retryEventPayment(
         event_id: reg.event_id,
         registration_id: registrationId,
         user_id: userId,
+      },
+      payment_intent_data: {
+        metadata: {
+          payment_type: "event",
+          mosque_id: reg.mosque_id,
+          event_id: reg.event_id,
+          registration_id: registrationId,
+          user_id: userId,
+        },
       },
       success_url: `${baseUrl}/${slug}/events?payment_success=true`,
       cancel_url: `${baseUrl}/${slug}/events`,
@@ -1292,5 +1311,55 @@ export async function markEventCashPaid(
   } catch (error) {
     console.error("[Events] Mark Cash Paid Fehler:", error);
     return { success: false, error: "Barzahlung konnte nicht bestätigt werden" };
+  }
+}
+
+/**
+ * Admin markiert eine Registrierung manuell als bezahlt (Cash oder SEPA-Fallback).
+ * payment_method wird NICHT verändert — sepa bleibt sepa, cash bleibt cash.
+ */
+export async function markEventPaidManually(
+  registrationId: string,
+  mosqueId: string
+): Promise<ActionResult> {
+  try {
+    const pb = await getAdminPB();
+    const reg = await pb.collection("event_registrations").getOne(registrationId);
+
+    if (reg.mosque_id !== mosqueId) {
+      return { success: false, error: "Keine Berechtigung" };
+    }
+
+    const isManuallyPayable =
+      (reg.payment_method === "cash" && reg.payment_status === "pending") ||
+      reg.payment_status === "pending_sepa";
+
+    if (!isManuallyPayable) {
+      return { success: false, error: "Zahlung kann nicht manuell bestätigt werden" };
+    }
+
+    await pb.collection("event_registrations").update(registrationId, {
+      status: "registered",
+      payment_status: "paid",
+      // payment_method bleibt unverändert!
+      paid_at: new Date().toISOString(),
+    });
+
+    logAudit({
+      mosqueId,
+      action: "event_registration.paid_manual",
+      entityType: "event_registration",
+      entityId: registrationId,
+      details: {
+        event_id: reg.event_id,
+        user_id: reg.user_id,
+        payment_method: reg.payment_method,
+      },
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("[Events] Mark Paid Manually Fehler:", error);
+    return { success: false, error: "Zahlung konnte nicht bestätigt werden" };
   }
 }

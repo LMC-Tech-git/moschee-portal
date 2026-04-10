@@ -15,7 +15,7 @@ import {
 import {
   getEventRegistrations,
   exportRegistrationsCSV,
-  markEventCashPaid,
+  markEventPaidManually,
 } from "@/lib/actions/events";
 import type { EventRegistration } from "@/types";
 
@@ -122,21 +122,17 @@ export function RegistrationList({
     }
   }
 
-  async function handleMarkCashPaid(registrationId: string) {
-    if (!confirm("Barzahlung bestätigen?")) return;
+  async function handleMarkPaidManually(registrationId: string, isSEPA: boolean) {
+    const msg = isSEPA ? "SEPA-Zahlung manuell als bezahlt markieren?" : "Barzahlung bestätigen?";
+    if (!confirm(msg)) return;
     setMarkingPaid(registrationId);
     try {
-      const result = await markEventCashPaid(registrationId, mosqueId);
+      const result = await markEventPaidManually(registrationId, mosqueId);
       if (result.success) {
         setRegistrations((prev) =>
           prev.map((r) =>
             r.id === registrationId
-              ? {
-                  ...r,
-                  status: "registered",
-                  payment_status: "paid",
-                  payment_method: "cash",
-                }
+              ? { ...r, status: "registered", payment_status: "paid" }
               : r
           )
         );
@@ -238,6 +234,7 @@ export function RegistrationList({
                 const isCashPending =
                   reg.payment_method === "cash" &&
                   reg.payment_status === "pending";
+                const isSepaPending = reg.payment_status === "pending_sepa";
 
                 return (
                   <tr
@@ -302,7 +299,7 @@ export function RegistrationList({
                           {isCashPending ? (
                             <button
                               type="button"
-                              onClick={() => handleMarkCashPaid(reg.id)}
+                              onClick={() => handleMarkPaidManually(reg.id, false)}
                               disabled={markingPaid === reg.id}
                               className="inline-flex min-h-[36px] items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-emerald-700 disabled:opacity-50"
                             >
@@ -312,6 +309,20 @@ export function RegistrationList({
                                 <Banknote className="h-3 w-3" />
                               )}
                               Bar bezahlt
+                            </button>
+                          ) : isSepaPending ? (
+                            <button
+                              type="button"
+                              onClick={() => handleMarkPaidManually(reg.id, true)}
+                              disabled={markingPaid === reg.id}
+                              className="inline-flex min-h-[36px] items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
+                            >
+                              {markingPaid === reg.id ? (
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                              ) : (
+                                <CreditCard className="h-3 w-3" />
+                              )}
+                              SEPA bezahlt
                             </button>
                           ) : (
                             <span className="text-gray-400">—</span>
