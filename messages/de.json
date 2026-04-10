@@ -646,7 +646,10 @@
       "monthWeek4": "4.",
       "monthWeekLast": "Letzter",
       "recurringEndLabel": "Enddatum (optional)",
-      "btnCancel": "Absagen"
+      "btnCancel": "Absagen",
+      "isPaidLabel": "Kostenpflichtig",
+      "priceLabel": "Preis (€)",
+      "priceMinError": "Mindestpreis: 0,50 €"
     }
   },
   "campaigns": {

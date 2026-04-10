@@ -646,7 +646,10 @@
       "monthWeek4": "4.",
       "monthWeekLast": "Son",
       "recurringEndLabel": "Bitiş tarihi (isteğe bağlı)",
-      "btnCancel": "İptal Et"
+      "btnCancel": "İptal Et",
+      "isPaidLabel": "Ücretli etkinlik",
+      "priceLabel": "Ücret (€)",
+      "priceMinError": "Minimum ücret: 0,50 €"
     }
   },
   "campaigns": {
