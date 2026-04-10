@@ -102,6 +102,7 @@ export default function MitgliedBearbeitenPage() {
     }
 
     loadMember();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [memberId, mosqueId]);
 
   // Historie laden (parallel, nach Member)

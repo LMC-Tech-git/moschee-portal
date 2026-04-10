@@ -119,6 +119,7 @@ export default function MitgliederListePage() {
     } finally {
       setIsLoading(false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mosqueId, page, searchQuery, roleFilter, statusFilter]);
 
   useEffect(() => {

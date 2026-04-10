@@ -43,6 +43,7 @@ export default function SchuljahrePage() {
   useEffect(() => {
     if (!mosqueId) return;
     loadYears();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mosqueId]);
 
   async function loadYears() {
