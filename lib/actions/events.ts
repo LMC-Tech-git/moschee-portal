@@ -1201,8 +1201,8 @@ export async function retryEventPayment(
           user_id: userId,
         },
       },
-      success_url: `${baseUrl}/${slug}/events/${eventId}?payment_success=true`,
-      cancel_url: `${baseUrl}/${slug}/events/${eventId}?payment_cancelled=true`,
+      success_url: `${baseUrl}/${slug}/events/${event.id}?payment_success=true`,
+      cancel_url: `${baseUrl}/${slug}/events/${event.id}?payment_cancelled=true`,
     });
 
     await pb.collection("event_registrations").update(registrationId, {
