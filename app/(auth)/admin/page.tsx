@@ -213,16 +213,16 @@ export default function AdminDashboard() {
             <Link
               key={item.href}
               href={item.href}
-              className="group rounded-xl border border-gray-200 bg-white p-5 transition-shadow hover:shadow-md"
+              className="group overflow-hidden rounded-xl border border-gray-200 bg-white p-5 transition-shadow hover:shadow-md"
             >
-              <div className="mb-3 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Icon className={`h-5 w-5 ${item.color}`} />
-                  <h3 className="font-bold text-gray-900">{item.title}</h3>
+              <div className="mb-3 flex min-w-0 items-center justify-between gap-2">
+                <div className="flex min-w-0 items-center gap-2">
+                  <Icon className={`h-5 w-5 shrink-0 ${item.color}`} />
+                  <h3 className="truncate font-bold text-gray-900">{item.title}</h3>
                 </div>
-                <ArrowRight className="h-4 w-4 text-gray-400 transition-transform group-hover:translate-x-0.5" />
+                <ArrowRight className="h-4 w-4 shrink-0 text-gray-400 transition-transform group-hover:translate-x-0.5" />
               </div>
-              <p className="text-sm text-gray-600">{item.desc}</p>
+              <p className="line-clamp-2 text-sm text-gray-600">{item.desc}</p>
               {item.badge && (
                 <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-700">
                   {item.badge}

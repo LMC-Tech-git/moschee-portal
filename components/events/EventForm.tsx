@@ -288,9 +288,9 @@ export function EventForm({ initialData, onSubmit, isEdit, defaultVisibility }: 
 
       {/* ── BEGINN ── */}
       <div className="space-y-3 rounded-lg border border-gray-200 bg-gray-50 p-4">
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 min-w-0">
           <Label className="text-sm font-semibold text-gray-700">{tE("startLabel")}</Label>
-          <div className="flex gap-1 rounded-lg bg-gray-200 p-1">
+          <div className="flex gap-1 rounded-lg bg-gray-200 p-1 ml-auto shrink-0">
             <button
               type="button"
               onClick={() => setStartMode("time")}
@@ -309,11 +309,12 @@ export function EventForm({ initialData, onSubmit, isEdit, defaultVisibility }: 
         </div>
 
         {startMode === "time" ? (
-          <div>
+          <div className="min-w-0">
             <Input
               type="datetime-local"
               value={startAt}
               onChange={(e) => setStartAt(e.target.value)}
+              className="w-full min-w-0"
             />
             {startAt && (
               <p className="mt-1 text-xs text-gray-500">
@@ -346,11 +347,11 @@ export function EventForm({ initialData, onSubmit, isEdit, defaultVisibility }: 
 
       {/* ── ENDE ── */}
       <div className="space-y-3 rounded-lg border border-gray-200 bg-gray-50 p-4">
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 min-w-0">
           <Label className="text-sm font-semibold text-gray-700">
             {tE("endLabel")} <span className="text-xs font-normal text-gray-400">{tE("endOptional")}</span>
           </Label>
-          <div className="flex gap-1 rounded-lg bg-gray-200 p-1">
+          <div className="flex gap-1 rounded-lg bg-gray-200 p-1 ml-auto shrink-0">
             <button
               type="button"
               onClick={() => setEndMode("time")}
@@ -373,6 +374,7 @@ export function EventForm({ initialData, onSubmit, isEdit, defaultVisibility }: 
             type="datetime-local"
             value={endAt}
             onChange={(e) => setEndAt(e.target.value)}
+            className="w-full min-w-0"
           />
         ) : (
           <div className="space-y-2">

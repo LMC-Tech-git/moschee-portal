@@ -91,6 +91,21 @@ function formToAmountCents(eur: string): number | undefined {
   return Math.round(v * 100);
 }
 
+/**
+ * Converts a PocketBase date string (e.g. "2026-04-01 00:00:00.000Z" with space, not T)
+ * to an HTML date-input value "YYYY-MM-DD" using local date components.
+ * Using toISOString() would apply UTC conversion and could shift the date by -1 day.
+ */
+function formatDateForInput(val?: string): string {
+  if (!val) return "";
+  const d = new Date(val);
+  if (isNaN(d.getTime())) return "";
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 // ─── Paid Dialog state ────────────────────────────────────────────────────────
 
 interface PaidDialogState {
@@ -186,8 +201,8 @@ export default function AdminFoerderpartnerPage() {
       amount_cents_eur: sponsor.amount_cents ? (sponsor.amount_cents / 100).toFixed(2) : "",
       contact_user_id: sponsor.contact_user_id ?? "",
       contact_email: sponsor.contact_email ?? "",
-      start_date: sponsor.start_date ? sponsor.start_date.split("T")[0] : "",
-      end_date: sponsor.end_date ? sponsor.end_date.split("T")[0] : "",
+      start_date: formatDateForInput(sponsor.start_date),
+      end_date: formatDateForInput(sponsor.end_date),
     });
     setFormError("");
     setDialogOpen(true);

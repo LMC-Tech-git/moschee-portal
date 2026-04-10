@@ -364,8 +364,9 @@ export async function markSponsorPaid(
     }
 
     const startDate = new Date();
-    // end_date immer auf letzten Tag des Endmonats setzen
-    const endDate = new Date(startDate.getFullYear(), startDate.getMonth() + durationMonths + 1, 0);
+    // end_date immer auf letzten Tag des Endmonats setzen (Tag 0 des Folgemonats)
+    // Korrekte Formel: month + durationMonths (OHNE +1, sonst 1 Monat zu spät)
+    const endDate = new Date(startDate.getFullYear(), startDate.getMonth() + durationMonths, 0);
 
     const startStr = startDate.toISOString().split("T")[0];
     const endStr = endDate.toISOString().split("T")[0];
@@ -375,6 +376,7 @@ export async function markSponsorPaid(
       payment_method: method,
       start_date: startStr,
       end_date: endStr,
+      months_paid: Number(durationMonths) || 0,
       paid_at: new Date().toISOString(),
       is_active: true,
       // notification_sent bleibt false (neue Laufzeit → neue Erinnerung möglich)

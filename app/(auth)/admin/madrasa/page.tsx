@@ -152,36 +152,36 @@ export default function AdminMadrasaPage() {
             {t("subtitle")}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap sm:flex-nowrap items-center gap-2">
           {feesEnabled && (
             <Link
               href="/admin/madrasa/gebuehren"
-              className="inline-flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
             >
-              <Banknote className="h-4 w-4" />
-              {t("fees")}
+              <Banknote className="h-4 w-4 shrink-0" />
+              <span className="hidden sm:inline">{t("fees")}</span>
             </Link>
           )}
           <Link
             href="/admin/madrasa/schueler"
-            className="inline-flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
           >
-            <Users className="h-4 w-4" />
-            {t("students")}
+            <Users className="h-4 w-4 shrink-0" />
+            <span className="hidden sm:inline">{t("students")}</span>
           </Link>
           <Link
             href="/admin/madrasa/schuljahre"
-            className="inline-flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
           >
-            <Calendar className="h-4 w-4" />
-            {t("academicYears")}
+            <Calendar className="h-4 w-4 shrink-0" />
+            <span className="hidden sm:inline">{t("academicYears")}</span>
           </Link>
           <Link
             href="/admin/madrasa/new"
-            className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-emerald-700"
+            className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-emerald-600 px-3 py-2.5 text-sm font-medium text-white hover:bg-emerald-700"
           >
-            <Plus className="h-4 w-4" />
-            {t("newCourse")}
+            <Plus className="h-4 w-4 shrink-0 sm:mr-1" />
+            <span className="hidden sm:inline">{t("newCourse")}</span>
           </Link>
         </div>
       </div>
