@@ -379,6 +379,7 @@ export async function markSponsorPaid(
       months_paid: Number(durationMonths) || 0,
       paid_at: new Date().toISOString(),
       is_active: true,
+      is_approved: true,  // Zahlung bestätigt → direkt öffentlich sichtbar
       // notification_sent bleibt false (neue Laufzeit → neue Erinnerung möglich)
       notification_sent: false,
     });
