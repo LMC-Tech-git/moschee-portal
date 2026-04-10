@@ -86,8 +86,12 @@ export async function getActiveSponsors(
   try {
     const pb = await getAdminPB();
     const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+    // PocketBase speichert date-Felder als "2026-04-10 00:00:00.000Z" (mit Uhrzeit).
+    // String-Vergleich "2026-04-10 00:00:00.000Z" <= "2026-04-10" wäre FALSE (Leerzeichen > EOS).
+    // → todayEnd mit Uhrzeit-Suffix verwenden damit start_date = heute korrekt matched.
+    const todayEnd = `${today} 23:59:59.999Z`;
     const records = await pb.collection("sponsors").getFullList({
-      filter: `mosque_id = "${mosqueId}" && is_active = true && is_approved = true && (start_date = "" || start_date <= "${today}") && (end_date = "" || end_date >= "${today}")`,
+      filter: `mosque_id = "${mosqueId}" && is_active = true && is_approved = true && (start_date = "" || start_date <= "${todayEnd}") && (end_date = "" || end_date >= "${today}")`,
       sort: "sort_order,name",
     });
     return { success: true, data: records.map(mapRecord) };
