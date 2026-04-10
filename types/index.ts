@@ -202,6 +202,9 @@ export interface Event {
   recurrence_month_week?: number; // 1–4 oder -1 (letzter)
   recurrence_month_weekday?: string; // "monday"–"sunday"
   recurrence_end_date?: string;
+  // Bezahlte Events
+  is_paid?: boolean;
+  price_cents?: number;
   expand?: {
     created_by?: User;
   };
@@ -216,7 +219,7 @@ export interface EventRegistration {
   user_id: string; // optional, nur bei member
   guest_name: string; // nur bei guest
   guest_email: string; // nur bei guest
-  status: "registered" | "cancelled" | "attended" | "no_show";
+  status: "registered" | "cancelled" | "attended" | "no_show" | "pending" | "expired";
   registered_at: string;
   cancelled_at: string;
   verify_token: string;
@@ -225,6 +228,15 @@ export interface EventRegistration {
   user_agent: string;
   created: string;
   updated: string;
+  // Zahlungsfelder (bezahlte Events)
+  payment_status?: "free" | "pending" | "pending_sepa" | "paid" | "expired" | "failed";
+  payment_method?: "card" | "sepa" | "cash" | "";
+  original_payment_method?: string;
+  payment_ref?: string;
+  checkout_url?: string;
+  expires_at?: string;
+  paid_at?: string;
+  cancel_reason?: string;
   // Nachgeladen für Mitglieds-Registrierungen
   member_name?: string;
   member_email?: string;

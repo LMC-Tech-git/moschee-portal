@@ -8,6 +8,7 @@ import { renderEventConfirmation } from "@/lib/email/templates";
 import type { Event, EventRegistration } from "@/types";
 import type { RecordModel } from "pocketbase";
 import { checkDemoLimit } from "@/lib/demo";
+import Stripe from "stripe";
 
 // --- Helpers ---
 
@@ -35,6 +36,8 @@ function mapRecordToEvent(record: RecordModel): Event {
     recurrence_day_of_week: record.recurrence_day_of_week || "",
     recurrence_day_of_month: record.recurrence_day_of_month || 0,
     recurrence_end_date: record.recurrence_end_date || "",
+    is_paid: record.is_paid || false,
+    price_cents: record.price_cents || 0,
   };
 }
 
@@ -661,12 +664,15 @@ export async function exportRegistrationsCSV(
 
 /**
  * 1-Klick Mitglieder-Anmeldung für ein Event.
+ * Bei bezahlten Events: gibt checkoutUrl zurück statt direkt zu registrieren.
  */
 export async function registerMemberForEvent(
   mosqueId: string,
   eventId: string,
-  userId: string
-): Promise<ActionResult<EventRegistration>> {
+  userId: string,
+  slug?: string,
+  baseUrl?: string
+): Promise<ActionResult<EventRegistration> & { checkoutUrl?: string }> {
   try {
     const pb = await getAdminPB();
 
@@ -676,7 +682,19 @@ export async function registerMemberForEvent(
       return { success: false, error: "Veranstaltung nicht verfügbar" };
     }
 
-    // Kapazität prüfen
+    // Bezahltes Event → Stripe Checkout
+    if (event.is_paid && event.price_cents >= 50) {
+      if (!slug || !baseUrl) {
+        return { success: false, error: "Konfigurationsfehler: slug/baseUrl fehlen" };
+      }
+      const checkoutResult = await createEventStripeCheckout(mosqueId, userId, eventId, slug, baseUrl);
+      if (!checkoutResult.success || !checkoutResult.checkoutUrl) {
+        return { success: false, error: checkoutResult.error || "Checkout fehlgeschlagen" };
+      }
+      return { success: true, checkoutUrl: checkoutResult.checkoutUrl };
+    }
+
+    // Kapazität prüfen (kostenlose Events)
     if (event.capacity > 0) {
       const regCount = await getEventRegistrationCount(eventId);
       if (regCount >= event.capacity) {
@@ -703,6 +721,7 @@ export async function registerMemberForEvent(
       registrant_type: "member",
       user_id: userId,
       status: "registered",
+      payment_status: "free",
       registered_at: new Date().toISOString(),
     });
 
@@ -827,5 +846,416 @@ export async function isMemberRegistered(
     return true;
   } catch {
     return false;
+  }
+}
+
+/**
+ * Registrierungsstatus eines Mitglieds für ein Event (inkl. payment_status).
+ */
+export async function getMemberRegistrationStatus(
+  eventId: string,
+  userId: string
+): Promise<{ registered: boolean; registration?: EventRegistration }> {
+  try {
+    const pb = await getAdminPB();
+    const record = await pb.collection("event_registrations").getFirstListItem(
+      `event_id = "${eventId}" && user_id = "${userId}" && status != "cancelled" && status != "expired"`
+    );
+    return {
+      registered: true,
+      registration: {
+        id: record.id,
+        mosque_id: record.mosque_id,
+        event_id: record.event_id,
+        registrant_type: record.registrant_type,
+        user_id: record.user_id || "",
+        guest_name: "",
+        guest_email: "",
+        status: record.status,
+        registered_at: record.registered_at || "",
+        cancelled_at: "",
+        verify_token: "",
+        verified_at: "",
+        source_ip_hash: "",
+        user_agent: "",
+        created: record.created || "",
+        updated: record.updated || "",
+        payment_status: record.payment_status || undefined,
+        payment_method: record.payment_method || undefined,
+        checkout_url: record.checkout_url || undefined,
+        expires_at: record.expires_at || undefined,
+        paid_at: record.paid_at || undefined,
+        cancel_reason: record.cancel_reason || undefined,
+      },
+    };
+  } catch {
+    return { registered: false };
+  }
+}
+
+// ─── Kapazitätsprüfung für bezahlte Events ────────────────────────────────────
+
+/**
+ * Zählt belegte Plätze für bezahlte Events:
+ * - status = "registered" (paid + free)
+ * - status = "pending" AND payment_method = "cash"
+ * - payment_status = "pending_sepa"
+ */
+async function getPaidEventOccupancy(pb: Awaited<ReturnType<typeof getAdminPB>>, eventId: string): Promise<number> {
+  const [confirmed, cashPending, sepa] = await Promise.all([
+    pb.collection("event_registrations").getList(1, 1, {
+      filter: `event_id = "${eventId}" && status = "registered"`,
+      fields: "id",
+    }),
+    pb.collection("event_registrations").getList(1, 1, {
+      filter: `event_id = "${eventId}" && status = "pending" && payment_method = "cash"`,
+      fields: "id",
+    }),
+    pb.collection("event_registrations").getList(1, 1, {
+      filter: `event_id = "${eventId}" && payment_status = "pending_sepa"`,
+      fields: "id",
+    }),
+  ]);
+  return confirmed.totalItems + cashPending.totalItems + sepa.totalItems;
+}
+
+// ─── Pending-Registrierungen ablaufen lassen ──────────────────────────────────
+
+/**
+ * Setzt abgelaufene pending-Registrierungen (nur card, nicht cash) auf expired.
+ * Limit: 50 Records pro Aufruf.
+ */
+export async function expirePendingRegistrations(eventId?: string): Promise<void> {
+  try {
+    const pb = await getAdminPB();
+    const now = new Date().toISOString();
+    let filter = `payment_status = "pending" && payment_method != "cash" && expires_at != "" && expires_at < "${now}"`;
+    if (eventId) filter += ` && event_id = "${eventId}"`;
+
+    const records = await pb.collection("event_registrations").getList(1, 50, { filter });
+    for (let i = 0; i < records.items.length; i++) {
+      const rec = records.items[i];
+      await pb.collection("event_registrations").update(rec.id, {
+        status: "expired",
+        payment_status: "expired",
+        cancel_reason: "payment_timeout",
+      });
+    }
+  } catch (err) {
+    console.error("[Events] expirePendingRegistrations Fehler:", err);
+  }
+}
+
+// ─── Stripe Checkout für bezahlte Events ─────────────────────────────────────
+
+/**
+ * Erstellt eine Stripe-Checkout-Session für ein bezahltes Event.
+ * Gibt die Checkout-URL zurück.
+ */
+export async function createEventStripeCheckout(
+  mosqueId: string,
+  userId: string,
+  eventId: string,
+  slug: string,
+  baseUrl: string
+): Promise<ActionResult & { checkoutUrl?: string }> {
+  try {
+    const stripeKey = process.env.STRIPE_SECRET_KEY;
+    if (!stripeKey) return { success: false, error: "Stripe nicht konfiguriert" };
+
+    const pb = await getAdminPB();
+
+    // Event laden und validieren
+    const event = await pb.collection("events").getOne(eventId);
+    if (event.mosque_id !== mosqueId || event.status !== "published") {
+      return { success: false, error: "Veranstaltung nicht verfügbar" };
+    }
+    if (!event.is_paid || !event.price_cents || event.price_cents < 50) {
+      return { success: false, error: "Veranstaltung ist nicht kostenpflichtig" };
+    }
+
+    // Abgelaufene Registrierungen bereinigen
+    await expirePendingRegistrations(eventId);
+
+    // 1. Prüfung: bereits registriert oder pending?
+    let existingReg: RecordModel | null = null;
+    try {
+      existingReg = await pb.collection("event_registrations").getFirstListItem(
+        `user_id = "${userId}" && event_id = "${eventId}" && payment_status != "expired" && payment_status != "failed"`
+      );
+    } catch {
+      // Keine gefunden
+    }
+
+    if (existingReg) {
+      if (existingReg.payment_status === "paid") {
+        return { success: false, error: "Sie sind bereits für diese Veranstaltung angemeldet" };
+      }
+      if (existingReg.payment_status === "pending_sepa") {
+        return { success: false, error: "Eine SEPA-Zahlung ist bereits in Bearbeitung" };
+      }
+      if (existingReg.payment_method === "cash") {
+        return { success: false, error: "Sie haben bereits eine Barzahlung reserviert" };
+      }
+      if (existingReg.payment_status === "pending" && existingReg.checkout_url) {
+        return { success: true, checkoutUrl: existingReg.checkout_url };
+      }
+    }
+
+    // 2. Prüfung direkt vor Insert (Race Condition minimieren)
+    let doubleCheck: RecordModel | null = null;
+    try {
+      doubleCheck = await pb.collection("event_registrations").getFirstListItem(
+        `user_id = "${userId}" && event_id = "${eventId}" && payment_status = "pending"`
+      );
+    } catch {
+      // Keine gefunden
+    }
+    if (doubleCheck?.checkout_url) {
+      return { success: true, checkoutUrl: doubleCheck.checkout_url };
+    }
+
+    // Kapazitätsprüfung (explizit)
+    if (event.capacity > 0) {
+      const occupancy = await getPaidEventOccupancy(pb, eventId);
+      if (occupancy >= event.capacity) {
+        return { success: false, error: "Veranstaltung ist ausgebucht" };
+      }
+    }
+
+    // User-E-Mail laden
+    const user = await pb.collection("users").getOne(userId, { fields: "email,first_name,last_name,name" });
+
+    // Registration erstellen (pending, kein Platzverbrauch für card)
+    const expiresAt = new Date(Date.now() + 30 * 60 * 1000).toISOString();
+    const regRecord = await pb.collection("event_registrations").create({
+      mosque_id: mosqueId,
+      event_id: eventId,
+      registrant_type: "member",
+      user_id: userId,
+      status: "pending",
+      payment_status: "pending",
+      payment_method: "card",
+      registered_at: new Date().toISOString(),
+      expires_at: expiresAt,
+    });
+
+    // Stripe-Session erstellen
+    const stripe = new Stripe(stripeKey, { apiVersion: "2024-06-20" });
+    const session = await stripe.checkout.sessions.create({
+      mode: "payment",
+      payment_method_types: ["card", "sepa_debit"],
+      customer_email: user.email || undefined,
+      line_items: [
+        {
+          price_data: {
+            currency: "eur",
+            product_data: {
+              name: event.title,
+              description: `Veranstaltung · Moschee.App erhebt keine Provision.`,
+            },
+            unit_amount: event.price_cents,
+          },
+          quantity: 1,
+        },
+      ],
+      metadata: {
+        payment_type: "event",
+        mosque_id: mosqueId,
+        event_id: eventId,
+        registration_id: regRecord.id,
+        user_id: userId,
+      },
+      success_url: `${baseUrl}/${slug}/events?payment_success=true`,
+      cancel_url: `${baseUrl}/${slug}/events`,
+    });
+
+    // payment_ref + checkout_url speichern
+    await pb.collection("event_registrations").update(regRecord.id, {
+      payment_ref: session.id,
+      checkout_url: session.url || "",
+    });
+
+    return { success: true, checkoutUrl: session.url || "" };
+  } catch (error) {
+    console.error("[Events] Stripe Checkout Fehler:", error);
+    return { success: false, error: "Checkout konnte nicht gestartet werden" };
+  }
+}
+
+/**
+ * Erneute Zahlung für eine abgelaufene/fehlgeschlagene Registrierung.
+ * Alte Stripe-Session wird gecancelt, neue Session erstellt.
+ */
+export async function retryEventPayment(
+  registrationId: string,
+  userId: string,
+  slug: string,
+  baseUrl: string
+): Promise<ActionResult & { checkoutUrl?: string }> {
+  try {
+    const stripeKey = process.env.STRIPE_SECRET_KEY;
+    if (!stripeKey) return { success: false, error: "Stripe nicht konfiguriert" };
+
+    const pb = await getAdminPB();
+    const reg = await pb.collection("event_registrations").getOne(registrationId);
+
+    if (reg.user_id !== userId) {
+      return { success: false, error: "Keine Berechtigung" };
+    }
+    if (!["pending", "expired", "failed"].includes(reg.payment_status || "")) {
+      return { success: false, error: "Zahlung kann nicht wiederholt werden" };
+    }
+
+    const event = await pb.collection("events").getOne(reg.event_id);
+    if (!event.is_paid || !event.price_cents || event.price_cents < 50) {
+      return { success: false, error: "Veranstaltung ist nicht kostenpflichtig" };
+    }
+
+    // Alte Stripe-Session expiren (ignoriere Fehler — Session könnte schon abgelaufen sein)
+    if (reg.payment_ref) {
+      try {
+        const stripe = new Stripe(stripeKey, { apiVersion: "2024-06-20" });
+        await stripe.checkout.sessions.expire(reg.payment_ref);
+      } catch {
+        // Ignorieren
+      }
+    }
+
+    const user = await pb.collection("users").getOne(userId, { fields: "email" });
+    const stripe = new Stripe(stripeKey, { apiVersion: "2024-06-20" });
+    const expiresAt = new Date(Date.now() + 30 * 60 * 1000).toISOString();
+
+    const session = await stripe.checkout.sessions.create({
+      mode: "payment",
+      payment_method_types: ["card", "sepa_debit"],
+      customer_email: user.email || undefined,
+      line_items: [
+        {
+          price_data: {
+            currency: "eur",
+            product_data: { name: event.title },
+            unit_amount: event.price_cents,
+          },
+          quantity: 1,
+        },
+      ],
+      metadata: {
+        payment_type: "event",
+        mosque_id: reg.mosque_id,
+        event_id: reg.event_id,
+        registration_id: registrationId,
+        user_id: userId,
+      },
+      success_url: `${baseUrl}/${slug}/events?payment_success=true`,
+      cancel_url: `${baseUrl}/${slug}/events`,
+    });
+
+    await pb.collection("event_registrations").update(registrationId, {
+      status: "pending",
+      payment_status: "pending",
+      payment_method: "card",
+      payment_ref: session.id,
+      checkout_url: session.url || "",
+      expires_at: expiresAt,
+      cancel_reason: null,
+    });
+
+    return { success: true, checkoutUrl: session.url || "" };
+  } catch (error) {
+    console.error("[Events] Retry Payment Fehler:", error);
+    return { success: false, error: "Erneute Zahlung fehlgeschlagen" };
+  }
+}
+
+/**
+ * User wechselt zu Barzahlung (nach Fehlschlag oder direkt).
+ * Reserviert einen Platz ohne Online-Zahlung.
+ */
+export async function switchToBarPayment(
+  registrationId: string,
+  userId: string
+): Promise<ActionResult> {
+  try {
+    const pb = await getAdminPB();
+    const reg = await pb.collection("event_registrations").getOne(registrationId);
+
+    if (reg.user_id !== userId) {
+      return { success: false, error: "Keine Berechtigung" };
+    }
+    if (!["pending", "failed", "expired"].includes(reg.payment_status || "")) {
+      return { success: false, error: "Wechsel zu Barzahlung nicht möglich" };
+    }
+
+    // Kapazität nochmal prüfen (cash reserviert Platz)
+    const event = await pb.collection("events").getOne(reg.event_id);
+    if (event.capacity > 0) {
+      const occupancy = await getPaidEventOccupancy(pb, reg.event_id);
+      if (occupancy >= event.capacity) {
+        return { success: false, error: "Veranstaltung ist ausgebucht" };
+      }
+    }
+
+    await pb.collection("event_registrations").update(registrationId, {
+      payment_method: "cash",
+      payment_status: "pending",
+      expires_at: null,
+      cancel_reason: reg.cancel_reason === "sepa_failed" ? "sepa_failed" : null,
+      original_payment_method: reg.payment_method || null,
+    });
+
+    logAudit({
+      mosqueId: reg.mosque_id,
+      userId,
+      action: "event_registration.switched_to_cash",
+      entityType: "event_registration",
+      entityId: registrationId,
+      details: { event_id: reg.event_id },
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("[Events] Switch to Bar Fehler:", error);
+    return { success: false, error: "Wechsel zu Barzahlung fehlgeschlagen" };
+  }
+}
+
+/**
+ * Admin markiert eine Registrierung als bar bezahlt.
+ */
+export async function markEventCashPaid(
+  registrationId: string,
+  mosqueId: string
+): Promise<ActionResult> {
+  try {
+    const pb = await getAdminPB();
+    const reg = await pb.collection("event_registrations").getOne(registrationId);
+
+    if (reg.mosque_id !== mosqueId) {
+      return { success: false, error: "Keine Berechtigung" };
+    }
+    if (reg.payment_method !== "cash" || reg.payment_status !== "pending") {
+      return { success: false, error: "Registrierung ist nicht für Barzahlung vorgesehen" };
+    }
+
+    await pb.collection("event_registrations").update(registrationId, {
+      status: "registered",
+      payment_status: "paid",
+      payment_method: "cash",
+      paid_at: new Date().toISOString(),
+    });
+
+    logAudit({
+      mosqueId,
+      action: "event_registration.paid_cash",
+      entityType: "event_registration",
+      entityId: registrationId,
+      details: { event_id: reg.event_id, user_id: reg.user_id },
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("[Events] Mark Cash Paid Fehler:", error);
+    return { success: false, error: "Barzahlung konnte nicht bestätigt werden" };
   }
 }

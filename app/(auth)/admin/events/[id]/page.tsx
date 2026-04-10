@@ -90,6 +90,7 @@ export default function EditEventPage() {
           eventId={eventId}
           mosqueId={mosqueId}
           eventTitle={event.title}
+          isPaid={event.is_paid}
         />
       </div>
     </div>

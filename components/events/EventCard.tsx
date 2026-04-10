@@ -1,4 +1,4 @@
-import { Calendar, MapPin, Users, RefreshCw } from "lucide-react";
+import { Calendar, MapPin, Users, RefreshCw, Euro } from "lucide-react";
 import type { Event } from "@/types";
 import { formatDate, formatDateTime } from "@/lib/utils";
 import { getNextOccurrence } from "@/lib/recurrence";
@@ -99,6 +99,12 @@ export async function EventCard({ event, compact, registrationCount }: EventCard
               <span className="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-medium text-purple-700">
                 <RefreshCw className="h-3 w-3" />
                 {t("recurring")}
+              </span>
+            )}
+            {event.is_paid && event.price_cents && event.price_cents > 0 && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-700">
+                <Euro className="h-3 w-3" />
+                {(event.price_cents / 100).toLocaleString("de-DE", { style: "currency", currency: "EUR" })}
               </span>
             )}
           </div>

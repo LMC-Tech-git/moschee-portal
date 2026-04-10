@@ -64,28 +64,41 @@ export type PostInput = z.infer<typeof postSchema>;
 
 // --- Events ---
 
-export const eventSchema = z.object({
-  title: z.string().min(3, "Titel muss mindestens 3 Zeichen lang sein").max(200),
-  description: z.string().optional().default(""),
-  category: z.enum(["youth", "lecture", "quran", "community", "ramadan", "other"]),
-  location_name: z.string().optional().default(""),
-  start_at: z.string().optional().default(""),
-  start_prayer: z.string().optional().default(""),
-  end_at: z.string().optional().default(""),
-  duration_minutes: z.number().int().min(0).optional().default(0),
-  visibility: z.enum(["public", "members"]),
-  capacity: z.number().int().min(0).default(0),
-  status: z.enum(["published", "cancelled", "draft"]).default("draft"),
-  // Wiederkehrende Events
-  is_recurring: z.boolean().optional().default(false),
-  recurrence_type: z.string().optional().default(""),
-  recurrence_day_of_week: z.string().optional().default(""),
-  recurrence_day_of_month: z.number().int().min(0).max(31).optional().default(0),
-  recurrence_month_mode: z.enum(["day", "weekday"]).optional().default("day"),
-  recurrence_month_week: z.number().int().min(-1).max(4).optional().default(1),
-  recurrence_month_weekday: z.string().optional().default(""),
-  recurrence_end_date: z.string().optional().default(""),
-});
+export const eventSchema = z
+  .object({
+    title: z.string().min(3, "Titel muss mindestens 3 Zeichen lang sein").max(200),
+    description: z.string().optional().default(""),
+    category: z.enum(["youth", "lecture", "quran", "community", "ramadan", "other"]),
+    location_name: z.string().optional().default(""),
+    start_at: z.string().optional().default(""),
+    start_prayer: z.string().optional().default(""),
+    end_at: z.string().optional().default(""),
+    duration_minutes: z.number().int().min(0).optional().default(0),
+    visibility: z.enum(["public", "members"]),
+    capacity: z.number().int().min(0).default(0),
+    status: z.enum(["published", "cancelled", "draft"]).default("draft"),
+    // Wiederkehrende Events
+    is_recurring: z.boolean().optional().default(false),
+    recurrence_type: z.string().optional().default(""),
+    recurrence_day_of_week: z.string().optional().default(""),
+    recurrence_day_of_month: z.number().int().min(0).max(31).optional().default(0),
+    recurrence_month_mode: z.enum(["day", "weekday"]).optional().default("day"),
+    recurrence_month_week: z.number().int().min(-1).max(4).optional().default(1),
+    recurrence_month_weekday: z.string().optional().default(""),
+    recurrence_end_date: z.string().optional().default(""),
+    // Bezahlte Events
+    is_paid: z.boolean().optional().default(false),
+    price_cents: z.number().int().min(0).optional().default(0),
+  })
+  .superRefine((data, ctx) => {
+    if (data.is_paid && (!data.price_cents || data.price_cents < 50)) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["price_cents"],
+        message: "Preis muss mindestens 0,50 € betragen",
+      });
+    }
+  });
 export type EventInput = z.infer<typeof eventSchema>;
 
 // --- Guest Event Registration ---

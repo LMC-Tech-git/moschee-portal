@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, Euro } from "lucide-react";
 import type { Event } from "@/types";
 import type { EventInput } from "@/lib/validations";
 import { Input } from "@/components/ui/input";
@@ -120,6 +120,12 @@ export function EventForm({ initialData, onSubmit, isEdit, defaultVisibility }: 
     (initialData?.duration_minutes || 0) % 60
   );
 
+  // --- Bezahlte Events ---
+  const [isPaid, setIsPaid] = useState(initialData?.is_paid || false);
+  const [priceEuro, setPriceEuro] = useState<string>(
+    initialData?.price_cents ? (initialData.price_cents / 100).toFixed(2) : ""
+  );
+
   // --- Wiederholung ---
   const [isRecurring, setIsRecurring] = useState(initialData?.is_recurring || false);
   const [recurrenceType, setRecurrenceType] = useState(
@@ -200,6 +206,8 @@ export function EventForm({ initialData, onSubmit, isEdit, defaultVisibility }: 
         recurrence_month_week: isRecurring && recurrenceType === "monthly" && recurrenceMonthMode === "weekday" ? recurrenceMonthWeek : 1,
         recurrence_month_weekday: isRecurring && recurrenceType === "monthly" && recurrenceMonthMode === "weekday" ? recurrenceMonthWeekday : "",
         recurrence_end_date: isRecurring && recurrenceEndDate ? new Date(recurrenceEndDate).toISOString() : "",
+        is_paid: isPaid,
+        price_cents: isPaid ? Math.round(parseFloat(priceEuro || "0") * 100) : 0,
       });
 
       if (result.success) {
@@ -428,6 +436,47 @@ export function EventForm({ initialData, onSubmit, isEdit, defaultVisibility }: 
             setCapacity(val === "" ? "" : parseInt(val) || 0);
           }}
         />
+      </div>
+
+      {/* ── KOSTENPFLICHTIG ── */}
+      <div className="space-y-3 rounded-lg border border-gray-200 bg-gray-50 p-4">
+        <div className="flex items-center gap-3">
+          <input
+            type="checkbox"
+            id="is_paid"
+            checked={isPaid}
+            onChange={(e) => {
+              setIsPaid(e.target.checked);
+              if (!e.target.checked) setPriceEuro("");
+            }}
+            className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+          />
+          <Label htmlFor="is_paid" className="flex items-center gap-2 cursor-pointer text-sm font-semibold text-gray-700">
+            <Euro className="h-4 w-4 text-emerald-600" />
+            {tE("isPaidLabel")}
+          </Label>
+        </div>
+        {isPaid && (
+          <div className="space-y-1.5 pl-7">
+            <Label htmlFor="price_euro" className="text-xs text-gray-500">{tE("priceLabel")}</Label>
+            <div className="flex items-center gap-2">
+              <Input
+                id="price_euro"
+                type="number"
+                min={0.50}
+                step={0.50}
+                placeholder="5,00"
+                value={priceEuro}
+                onChange={(e) => setPriceEuro(e.target.value)}
+                className="w-32 min-h-[44px]"
+              />
+              <span className="text-sm text-gray-500">€</span>
+            </div>
+            {isPaid && priceEuro && parseFloat(priceEuro) < 0.5 && (
+              <p className="text-xs text-red-600">{tE("priceMinError")}</p>
+            )}
+          </div>
+        )}
       </div>
 
       {/* ── WIEDERHOLUNG ── */}

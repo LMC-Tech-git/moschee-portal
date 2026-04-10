@@ -1495,6 +1495,71 @@ async function main() {
     if (updated === 0) console.log("   ⏭️  Alle Records bereits konfiguriert");
   }
 
+  // 16. events: Bezahlte Events (is_paid, price_cents)
+  if (collectionMap.events) {
+    const eventsCol = (await getExistingCollections()).find((c) => c.name === "events");
+    const existingFieldNames = (eventsCol?.schema || []).map((f) => f.name);
+    const eventsPaidFields = [
+      { name: "is_paid", type: "bool", options: { default: false } },
+      { name: "price_cents", type: "number", options: { min: 0, default: 0 } },
+    ].filter((f) => !existingFieldNames.includes(f.name));
+    if (eventsPaidFields.length > 0) {
+      const newSchema = [...(eventsCol?.schema || []), ...eventsPaidFields];
+      await updateCollection("events", { schema: newSchema });
+      console.log(`   ✅ events: ${eventsPaidFields.map((f) => f.name).join(", ")} hinzugefügt`);
+    } else {
+      console.log("   ⏭️  events: is_paid/price_cents bereits vorhanden");
+    }
+  }
+
+  // 17. event_registrations: Zahlungsfelder (payment_status, payment_method, usw.)
+  if (collectionMap.event_registrations) {
+    const regCol = (await getExistingCollections()).find((c) => c.name === "event_registrations");
+    const existingFieldNames = (regCol?.schema || []).map((f) => f.name);
+    const regPaymentFields = [
+      {
+        name: "payment_status",
+        type: "select",
+        options: { values: ["free", "pending", "pending_sepa", "paid", "expired", "failed"], maxSelect: 1 },
+      },
+      {
+        name: "payment_method",
+        type: "select",
+        options: { values: ["card", "sepa", "cash"], maxSelect: 1 },
+      },
+      { name: "original_payment_method", type: "text" },
+      { name: "payment_ref", type: "text" },
+      { name: "checkout_url", type: "text" },
+      { name: "expires_at", type: "date" },
+      { name: "paid_at", type: "date" },
+      { name: "cancel_reason", type: "text" },
+    ].filter((f) => !existingFieldNames.includes(f.name));
+    if (regPaymentFields.length > 0) {
+      const newSchema = [...(regCol?.schema || []), ...regPaymentFields];
+      await updateCollection("event_registrations", { schema: newSchema });
+      console.log(`   ✅ event_registrations: ${regPaymentFields.map((f) => f.name).join(", ")} hinzugefügt`);
+    } else {
+      console.log("   ⏭️  event_registrations: alle Zahlungsfelder vorhanden");
+    }
+
+    // event_registrations.status: "pending" + "expired" ergänzen
+    const regColCurrent = (await getExistingCollections()).find((c) => c.name === "event_registrations");
+    const statusField = (regColCurrent?.schema || []).find((f) => f.name === "status");
+    if (statusField && statusField.options?.values) {
+      const requiredStatuses = ["registered", "cancelled", "attended", "no_show", "pending", "expired"];
+      const missingStatuses = requiredStatuses.filter((s) => !statusField.options.values.includes(s));
+      if (missingStatuses.length > 0) {
+        const updatedSchema = (regColCurrent.schema || []).map((f) =>
+          f.name === "status" ? { ...f, options: { ...f.options, values: requiredStatuses } } : f
+        );
+        await updateCollection("event_registrations", { schema: updatedSchema });
+        console.log(`   ✅ event_registrations.status: ${missingStatuses.join(", ")} hinzugefügt`);
+      } else {
+        console.log("   ⏭️  event_registrations.status: alle Werte vorhanden");
+      }
+    }
+  }
+
   console.log("\n=== ✅ Migration abgeschlossen ===\n");
 
   // 7. .env.local Hinweis

@@ -1236,7 +1236,10 @@
       "event_registration": {
         "guest_created": "Misafir kaydı",
         "member_created": "Üye kaydı",
-        "cancelled": "Kayıt iptal edildi"
+        "cancelled": "Kayıt iptal edildi",
+        "paid_stripe": "Etkinlik kaydı ödendi (Stripe)",
+        "paid_cash": "Etkinlik kaydı nakit ödendi",
+        "sepa_failed": "SEPA ödemesi başarısız"
       },
       "campaign": {
         "created": "Kampanya oluşturuldu",

@@ -974,6 +974,13 @@ async function seedEvents(adminId) {
       category: "lecture", visibility: "public", capacity: 60, daysOff: 19,
       durationH: 2, location: "Seminarraum",
     },
+    {
+      title: "Workshop: Arabische Kalligraphie",
+      description: "Praktischer Kalligraphie-Workshop für Einsteiger. Lernmaterial und Schreibutensilien werden gestellt. Teilnehmerzahl begrenzt — frühzeitige Anmeldung empfohlen. Teilnahmebeitrag: 5 €.",
+      category: "youth", visibility: "public", capacity: 20, daysOff: 25,
+      durationH: 3, location: "Seminarraum",
+      is_paid: true, price_cents: 500,
+    },
   ];
 
   const eventIds = [];
@@ -999,6 +1006,8 @@ async function seedEvents(adminId) {
         capacity: e.capacity,
         status: e.title.includes("Benefizauktion") ? "draft" : "published",
         is_recurring: false,
+        is_paid: e.is_paid ?? false,
+        price_cents: e.price_cents ?? 0,
         created_by: adminId,
       }
     );
@@ -1124,6 +1133,58 @@ async function seedEventRegistrations(events, memberIds) {
 
     console.log(`  ✅ ${event.title} — ${memberCount} Mitglieder, ${guestCount} Gäste`);
   }
+
+  // Bezahltes Demo-Event: Beispiel-Registrierungen mit Zahlungsstatus
+  const paidEvent = events.find((e) => e.is_paid);
+  if (paidEvent && memberIds.length >= 2) {
+    // Registrierung 1: Kartenzahlung bestätigt
+    const [uid1, uid2] = memberIds;
+    const paidFilter1 = `event_id="${paidEvent.id}"&&user_id="${uid1}"`;
+    const ex1 = await pbFetch(
+      `collections/event_registrations/records?filter=${encodeURIComponent(paidFilter1)}&perPage=1`,
+      { throwOnError: false }
+    );
+    if (!ex1?.items?.length) {
+      await pbCreate("event_registrations", {
+        mosque_id: MOSQUE_ID,
+        event_id: paidEvent.id,
+        registrant_type: "member",
+        user_id: uid1,
+        guest_name: "", guest_email: "",
+        status: "registered",
+        payment_status: "paid",
+        payment_method: "card",
+        payment_ref: "cs_test_demo_paid_001",
+        registered_at: isoDateTime(daysAgo(2)),
+        paid_at: isoDateTime(daysAgo(2)),
+      }).catch(() => {});
+      console.log(`  💳 Demo-Zahlung (Karte) für ${uid1}`);
+      totalCreated++;
+    }
+
+    // Registrierung 2: Barzahlung ausstehend
+    const paidFilter2 = `event_id="${paidEvent.id}"&&user_id="${uid2}"`;
+    const ex2 = await pbFetch(
+      `collections/event_registrations/records?filter=${encodeURIComponent(paidFilter2)}&perPage=1`,
+      { throwOnError: false }
+    );
+    if (!ex2?.items?.length) {
+      await pbCreate("event_registrations", {
+        mosque_id: MOSQUE_ID,
+        event_id: paidEvent.id,
+        registrant_type: "member",
+        user_id: uid2,
+        guest_name: "", guest_email: "",
+        status: "pending",
+        payment_status: "pending",
+        payment_method: "cash",
+        registered_at: isoDateTime(daysAgo(1)),
+      }).catch(() => {});
+      console.log(`  💵 Demo-Barzahlung (ausstehend) für ${uid2}`);
+      totalCreated++;
+    }
+  }
+
   console.log(`  → ${totalCreated} neue Registrierungen gesamt\n`);
 }
 

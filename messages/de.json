@@ -1236,7 +1236,10 @@
       "event_registration": {
         "guest_created": "Gast-Anmeldung",
         "member_created": "Mitglieder-Anmeldung",
-        "cancelled": "Abmeldung"
+        "cancelled": "Abmeldung",
+        "paid_stripe": "Event-Registrierung bezahlt (Stripe)",
+        "paid_cash": "Event-Registrierung bar bezahlt",
+        "sepa_failed": "SEPA-Zahlung fehlgeschlagen"
       },
       "campaign": {
         "created": "Kampagne erstellt",

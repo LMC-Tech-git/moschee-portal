@@ -5,6 +5,7 @@ import { logAudit } from "@/lib/audit";
 import { sendEmailDirect } from "@/lib/email";
 import { renderDonationReceipt } from "@/lib/email/templates";
 import { notifyAdmins } from "@/lib/email/notify-admin";
+import type { RecordModel } from "pocketbase";
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -75,6 +76,80 @@ async function markFeeMultiPaid(
     entityId: parentUserId,
     details: { months, start_month_key: startMonthKey, amount_cents: amountTotal },
   });
+}
+
+// ─── Event Payment Finalization ──────────────────────────────────────────────
+
+/**
+ * Finalisiert eine bezahlte Event-Registrierung.
+ * Idempotent, prüft Kapazität und Ablauf nochmals.
+ */
+async function finalizeEventRegistration(
+  pb: Awaited<ReturnType<typeof getAdminPB>>,
+  registrationId: string,
+  method: "card" | "sepa",
+  sessionId: string
+): Promise<void> {
+  let reg: RecordModel;
+  try {
+    reg = await pb.collection("event_registrations").getOne(registrationId);
+  } catch {
+    console.error(`[Stripe Webhook] event_registration ${registrationId} nicht gefunden`);
+    return;
+  }
+
+  // Idempotenz
+  if (reg.payment_status === "paid") return;
+
+  // Zahlung nach Ablauf oder Fehlschlag → nur markieren, nicht aktivieren
+  if (reg.payment_status === "expired" || reg.payment_status === "failed") {
+    await pb.collection("event_registrations").update(registrationId, {
+      cancel_reason: "payment_after_expiry",
+    });
+    console.warn(`[Stripe Webhook] Late/zombie payment: registration=${registrationId}, status=${reg.payment_status}`);
+    return;
+  }
+
+  // Kapazität nochmal prüfen (Race Condition bei simultanen Zahlungen)
+  try {
+    const event = await pb.collection("events").getOne(reg.event_id);
+    if (event.capacity > 0) {
+      const confirmed = await pb.collection("event_registrations").getList(1, 1, {
+        filter: `event_id = "${reg.event_id}" && status = "registered"`,
+        fields: "id",
+      });
+      if (confirmed.totalItems >= event.capacity) {
+        await pb.collection("event_registrations").update(registrationId, {
+          status: "cancelled",
+          payment_status: "paid",
+          payment_method: method,
+          cancel_reason: "overbooked",
+        });
+        console.warn(`[Stripe Webhook] Überbucht: event=${reg.event_id}, registration=${registrationId}`);
+        return;
+      }
+    }
+  } catch {
+    // Event nicht gefunden — trotzdem finalisieren
+  }
+
+  await pb.collection("event_registrations").update(registrationId, {
+    status: "registered",
+    payment_status: "paid",
+    payment_method: method,
+    payment_ref: sessionId,
+    paid_at: new Date().toISOString(),
+  });
+
+  if (reg.mosque_id) {
+    logAudit({
+      mosqueId: reg.mosque_id,
+      action: "event_registration.paid_stripe",
+      entityType: "event_registration",
+      entityId: registrationId,
+      details: { method, session_id: sessionId, event_id: reg.event_id, user_id: reg.user_id },
+    });
+  }
 }
 
 // ─── Webhook Handler ─────────────────────────────────────────────────────────
@@ -205,6 +280,34 @@ export async function POST(request: NextRequest) {
                 entityId: feeId,
                 details: { amount_cents: session.amount_total, provider: "stripe" },
               });
+            }
+          }
+          break;
+        }
+
+        if (paymentType === "event") {
+          // --- Bezahlte Event-Registrierung ---
+          const registrationId = session.metadata?.registration_id;
+          if (!registrationId) {
+            console.warn("[Stripe Webhook] Keine registration_id in Metadata");
+            break;
+          }
+          if (session.payment_status === "paid") {
+            // Kartenzahlung → sofort finalisieren
+            await finalizeEventRegistration(pb, registrationId, "card", session.id);
+          } else if (session.payment_status === "unpaid") {
+            // SEPA-Mandat akzeptiert → Platz reservieren, Zahlung kommt async
+            try {
+              const reg = await pb.collection("event_registrations").getOne(registrationId);
+              if (reg.payment_status !== "paid") {
+                await pb.collection("event_registrations").update(registrationId, {
+                  payment_status: "pending_sepa",
+                  payment_method: "sepa",
+                  payment_ref: session.id,
+                });
+              }
+            } catch {
+              console.warn(`[Stripe Webhook] SEPA-Update fehlgeschlagen für ${registrationId}`);
             }
           }
           break;
@@ -345,6 +448,12 @@ export async function POST(request: NextRequest) {
           if (parentUserId && startMonthKey) {
             await markFeeMultiPaid(pb, mosqueIdAsync, parentUserId, startMonthKey, months, session.amount_total);
           }
+        } else if (paymentTypeAsync === "event") {
+          // SEPA-Zahlung für Event bestätigt
+          const registrationId = session.metadata?.registration_id;
+          if (registrationId) {
+            await finalizeEventRegistration(pb, registrationId, "sepa", session.id);
+          }
         }
         break;
       }
@@ -391,6 +500,31 @@ export async function POST(request: NextRequest) {
             entityId: parentUserId || "",
             details: { async: true },
           });
+        } else if (paymentTypeFailed === "event") {
+          // SEPA-Zahlung für Event fehlgeschlagen → auf Barzahlung umschalten
+          const registrationId = session.metadata?.registration_id;
+          if (registrationId) {
+            try {
+              await pb.collection("event_registrations").update(registrationId, {
+                status: "pending",   // Platz bleibt reserviert für Barzahlung
+                payment_status: "pending",
+                payment_method: "cash",
+                original_payment_method: "sepa",
+                cancel_reason: "sepa_failed",
+              });
+              if (mosqueIdFailed) {
+                logAudit({
+                  mosqueId: mosqueIdFailed,
+                  action: "event_registration.sepa_failed",
+                  entityType: "event_registration",
+                  entityId: registrationId,
+                  details: { event_id: session.metadata?.event_id },
+                });
+              }
+            } catch {
+              console.warn(`[Stripe Webhook] SEPA-Failed-Update fehlgeschlagen für ${registrationId}`);
+            }
+          }
         }
         break;
       }

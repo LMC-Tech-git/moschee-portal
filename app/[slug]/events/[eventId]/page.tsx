@@ -12,13 +12,14 @@ import {
   AlertTriangle,
   Lock,
   RefreshCw,
+  Euro,
 } from "lucide-react";
 import { resolveMosqueBySlug } from "@/lib/resolve-mosque";
 import { getAuthFromCookie } from "@/lib/auth-cookie";
 import {
   getEventById,
   getEventRegistrationCount,
-  isMemberRegistered,
+  getMemberRegistrationStatus,
 } from "@/lib/actions/events";
 import { formatDate, formatDateTime } from "@/lib/utils";
 import { eventCategoryLabels, eventCategoryColors } from "@/lib/constants";
@@ -121,8 +122,12 @@ export default async function PublicEventPage({
     event.capacity > 0 ? await getEventRegistrationCount(event.id) : 0;
   const isFull = event.capacity > 0 && registrationCount >= event.capacity;
   const isCancelled = event.status === "cancelled";
-  const memberRegistered =
-    isLoggedIn && userId ? await isMemberRegistered(event.id, userId) : false;
+  const { registered: memberRegistered, registration: memberRegistration } =
+    isLoggedIn && userId
+      ? await getMemberRegistrationStatus(event.id, userId)
+      : { registered: false, registration: undefined };
+
+  const baseUrl = `${process.env.NEXT_PUBLIC_POCKETBASE_URL ? `https://${params.slug}.${process.env.NEXT_PUBLIC_ROOT_DOMAIN || "moschee.app"}` : ""}`;
 
   const startLabel = event.start_prayer
     ? `${PRAYER_LABELS[event.start_prayer] || event.start_prayer}${event.start_at ? `, ${formatDate(event.start_at)}` : ""}`
@@ -163,6 +168,12 @@ export default async function PublicEventPage({
               <span className="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-medium text-purple-700">
                 <RefreshCw className="h-3 w-3" />
                 Wiederkehrend
+              </span>
+            )}
+            {event.is_paid && event.price_cents && event.price_cents > 0 && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-700">
+                <Euro className="h-3 w-3" />
+                {(event.price_cents / 100).toLocaleString("de-DE", { style: "currency", currency: "EUR" })}
               </span>
             )}
             {isCancelled && (
@@ -340,7 +351,11 @@ export default async function PublicEventPage({
                     eventId={event.id}
                     mosqueId={mosque.id}
                     userId={userId}
-                    initialRegistered={memberRegistered}
+                    slug={params.slug}
+                    baseUrl={baseUrl}
+                    isPaid={event.is_paid}
+                    priceCents={event.price_cents}
+                    initialRegistration={memberRegistration}
                   />
                 </div>
               ) : event.visibility === "public" ? (
