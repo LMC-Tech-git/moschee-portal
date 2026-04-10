@@ -1111,8 +1111,8 @@ export async function createEventStripeCheckout(
           user_id: userId,
         },
       },
-      success_url: `${baseUrl}/${slug}/events?payment_success=true`,
-      cancel_url: `${baseUrl}/${slug}/events`,
+      success_url: `${baseUrl}/${slug}/events/${eventId}?payment_success=true`,
+      cancel_url: `${baseUrl}/${slug}/events/${eventId}?payment_cancelled=true`,
     });
 
     // payment_ref + checkout_url speichern
@@ -1201,8 +1201,8 @@ export async function retryEventPayment(
           user_id: userId,
         },
       },
-      success_url: `${baseUrl}/${slug}/events?payment_success=true`,
-      cancel_url: `${baseUrl}/${slug}/events`,
+      success_url: `${baseUrl}/${slug}/events/${eventId}?payment_success=true`,
+      cancel_url: `${baseUrl}/${slug}/events/${eventId}?payment_cancelled=true`,
     });
 
     await pb.collection("event_registrations").update(registrationId, {

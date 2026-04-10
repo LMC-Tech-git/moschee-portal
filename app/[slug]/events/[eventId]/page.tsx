@@ -26,6 +26,7 @@ import { eventCategoryLabels, eventCategoryColors } from "@/lib/constants";
 import { getNextOccurrence, getRecurrenceLabel } from "@/lib/recurrence";
 import { GuestRegistrationForm } from "./GuestRegistrationForm";
 import { MemberRegistrationButton } from "./MemberRegistrationButton";
+import { PaymentResultBanner } from "./PaymentResultBanner";
 
 const PB_URL = process.env.NEXT_PUBLIC_POCKETBASE_URL || "";
 
@@ -70,8 +71,10 @@ function formatDuration(minutes: number): string {
 
 export default async function PublicEventPage({
   params,
+  searchParams,
 }: {
   params: { slug: string; eventId: string };
+  searchParams: { payment_success?: string; payment_cancelled?: string };
 }) {
   const mosque = await resolveMosqueBySlug(params.slug);
   if (!mosque) notFound();
@@ -128,6 +131,12 @@ export default async function PublicEventPage({
       : { registered: false, registration: undefined };
 
   const baseUrl = `${process.env.NEXT_PUBLIC_POCKETBASE_URL ? `https://${params.slug}.${process.env.NEXT_PUBLIC_ROOT_DOMAIN || "moschee.app"}` : ""}`;
+
+  const paymentResult = searchParams.payment_success === "true"
+    ? "success"
+    : searchParams.payment_cancelled === "true"
+    ? "cancelled"
+    : null;
 
   const startLabel = event.start_prayer
     ? `${PRAYER_LABELS[event.start_prayer] || event.start_prayer}${event.start_at ? `, ${formatDate(event.start_at)}` : ""}`
@@ -213,6 +222,15 @@ export default async function PublicEventPage({
       {/* Inhalt */}
       <section className="py-10">
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 space-y-8">
+
+          {/* Zahlungsergebnis-Banner (Rückkehr von Stripe) */}
+          {paymentResult && (
+            <PaymentResultBanner
+              result={paymentResult}
+              slug={params.slug}
+              eventId={params.eventId}
+            />
+          )}
 
           {/* Cover-Bild */}
           {event.cover_image && (
