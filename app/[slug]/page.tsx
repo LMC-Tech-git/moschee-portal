@@ -271,28 +271,19 @@ export default async function MosqueDashboard({
         </div>
       </section>
 
-      {/* Diese Woche — immer anzeigen */}
-      <section aria-label={t("eventsThisWeek")} className="border-b border-gray-100 bg-gray-50 py-6">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mb-4 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <CalendarDays className="h-5 w-5 text-blue-600" aria-hidden="true" />
-              <h2 className="text-lg font-bold text-gray-900">{t("eventsThisWeek")}</h2>
-            </div>
-            <Link href="/events" className="text-xs font-medium text-blue-600 hover:underline">
-              {t("showAllEvents")}
-            </Link>
-          </div>
-
-          {eventsThisWeek.length === 0 ? (
-            <div className="rounded-xl border-2 border-dashed border-gray-200 bg-white p-6 text-center">
-              <CalendarDays className="mx-auto mb-2 h-8 w-8 text-gray-300" aria-hidden="true" />
-              <p className="text-sm text-gray-500">{t("noEventsThisWeek")}</p>
-              <Link href="/events" className="mt-2 inline-block text-sm font-medium text-blue-600 hover:underline">
-                {t("showAllEvents")} →
+      {/* Diese Woche — nur anzeigen wenn Events vorhanden */}
+      {eventsThisWeek.length > 0 && (
+        <section aria-label={t("eventsThisWeek")} className="border-b border-gray-100 bg-gray-50 py-6">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="mb-4 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <CalendarDays className="h-5 w-5 text-blue-600" aria-hidden="true" />
+                <h2 className="text-lg font-bold text-gray-900">{t("eventsThisWeek")}</h2>
+              </div>
+              <Link href="/events" className="text-xs font-medium text-blue-600 hover:underline">
+                {t("showAllEvents")}
               </Link>
             </div>
-          ) : (
             <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none [scroll-snap-type:x_mandatory] sm:grid sm:grid-cols-2 sm:overflow-visible lg:grid-cols-3">
               {eventsThisWeek.map((event) => (
                 <Link
@@ -306,9 +297,9 @@ export default async function MosqueDashboard({
                 </Link>
               ))}
             </div>
-          )}
-        </div>
-      </section>
+          </div>
+        </section>
+      )}
 
       {/* Dashboard Content */}
       <section className="py-10">
