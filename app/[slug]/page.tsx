@@ -31,7 +31,8 @@ import {
 } from "@/lib/actions/events";
 import { getPublicCampaigns } from "@/lib/actions/campaigns";
 import { getDashboardStats } from "@/lib/actions/dashboard";
-import { formatCurrencyCents } from "@/lib/utils";
+import { formatCurrencyCents, getCurrentWeekRange } from "@/lib/utils";
+import { getNextOccurrence } from "@/lib/recurrence";
 import { PostCard } from "@/components/posts/PostCard";
 import { EventCard } from "@/components/events/EventCard";
 import { KPITile } from "@/components/shared/KPITile";
@@ -81,6 +82,24 @@ export default async function MosqueDashboard({
   const campaigns = campaignsResult.success
     ? campaignsResult.data || []
     : [];
+
+  // ── "Diese Woche"-Filter ────────────────────────────────────────────────────
+  const now = new Date();
+  const { start: weekStart, end: weekEnd } = getCurrentWeekRange();
+
+  function getEventDateForWeek(e: typeof upcomingEvents[number]): Date | null {
+    if (e.is_recurring) {
+      const next = getNextOccurrence(e);
+      if (!next || next < now) return null;
+      return next;
+    }
+    return e.start_at ? new Date(e.start_at) : null;
+  }
+
+  const eventsThisWeek = upcomingEvents.filter((e) => {
+    const d = getEventDateForWeek(e);
+    return d !== null && d >= weekStart && d <= weekEnd;
+  });
 
   // ── Gebetszeiten: Nächstes Gebet berechnen (server-side) ──────────────────
   const PRAYER_LIST = [
@@ -249,6 +268,45 @@ export default async function MosqueDashboard({
               value={stats.publishedPosts}
             />
           </div>
+        </div>
+      </section>
+
+      {/* Diese Woche — immer anzeigen */}
+      <section aria-label={t("eventsThisWeek")} className="border-b border-gray-100 bg-gray-50 py-6">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mb-4 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <CalendarDays className="h-5 w-5 text-blue-600" aria-hidden="true" />
+              <h2 className="text-lg font-bold text-gray-900">{t("eventsThisWeek")}</h2>
+            </div>
+            <Link href="/events" className="text-xs font-medium text-blue-600 hover:underline">
+              {t("showAllEvents")}
+            </Link>
+          </div>
+
+          {eventsThisWeek.length === 0 ? (
+            <div className="rounded-xl border-2 border-dashed border-gray-200 bg-white p-6 text-center">
+              <CalendarDays className="mx-auto mb-2 h-8 w-8 text-gray-300" aria-hidden="true" />
+              <p className="text-sm text-gray-500">{t("noEventsThisWeek")}</p>
+              <Link href="/events" className="mt-2 inline-block text-sm font-medium text-blue-600 hover:underline">
+                {t("showAllEvents")} →
+              </Link>
+            </div>
+          ) : (
+            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none [scroll-snap-type:x_mandatory] sm:grid sm:grid-cols-2 sm:overflow-visible lg:grid-cols-3">
+              {eventsThisWeek.map((event) => (
+                <Link
+                  key={event.id}
+                  href={`/events/${event.id}`}
+                  className="min-w-[260px] flex-shrink-0 [scroll-snap-align:start] sm:min-w-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 rounded-xl"
+                  aria-label={event.title}
+                >
+                  <span className="sr-only">{event.title}</span>
+                  <EventCard event={event} compact />
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 

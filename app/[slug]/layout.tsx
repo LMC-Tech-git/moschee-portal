@@ -6,6 +6,7 @@ import { getBrandColor } from "@/lib/constants";
 import type { Mosque, Settings } from "@/types";
 import { TokenReceiver } from "@/components/shared/TokenReceiver";
 import { MosqueInitializer } from "@/components/shared/MosqueInitializer";
+import { FocusRefresher } from "@/components/shared/FocusRefresher";
 
 /**
  * Server-seitiges Layout für Slug-basierte öffentliche Seiten.
@@ -100,6 +101,7 @@ export default async function SlugLayout({
         <TokenReceiver />
       </Suspense>
       <MosqueInitializer mosque={mosque} settings={settings} />
+      <FocusRefresher />
       {children}
     </div>
   );

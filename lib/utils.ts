@@ -56,3 +56,24 @@ export function formatDateTime(dateStr: string): string {
     minute: "2-digit",
   }).format(new Date(dateStr));
 }
+
+/** Gibt Montag 00:00 und Sonntag 23:59:59 der aktuellen Kalenderwoche zurück. */
+export function getCurrentWeekRange(): { start: Date; end: Date } {
+  const now = new Date();
+  const day = now.getDay(); // 0=So, 1=Mo...
+  const monday = new Date(now);
+  monday.setDate(now.getDate() + (day === 0 ? -6 : 1 - day));
+  monday.setHours(0, 0, 0, 0);
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+  sunday.setHours(23, 59, 59, 999);
+  return { start: monday, end: sunday };
+}
+
+/** Gibt ersten und letzten Tag des aktuellen Monats zurück. */
+export function getCurrentMonthRange(): { start: Date; end: Date } {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+  const end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+  return { start, end };
+}

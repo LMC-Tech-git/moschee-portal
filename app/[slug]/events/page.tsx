@@ -12,14 +12,17 @@ import {
 } from "@/lib/actions/events";
 import { EventCard } from "@/components/events/EventCard";
 import { getNextOccurrence } from "@/lib/recurrence";
+import { getCurrentWeekRange, getCurrentMonthRange } from "@/lib/utils";
 import type { Event } from "@/types";
+
+type EventPeriod = "week" | "month" | "";
 
 export async function generateMetadata({
   params,
   searchParams,
 }: {
   params: { slug: string };
-  searchParams?: { category?: string };
+  searchParams?: { category?: string; period?: string };
 }) {
   const mosque = await resolveMosqueBySlug(params.slug);
   if (!mosque) return { title: "Nicht gefunden" };
@@ -43,7 +46,7 @@ export async function generateMetadata({
     alternates: {
       canonical: `https://${params.slug}.${process.env.NEXT_PUBLIC_ROOT_DOMAIN || "moschee.app"}/events`,
     },
-    robots: searchParams?.category ? { index: false } : undefined,
+    robots: (searchParams?.category || searchParams?.period) ? { index: false } : undefined,
     openGraph: {
       title,
       description,
@@ -61,7 +64,7 @@ export default async function EventsPage({
   searchParams,
 }: {
   params: { slug: string };
-  searchParams: { category?: string };
+  searchParams: { category?: string; period?: string };
 }) {
   const mosque = await resolveMosqueBySlug(params.slug);
   if (!mosque) notFound();
@@ -81,6 +84,7 @@ export default async function EventsPage({
   const { isLoggedIn, isActiveMember, userId } = getAuthFromCookie();
   const showMemberEvents = (isLoggedIn && !!userId) || isActiveMember;
   const category = searchParams.category || "";
+  const period = ((searchParams.period ?? "week") as EventPeriod);
 
   const result = showMemberEvents
     ? await getMemberEventsFiltered(mosque.id, {
@@ -94,21 +98,55 @@ export default async function EventsPage({
 
   const allEvents = result.success ? result.data || [] : [];
 
-  const now = new Date().toISOString();
+  const nowDate = new Date();
+  const nowIso = nowDate.toISOString();
+  const { start: weekStart, end: weekEnd } = getCurrentWeekRange();
+  const { start: monthStart, end: monthEnd } = getCurrentMonthRange();
+
   // Recurring events always count as upcoming (they repeat indefinitely / until recurrence_end_date)
   const isPast = (e: Event) => {
     if (e.is_recurring) {
       const next = getNextOccurrence(e);
       return next === null; // only past if recurrence has ended
     }
-    return !!e.end_at && e.end_at < now;
+    return !!e.end_at && e.end_at < nowIso;
   };
-  const upcoming = allEvents.filter((e) => !isPast(e));
-  const past = allEvents.filter((e) => isPast(e));
 
-  function categoryHref(cat: string) {
-    if (!cat) return `/${params.slug}/events`;
-    return `/${params.slug}/events?category=${cat}`;
+  function getEventDate(e: Event): Date | null {
+    if (e.is_recurring) {
+      const next = getNextOccurrence(e);
+      if (!next || next < nowDate) return null;
+      return next;
+    }
+    return e.start_at ? new Date(e.start_at) : null;
+  }
+
+  function inPeriod(e: Event): boolean {
+    if (!period) return true;
+    const d = getEventDate(e);
+    if (!d) return false;
+    if (period === "week")  return d >= weekStart && d <= weekEnd;
+    if (period === "month") return d >= monthStart && d <= monthEnd;
+    return true;
+  }
+
+  const eventsFilteredByPeriod = period ? allEvents.filter(inPeriod) : allEvents;
+  const upcoming = eventsFilteredByPeriod.filter((e) => !isPast(e));
+  // Only show past events when "all" period is selected
+  const past = period ? [] : allEvents.filter((e) => isPast(e));
+
+  const PERIODS: { value: EventPeriod; label: string }[] = [
+    { value: "week",  label: t("thisWeek") },
+    { value: "month", label: t("thisMonth") },
+    { value: "",      label: t("allPeriods") },
+  ];
+
+  function buildEventsUrl({ p, cat }: { p?: string; cat?: string }) {
+    const qs = new URLSearchParams();
+    if (cat) qs.set("category", cat);
+    if (p !== undefined && p !== "week") qs.set("period", p); // "week" is default → no param needed
+    const queryString = qs.toString();
+    return `/${params.slug}/events${queryString ? `?${queryString}` : ""}`;
   }
 
   return (
@@ -140,29 +178,47 @@ export default async function EventsPage({
         </div>
       </section>
 
-      {/* Kategorie-Filter */}
+      {/* Filter — Zeitraum + Kategorie */}
       <div className="sticky top-0 z-10 border-b border-gray-200 bg-white shadow-sm">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+          {/* Zeitraum-Chips */}
+          <nav
+            aria-label={t("periodFilter")}
+            className="flex gap-1 overflow-x-auto pt-3 pb-2 scrollbar-none"
+          >
+            {PERIODS.map((p) => (
+              <Link
+                key={p.value}
+                href={buildEventsUrl({ p: p.value, cat: category })}
+                className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+                  period === p.value
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                }`}
+              >
+                {p.label}
+              </Link>
+            ))}
+          </nav>
+          <div className="border-t border-gray-100" />
+          {/* Kategorie-Chips */}
           <nav
             aria-label={t("categoryFilter")}
-            className="flex gap-1 overflow-x-auto py-3 scrollbar-none"
+            className="flex gap-1 overflow-x-auto py-2 scrollbar-none"
           >
-            {CATEGORIES.map((cat) => {
-              const isActive = category === cat.value;
-              return (
-                <Link
-                  key={cat.value}
-                  href={categoryHref(cat.value)}
-                  className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
-                    isActive
-                      ? "bg-blue-600 text-white"
-                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                  }`}
-                >
-                  {cat.label}
-                </Link>
-              );
-            })}
+            {CATEGORIES.map((cat) => (
+              <Link
+                key={cat.value}
+                href={buildEventsUrl({ p: period, cat: cat.value })}
+                className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+                  category === cat.value
+                    ? "bg-violet-600 text-white"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                }`}
+              >
+                {cat.label}
+              </Link>
+            ))}
           </nav>
         </div>
       </div>
