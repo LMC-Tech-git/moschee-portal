@@ -2425,22 +2425,22 @@
   },
   "anleitung": {
     "metaTitle": "Rehber & Özellikler | moschee.app",
-    "metaDesc": "moschee.app'ı tanıyın ve adminler, üyeler ve öğretmenler için adım adım rehberi keşfedin.",
+    "metaDesc": "moschee.app'ı tanıyın — özellikler, medrese rehberi ve sık sorulan sorular.",
     "heroTitle": "moschee.app hakkında her şey",
     "heroSubtitle": "Cami cemaatleri için dijital portal — namaz vakitlerinden medreseye, hepsi bir arada.",
     "heroCta": "Demoyu dene",
-    "heroGuideLink": "Rehbere git",
+    "heroGuideLink": "Medrese rehberine git",
     "featuresTitle": "moschee.app neler sunuyor",
     "featuresSubtitle": "Tüm özellikler bir bakışta.",
     "featureHighlight": "Popüler",
     "features": {
       "prayer": {
         "title": "Namaz Vakitleri",
-        "desc": "AlAdhan API ile otomatik namaz vakitleri. Her namaz için ince ayar ve portalda gösterim."
+        "desc": "AlAdhan ile otomatik namaz vakitleri (Diyanet yöntemi). Her namaz için ince ayar yapılabilir."
       },
       "events": {
         "title": "Etkinlikler",
-        "desc": "Tek seferlik ve tekrarlayan etkinlikler oluşturun, kategorize edin ve herkese açık paylaşın."
+        "desc": "Tek seferlik ve tekrarlayan etkinlikler, kategoriler, üyelere özel etkinlikler."
       },
       "donations": {
         "title": "Bağışlar",
@@ -2448,15 +2448,15 @@
       },
       "members": {
         "title": "Üye Yönetimi",
-        "desc": "Üyeleri davet edin, roller atayın, üyelik aidatlarını yönetin."
+        "desc": "Kişisel ve grup davet linkleri ile davet sistemi, rol yönetimi."
       },
       "announcements": {
         "title": "Yazılar & Duyurular",
-        "desc": "Haberleri yayınlayın, bülten gönderin, cemaati bilgilendirin."
+        "desc": "Yayınlama, taslaklar, kategoriler, üyelere bülten gönderimi."
       },
       "madrasa": {
         "title": "Medrese",
-        "desc": "Kurslar, kayıtlar, yoklama ve İslami eğitim için ücretleri yönetin."
+        "desc": "Kurslar, eğitim yılları, öğrenci aktarımı, yoklama, ücretler ve online ödeme."
       }
     },
     "quickstartTitle": "5 dakikada başlayın",
@@ -2480,72 +2480,64 @@
         "desc": "'Etkinlik oluştur' veya 'Yazı oluştur'a tıklayın ve cemaati bilgilendirin."
       }
     },
-    "guideTitle": "Adım adım rehber",
-    "guideSubtitle": "Rolünüzü seçin ve rehberi takip edin.",
-    "roleAdmin": "Adminler için",
-    "roleMember": "Üyeler için",
-    "roleTeacher": "Öğretmenler için",
-    "guide": {
-      "admin": {
+    "madrasaTitle": "Medrese — Adım adım",
+    "madrasaSubtitle": "Kurulumdan veli görünümüne kadar: Medrese yönetimi hakkında her şey.",
+    "madrasa": {
+      "setup": {
+        "title": "Kurulum (Admin)",
         "step1": {
-          "title": "Ayarları yapılandırın",
-          "desc": "Admin panelinde 'Ayarlar'a tıklayın. Marka (logo, renkler), namaz vakitleri (sağlayıcı, koordinatlar) ve varsayılan değerleri belirleyin."
+          "title": "Medrese ücretlerini etkinleştirin",
+          "desc": "'Ayarlar → Medrese' altında ücret anahtarını etkinleştirin ve standart tutarı belirleyin. İsteğe bağlı: Kardeş indirimi yapılandırın."
         },
         "step2": {
-          "title": "Namaz vakitlerini etkinleştirin",
-          "desc": "'Ayarlar → Namaz Vakitleri' altında 'AlAdhan' sağlayıcısını seçin ve caminin koordinatlarını girin. Gösterim portalda hemen görünür."
+          "title": "Eğitim yılı oluşturun",
+          "desc": "'Medrese → Eğitim Yılları' altında 'Yeni'ye tıklayın. Ad (ör. '2025/2026'), başlangıç ve bitiş tarihi girin."
         },
         "step3": {
-          "title": "İlk yazıyı yayınlayın",
-          "desc": "'Yazılar' altında 'Yeni Yazı'ya tıklayın. Başlık, metin ve kategori girin ve 'Yayınla'ya tıklayın."
+          "title": "Kurs oluşturun",
+          "desc": "'Medrese' altında 'Yeni Kurs'a tıklayın. Eğitim yılı, başlık, kategori, öğretmen ve program (gün + saat) girin."
         },
         "step4": {
-          "title": "Etkinlik oluşturun",
-          "desc": "'Etkinlikler' altında 'Yeni Etkinlik'e tıklayın. Tek seferlik veya tekrarlayan, kategorili ve isteğe bağlı resimli."
+          "title": "Öğrenci ekleyin",
+          "desc": "'Medrese → Öğrenciler' altında tek tek ekleyin veya CSV/Excel ile toplu aktarım yapın. Ad, doğum tarihi ve veli atayın."
         },
         "step5": {
-          "title": "Üyeleri davet edin",
-          "desc": "'Üyeler → Davetler' altında bir davet linki oluşturun ve e-posta veya WhatsApp ile paylaşın. Üyeler doğrudan kaydolabilir."
+          "title": "Öğrencileri kaydedin",
+          "desc": "Kurs altında 'Kayıtlar' bölümünden öğrenci atayın. Veya öğrenci listesinde birden fazla seçip toplu kayıt yapın."
         },
         "step6": {
-          "title": "Bağış kampanyası başlatın",
-          "desc": "'Kampanyalar' altında 'Yeni Kampanya'ya tıklayın. Hedef, açıklama ve kategori belirleyin. Online bağışlar için Stripe entegrasyonu gereklidir."
+          "title": "Aylık ücretleri oluşturun",
+          "desc": "'Medrese → Ücretler' altında ayı seçin ve 'Ücretleri oluştur'a tıklayın. Durum yönetimi: Nakit, havale, muaf veya hatırlatma gönder."
         }
       },
-      "member": {
+      "teaching": {
+        "title": "Ders günlüğü (Öğretmen)",
         "step1": {
-          "title": "Kayıt olun",
-          "desc": "Adminin davet linki ile kayıt olun veya portal ana sayfasında 'Kayıt Ol'a tıklayın."
+          "title": "Bugünkü kursları görün",
+          "desc": "Öğretmen panelinde bugünkü kurslar yeşil olarak vurgulanır. Doğrudan 'Yoklama gir'e tıklayın."
         },
         "step2": {
-          "title": "Profili tamamlayın",
-          "desc": "'Profilim' altında ad, telefon numarası ve diğer bilgileri ekleyin."
-        },
-        "step3": {
-          "title": "Etkinlikleri görüntüleyin",
-          "desc": "Ana sayfada veya 'Etkinlikler' altında tüm yaklaşan etkinlikleri görün — üyelere özel etkinlikler dahil."
-        },
-        "step4": {
-          "title": "Online bağış yapın",
-          "desc": "'Bağışlar' altında aktif bir kampanya seçin ve kart veya havale ile bağış yapın. Makbuz otomatik olarak e-posta ile gönderilir."
-        }
-      },
-      "teacher": {
-        "step1": {
-          "title": "Giriş yapın",
-          "desc": "Admin tarafından verilen giriş bilgileriyle oturum açın. Öğretmen olarak doğrudan öğretmen paneline yönlendirilirsiniz."
-        },
-        "step2": {
-          "title": "Kendi kurslarınızı görün",
-          "desc": "'Kurslarım' altında atanan tüm kursları öğrenci listesiyle birlikte görüntüleyin."
-        },
-        "step3": {
           "title": "Yoklama girin",
-          "desc": "Kursu açın, 'Yoklama Gir'e tıklayın ve her öğrenci için durum belirleyin: Katıldı, Gelmedi veya Mazeretli."
+          "desc": "Tarihi seçin, sonra her öğrenci için durum belirleyin: Katıldı, Geç kaldı, Gelmedi veya Mazeretli. İsteğe bağlı: Performans değerlendirmesi (1–5 yıldız)."
         },
-        "step4": {
+        "step3": {
           "title": "İstatistikleri görün",
-          "desc": "Kurs altında 'İstatistik' sekmesinde her öğrenci ve ders için katılım oranını görüntüleyin."
+          "desc": "Kurs altında 'İstatistik': Her öğrenci için ilerleme çubuğuyla katılım oranı. Düşük katılımlı öğrenciler (%50 altı) işaretlenir."
+        }
+      },
+      "parents": {
+        "title": "Veli deneyimi (Üye)",
+        "step1": {
+          "title": "Çocukları ve yoklamayı görüntüleyin",
+          "desc": "Profilde 'Çocuklar' altında: Her kurs için katılım oranı, trend (yükselen/düşen) ve öğretmenin performans değerlendirmesi."
+        },
+        "step2": {
+          "title": "Ücret durumunu kontrol edin",
+          "desc": "Profilde 'Medrese' altında: Her çocuk ve ay için ücret durumu. Açık (kırmızı), Ödendi (yeşil) veya Muaf (gri)."
+        },
+        "step3": {
+          "title": "Online ödeme yapın",
+          "desc": "Açık ücretlerde 'Online öde'ye tıklayın. Birden fazla ay için peşin ödeme (1/3/6/12) de mümkündür."
         }
       }
     },
@@ -2567,6 +2559,14 @@
       "q4": {
         "question": "Namaz vakitleri görünmüyor",
         "answer": "'Ayarlar → Namaz Vakitleri' altında kontrol edin: 'AlAdhan' sağlayıcısı aktif ve caminin koordinatları (enlem/boylam) girilmiş mi?"
+      },
+      "q5": {
+        "question": "Öğrenci yoklama listesinde görünmüyor",
+        "answer": "Öğrencinin kursa kayıtlı olup olmadığını kontrol edin. 'Medrese → Kurs → Kayıtlar' altında öğrenciyi kursa atayın."
+      },
+      "q6": {
+        "question": "Medrese ücretleri görünmüyor",
+        "answer": "'Ayarlar → Medrese' altında kontrol edin: Ücret anahtarı etkin mi? Mevcut ay için ücretler oluşturulmuş mu?"
       }
     }
   }

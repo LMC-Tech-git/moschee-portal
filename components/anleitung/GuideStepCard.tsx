@@ -1,4 +1,5 @@
 import { ScreenshotSlot } from "./ScreenshotSlot";
+import type { ScreenshotKey } from "@/lib/docs/guide";
 
 interface GuideStepCardProps {
   index: number;
@@ -27,7 +28,7 @@ export function GuideStepCard({
           <p className="mt-1 text-sm leading-relaxed text-gray-600">{desc}</p>
         </div>
         {screenshotKey && (
-          <ScreenshotSlot screenshotKey={screenshotKey} aspectRatio="16/7" />
+          <ScreenshotSlot screenshotKey={screenshotKey as ScreenshotKey} aspectRatio="16/7" />
         )}
       </div>
     </div>

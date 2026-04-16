@@ -16,13 +16,11 @@ import {
 import { getTranslations } from "next-intl/server";
 import { FEATURES } from "@/lib/docs/features";
 import { QUICKSTART } from "@/lib/docs/quickstart";
-import { GUIDES } from "@/lib/docs/guide";
+import { MADRASA_GUIDES } from "@/lib/docs/guide";
 import { FAQ_ITEMS } from "@/lib/docs/faq";
-import { ScreenshotSlot } from "@/components/anleitung/ScreenshotSlot";
-import { GuideRoleTabs } from "@/components/anleitung/GuideRoleTabs";
-import type { TranslatedRoleGuide } from "@/components/anleitung/GuideRoleTabs";
+import { MadrasaGuide } from "@/components/anleitung/MadrasaGuide";
+import type { TranslatedPhase } from "@/components/anleitung/MadrasaGuide";
 import { FAQ } from "@/components/anleitung/FAQ";
-import type { Role } from "@/lib/docs/guide";
 
 const ICON_MAP = {
   clock: Clock,
@@ -54,27 +52,22 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function AnleitungPage() {
   const t = await getTranslations("anleitung");
 
-  // Feature grid — highlight-Features first
+  // Feature grid — highlighted first
   const sortedFeatures = [
     ...FEATURES.filter((f) => f.highlight),
     ...FEATURES.filter((f) => !f.highlight),
   ];
 
-  // Resolve guide translations server-side (not in Client Component)
-  const translatedGuides: TranslatedRoleGuide[] = GUIDES.map((guide) => ({
-    role: guide.role,
+  // Resolve Madrasa guide translations server-side
+  const translatedPhases: TranslatedPhase[] = MADRASA_GUIDES.map((guide) => ({
+    phase: guide.phase,
+    title: t(guide.titleKey as Parameters<typeof t>[0]),
     steps: guide.steps.map((step) => ({
       title: t(step.titleKey as Parameters<typeof t>[0]),
       desc: t(step.descKey as Parameters<typeof t>[0]),
       screenshotKey: step.screenshotKey,
     })),
   }));
-
-  const roleLabels: Record<Role, string> = {
-    admin: t("roleAdmin"),
-    member: t("roleMember"),
-    teacher: t("roleTeacher"),
-  };
 
   // Resolve FAQ
   const faqItems = FAQ_ITEMS.map((item) => ({
@@ -104,7 +97,7 @@ export default async function AnleitungPage() {
               <ExternalLink className="h-4 w-4" aria-hidden="true" />
             </Link>
             <Link
-              href="#guide-section"
+              href="#madrasa-guide"
               className="inline-flex items-center gap-2 rounded-lg border border-white/40 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/10"
             >
               {t("heroGuideLink")}
@@ -114,13 +107,10 @@ export default async function AnleitungPage() {
         </div>
       </section>
 
-      {/* Features */}
+      {/* Features — text only, no screenshots */}
       <section id="features" className="bg-gray-50 py-16">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-          <h2
-            id="features-title"
-            className="mb-2 text-center text-2xl font-extrabold text-gray-900"
-          >
+          <h2 className="mb-2 text-center text-2xl font-extrabold text-gray-900">
             {t("featuresTitle")}
           </h2>
           <p className="mb-10 text-center text-sm text-gray-500">
@@ -155,13 +145,6 @@ export default async function AnleitungPage() {
                   <p className="text-sm leading-relaxed text-gray-600">
                     {t(feature.descKey as Parameters<typeof t>[0])}
                   </p>
-                  <div className="mt-4">
-                    <ScreenshotSlot
-                      screenshotKey={feature.screenshotKey}
-                      label={feature.key}
-                      aspectRatio="16/9"
-                    />
-                  </div>
                 </div>
               );
             })}
@@ -172,10 +155,7 @@ export default async function AnleitungPage() {
       {/* Quickstart */}
       <section id="quickstart" className="py-16">
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-          <h2
-            id="quickstart-title"
-            className="mb-2 text-center text-2xl font-extrabold text-gray-900"
-          >
+          <h2 className="mb-2 text-center text-2xl font-extrabold text-gray-900">
             {t("quickstartTitle")}
           </h2>
           <p className="mb-10 text-center text-sm text-gray-500">
@@ -215,26 +195,23 @@ export default async function AnleitungPage() {
         </div>
       </section>
 
-      {/* Role Guide */}
-      <section id="guide-section" className="bg-gray-50 py-16">
+      {/* Madrasa Journey */}
+      <section id="madrasa-guide" className="bg-gray-50 py-16">
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
           <h2 className="mb-2 text-center text-2xl font-extrabold text-gray-900">
-            {t("guideTitle")}
+            {t("madrasaTitle")}
           </h2>
           <p className="mb-10 text-center text-sm text-gray-500">
-            {t("guideSubtitle")}
+            {t("madrasaSubtitle")}
           </p>
-          <GuideRoleTabs guides={translatedGuides} labels={roleLabels} />
+          <MadrasaGuide phases={translatedPhases} />
         </div>
       </section>
 
       {/* FAQ */}
       <section id="faq" className="py-16">
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-          <h2
-            id="faq-title"
-            className="mb-2 text-center text-2xl font-extrabold text-gray-900"
-          >
+          <h2 className="mb-2 text-center text-2xl font-extrabold text-gray-900">
             {t("faqTitle")}
           </h2>
           <p className="mb-10 text-center text-sm text-gray-500">

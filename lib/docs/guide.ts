@@ -1,96 +1,95 @@
-export type Role = "admin" | "member" | "teacher";
+export type MadrasaPhase = "setup" | "teaching" | "parents";
 
-export const VALID_ROLES: Role[] = ["admin", "member", "teacher"];
+export const MADRASA_PHASES: MadrasaPhase[] = ["setup", "teaching", "parents"];
+
+export type ScreenshotKey =
+  | "madrasa-settings"
+  | "madrasa-students"
+  | "madrasa-fees"
+  | "madrasa-attendance"
+  | "madrasa-parent";
 
 export type GuideStep = {
   titleKey: string;
   descKey: string;
-  screenshotKey?: string;
+  screenshotKey?: ScreenshotKey;
 };
 
-export type RoleGuide = {
-  role: Role;
+export type PhaseGuide = {
+  phase: MadrasaPhase;
+  titleKey: string;
   steps: GuideStep[];
 };
 
-export const GUIDES: RoleGuide[] = [
+export const MADRASA_GUIDES: PhaseGuide[] = [
   {
-    role: "admin",
+    phase: "setup",
+    titleKey: "madrasa.setup.title",
     steps: [
       {
-        titleKey: "guide.admin.step1.title",
-        descKey: "guide.admin.step1.desc",
-        screenshotKey: "admin-settings",
+        titleKey: "madrasa.setup.step1.title",
+        descKey: "madrasa.setup.step1.desc",
+        screenshotKey: "madrasa-settings",
       },
       {
-        titleKey: "guide.admin.step2.title",
-        descKey: "guide.admin.step2.desc",
-        screenshotKey: "prayer-times",
+        titleKey: "madrasa.setup.step2.title",
+        descKey: "madrasa.setup.step2.desc",
       },
       {
-        titleKey: "guide.admin.step3.title",
-        descKey: "guide.admin.step3.desc",
-        screenshotKey: "posts",
+        titleKey: "madrasa.setup.step3.title",
+        descKey: "madrasa.setup.step3.desc",
       },
       {
-        titleKey: "guide.admin.step4.title",
-        descKey: "guide.admin.step4.desc",
-        screenshotKey: "events-list",
+        titleKey: "madrasa.setup.step4.title",
+        descKey: "madrasa.setup.step4.desc",
+        screenshotKey: "madrasa-students",
       },
       {
-        titleKey: "guide.admin.step5.title",
-        descKey: "guide.admin.step5.desc",
-        screenshotKey: "members",
+        titleKey: "madrasa.setup.step5.title",
+        descKey: "madrasa.setup.step5.desc",
       },
       {
-        titleKey: "guide.admin.step6.title",
-        descKey: "guide.admin.step6.desc",
-        screenshotKey: "donations",
+        titleKey: "madrasa.setup.step6.title",
+        descKey: "madrasa.setup.step6.desc",
+        screenshotKey: "madrasa-fees",
       },
     ],
   },
   {
-    role: "member",
+    phase: "teaching",
+    titleKey: "madrasa.teaching.title",
     steps: [
       {
-        titleKey: "guide.member.step1.title",
-        descKey: "guide.member.step1.desc",
+        titleKey: "madrasa.teaching.step1.title",
+        descKey: "madrasa.teaching.step1.desc",
       },
       {
-        titleKey: "guide.member.step2.title",
-        descKey: "guide.member.step2.desc",
+        titleKey: "madrasa.teaching.step2.title",
+        descKey: "madrasa.teaching.step2.desc",
+        screenshotKey: "madrasa-attendance",
       },
       {
-        titleKey: "guide.member.step3.title",
-        descKey: "guide.member.step3.desc",
-        screenshotKey: "events-list",
-      },
-      {
-        titleKey: "guide.member.step4.title",
-        descKey: "guide.member.step4.desc",
-        screenshotKey: "donations",
+        titleKey: "madrasa.teaching.step3.title",
+        descKey: "madrasa.teaching.step3.desc",
       },
     ],
   },
   {
-    role: "teacher",
+    phase: "parents",
+    titleKey: "madrasa.parents.title",
     steps: [
       {
-        titleKey: "guide.teacher.step1.title",
-        descKey: "guide.teacher.step1.desc",
+        titleKey: "madrasa.parents.step1.title",
+        descKey: "madrasa.parents.step1.desc",
       },
       {
-        titleKey: "guide.teacher.step2.title",
-        descKey: "guide.teacher.step2.desc",
-        screenshotKey: "madrasa",
+        titleKey: "madrasa.parents.step2.title",
+        descKey: "madrasa.parents.step2.desc",
+        screenshotKey: "madrasa-parent",
       },
       {
-        titleKey: "guide.teacher.step3.title",
-        descKey: "guide.teacher.step3.desc",
-      },
-      {
-        titleKey: "guide.teacher.step4.title",
-        descKey: "guide.teacher.step4.desc",
+        titleKey: "madrasa.parents.step3.title",
+        descKey: "madrasa.parents.step3.desc",
       },
     ],
   },

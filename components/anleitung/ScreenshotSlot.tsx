@@ -1,18 +1,25 @@
 import Image from "next/image";
+import type { ScreenshotKey } from "@/lib/docs/guide";
 
-// Set value to true once the file exists in /public/screenshots/<key>.png
-const SCREENSHOTS: Record<string, boolean> = {
-  "admin-settings": false,
-  "prayer-times": false,
-  "events-list": false,
-  donations: false,
-  members: false,
-  posts: false,
-  madrasa: false,
+const SCREENSHOT_KEYS = [
+  "madrasa-settings",
+  "madrasa-students",
+  "madrasa-fees",
+  "madrasa-attendance",
+  "madrasa-parent",
+] as const;
+
+// Set to true once file exists in /public/screenshots/<key>.png
+const AVAILABLE: Record<ScreenshotKey, boolean> = {
+  "madrasa-settings": false,
+  "madrasa-students": false,
+  "madrasa-fees": false,
+  "madrasa-attendance": false,
+  "madrasa-parent": false,
 };
 
 interface ScreenshotSlotProps {
-  screenshotKey: string;
+  screenshotKey: ScreenshotKey;
   label?: string;
   aspectRatio?: string;
 }
@@ -22,7 +29,7 @@ export function ScreenshotSlot({
   label,
   aspectRatio = "16/9",
 }: ScreenshotSlotProps) {
-  const hasImage = !!screenshotKey && SCREENSHOTS[screenshotKey] === true;
+  const hasImage = AVAILABLE[screenshotKey] === true;
 
   if (hasImage) {
     return (

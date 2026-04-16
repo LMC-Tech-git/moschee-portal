@@ -2425,22 +2425,22 @@
   },
   "anleitung": {
     "metaTitle": "Anleitung & Funktionen | moschee.app",
-    "metaDesc": "Lernen Sie moschee.app kennen und finden Sie Schritt-für-Schritt-Anleitungen für Admins, Mitglieder und Lehrer.",
+    "metaDesc": "Lernen Sie moschee.app kennen — Funktionen, Madrasa-Anleitung und häufige Fragen.",
     "heroTitle": "Alles über moschee.app",
     "heroSubtitle": "Das digitale Portal für Moscheegemeinden — von Gebetszeiten bis Madrasa, alles in einem.",
     "heroCta": "Demo ausprobieren",
-    "heroGuideLink": "Zur Anleitung",
+    "heroGuideLink": "Zur Madrasa-Anleitung",
     "featuresTitle": "Was moschee.app bietet",
     "featuresSubtitle": "Alle Funktionen auf einen Blick.",
     "featureHighlight": "Beliebt",
     "features": {
       "prayer": {
         "title": "Gebetszeiten",
-        "desc": "Automatische Gebetszeiten via AlAdhan-API. Feinabstimmung je Gebet und Anzeige im Portal."
+        "desc": "Automatische Gebetszeiten via AlAdhan (Diyanet-Methode). Feinabstimmung je Gebet möglich."
       },
       "events": {
         "title": "Veranstaltungen",
-        "desc": "Einmalige und wiederkehrende Veranstaltungen erstellen, kategorisieren und öffentlich teilen."
+        "desc": "Einmalige und wiederkehrende Events, Kategorien, Mitglieder-exklusive Veranstaltungen."
       },
       "donations": {
         "title": "Spenden",
@@ -2448,15 +2448,15 @@
       },
       "members": {
         "title": "Mitgliederverwaltung",
-        "desc": "Mitglieder einladen, Rollen vergeben, Mitgliedsbeiträge verwalten."
+        "desc": "Einladungssystem mit persönlichen und Gruppen-Links, Rollenverwaltung."
       },
       "announcements": {
         "title": "Beiträge & Ankündigungen",
-        "desc": "Neuigkeiten veröffentlichen, Newsletter versenden, Gemeinde informiert halten."
+        "desc": "Veröffentlichen, Entwürfe, Kategorien, Newsletter-Versand an Mitglieder."
       },
       "madrasa": {
         "title": "Madrasa",
-        "desc": "Kurse, Einschreibungen, Anwesenheit und Gebühren für den Islamunterricht verwalten."
+        "desc": "Kurse, Schuljahre, Schüler-Import, Anwesenheit, Gebühren und Online-Zahlung."
       }
     },
     "quickstartTitle": "In 5 Minuten starten",
@@ -2480,72 +2480,64 @@
         "desc": "Klicke auf 'Veranstaltung erstellen' oder 'Beitrag erstellen' und informiere die Gemeinde."
       }
     },
-    "guideTitle": "Schritt-für-Schritt-Anleitung",
-    "guideSubtitle": "Wähle deine Rolle und folge der Anleitung.",
-    "roleAdmin": "Für Admins",
-    "roleMember": "Für Mitglieder",
-    "roleTeacher": "Für Lehrer",
-    "guide": {
-      "admin": {
+    "madrasaTitle": "Madrasa — Schritt für Schritt",
+    "madrasaSubtitle": "Vom Einrichten bis zur Eltern-Ansicht: Alles zur Madrasa-Verwaltung.",
+    "madrasa": {
+      "setup": {
+        "title": "Setup (Admin)",
         "step1": {
-          "title": "Einstellungen konfigurieren",
-          "desc": "Im Admin-Panel auf 'Einstellungen' klicken. Branding (Logo, Farben), Gebetszeiten (Provider, Koordinaten) und Standardwerte festlegen."
+          "title": "Madrasa-Gebühren aktivieren",
+          "desc": "Unter 'Einstellungen → Madrasa' den Gebühren-Toggle aktivieren und Standardbetrag festlegen. Optional: Geschwisterrabatt konfigurieren."
         },
         "step2": {
-          "title": "Gebetszeiten aktivieren",
-          "desc": "Unter 'Einstellungen → Gebetszeiten' den Provider 'AlAdhan' auswählen und Koordinaten der Moschee eintragen. Anzeige im Portal erscheint sofort."
+          "title": "Schuljahr erstellen",
+          "desc": "Unter 'Madrasa → Schuljahre' auf 'Neu' klicken. Name (z.B. '2025/2026'), Start- und Enddatum eingeben."
         },
         "step3": {
-          "title": "Ersten Beitrag veröffentlichen",
-          "desc": "Unter 'Beiträge' auf 'Neuer Beitrag' klicken. Titel, Text und Kategorie eingeben und auf 'Veröffentlichen' klicken."
+          "title": "Kurs erstellen",
+          "desc": "Unter 'Madrasa' auf 'Neuer Kurs' klicken. Schuljahr, Titel, Kategorie, Lehrer und Zeitplan (Wochentag + Uhrzeit) eingeben."
         },
         "step4": {
-          "title": "Veranstaltung erstellen",
-          "desc": "Unter 'Veranstaltungen' auf 'Neue Veranstaltung' klicken. Einmalig oder wiederkehrend, mit Kategorie und optionalem Bild."
+          "title": "Schüler hinzufügen",
+          "desc": "Unter 'Madrasa → Schüler' einzeln hinzufügen oder per CSV/Excel-Import. Name, Geburtsdatum und Elternteil zuweisen."
         },
         "step5": {
-          "title": "Mitglieder einladen",
-          "desc": "Unter 'Mitglieder → Einladungen' einen Einladungslink erstellen und per E-Mail oder WhatsApp teilen. Mitglieder registrieren sich damit direkt."
+          "title": "Schüler einschreiben",
+          "desc": "Im Kurs unter 'Einschreibungen' Schüler zuweisen. Oder in der Schülerliste mehrere auswählen und per Bulk-Einschreibung zuordnen."
         },
         "step6": {
-          "title": "Spendenkampagne starten",
-          "desc": "Unter 'Kampagnen' auf 'Neue Kampagne' klicken. Ziel, Beschreibung und Kategorie festlegen. Stripe-Integration für Online-Spenden muss eingerichtet sein."
+          "title": "Monatliche Gebühren erstellen",
+          "desc": "Unter 'Madrasa → Gebühren' den Monat wählen und 'Gebühren erstellen' klicken. Status verwalten: Bar, Überweisung, Erlassen oder Erinnerung senden."
         }
       },
-      "member": {
+      "teaching": {
+        "title": "Unterrichtsalltag (Lehrer)",
         "step1": {
-          "title": "Registrieren",
-          "desc": "Über den Einladungslink des Admins registrieren oder 'Registrieren' auf der Portal-Startseite klicken."
+          "title": "Heutige Kurse sehen",
+          "desc": "Im Lehrer-Panel werden heutige Kurse grün hervorgehoben. Direkt auf 'Anwesenheit eintragen' klicken."
         },
         "step2": {
-          "title": "Profil vervollständigen",
-          "desc": "Unter 'Mein Profil' Name, Telefonnummer und weitere Angaben ergänzen."
-        },
-        "step3": {
-          "title": "Veranstaltungen ansehen",
-          "desc": "Auf der Startseite oder unter 'Veranstaltungen' alle kommenden Events einsehen — auch exklusive Mitglieder-Veranstaltungen."
-        },
-        "step4": {
-          "title": "Online spenden",
-          "desc": "Unter 'Spenden' eine aktive Kampagne auswählen und per Karte oder Überweisung spenden. Quittung kommt automatisch per E-Mail."
-        }
-      },
-      "teacher": {
-        "step1": {
-          "title": "Einloggen",
-          "desc": "Mit den Zugangsdaten des Admins einloggen. Als Lehrer gelangt man direkt ins Lehrer-Panel."
-        },
-        "step2": {
-          "title": "Eigene Kurse sehen",
-          "desc": "Unter 'Meine Kurse' alle zugewiesenen Kurse mit Schülerliste einsehen."
-        },
-        "step3": {
           "title": "Anwesenheit eintragen",
-          "desc": "Kurs öffnen, auf 'Anwesenheit eintragen' klicken und für jeden Schüler Status setzen: Anwesend, Abwesend oder Entschuldigt."
+          "desc": "Datum wählen, dann für jeden Schüler Status setzen: Anwesend, Verspätet, Abwesend oder Entschuldigt. Optional: Leistungsbewertung (1–5 Sterne)."
         },
-        "step4": {
+        "step3": {
           "title": "Statistiken einsehen",
-          "desc": "Im Kurs unter 'Statistik' die Anwesenheitsrate je Schüler und Unterrichtseinheit einsehen."
+          "desc": "Im Kurs unter 'Statistik': Anwesenheitsrate je Schüler mit Fortschrittsbalken. Auffällige Schüler (unter 50%) werden markiert."
+        }
+      },
+      "parents": {
+        "title": "Eltern-Erfahrung (Mitglied)",
+        "step1": {
+          "title": "Kinder und Anwesenheit einsehen",
+          "desc": "Im Profil unter 'Kinder': Anwesenheitsrate je Kurs, Trend (steigend/fallend) und Leistungsbewertung des Lehrers."
+        },
+        "step2": {
+          "title": "Gebühren-Status prüfen",
+          "desc": "Im Profil unter 'Madrasa': Gebühren-Status je Kind und Monat. Offen (rot), Bezahlt (grün) oder Erlassen (grau)."
+        },
+        "step3": {
+          "title": "Online bezahlen",
+          "desc": "Bei offenen Gebühren auf 'Online bezahlen' klicken. Auch Vorauszahlung für mehrere Monate (1/3/6/12) möglich."
         }
       }
     },
@@ -2567,6 +2559,14 @@
       "q4": {
         "question": "Gebetszeiten werden nicht angezeigt",
         "answer": "Unter 'Einstellungen → Gebetszeiten' prüfen: Provider 'AlAdhan' aktiv und Koordinaten (Breite/Länge) der Moschee eingetragen?"
+      },
+      "q5": {
+        "question": "Schüler taucht nicht in Anwesenheitsliste auf",
+        "answer": "Prüfen, ob der Schüler in den Kurs eingeschrieben ist. Unter 'Madrasa → Kurs → Einschreibungen' den Schüler dem Kurs zuweisen."
+      },
+      "q6": {
+        "question": "Madrasa-Gebühren werden nicht angezeigt",
+        "answer": "Unter 'Einstellungen → Madrasa' prüfen: Ist der Gebühren-Toggle aktiviert? Sind Gebühren für den aktuellen Monat erstellt?"
       }
     }
   }
