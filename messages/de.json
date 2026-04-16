@@ -52,7 +52,8 @@
     "menuOpen": "Menü öffnen",
     "menuClose": "Menü schließen",
     "digitalCommunity": "Ihre digitale Gemeinde",
-    "platformSubtitle": "Die Plattform für Moscheegemeinden"
+    "platformSubtitle": "Die Plattform für Moscheegemeinden",
+    "guide": "Anleitung"
   },
   "header": {
     "adminSection": "Admin",
@@ -2420,6 +2421,153 @@
       "bildung": "Bildung & Beratung",
       "mitarbeiter": "Mitarbeiter",
       "sonstiges": "Sonstiges"
+    }
+  },
+  "anleitung": {
+    "metaTitle": "Anleitung & Funktionen | moschee.app",
+    "metaDesc": "Lernen Sie moschee.app kennen und finden Sie Schritt-für-Schritt-Anleitungen für Admins, Mitglieder und Lehrer.",
+    "heroTitle": "Alles über moschee.app",
+    "heroSubtitle": "Das digitale Portal für Moscheegemeinden — von Gebetszeiten bis Madrasa, alles in einem.",
+    "heroCta": "Demo ausprobieren",
+    "heroGuideLink": "Zur Anleitung",
+    "featuresTitle": "Was moschee.app bietet",
+    "featuresSubtitle": "Alle Funktionen auf einen Blick.",
+    "featureHighlight": "Beliebt",
+    "features": {
+      "prayer": {
+        "title": "Gebetszeiten",
+        "desc": "Automatische Gebetszeiten via AlAdhan-API. Feinabstimmung je Gebet und Anzeige im Portal."
+      },
+      "events": {
+        "title": "Veranstaltungen",
+        "desc": "Einmalige und wiederkehrende Veranstaltungen erstellen, kategorisieren und öffentlich teilen."
+      },
+      "donations": {
+        "title": "Spenden",
+        "desc": "Online-Spenden via Stripe, manuelle Erfassung, Kampagnen mit Fortschrittsbalken."
+      },
+      "members": {
+        "title": "Mitgliederverwaltung",
+        "desc": "Mitglieder einladen, Rollen vergeben, Mitgliedsbeiträge verwalten."
+      },
+      "announcements": {
+        "title": "Beiträge & Ankündigungen",
+        "desc": "Neuigkeiten veröffentlichen, Newsletter versenden, Gemeinde informiert halten."
+      },
+      "madrasa": {
+        "title": "Madrasa",
+        "desc": "Kurse, Einschreibungen, Anwesenheit und Gebühren für den Islamunterricht verwalten."
+      }
+    },
+    "quickstartTitle": "In 5 Minuten starten",
+    "quickstartSubtitle": "Vier einfache Schritte, um moschee.app kennenzulernen.",
+    "quickstartCta": "Demo aufrufen",
+    "quickstart": {
+      "step1": {
+        "title": "Demo aufrufen",
+        "desc": "Öffne demo.moschee.app und erkunde das Portal ohne Registrierung."
+      },
+      "step2": {
+        "title": "Als Admin einloggen",
+        "desc": "Nutze die Demo-Zugangsdaten: demo-admin@moschee.app / Demo1234!"
+      },
+      "step3": {
+        "title": "Einstellungen anpassen",
+        "desc": "Klicke auf 'Einstellungen' im Admin-Panel: Branding, Gebetszeiten und Standardwerte konfigurieren."
+      },
+      "step4": {
+        "title": "Ersten Inhalt erstellen",
+        "desc": "Klicke auf 'Veranstaltung erstellen' oder 'Beitrag erstellen' und informiere die Gemeinde."
+      }
+    },
+    "guideTitle": "Schritt-für-Schritt-Anleitung",
+    "guideSubtitle": "Wähle deine Rolle und folge der Anleitung.",
+    "roleAdmin": "Für Admins",
+    "roleMember": "Für Mitglieder",
+    "roleTeacher": "Für Lehrer",
+    "guide": {
+      "admin": {
+        "step1": {
+          "title": "Einstellungen konfigurieren",
+          "desc": "Im Admin-Panel auf 'Einstellungen' klicken. Branding (Logo, Farben), Gebetszeiten (Provider, Koordinaten) und Standardwerte festlegen."
+        },
+        "step2": {
+          "title": "Gebetszeiten aktivieren",
+          "desc": "Unter 'Einstellungen → Gebetszeiten' den Provider 'AlAdhan' auswählen und Koordinaten der Moschee eintragen. Anzeige im Portal erscheint sofort."
+        },
+        "step3": {
+          "title": "Ersten Beitrag veröffentlichen",
+          "desc": "Unter 'Beiträge' auf 'Neuer Beitrag' klicken. Titel, Text und Kategorie eingeben und auf 'Veröffentlichen' klicken."
+        },
+        "step4": {
+          "title": "Veranstaltung erstellen",
+          "desc": "Unter 'Veranstaltungen' auf 'Neue Veranstaltung' klicken. Einmalig oder wiederkehrend, mit Kategorie und optionalem Bild."
+        },
+        "step5": {
+          "title": "Mitglieder einladen",
+          "desc": "Unter 'Mitglieder → Einladungen' einen Einladungslink erstellen und per E-Mail oder WhatsApp teilen. Mitglieder registrieren sich damit direkt."
+        },
+        "step6": {
+          "title": "Spendenkampagne starten",
+          "desc": "Unter 'Kampagnen' auf 'Neue Kampagne' klicken. Ziel, Beschreibung und Kategorie festlegen. Stripe-Integration für Online-Spenden muss eingerichtet sein."
+        }
+      },
+      "member": {
+        "step1": {
+          "title": "Registrieren",
+          "desc": "Über den Einladungslink des Admins registrieren oder 'Registrieren' auf der Portal-Startseite klicken."
+        },
+        "step2": {
+          "title": "Profil vervollständigen",
+          "desc": "Unter 'Mein Profil' Name, Telefonnummer und weitere Angaben ergänzen."
+        },
+        "step3": {
+          "title": "Veranstaltungen ansehen",
+          "desc": "Auf der Startseite oder unter 'Veranstaltungen' alle kommenden Events einsehen — auch exklusive Mitglieder-Veranstaltungen."
+        },
+        "step4": {
+          "title": "Online spenden",
+          "desc": "Unter 'Spenden' eine aktive Kampagne auswählen und per Karte oder Überweisung spenden. Quittung kommt automatisch per E-Mail."
+        }
+      },
+      "teacher": {
+        "step1": {
+          "title": "Einloggen",
+          "desc": "Mit den Zugangsdaten des Admins einloggen. Als Lehrer gelangt man direkt ins Lehrer-Panel."
+        },
+        "step2": {
+          "title": "Eigene Kurse sehen",
+          "desc": "Unter 'Meine Kurse' alle zugewiesenen Kurse mit Schülerliste einsehen."
+        },
+        "step3": {
+          "title": "Anwesenheit eintragen",
+          "desc": "Kurs öffnen, auf 'Anwesenheit eintragen' klicken und für jeden Schüler Status setzen: Anwesend, Abwesend oder Entschuldigt."
+        },
+        "step4": {
+          "title": "Statistiken einsehen",
+          "desc": "Im Kurs unter 'Statistik' die Anwesenheitsrate je Schüler und Unterrichtseinheit einsehen."
+        }
+      }
+    },
+    "faqTitle": "Häufige Fragen",
+    "faqSubtitle": "Schnelle Antworten auf typische Probleme.",
+    "faq": {
+      "q1": {
+        "question": "Zahlung bleibt auf 'ausstehend'",
+        "answer": "Den Stripe-Webhook prüfen. Im Admin unter 'Einstellungen → Stripe' den Status kontrollieren. Der Webhook-Endpunkt muss korrekt in Stripe hinterlegt sein."
+      },
+      "q2": {
+        "question": "Mitglied sieht Veranstaltung nicht",
+        "answer": "Sichtbarkeit der Veranstaltung prüfen: 'Öffentlich' oder 'Nur Mitglieder'. Bei Mitglieder-Events muss das Mitglied eingeloggt sein."
+      },
+      "q3": {
+        "question": "Einladungslink funktioniert nicht",
+        "answer": "Den Link prüfen: Ist die Einladung abgelaufen, widerrufen oder wurde die maximale Nutzungsanzahl erreicht? Neue Einladung unter 'Mitglieder → Einladungen' erstellen."
+      },
+      "q4": {
+        "question": "Gebetszeiten werden nicht angezeigt",
+        "answer": "Unter 'Einstellungen → Gebetszeiten' prüfen: Provider 'AlAdhan' aktiv und Koordinaten (Breite/Länge) der Moschee eingetragen?"
+      }
     }
   }
 }

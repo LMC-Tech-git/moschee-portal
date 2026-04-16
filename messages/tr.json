@@ -52,7 +52,8 @@
     "menuOpen": "Menüyü aç",
     "menuClose": "Menüyü kapat",
     "digitalCommunity": "Dijital cemaatiniz",
-    "platformSubtitle": "Cami cemaatleri için platform"
+    "platformSubtitle": "Cami cemaatleri için platform",
+    "guide": "Rehber"
   },
   "header": {
     "adminSection": "Yönetici",
@@ -2420,6 +2421,153 @@
       "bildung": "Eğitim & Danışmanlık",
       "mitarbeiter": "Çalışan",
       "sonstiges": "Diğer"
+    }
+  },
+  "anleitung": {
+    "metaTitle": "Rehber & Özellikler | moschee.app",
+    "metaDesc": "moschee.app'ı tanıyın ve adminler, üyeler ve öğretmenler için adım adım rehberi keşfedin.",
+    "heroTitle": "moschee.app hakkında her şey",
+    "heroSubtitle": "Cami cemaatleri için dijital portal — namaz vakitlerinden medreseye, hepsi bir arada.",
+    "heroCta": "Demoyu dene",
+    "heroGuideLink": "Rehbere git",
+    "featuresTitle": "moschee.app neler sunuyor",
+    "featuresSubtitle": "Tüm özellikler bir bakışta.",
+    "featureHighlight": "Popüler",
+    "features": {
+      "prayer": {
+        "title": "Namaz Vakitleri",
+        "desc": "AlAdhan API ile otomatik namaz vakitleri. Her namaz için ince ayar ve portalda gösterim."
+      },
+      "events": {
+        "title": "Etkinlikler",
+        "desc": "Tek seferlik ve tekrarlayan etkinlikler oluşturun, kategorize edin ve herkese açık paylaşın."
+      },
+      "donations": {
+        "title": "Bağışlar",
+        "desc": "Stripe ile online bağış, manuel kayıt, ilerleme çubuklu kampanyalar."
+      },
+      "members": {
+        "title": "Üye Yönetimi",
+        "desc": "Üyeleri davet edin, roller atayın, üyelik aidatlarını yönetin."
+      },
+      "announcements": {
+        "title": "Yazılar & Duyurular",
+        "desc": "Haberleri yayınlayın, bülten gönderin, cemaati bilgilendirin."
+      },
+      "madrasa": {
+        "title": "Medrese",
+        "desc": "Kurslar, kayıtlar, yoklama ve İslami eğitim için ücretleri yönetin."
+      }
+    },
+    "quickstartTitle": "5 dakikada başlayın",
+    "quickstartSubtitle": "moschee.app'ı tanımak için dört basit adım.",
+    "quickstartCta": "Demoyu aç",
+    "quickstart": {
+      "step1": {
+        "title": "Demoyu açın",
+        "desc": "demo.moschee.app adresini açın ve portalı kayıt olmadan keşfedin."
+      },
+      "step2": {
+        "title": "Admin olarak giriş yapın",
+        "desc": "Demo giriş bilgilerini kullanın: demo-admin@moschee.app / Demo1234!"
+      },
+      "step3": {
+        "title": "Ayarları yapılandırın",
+        "desc": "Admin panelinde 'Ayarlar'a tıklayın: Marka, namaz vakitleri ve varsayılan değerleri yapılandırın."
+      },
+      "step4": {
+        "title": "İlk içeriği oluşturun",
+        "desc": "'Etkinlik oluştur' veya 'Yazı oluştur'a tıklayın ve cemaati bilgilendirin."
+      }
+    },
+    "guideTitle": "Adım adım rehber",
+    "guideSubtitle": "Rolünüzü seçin ve rehberi takip edin.",
+    "roleAdmin": "Adminler için",
+    "roleMember": "Üyeler için",
+    "roleTeacher": "Öğretmenler için",
+    "guide": {
+      "admin": {
+        "step1": {
+          "title": "Ayarları yapılandırın",
+          "desc": "Admin panelinde 'Ayarlar'a tıklayın. Marka (logo, renkler), namaz vakitleri (sağlayıcı, koordinatlar) ve varsayılan değerleri belirleyin."
+        },
+        "step2": {
+          "title": "Namaz vakitlerini etkinleştirin",
+          "desc": "'Ayarlar → Namaz Vakitleri' altında 'AlAdhan' sağlayıcısını seçin ve caminin koordinatlarını girin. Gösterim portalda hemen görünür."
+        },
+        "step3": {
+          "title": "İlk yazıyı yayınlayın",
+          "desc": "'Yazılar' altında 'Yeni Yazı'ya tıklayın. Başlık, metin ve kategori girin ve 'Yayınla'ya tıklayın."
+        },
+        "step4": {
+          "title": "Etkinlik oluşturun",
+          "desc": "'Etkinlikler' altında 'Yeni Etkinlik'e tıklayın. Tek seferlik veya tekrarlayan, kategorili ve isteğe bağlı resimli."
+        },
+        "step5": {
+          "title": "Üyeleri davet edin",
+          "desc": "'Üyeler → Davetler' altında bir davet linki oluşturun ve e-posta veya WhatsApp ile paylaşın. Üyeler doğrudan kaydolabilir."
+        },
+        "step6": {
+          "title": "Bağış kampanyası başlatın",
+          "desc": "'Kampanyalar' altında 'Yeni Kampanya'ya tıklayın. Hedef, açıklama ve kategori belirleyin. Online bağışlar için Stripe entegrasyonu gereklidir."
+        }
+      },
+      "member": {
+        "step1": {
+          "title": "Kayıt olun",
+          "desc": "Adminin davet linki ile kayıt olun veya portal ana sayfasında 'Kayıt Ol'a tıklayın."
+        },
+        "step2": {
+          "title": "Profili tamamlayın",
+          "desc": "'Profilim' altında ad, telefon numarası ve diğer bilgileri ekleyin."
+        },
+        "step3": {
+          "title": "Etkinlikleri görüntüleyin",
+          "desc": "Ana sayfada veya 'Etkinlikler' altında tüm yaklaşan etkinlikleri görün — üyelere özel etkinlikler dahil."
+        },
+        "step4": {
+          "title": "Online bağış yapın",
+          "desc": "'Bağışlar' altında aktif bir kampanya seçin ve kart veya havale ile bağış yapın. Makbuz otomatik olarak e-posta ile gönderilir."
+        }
+      },
+      "teacher": {
+        "step1": {
+          "title": "Giriş yapın",
+          "desc": "Admin tarafından verilen giriş bilgileriyle oturum açın. Öğretmen olarak doğrudan öğretmen paneline yönlendirilirsiniz."
+        },
+        "step2": {
+          "title": "Kendi kurslarınızı görün",
+          "desc": "'Kurslarım' altında atanan tüm kursları öğrenci listesiyle birlikte görüntüleyin."
+        },
+        "step3": {
+          "title": "Yoklama girin",
+          "desc": "Kursu açın, 'Yoklama Gir'e tıklayın ve her öğrenci için durum belirleyin: Katıldı, Gelmedi veya Mazeretli."
+        },
+        "step4": {
+          "title": "İstatistikleri görün",
+          "desc": "Kurs altında 'İstatistik' sekmesinde her öğrenci ve ders için katılım oranını görüntüleyin."
+        }
+      }
+    },
+    "faqTitle": "Sık sorulan sorular",
+    "faqSubtitle": "Yaygın sorunlara hızlı cevaplar.",
+    "faq": {
+      "q1": {
+        "question": "Ödeme 'beklemede' kalıyor",
+        "answer": "Stripe webhook'unu kontrol edin. Admin panelinde 'Ayarlar → Stripe' altında durumu kontrol edin. Webhook adresi Stripe'da doğru şekilde kaydedilmiş olmalıdır."
+      },
+      "q2": {
+        "question": "Üye etkinliği göremiyor",
+        "answer": "Etkinliğin görünürlüğünü kontrol edin: 'Herkese Açık' veya 'Sadece Üyeler'. Üyelere özel etkinliklerde üyenin giriş yapmış olması gerekir."
+      },
+      "q3": {
+        "question": "Davet linki çalışmıyor",
+        "answer": "Linki kontrol edin: Davetin süresi dolmuş mu, iptal edilmiş mi veya maksimum kullanım sayısına ulaşılmış mı? 'Üyeler → Davetler' altında yeni davet oluşturun."
+      },
+      "q4": {
+        "question": "Namaz vakitleri görünmüyor",
+        "answer": "'Ayarlar → Namaz Vakitleri' altında kontrol edin: 'AlAdhan' sağlayıcısı aktif ve caminin koordinatları (enlem/boylam) girilmiş mi?"
+      }
     }
   }
 }

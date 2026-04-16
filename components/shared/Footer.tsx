@@ -2,12 +2,19 @@ import Link from "next/link";
 import { Heart } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 
-export default async function Footer({ contactEnabled = false }: { contactEnabled?: boolean }) {
+export default async function Footer({
+  contactEnabled = false,
+  showGuideLink = false,
+}: {
+  contactEnabled?: boolean;
+  showGuideLink?: boolean;
+}) {
   const t = await getTranslations();
   const currentYear = new Date().getFullYear();
 
   const quickLinks = [
     { label: t("nav.home"), href: "/" },
+    ...(showGuideLink ? [{ label: t("nav.guide"), href: "/anleitung" }] : []),
     ...(contactEnabled ? [{ label: t("footer.contact"), href: "/kontakt" }] : []),
     { label: t("nav.login"), href: "/login" },
     { label: t("nav.register"), href: "/register" },

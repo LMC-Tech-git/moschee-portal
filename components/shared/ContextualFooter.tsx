@@ -17,7 +17,7 @@ export async function ContextualFooter() {
     hostname.endsWith(`.${rootDomain}`);
 
   if (!isSubdomain) {
-    return <Footer contactEnabled={false} />;
+    return <Footer contactEnabled={false} showGuideLink />;
   }
 
   const slug = hostname.replace(`.${rootDomain}`, "");
