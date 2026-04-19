@@ -861,6 +861,7 @@ function PrayerTab({
   const tL = useTranslations("labels");
   const tuneLabels: { key: keyof TuneOffsets; label: string }[] = [
     { key: "fajr",    label: tL("prayer.fajr")    },
+    { key: "sabah",   label: tL("prayer.sabah")   },
     { key: "sunrise", label: tL("prayer.sunrise")  },
     { key: "dhuhr",   label: tL("prayer.dhuhr")   },
     { key: "asr",     label: tL("prayer.asr")     },
@@ -1072,6 +1073,9 @@ function PrayerTab({
             title={t("prayer.tuning")}
             description={t("prayer.tuningDesc")}
           >
+            <p className="mb-3 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900">
+              {t("prayer.sabahHint")}
+            </p>
             <button
               type="button"
               onClick={() => setShowTune((v) => !v)}

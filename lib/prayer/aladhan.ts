@@ -134,9 +134,16 @@ export async function getAladhanPrayerTimes(
   const hijri = dayEntry.date.hijri;
   const hijriDate = `${parseInt(hijri.day, 10)}. ${hijri.month.en} ${hijri.year}`;
 
+  // Shuruk getunt vorab berechnen (Basis für Sabah)
+  const sunriseTuned = applyTuneMinutes(cleanTime(ti.Sunrise), t.sunrise);
+  // Salatul Fadjr / Sabah Namazı: standardmäßig 30 Min vor (getuntem) Shuruk,
+  // anschließend mit eigenem Tune-Offset feinjustierbar.
+  const sabah = applyTuneMinutes(applyTuneMinutes(sunriseTuned, -30), t.sabah);
+
   return {
     fajr:    applyTuneMinutes(cleanTime(ti.Fajr),    t.fajr),
-    sunrise: applyTuneMinutes(cleanTime(ti.Sunrise), t.sunrise),
+    sabah,
+    sunrise: sunriseTuned,
     dhuhr:   applyTuneMinutes(cleanTime(ti.Dhuhr),   t.dhuhr),
     asr:     applyTuneMinutes(cleanTime(ti.Asr),     t.asr),
     maghrib: applyTuneMinutes(cleanTime(ti.Maghrib), t.maghrib),

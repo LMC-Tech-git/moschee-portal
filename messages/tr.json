@@ -272,6 +272,7 @@
   "mosque": {
     "dashboard": {
       "prayerTimes": "Bugünün Namaz Vakitleri",
+      "sabah": "SABAH NAMAZI",
       "sunrise": "GÜNEŞ",
       "posts": "Haberler",
       "noPosts": "Henüz haber yayımlanmadı.",
@@ -1564,6 +1565,7 @@
       "methodDesc": "Namaz vakitleri hesaplama yöntemi.",
       "tuning": "İnce Ayar",
       "tuningDesc": "Her namaz vakti için dakika farkı (+/-)",
+      "sabahHint": "Sabah Namazı (Salatul Fadjr) otomatik olarak Şuruk'tan 30 dk önce hesaplanır. Cemaat, ince ayar değeriyle bunu özelleştirebilir (örn. +5 = Şuruk'tan 25 dk önce).",
       "tuningShow": "Ofsetleri göster / düzenle",
       "tuningHide": "Ofsetleri gizle",
       "tuningMin": "dk",
@@ -1734,6 +1736,7 @@
     },
     "prayer": {
       "fajr": "İMSAK",
+      "sabah": "SABAH NAMAZI",
       "sunrise": "GÜNEŞ",
       "dhuhr": "ÖĞLE",
       "asr": "İKİNDİ",

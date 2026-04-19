@@ -272,6 +272,7 @@
   "mosque": {
     "dashboard": {
       "prayerTimes": "Heutige Gebetszeiten",
+      "sabah": "SALATUL FADJR",
       "sunrise": "SHURUK",
       "posts": "Beiträge",
       "noPosts": "Noch keine Beiträge veröffentlicht.",
@@ -1564,6 +1565,7 @@
       "methodDesc": "Berechnung der Gebetszeiten nach Berechnungsmethode.",
       "tuning": "Feinabstimmung",
       "tuningDesc": "Minutenversatz je Gebetszeit (+/-)",
+      "sabahHint": "Salatul Fadjr (Morgengebet) wird automatisch 30 Min vor Shuruk gesetzt. Mit dem Tune-Wert kann die Gemeinde das individuell anpassen (z. B. +5 = 25 Min vor Shuruk).",
       "tuningShow": "Offsets anzeigen / bearbeiten",
       "tuningHide": "Offsets ausblenden",
       "tuningMin": "min",
@@ -1734,6 +1736,7 @@
     },
     "prayer": {
       "fajr": "FADJR",
+      "sabah": "SALATUL FADJR",
       "sunrise": "SHURUK",
       "dhuhr": "DUHR",
       "asr": "ASSR",

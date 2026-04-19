@@ -104,6 +104,7 @@ export default async function MosqueDashboard({
   // ── Gebetszeiten: Nächstes Gebet berechnen (server-side) ──────────────────
   const PRAYER_LIST = [
     { key: "fajr" as const,    label: t("fajr")       },
+    { key: "sabah" as const,   label: t("sabah")      },
     { key: "sunrise" as const, label: t("sunrise")    },
     { key: "dhuhr" as const,   label: t("dhuhr")      },
     { key: "asr" as const,     label: t("asr")        },
@@ -119,7 +120,9 @@ export default async function MosqueDashboard({
   let nextPrayerKey: string | null = null;
   if (prayerTimes) {
     for (const { key } of PRAYER_LIST) {
-      if (prayerMins(prayerTimes[key]) > nowMins) { nextPrayerKey = key; break; }
+      const time = prayerTimes[key];
+      if (typeof time !== "string") continue;
+      if (prayerMins(time) > nowMins) { nextPrayerKey = key; break; }
     }
   }
 
@@ -185,9 +188,10 @@ export default async function MosqueDashboard({
                 <span className="text-sm text-gray-400 hidden sm:block">{prayerTimes.hijriDate}</span>
               )}
             </div>
-            <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
+            <div className="grid grid-cols-3 gap-2 sm:grid-cols-7">
               {PRAYER_LIST.map(({ key, label }) => {
                 const time = prayerTimes[key];
+                if (typeof time !== "string") return null;
                 const isNext = key === nextPrayerKey;
                 const isPast = !isNext && prayerMins(time) < nowMins;
                 return (

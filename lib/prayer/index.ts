@@ -3,6 +3,7 @@
 // =========================================
 
 import type { PrayerTimes, TuneOffsets } from "./types";
+import { DEFAULT_TUNE } from "./types";
 import { getAladhanPrayerTimes } from "./aladhan";
 import type { Mosque, Settings } from "@/types";
 
@@ -23,12 +24,15 @@ export interface PrayerConfig {
  * Parsed settings.tune (JSON-String) zu TuneOffsets.
  */
 export function buildPrayerConfig(mosque: Mosque, settings: Settings): PrayerConfig {
-  let tune: TuneOffsets | undefined;
+  // Mit DEFAULT_TUNE mergen, damit alte Records ohne neues `sabah`-Feld
+  // (oder andere zukünftige Keys) immer numerische Werte für alle Offsets haben.
+  let tune: TuneOffsets = { ...DEFAULT_TUNE };
   if (settings.tune) {
     try {
-      tune = JSON.parse(settings.tune) as TuneOffsets;
+      const parsed = JSON.parse(settings.tune) as Partial<TuneOffsets>;
+      tune = { ...DEFAULT_TUNE, ...parsed };
     } catch {
-      // ungültiges JSON → kein Tune
+      // ungültiges JSON → DEFAULT_TUNE
     }
   }
 
