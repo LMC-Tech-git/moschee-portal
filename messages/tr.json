@@ -2062,7 +2062,7 @@
   "adminStudents": {
     "title": "Öğrenci Yönetimi",
     "subtitle": "Caminin tüm kayıtlı öğrencileri",
-    "searchPlaceholder": "İsim ara...",
+    "searchPlaceholder": "Öğrenci veya veli adı ara...",
     "showInactive": "Pasif olanları göster",
     "statusActive": "Aktif",
     "statusInactive": "Pasif",
@@ -2264,13 +2264,13 @@
   },
   "studentLookup": {
     "sectionTitle": "Öğrenci Kaydet",
-    "placeholder": "Öğrenci ara...",
+    "placeholder": "Öğrenci veya veli adı ara...",
     "noResults": "Eşleşen öğrenci bulunamadı",
     "allEnrolled": "Tüm öğrenciler bu kursa zaten kayıtlı",
     "enrolling": "Kaydediliyor...",
     "successHint": "Kaydedildi",
     "errorHint": "Kayıt sırasında hata oluştu",
-    "hint": "Öğrenci arayın ve tıklayarak bu kursa kaydedin",
+    "hint": "Öğrenci veya veli adı arayın ve tıklayarak kursa kaydedin",
     "loading": "Öğrenciler yükleniyor...",
     "loadError": "Öğrenciler yüklenemedi"
   },

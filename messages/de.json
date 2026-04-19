@@ -2062,7 +2062,7 @@
   "adminStudents": {
     "title": "Schüler-Verwaltung",
     "subtitle": "Alle eingetragenen Schüler der Moschee",
-    "searchPlaceholder": "Name suchen...",
+    "searchPlaceholder": "Schüler- oder Elternname suchen...",
     "showInactive": "Inaktive anzeigen",
     "statusActive": "Aktive",
     "statusInactive": "Inaktive",
@@ -2264,13 +2264,13 @@
   },
   "studentLookup": {
     "sectionTitle": "Schüler einschreiben",
-    "placeholder": "Schüler suchen...",
+    "placeholder": "Schüler- oder Elternname suchen...",
     "noResults": "Keine passenden Schüler gefunden",
     "allEnrolled": "Alle Schüler sind bereits in diesem Kurs eingeschrieben",
     "enrolling": "Einschreiben...",
     "successHint": "Eingeschrieben",
     "errorHint": "Fehler beim Einschreiben",
-    "hint": "Schüler suchen und per Klick in diesen Kurs einschreiben",
+    "hint": "Nach Schüler- oder Elternname suchen und per Klick einschreiben",
     "loading": "Lade Schüler...",
     "loadError": "Schüler konnten nicht geladen werden"
   },
