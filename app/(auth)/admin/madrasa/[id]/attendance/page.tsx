@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useTranslations, useLocale } from "next-intl";
 import { useParams } from "next/navigation";
 import { ChevronLeft, ClipboardList, Save, Check, X, Clock, AlertCircle, Trash2 } from "lucide-react";
 import Link from "next/link";
@@ -25,11 +26,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import {
-  attendanceStatusLabels,
   attendanceStatusColors,
-  dayOfWeekLabels,
-  PERFORMANCE_LEVELS,
   getPerformanceLevel,
+  PERFORMANCE_LEVELS,
 } from "@/lib/constants";
 import type { Course, CourseEnrollment, Attendance } from "@/types";
 import AttendanceStats from "@/components/madrasa/AttendanceStats";
@@ -47,6 +46,9 @@ interface StudentRow {
 }
 
 export default function AttendancePage() {
+  const t = useTranslations("adminAttendance");
+  const tL = useTranslations("labels");
+  const locale = useLocale();
   const params = useParams();
   const courseId = params.id as string;
   const { mosqueId } = useMosque();
@@ -63,48 +65,35 @@ export default function AttendancePage() {
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
 
-  // Statistik
   const [courseStats, setCourseStats] = useState<CourseAttendanceStats | null>(null);
   const [isLoadingStats, setIsLoadingStats] = useState(false);
 
-  // Leistung
   const [performanceStats, setPerformanceStats] = useState<CoursePerformanceStats | null>(null);
   const [isLoadingPerf, setIsLoadingPerf] = useState(false);
 
-  // Session löschen
   const [deletingSession, setDeletingSession] = useState<string | null>(null);
   const [isDeletingSession, setIsDeletingSession] = useState(false);
 
-  // Performance-Rating Popover
   const [openRatingFor, setOpenRatingFor] = useState<string | null>(null);
 
-  // Kurs + Sessions laden
   useEffect(() => {
     if (!mosqueId || !courseId) return;
-
     async function loadCourse() {
       const [result, sessionsResult] = await Promise.all([
         getCourseById(courseId, mosqueId),
         getCourseSessions(courseId, mosqueId),
       ]);
-      if (result.success && result.data) {
-        setCourse(result.data);
-      }
-      if (sessionsResult.success && sessionsResult.data) {
-        setPastSessions(sessionsResult.data);
-      }
+      if (result.success && result.data) setCourse(result.data);
+      if (sessionsResult.success && sessionsResult.data) setPastSessions(sessionsResult.data);
       setIsLoading(false);
     }
     loadCourse();
   }, [mosqueId, courseId]);
 
-  // Schüler + Anwesenheit für gewähltes Datum laden
   useEffect(() => {
     if (!mosqueId || !courseId || !sessionDate) return;
-
     async function loadAttendance() {
       const enrollResult = await getEnrollmentsByCourse(courseId, mosqueId);
-      // Nur Schüler zeigen, die zum Zeitpunkt der Session bereits eingeschrieben waren
       const enrolledStudents = (enrollResult.data || []).filter(
         (e) => e.status === "enrolled" && e.enrolled_at.slice(0, 10) <= sessionDate
       ) as (CourseEnrollment & { student_name?: string })[];
@@ -113,9 +102,7 @@ export default function AttendancePage() {
       const existingAtt = attResult.data || [];
 
       const attMap: Record<string, Attendance & { student_name?: string }> = {};
-      existingAtt.forEach((a) => {
-        attMap[a.student_id] = a;
-      });
+      existingAtt.forEach((a) => { attMap[a.student_id] = a; });
 
       const rows: StudentRow[] = enrolledStudents.map((e) => {
         const existing = attMap[e.student_id];
@@ -127,7 +114,6 @@ export default function AttendancePage() {
           performance: existing?.performance ?? undefined,
         };
       });
-
       setStudents(rows);
     }
     loadAttendance();
@@ -137,9 +123,7 @@ export default function AttendancePage() {
     if (!mosqueId || !courseId) return;
     setIsLoadingStats(true);
     const result = await getCourseAttendanceStats(courseId, mosqueId);
-    if (result.success && result.data) {
-      setCourseStats(result.data);
-    }
+    if (result.success && result.data) setCourseStats(result.data);
     setIsLoadingStats(false);
   }, [mosqueId, courseId]);
 
@@ -147,31 +131,21 @@ export default function AttendancePage() {
     if (!mosqueId || !courseId) return;
     setIsLoadingPerf(true);
     const result = await getCoursePerformanceStats(courseId, mosqueId);
-    if (result.success && result.data) {
-      setPerformanceStats(result.data);
-    }
+    if (result.success && result.data) setPerformanceStats(result.data);
     setIsLoadingPerf(false);
   }, [mosqueId, courseId]);
 
   function handleTabChange(value: string) {
-    if (value === "stats" && !courseStats && !isLoadingStats) {
-      loadStats();
-    }
-    if (value === "performance" && !performanceStats && !isLoadingPerf) {
-      loadPerformanceStats();
-    }
+    if (value === "stats" && !courseStats && !isLoadingStats) loadStats();
+    if (value === "performance" && !performanceStats && !isLoadingPerf) loadPerformanceStats();
   }
 
   function setStudentStatus(studentId: string, status: AttendanceStatus) {
-    setStudents((prev) =>
-      prev.map((s) => (s.student_id === studentId ? { ...s, status } : s))
-    );
+    setStudents((prev) => prev.map((s) => (s.student_id === studentId ? { ...s, status } : s)));
   }
 
   function setStudentPerformance(studentId: string, value: number | undefined) {
-    setStudents((prev) =>
-      prev.map((s) => (s.student_id === studentId ? { ...s, performance: value } : s))
-    );
+    setStudents((prev) => prev.map((s) => (s.student_id === studentId ? { ...s, performance: value } : s)));
     setOpenRatingFor(null);
   }
 
@@ -188,24 +162,16 @@ export default function AttendancePage() {
       performance: s.performance,
     }));
 
-    const result = await saveAttendanceBulk(
-      mosqueId,
-      user.id,
-      courseId,
-      sessionDate,
-      entries
-    );
+    const result = await saveAttendanceBulk(mosqueId, user.id, courseId, sessionDate, entries);
 
     if (result.success) {
-      setSuccess("Anwesenheit gespeichert!");
+      setSuccess(t("saveSuccess"));
       setTimeout(() => setSuccess(""), 3000);
-      if (!pastSessions.includes(sessionDate)) {
-        setPastSessions((prev) => [sessionDate, ...prev]);
-      }
+      if (!pastSessions.includes(sessionDate)) setPastSessions((prev) => [sessionDate, ...prev]);
       setCourseStats(null);
       setPerformanceStats(null);
     } else {
-      setError(result.error || "Speichern fehlgeschlagen");
+      setError(result.error || t("saveFailed"));
     }
     setIsSaving(false);
   }
@@ -223,7 +189,7 @@ export default function AttendancePage() {
       setCourseStats(null);
       setPerformanceStats(null);
     } else {
-      setError(result.error || "Session konnte nicht gelöscht werden");
+      setError(result.error || t("deleteSessionFailed"));
     }
     setDeletingSession(null);
     setIsDeletingSession(false);
@@ -244,32 +210,35 @@ export default function AttendancePage() {
   if (!course) {
     return (
       <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-center">
-        <p className="text-sm text-red-700">Kurs nicht gefunden</p>
+        <p className="text-sm text-red-700">{t("courseNotFound")}</p>
         <Link
           href="/admin/madrasa"
           className="mt-3 inline-flex items-center gap-1 text-sm text-red-600 hover:underline"
         >
           <ChevronLeft className="h-4 w-4" />
-          Zurück zur Madrasa
+          {t("backToMadrasa")}
         </Link>
       </div>
     );
   }
 
+  const intlLocale = locale === "tr" ? "tr-TR" : "de-DE";
+
   const statusButtons: { status: AttendanceStatus; icon: typeof Check; label: string; color: string }[] = [
-    { status: "present", icon: Check, label: "Anwesend", color: "text-emerald-600 hover:bg-emerald-50 border-emerald-200" },
-    { status: "late", icon: Clock, label: "Verspätet", color: "text-amber-600 hover:bg-amber-50 border-amber-200" },
-    { status: "absent", icon: X, label: "Abwesend", color: "text-red-600 hover:bg-red-50 border-red-200" },
-    { status: "excused", icon: AlertCircle, label: "Entschuldigt", color: "text-blue-600 hover:bg-blue-50 border-blue-200" },
+    { status: "present", icon: Check,        label: t("present"), color: "text-emerald-600 hover:bg-emerald-50 border-emerald-200" },
+    { status: "late",    icon: Clock,        label: t("late"),    color: "text-amber-600 hover:bg-amber-50 border-amber-200"   },
+    { status: "absent",  icon: X,            label: t("absent"),  color: "text-red-600 hover:bg-red-50 border-red-200"         },
+    { status: "excused", icon: AlertCircle,  label: t("excused"), color: "text-blue-600 hover:bg-blue-50 border-blue-200"      },
   ];
 
   return (
     <div className="space-y-6">
       <DemoHint
         id="madrasa-attendance"
-        title="Anwesenheit erfassen"
-        description="Wählen Sie ein Datum, markieren Sie für jeden Schüler den Status (Anwesend / Entschuldigt / Unentschuldigt) und klicken Sie auf ‚Speichern'."
+        title={t("demoTitle")}
+        description={t("demoDescription")}
       />
+
       {/* Header */}
       <div>
         <Link
@@ -277,14 +246,14 @@ export default function AttendancePage() {
           className="mb-2 inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
         >
           <ChevronLeft className="h-4 w-4" />
-          Zurück zum Kurs
+          {t("backLink")}
         </Link>
         <h1 className="flex items-center gap-2 text-2xl font-bold text-gray-900">
           <ClipboardList className="h-6 w-6 text-emerald-600" />
-          Anwesenheit — {course.title}
+          {t("pageTitle", { title: course.title })}
         </h1>
         <p className="text-sm text-gray-500">
-          {dayOfWeekLabels[course.day_of_week]}, {course.start_time}
+          {tL(`day.${course.day_of_week}`)}, {course.start_time}
           {course.end_time ? `–${course.end_time}` : ""}
         </p>
       </div>
@@ -292,9 +261,9 @@ export default function AttendancePage() {
       {/* Tabs */}
       <Tabs defaultValue="attendance" onValueChange={handleTabChange}>
         <TabsList className="w-full sm:w-auto">
-          <TabsTrigger value="attendance" className="flex-1 sm:flex-none">Anwesenheit</TabsTrigger>
+          <TabsTrigger value="attendance" className="flex-1 sm:flex-none">{t("tabAttendance")}</TabsTrigger>
           <TabsTrigger value="stats" className="flex-1 sm:flex-none">
-            Statistik
+            {t("tabStats")}
             {pastSessions.length > 0 && (
               <span className="ml-1.5 rounded-full bg-gray-200 px-1.5 py-0.5 text-xs font-medium text-gray-600">
                 {pastSessions.length}
@@ -302,7 +271,7 @@ export default function AttendancePage() {
             )}
           </TabsTrigger>
           <TabsTrigger value="performance" className="flex-1 sm:flex-none">
-            Leistung
+            {t("tabPerformance")}
             {(performanceStats?.ratedStudentsCount ?? 0) > 0 && (
               <span className="ml-1.5 rounded-full bg-gray-200 px-1.5 py-0.5 text-xs font-medium text-gray-600">
                 {performanceStats!.ratedStudentsCount}
@@ -318,7 +287,7 @@ export default function AttendancePage() {
             <CardContent className="p-4">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
                 <div className="space-y-2">
-                  <Label htmlFor="session_date">Datum der Unterrichtsstunde</Label>
+                  <Label htmlFor="session_date">{t("dateLabel")}</Label>
                   <Input
                     id="session_date"
                     type="date"
@@ -329,19 +298,19 @@ export default function AttendancePage() {
 
                 {pastSessions.length > 0 && (
                   <div className="space-y-2">
-                    <Label>Vergangene Sessions</Label>
+                    <Label>{t("pastSessions")}</Label>
                     <div className="flex flex-wrap gap-1">
                       {pastSessions.slice(0, 10).map((date) => (
                         deletingSession === date ? (
                           <span key={date} className="inline-flex items-center gap-1 rounded-full border border-red-300 bg-red-50 px-2 py-1 text-xs">
-                            <span className="text-red-700">Löschen?</span>
+                            <span className="text-red-700">{t("deleteConfirm")}</span>
                             <button
                               type="button"
                               disabled={isDeletingSession}
                               onClick={() => handleDeleteSession(date)}
                               className="font-semibold text-red-600 hover:text-red-800 disabled:opacity-50"
                             >
-                              Ja
+                              {t("deleteYes")}
                             </button>
                             <span className="text-red-300">|</span>
                             <button
@@ -349,7 +318,7 @@ export default function AttendancePage() {
                               onClick={() => setDeletingSession(null)}
                               className="text-gray-500 hover:text-gray-700"
                             >
-                              Nein
+                              {t("deleteNo")}
                             </button>
                           </span>
                         ) : (
@@ -364,7 +333,7 @@ export default function AttendancePage() {
                                   : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                               )}
                             >
-                              {new Date(date).toLocaleDateString("de-DE", {
+                              {new Date(date).toLocaleDateString(intlLocale, {
                                 day: "2-digit",
                                 month: "2-digit",
                               })}
@@ -372,7 +341,7 @@ export default function AttendancePage() {
                             <button
                               type="button"
                               onClick={() => setDeletingSession(date)}
-                              title="Session löschen"
+                              title={t("deleteSessionTitle")}
                               className={cn(
                                 "rounded-r-full px-1.5 py-1 text-xs transition-colors",
                                 sessionDate === date
@@ -401,10 +370,10 @@ export default function AttendancePage() {
               className="gap-2 border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
             >
               <Check className="h-4 w-4" />
-              Alle anwesend
+              {t("markAll")}
             </Button>
             <div className="h-6 w-px bg-gray-200" />
-            <span className="text-xs text-gray-400">oder:</span>
+            <span className="text-xs text-gray-400">{t("or")}</span>
             {statusButtons.filter((sb) => sb.status !== "present").map((sb) => (
               <button
                 key={sb.status}
@@ -412,7 +381,7 @@ export default function AttendancePage() {
                 onClick={() => markAllAs(sb.status)}
                 className={cn("rounded-full border px-3 py-1 text-xs font-medium", sb.color)}
               >
-                Alle {sb.label.toLowerCase()}
+                {t("markAllStatus", { status: sb.label.toLowerCase() })}
               </button>
             ))}
           </div>
@@ -434,7 +403,7 @@ export default function AttendancePage() {
             <CardContent className="p-0">
               {students.length === 0 ? (
                 <div className="py-12 text-center text-sm text-gray-400">
-                  Keine eingeschriebenen Schüler in diesem Kurs.
+                  {t("noStudents")}
                 </div>
               ) : (
                 <div className="divide-y">
@@ -457,7 +426,7 @@ export default function AttendancePage() {
                                 type="button"
                                 onClick={() => setStudentStatus(student.student_id, sb.status)}
                                 title={sb.label}
-                                aria-label={`${student.student_name} als ${sb.label} markieren`}
+                                aria-label={t("markAs", { name: student.student_name, status: sb.label })}
                                 className={cn(
                                   "rounded-lg border p-2 text-xs font-medium transition-colors",
                                   isActive
@@ -495,7 +464,7 @@ export default function AttendancePage() {
                                     </span>
                                     {" "}{getPerformanceLevel(student.performance)?.shortLabel} ✎
                                   </>
-                                : "Bewerten"}
+                                : t("performance.rate")}
                             </button>
                             {openRatingFor === student.student_id && (
                               <>
@@ -504,14 +473,12 @@ export default function AttendancePage() {
                                 onClick={() => setOpenRatingFor(null)}
                               />
                               <div className="absolute right-0 top-full z-20 mt-1 w-52 rounded-lg border border-gray-200 bg-white p-2 shadow-lg">
-                                <p className="mb-2 text-xs font-medium text-gray-500">Leistung:</p>
+                                <p className="mb-2 text-xs font-medium text-gray-500">{t("performance.label")}:</p>
                                 {PERFORMANCE_LEVELS.map((level) => (
                                   <button
                                     key={level.value}
                                     type="button"
-                                    onClick={() =>
-                                      setStudentPerformance(student.student_id, level.value)
-                                    }
+                                    onClick={() => setStudentPerformance(student.student_id, level.value)}
                                     className={cn(
                                       "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors hover:bg-gray-50",
                                       student.performance === level.value
@@ -535,12 +502,10 @@ export default function AttendancePage() {
                                     <div className="my-1.5 border-t border-gray-100" />
                                     <button
                                       type="button"
-                                      onClick={() =>
-                                        setStudentPerformance(student.student_id, undefined)
-                                      }
+                                      onClick={() => setStudentPerformance(student.student_id, undefined)}
                                       className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-xs text-gray-400 hover:bg-gray-50"
                                     >
-                                      Nicht bewertet
+                                      {t("performance.notRated")}
                                     </button>
                                   </>
                                 )}
@@ -562,7 +527,7 @@ export default function AttendancePage() {
             <div className="flex justify-end">
               <Button onClick={handleSave} disabled={isSaving} className="gap-2">
                 <Save className="h-4 w-4" />
-                {isSaving ? "Wird gespeichert…" : "Anwesenheit speichern"}
+                {isSaving ? t("saving") : t("saveBtn")}
               </Button>
             </div>
           )}

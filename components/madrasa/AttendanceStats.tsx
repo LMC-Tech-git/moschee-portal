@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { CalendarDays, TrendingUp, Users, ChevronDown, ChevronUp, AlertTriangle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,6 +21,7 @@ function getRateColors(rate: number): { badge: string; bar: string; text: string
 
 export default function AttendanceStats({ stats, isLoading }: AttendanceStatsProps) {
   const t = useTranslations("lehrer.attendance.stats");
+  const locale = useLocale();
   const [showSessions, setShowSessions] = useState(false);
 
   if (isLoading) {
@@ -158,7 +159,7 @@ export default function AttendanceStats({ stats, isLoading }: AttendanceStatsPro
                 return (
                   <div key={s.date} className="flex items-center justify-between px-4 py-2.5">
                     <span className="text-sm text-gray-700">
-                      {new Date(s.date).toLocaleDateString("de-DE", {
+                      {new Date(s.date).toLocaleDateString(locale === "tr" ? "tr-TR" : "de-DE", {
                         weekday: "short",
                         day: "2-digit",
                         month: "2-digit",
