@@ -133,6 +133,29 @@
         "partnership": "İşbirliği ve ortaklıklar",
         "feedback": "Geri bildirim ve öneriler"
       }
+    },
+    "mosque": {
+      "subtitle": "Topluluğumuza sorularınız mı var? Mesajınızı bekliyoruz.",
+      "backLink": "← Ana sayfaya dön",
+      "inquiryTypes": {
+        "general": "Genel Soru",
+        "membership": "Üyelik",
+        "event": "Etkinlik",
+        "donation": "Bağış / Zekat",
+        "madrasa": "Medrese",
+        "funeral": "Cenaze",
+        "other": "Diğer"
+      }
+    },
+    "platform": {
+      "inquiryTypes": {
+        "demo": "Demo talep et",
+        "support": "Destek",
+        "partnership": "İşbirliği",
+        "bug": "Hata bildirimi",
+        "feedback": "Geri bildirim",
+        "other": "Diğer"
+      }
     }
   },
   "landing": {
@@ -1032,12 +1055,12 @@
       "nextMonth": "Sonraki Ay",
       "monthYear": "{month} {year}",
       "prepay": {
-        "title": "Ön Ödeme",
-        "button": "Şimdi Öde",
         "1": "1 Ay",
         "3": "3 Ay",
         "6": "6 Ay",
-        "12": "12 Ay (yıllık)"
+        "12": "12 Ay (yıllık)",
+        "title": "Ön Ödeme",
+        "button": "Şimdi Öde"
       }
     },
     "sponsor": {
@@ -2176,7 +2199,7 @@
     "relationMother": "Anne",
     "relationGuardian": "Vasi",
     "relationOther": "Diğer",
-    "selectRelation": "\u201E{name}\u201C ile ilişkiyi seçin:",
+    "selectRelation": "„{name}“ ile ilişkiyi seçin:",
     "selectRelationGeneric": "İlişki seçin:",
     "selectPlaceholder": "— Lütfen seçin —",
     "cancelButton": "İptal",
@@ -2317,7 +2340,7 @@
     "noSponsors": "Şu anda destek ortağı bulunmamaktadır.",
     "visitWebsite": "Web Sitesi",
     "filterAll": "Tümü",
-    "backToHome": "\u2190 Ana Sayfaya D\u00f6n",
+    "backToHome": "← Ana Sayfaya Dön",
     "admin": {
       "title": "Destek Ortaklarını Yönet",
       "subtitle": "Caminizin destek ortaklarını ve sponsorlarını yönetin.",

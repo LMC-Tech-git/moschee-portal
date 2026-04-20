@@ -436,11 +436,19 @@ export function renderEmailChangeConfirmation(data: {
 // =========================================
 
 const INQUIRY_TYPE_LABELS: Record<string, string> = {
+  // Plattform-Typen
   demo: "Demo anfragen",
   support: "Support",
   partnership: "Kooperation",
   bug: "Fehlermeldung",
   feedback: "Feedback",
+  // Gemeinde-Typen
+  general: "Allgemeine Anfrage",
+  membership: "Mitgliedschaft",
+  event: "Veranstaltung",
+  donation: "Spende / Zakat",
+  madrasa: "Madrasa",
+  funeral: "Bestattung (Janaza)",
   other: "Sonstiges",
 };
 

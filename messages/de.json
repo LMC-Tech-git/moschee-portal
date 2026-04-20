@@ -133,6 +133,29 @@
         "partnership": "Kooperationen & Partnerschaften",
         "feedback": "Feedback & Verbesserungsvorschläge"
       }
+    },
+    "mosque": {
+      "subtitle": "Haben Sie Fragen an unsere Gemeinde? Wir freuen uns über Ihre Nachricht.",
+      "backLink": "← Zurück zur Startseite",
+      "inquiryTypes": {
+        "general": "Allgemeine Anfrage",
+        "membership": "Mitgliedschaft",
+        "event": "Veranstaltung",
+        "donation": "Spende / Zakat",
+        "madrasa": "Madrasa",
+        "funeral": "Bestattung (Janaza)",
+        "other": "Sonstiges"
+      }
+    },
+    "platform": {
+      "inquiryTypes": {
+        "demo": "Demo anfragen",
+        "support": "Support",
+        "partnership": "Kooperation",
+        "bug": "Fehlermeldung",
+        "feedback": "Feedback",
+        "other": "Sonstiges"
+      }
     }
   },
   "landing": {
@@ -966,17 +989,17 @@
       },
       "emailChange": {
         "title": "E-Mail-Adresse",
-        "changeButton": "\u00c4ndern",
+        "changeButton": "Ändern",
         "newEmailLabel": "Neue E-Mail-Adresse",
         "newEmailPlaceholder": "neue@adresse.de",
-        "sendConfirmation": "Best\u00e4tigungslink senden",
+        "sendConfirmation": "Bestätigungslink senden",
         "sending": "Wird gesendet...",
         "cancel": "Abbrechen",
-        "sentTitle": "Best\u00e4tigungslink gesendet",
-        "sentDesc": "Bitte pr\u00fcfen Sie Ihr Postfach und klicken Sie auf den Link, um die neue Adresse zu aktivieren.",
-        "successMessage": "Ihre E-Mail-Adresse wurde erfolgreich ge\u00e4ndert.",
-        "errorInvalid": "Der Best\u00e4tigungslink ist ung\u00fcltig.",
-        "errorExpired": "Der Best\u00e4tigungslink ist abgelaufen. Bitte starten Sie die \u00c4nderung erneut.",
+        "sentTitle": "Bestätigungslink gesendet",
+        "sentDesc": "Bitte prüfen Sie Ihr Postfach und klicken Sie auf den Link, um die neue Adresse zu aktivieren.",
+        "successMessage": "Ihre E-Mail-Adresse wurde erfolgreich geändert.",
+        "errorInvalid": "Der Bestätigungslink ist ungültig.",
+        "errorExpired": "Der Bestätigungslink ist abgelaufen. Bitte starten Sie die Änderung erneut.",
         "errorTaken": "Diese E-Mail-Adresse wird bereits von einem anderen Konto verwendet.",
         "errorServer": "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut."
       },
@@ -1032,12 +1055,12 @@
       "nextMonth": "Nächster Monat",
       "monthYear": "{month} {year}",
       "prepay": {
-        "title": "Vorauszahlung",
-        "button": "Jetzt bezahlen",
         "1": "1 Monat",
         "3": "3 Monate",
         "6": "6 Monate",
-        "12": "12 Monate (jährlich)"
+        "12": "12 Monate (jährlich)",
+        "title": "Vorauszahlung",
+        "button": "Jetzt bezahlen"
       }
     },
     "sponsor": {
@@ -1606,7 +1629,7 @@
       "reminderEnabledDesc": "Sendet am eingestellten Tag automatisch Erinnerungsmails an Eltern mit offenen Gebühren.",
       "reminderDay": "Tag im Monat",
       "reminderDayDesc": "An welchem Tag sollen die Erinnerungen gesendet werden? (1–28)",
-      "reminderDayHint": "Tipp: Wählen Sie einen Tag nach dem typischen Gehaltseingang, z.\u00a0B. den 5. oder 15.",
+      "reminderDayHint": "Tipp: Wählen Sie einen Tag nach dem typischen Gehaltseingang, z. B. den 5. oder 15.",
       "siblingDiscount": {
         "title": "Geschwister-Rabatt",
         "desc": "Familien mit mehreren Kindern in der Madrasa automatisch vergünstigen.",
@@ -2176,7 +2199,7 @@
     "relationMother": "Mutter",
     "relationGuardian": "Vormund",
     "relationOther": "Sonstiges",
-    "selectRelation": "Beziehung zu \u201E{name}\u201C ausw\u00e4hlen:",
+    "selectRelation": "Beziehung zu „{name}“ auswählen:",
     "selectRelationGeneric": "Beziehung auswählen:",
     "selectPlaceholder": "— Bitte auswählen —",
     "cancelButton": "Abbrechen",
@@ -2317,7 +2340,7 @@
     "noSponsors": "Aktuell keine Förderpartner vorhanden.",
     "visitWebsite": "Zur Website",
     "filterAll": "Alle",
-    "backToHome": "\u2190 Zur\u00fcck zur Startseite",
+    "backToHome": "← Zurück zur Startseite",
     "admin": {
       "title": "Förderpartner verwalten",
       "subtitle": "Verwalten Sie Förderpartner und Sponsoren Ihrer Moschee.",

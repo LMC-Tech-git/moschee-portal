@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminPB } from "@/lib/pocketbase-admin";
 import { resolveMosqueWithSettings } from "@/lib/resolve-mosque";
-import { contactFormSchema } from "@/lib/validations";
+import { mosqueContactFormSchema } from "@/lib/validations";
 import { checkRateLimit, getRateLimitHeaders, hashIP } from "@/lib/rate-limit";
 import { sendEmailDirect } from "@/lib/email";
 import {
@@ -97,13 +97,13 @@ export async function POST(
   }
 
   // 6. Server-seitige Validierung (Zod)
-  const parsed = contactFormSchema.safeParse(body);
+  const parsed = mosqueContactFormSchema.safeParse(body);
   if (!parsed.success) {
     const firstError = parsed.error.issues[0]?.message || "Ungültige Eingabe";
     return NextResponse.json({ success: false, error: firstError }, { status: 400 });
   }
 
-  const { name, email, organization, inquiry_type, message } = parsed.data;
+  const { name, email, inquiry_type, message } = parsed.data;
   const replyTo = sanitizeReplyTo(email);
 
   // 7. Ziel-E-Mail bestimmen
@@ -131,7 +131,6 @@ export async function POST(
       mosque_id: mosque.id,
       name,
       email,
-      organization: organization || "",
       inquiry_type,
       message,
       privacy_accepted: true,
@@ -163,7 +162,6 @@ export async function POST(
             html: renderContactNotification({
               name,
               email,
-              organization,
               inquiry_type,
               message,
               mosqueName: mosque.name,

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { MOSQUE_INQUIRY_TYPES, PLATFORM_INQUIRY_TYPES } from "@/lib/contact/inquiryTypes";
 
 // =========================================
 // Zod Validierungsschemas - Moschee-Portal V1
@@ -36,7 +37,7 @@ export const contactFormSchema = z.object({
     .email("Bitte eine gültige E-Mail-Adresse eingeben")
     .max(254, "E-Mail-Adresse zu lang"),
   organization: z.string().max(100, "Organisation zu lang").optional().default(""),
-  inquiry_type: z.enum(["demo", "support", "partnership", "bug", "feedback", "other"], {
+  inquiry_type: z.enum(PLATFORM_INQUIRY_TYPES, {
     message: "Bitte einen Anfragetyp wählen",
   }),
   message: z
@@ -49,6 +50,26 @@ export const contactFormSchema = z.object({
   // honeypot wird NICHT validiert — serverseitig stille Erkennung
 });
 export type ContactFormInput = z.infer<typeof contactFormSchema>;
+
+export const mosqueContactFormSchema = z.object({
+  name: z.string().min(2, "Name muss mindestens 2 Zeichen lang sein").max(100, "Name zu lang"),
+  email: z
+    .string()
+    .email("Bitte eine gültige E-Mail-Adresse eingeben")
+    .max(254, "E-Mail-Adresse zu lang"),
+  inquiry_type: z.enum(MOSQUE_INQUIRY_TYPES, {
+    message: "Bitte einen Anfragetyp wählen",
+  }),
+  message: z
+    .string()
+    .min(10, "Nachricht muss mindestens 10 Zeichen lang sein")
+    .max(2000, "Nachricht darf maximal 2000 Zeichen lang sein"),
+  privacy_accepted: z.literal(true, {
+    message: "Datenschutzerklärung muss akzeptiert werden",
+  }),
+  // honeypot wird NICHT validiert — serverseitig stille Erkennung
+});
+export type MosqueContactFormInput = z.infer<typeof mosqueContactFormSchema>;
 
 // --- Posts ---
 

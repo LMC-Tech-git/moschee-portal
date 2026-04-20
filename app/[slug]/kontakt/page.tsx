@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Mail, MessageSquare, Clock } from "lucide-react";
 import { resolveMosqueWithSettings } from "@/lib/resolve-mosque";
-import { ContactForm } from "@/components/contact/ContactForm";
+import { MosqueContactForm } from "@/components/contact/MosqueContactForm";
 import { getTranslations } from "next-intl/server";
 
 export async function generateMetadata({ params }: { params: { slug: string } }) {
@@ -55,7 +55,7 @@ export default async function MosqueKontaktPage({
             {/* Beschreibung */}
             <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
               <p className="text-sm text-gray-600 leading-relaxed">
-                {t("pageSubtitle")}
+                {t("mosque.subtitle")}
               </p>
             </div>
 
@@ -92,7 +92,7 @@ export default async function MosqueKontaktPage({
           {/* Formular-Spalte */}
           <div className="lg:col-span-2">
             <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-              <ContactForm
+              <MosqueContactForm
                 apiPath={`/api/${params.slug}/contact`}
                 mosqueName={mosque.name}
               />
@@ -103,10 +103,10 @@ export default async function MosqueKontaktPage({
         {/* Back link */}
         <div className="mt-10">
           <Link
-            href="/"
+            href={`/${params.slug}`}
             className="text-sm text-gray-500 hover:text-gray-700"
           >
-            ← Zurück zur Startseite
+            {t("mosque.backLink")}
           </Link>
         </div>
 
