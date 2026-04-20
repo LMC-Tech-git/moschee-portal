@@ -3,7 +3,7 @@
 // Strategie: Mandanten-sicher, kein Cache-Mixing
 // ============================================================
 
-const CACHE_VERSION = "v4";
+const CACHE_VERSION = "v5";
 const STATIC_CACHE = `moschee-static-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `moschee-runtime-${CACHE_VERSION}`;
 
