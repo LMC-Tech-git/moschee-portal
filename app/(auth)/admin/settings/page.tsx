@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Settings, Palette, Clock, Sliders, Save, RotateCcw, Upload, X, Check, ChevronDown, ChevronUp, GraduationCap, Mail, CheckCircle, AlertCircle, Send, Handshake, Users, MessageSquare, ExternalLink } from "lucide-react";
+import { Settings, Palette, Clock, Sliders, Save, RotateCcw, Upload, X, Check, ChevronDown, ChevronUp, GraduationCap, Mail, CheckCircle, AlertCircle, Send, Handshake, Users, MessageSquare, ExternalLink, Repeat } from "lucide-react";
 import { useMosque } from "@/lib/mosque-context";
 import { useAuth } from "@/lib/auth-context";
 import {
@@ -12,6 +12,9 @@ import {
   updateDefaultSettings,
   getMadrasaFeeSettings,
   updateMadrasaFeeSettings,
+  getRecurringDonationSettings,
+  updateRecurringDonationSettings,
+  type RecurringDonationSettings,
   getPbSmtpSettings,
   updatePbSmtpSettings,
   updateSponsorsSettings,
@@ -34,6 +37,7 @@ const TABS = [
   { id: "prayer", icon: Clock },
   { id: "defaults", icon: Sliders },
   { id: "madrasa", icon: GraduationCap },
+  { id: "recurring", icon: Repeat },
   { id: "sponsors", icon: Handshake },
   { id: "team", icon: Users },
   { id: "contact", icon: MessageSquare },
@@ -123,12 +127,19 @@ export default function AdminSettingsPage() {
     sibling_discount_3rd_percent: number;
   }>({ madrasa_fees_enabled: false, madrasa_default_fee_cents: 1000, fee_reminder_enabled: false, fee_reminder_day: 15, sibling_discount_enabled: false, sibling_discount_2nd_percent: 0, sibling_discount_3rd_percent: 0 });
 
+  const [recurringSettings, setRecurringSettings] = useState<RecurringDonationSettings>({
+    recurring_donations_enabled: false,
+    recurring_min_cents: 300,
+    recurring_quick_amounts: "500,1000,2000,5000",
+  });
+
   useEffect(() => {
     if (!mosqueId) return;
     async function load() {
-      const [portalResult, feeResult] = await Promise.all([
+      const [portalResult, feeResult, recResult] = await Promise.all([
         getPortalSettings(mosqueId),
         getMadrasaFeeSettings(mosqueId),
+        getRecurringDonationSettings(mosqueId),
       ]);
       if (portalResult.success && portalResult.mosque && portalResult.settings) {
         setMosque(portalResult.mosque);
@@ -144,6 +155,9 @@ export default function AdminSettingsPage() {
       }
       if (feeResult.success && feeResult.data) {
         setMadrasaFeeSettings(feeResult.data);
+      }
+      if (recResult.success && recResult.data) {
+        setRecurringSettings(recResult.data);
       }
       setIsLoading(false);
     }
@@ -241,6 +255,15 @@ export default function AdminSettingsPage() {
           feeSettings={madrasaFeeSettings}
           donationProvider={mosque.donation_provider}
           onSaved={(updated) => setMadrasaFeeSettings({ ...madrasaFeeSettings, ...updated })}
+        />
+      )}
+      {activeTab === "recurring" && (
+        <RecurringDonationsTab
+          mosqueId={mosqueId}
+          userId={user?.id || ""}
+          settings={recurringSettings}
+          donationProvider={mosque.donation_provider}
+          onSaved={(updated) => setRecurringSettings({ ...recurringSettings, ...updated })}
         />
       )}
       {activeTab === "sponsors" && (
@@ -2398,5 +2421,125 @@ function ContactTab({
         </div>
       </SectionCard>
     </div>
+  );
+}
+
+// Tab: Wiederkehrende Spenden
+function RecurringDonationsTab({
+  mosqueId,
+  userId,
+  settings,
+  donationProvider,
+  onSaved,
+}: {
+  mosqueId: string;
+  userId: string;
+  settings: RecurringDonationSettings;
+  donationProvider: string;
+  onSaved: (updated: RecurringDonationSettings) => void;
+}) {
+  const t = useTranslations("settings");
+  const [enabled, setEnabled] = useState(settings.recurring_donations_enabled);
+  const [minEur, setMinEur] = useState(((settings.recurring_min_cents || 300) / 100).toFixed(2));
+  const [quickCsv, setQuickCsv] = useState(settings.recurring_quick_amounts || "500,1000,2000,5000");
+  const [isSaving, setIsSaving] = useState(false);
+  const [status, setStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
+
+  async function handleSave() {
+    setStatus(null);
+    const minCents = Math.round(parseFloat(minEur) * 100);
+    if (isNaN(minCents) || minCents < 100) {
+      setStatus({ type: "error", message: t("recurring.errorMin") });
+      return;
+    }
+    setIsSaving(true);
+    const res = await updateRecurringDonationSettings(mosqueId, userId, {
+      recurring_donations_enabled: enabled,
+      recurring_min_cents: minCents,
+      recurring_quick_amounts: quickCsv.trim(),
+    });
+    setIsSaving(false);
+    if (res.success) {
+      setStatus({ type: "success", message: t("saved") });
+      onSaved({
+        recurring_donations_enabled: enabled,
+        recurring_min_cents: minCents,
+        recurring_quick_amounts: quickCsv.trim(),
+      });
+    } else {
+      setStatus({ type: "error", message: res.error || t("saveError") });
+    }
+  }
+
+  if (donationProvider !== "stripe") {
+    return (
+      <SectionCard title={t("recurring.title")} description={t("recurring.desc")}>
+        <div className="rounded-lg bg-amber-50 p-4 text-sm text-amber-800">
+          {t("recurring.needsStripe")}
+        </div>
+      </SectionCard>
+    );
+  }
+
+  return (
+    <SectionCard title={t("recurring.title")} description={t("recurring.desc")}>
+      <div className="space-y-4">
+        <StatusMessage status={status} />
+
+        <label className="flex items-start gap-3">
+          <input
+            type="checkbox"
+            checked={enabled}
+            onChange={(e) => setEnabled(e.target.checked)}
+            className="mt-1 h-4 w-4 rounded"
+          />
+          <div>
+            <p className="font-medium text-gray-900">{t("recurring.toggleLabel")}</p>
+            <p className="text-xs text-gray-500">{t("recurring.toggleDesc")}</p>
+          </div>
+        </label>
+
+        <div>
+          <label className="mb-1 block text-sm font-medium text-gray-700">
+            {t("recurring.minLabel")}
+          </label>
+          <input
+            type="number"
+            min="1.00"
+            step="0.50"
+            value={minEur}
+            onChange={(e) => setMinEur(e.target.value)}
+            className="w-32 rounded-lg border border-gray-300 px-3 py-2 text-sm"
+          />
+          <p className="mt-1 text-xs text-gray-500">{t("recurring.minHint")}</p>
+        </div>
+
+        <div>
+          <label className="mb-1 block text-sm font-medium text-gray-700">
+            {t("recurring.quickLabel")}
+          </label>
+          <input
+            type="text"
+            value={quickCsv}
+            onChange={(e) => setQuickCsv(e.target.value)}
+            placeholder="500,1000,2000,5000"
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+          />
+          <p className="mt-1 text-xs text-gray-500">{t("recurring.quickHint")}</p>
+        </div>
+
+        <div className="flex justify-end border-t border-gray-100 pt-4">
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={isSaving}
+            className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-700 disabled:opacity-50"
+          >
+            <Save className="h-4 w-4" />
+            {isSaving ? t("saving") : t("save")}
+          </button>
+        </div>
+      </div>
+    </SectionCard>
   );
 }

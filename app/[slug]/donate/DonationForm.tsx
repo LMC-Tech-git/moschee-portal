@@ -21,6 +21,9 @@ interface DonationFormProps {
   externalDonationLabel: string;
   paypalDonateUrl: string;
   quickAmounts?: number[]; // in Cents, aus Settings
+  recurringDonationsEnabled?: boolean;
+  recurringMinCents?: number;
+  recurringQuickAmounts?: number[];
 }
 
 export function DonationForm({
@@ -32,8 +35,16 @@ export function DonationForm({
   externalDonationLabel,
   paypalDonateUrl,
   quickAmounts,
+  recurringDonationsEnabled = false,
+  recurringMinCents = 300,
+  recurringQuickAmounts,
 }: DonationFormProps) {
-  const presetAmounts = (quickAmounts && quickAmounts.length > 0) ? quickAmounts : DEFAULT_PRESET_AMOUNTS;
+  const oneOffPresets = (quickAmounts && quickAmounts.length > 0) ? quickAmounts : DEFAULT_PRESET_AMOUNTS;
+  const recurringPresets = (recurringQuickAmounts && recurringQuickAmounts.length > 0)
+    ? recurringQuickAmounts
+    : [500, 1000, 2000, 5000];
+  const [mode, setMode] = useState<"one_off" | "monthly">("one_off");
+  const presetAmounts = mode === "monthly" ? recurringPresets : oneOffPresets;
   const t = useTranslations("donationForm");
   const { user, pb } = useAuth();
   const [amountCents, setAmountCents] = useState(() => {
@@ -51,13 +62,14 @@ export function DonationForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
 
+  const isMonthly = mode === "monthly";
   // Einheitliche Gebühren-Formel (Frontend = Backend)
   // Stripe EU-Schätzung: 1,5% + 0,25 €
   const adjustedCents = Math.ceil((amountCents + 25) / 0.985);
   const feeEstimateCents = adjustedCents - amountCents;
   const displayTotalCents = coverFees ? adjustedCents : amountCents;
   // Checkbox nur anzeigen wenn Betrag >= 200 ct (2€), sonst wäre Fixgebühr unverhältnismäßig
-  const showFeeCheckbox = amountCents >= 200;
+  const showFeeCheckbox = amountCents >= 200 && !isMonthly;
 
   // Vorausfüllen wenn eingeloggt
   useEffect(() => {
@@ -140,6 +152,41 @@ export function DonationForm({
         headers["Authorization"] = `Bearer ${pb.authStore.token}`;
       }
 
+      if (isMonthly) {
+        if (!donorEmail) {
+          setError("Email ist für Daueraufträge erforderlich.");
+          setIsSubmitting(false);
+          return;
+        }
+        if (amountCents < recurringMinCents) {
+          setError(`Mindestbetrag für Daueraufträge: ${formatCurrencyCents(recurringMinCents)}`);
+          setIsSubmitting(false);
+          return;
+        }
+        const subRes = await fetch(
+          `/api/${slug}/donations/stripe/create-subscription`,
+          {
+            method: "POST",
+            headers,
+            body: JSON.stringify({
+              amount_cents: amountCents,
+              campaign_id: campaignId || undefined,
+              donor_name: donorName || undefined,
+              donor_email: donorEmail,
+              payment_method_type: isDemo ? paymentMethodType : "card",
+              turnstile_token: turnstileToken,
+            }),
+          }
+        );
+        const subData = await subRes.json();
+        if (!subRes.ok || !subData.success) {
+          setError(subData.error || t("errorPayment"));
+          return;
+        }
+        if (subData.checkout_url) window.location.href = subData.checkout_url;
+        return;
+      }
+
       const res = await fetch(
         `/api/${slug}/donations/stripe/create-checkout`,
         {
@@ -193,6 +240,51 @@ export function DonationForm({
       {error && (
         <div role="alert" className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
           {error}
+        </div>
+      )}
+
+      {/* Einmalig / Monatlich Toggle */}
+      {recurringDonationsEnabled && (
+        <div>
+          <p className="mb-2 text-sm font-medium text-gray-700">Spendenart</p>
+          <div className="grid grid-cols-2 gap-2" role="group" aria-label="Spendenart wählen">
+            <button
+              type="button"
+              onClick={() => {
+                setMode("one_off");
+                setAmountCents(oneOffPresets[Math.floor(oneOffPresets.length / 2)] ?? 2000);
+                setCustomAmount("");
+              }}
+              className={`rounded-lg border px-4 py-2.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
+                mode === "one_off"
+                  ? "border-emerald-500 bg-emerald-50 text-emerald-700"
+                  : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+              }`}
+            >
+              Einmalig
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setMode("monthly");
+                setAmountCents(recurringPresets[Math.floor(recurringPresets.length / 2)] ?? 1000);
+                setCustomAmount("");
+                setCoverFees(false);
+              }}
+              className={`rounded-lg border px-4 py-2.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
+                mode === "monthly"
+                  ? "border-purple-500 bg-purple-50 text-purple-700"
+                  : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+              }`}
+            >
+              <Heart className="mr-1 inline h-4 w-4" /> Monatlich
+            </button>
+          </div>
+          {isMonthly && (
+            <p className="mt-2 text-xs text-gray-500">
+              Monatlicher Dauerauftrag. Jederzeit im Profil kündbar. Mindestbetrag: {formatCurrencyCents(recurringMinCents)}.
+            </p>
+          )}
         </div>
       )}
 

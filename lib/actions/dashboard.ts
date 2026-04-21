@@ -27,6 +27,10 @@ export interface DashboardStats {
   upcomingEventsThisMonth: number;
   /** Registrierungen diesen Monat */
   registrationsThisMonth: number;
+  /** Aktive Daueraufträge */
+  activeRecurringCount: number;
+  /** MRR in Cents (Summe amount_cents aller aktiven Subs) */
+  mrrCents: number;
 }
 
 /**
@@ -48,6 +52,8 @@ export async function getDashboardStats(
     totalEvents: 0,
     upcomingEventsThisMonth: 0,
     registrationsThisMonth: 0,
+    activeRecurringCount: 0,
+    mrrCents: 0,
   };
 
   try {
@@ -97,6 +103,18 @@ export async function getDashboardStats(
       });
     } catch { /* keine Spenden */ }
 
+    // Daueraufträge: Aktive Count + MRR
+    let activeRecurringCount = 0;
+    let mrrCents = 0;
+    try {
+      const subs = await pb.collection("recurring_subscriptions").getFullList({
+        filter: `${f} && status = "active"`,
+        fields: "amount_cents",
+      });
+      activeRecurringCount = subs.length;
+      mrrCents = subs.reduce((sum, s) => sum + (s.amount_cents || 0), 0);
+    } catch { /* keine Subs */ }
+
     return {
       totalMembers,
       activeMembers,
@@ -109,6 +127,8 @@ export async function getDashboardStats(
       totalEvents,
       upcomingEventsThisMonth,
       registrationsThisMonth,
+      activeRecurringCount,
+      mrrCents,
     };
   } catch (error) {
     console.error("[Dashboard] Fehler beim Laden der Statistiken:", error);

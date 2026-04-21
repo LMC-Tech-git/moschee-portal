@@ -44,10 +44,11 @@ export interface DonationWithMeta extends Donation {
 // --- Abfragen ---
 
 export interface GetDonationsOptions {
-  status?: "all" | "paid" | "pending" | "created" | "failed" | "refunded" | "cancelled";
+  status?: "all" | "paid" | "pending" | "created" | "failed" | "refunded" | "cancelled" | "disputed";
   campaign_id?: string;
   provider?: "all" | "stripe" | "paypal_link" | "external" | "manual";
   search?: string; // donor_name oder donor_email
+  is_recurring?: "all" | "yes" | "no";
   page?: number;
   limit?: number;
 }
@@ -86,6 +87,11 @@ export async function getDonationsByMosque(
     if (options.search?.trim()) {
       const q = options.search.trim().replace(/"/g, '\\"');
       filters.push(`(donor_name ~ "${q}" || donor_email ~ "${q}")`);
+    }
+    if (options.is_recurring === "yes") {
+      filters.push(`is_recurring = true`);
+    } else if (options.is_recurring === "no") {
+      filters.push(`is_recurring = false`);
     }
 
     const records = await pb.collection("donations").getList(page, limit, {

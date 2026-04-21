@@ -173,6 +173,25 @@ const SETTINGS_NEW_FIELDS = [
   { name: "donation_quick_amounts", type: "text", options: { default: "10,25,50,100" } },
 ];
 
+const SETTINGS_RECURRING_FIELDS = [
+  { name: "recurring_donations_enabled", type: "bool", options: { default: false } },
+  { name: "recurring_min_cents", type: "number", options: { min: 100, default: 300 } },
+  { name: "recurring_quick_amounts", type: "text", options: { default: "500,1000,2000,5000" } },
+];
+
+const RECURRING_SUBSCRIPTIONS_NEW_FIELDS = [
+  { name: "provider_ref", type: "text" },
+  { name: "cancel_at_period_end", type: "bool", options: { default: false } },
+  { name: "current_period_end", type: "date" },
+  {
+    name: "last_payment_status",
+    type: "select",
+    options: { values: ["paid", "failed", "pending"], maxSelect: 1 },
+  },
+  { name: "last_payment_at", type: "date" },
+  { name: "disabled_by_setting", type: "bool", options: { default: false } },
+];
+
 // Cache für monatliche Gebetszeiten-Kalender (AlAdhan)
 const PRAYER_TIMES_CACHE_COLLECTION = {
   name: "prayer_times_cache",
@@ -331,13 +350,15 @@ const RECURRING_SUBSCRIPTIONS_COLLECTION = {
       name: "status",
       type: "select",
       required: true,
-      options: { values: ["active", "paused", "cancelled"], maxSelect: 1 },
+      options: { values: ["pending", "active", "cancelled"], maxSelect: 1 },
     },
     { name: "started_at", type: "date" },
     { name: "cancelled_at", type: "date" },
+    ...RECURRING_SUBSCRIPTIONS_NEW_FIELDS,
   ],
   indexes: [
     'CREATE INDEX idx_recsub_mosque ON recurring_subscriptions (mosque_id)',
+    'CREATE INDEX idx_recsub_provider_sub ON recurring_subscriptions (provider_subscription_id)',
   ],
 };
 
@@ -1557,6 +1578,103 @@ async function main() {
       } else {
         console.log("   ⏭️  event_registrations.status: alle Werte vorhanden");
       }
+    }
+  }
+
+  // 18. settings: Wiederkehrende-Spenden-Felder
+  if (collectionMap.settings) {
+    const settingsCol = (await getExistingCollections()).find((c) => c.name === "settings");
+    const existingFieldNames = (settingsCol?.schema || []).map((f) => f.name);
+    const fieldsToAdd = SETTINGS_RECURRING_FIELDS.filter((f) => !existingFieldNames.includes(f.name));
+    if (fieldsToAdd.length > 0) {
+      const newSchema = [...(settingsCol?.schema || []), ...fieldsToAdd];
+      await updateCollection("settings", { schema: newSchema });
+      console.log(`   ✅ settings (recurring): ${fieldsToAdd.map((f) => f.name).join(", ")} hinzugefügt`);
+    } else {
+      console.log("   ⏭️  settings: alle Recurring-Felder vorhanden");
+    }
+  }
+
+  // 19. recurring_subscriptions: neue Felder + Status-Enum erweitern
+  if (collectionMap.recurring_subscriptions) {
+    const subCol = (await getExistingCollections()).find((c) => c.name === "recurring_subscriptions");
+    const existingFieldNames = (subCol?.schema || []).map((f) => f.name);
+    const fieldsToAdd = RECURRING_SUBSCRIPTIONS_NEW_FIELDS.filter((f) => !existingFieldNames.includes(f.name));
+    let currentSchema = subCol?.schema || [];
+    if (fieldsToAdd.length > 0) {
+      currentSchema = [...currentSchema, ...fieldsToAdd];
+      await updateCollection("recurring_subscriptions", { schema: currentSchema });
+      console.log(`   ✅ recurring_subscriptions: ${fieldsToAdd.map((f) => f.name).join(", ")} hinzugefügt`);
+    } else {
+      console.log("   ⏭️  recurring_subscriptions: alle neuen Felder vorhanden");
+    }
+
+    // Status-Enum: "pending" ergänzen, "paused" bleibt erhalten (alte Records)
+    const subColCurrent = (await getExistingCollections()).find((c) => c.name === "recurring_subscriptions");
+    const statusField = (subColCurrent?.schema || []).find((f) => f.name === "status");
+    if (statusField && statusField.options?.values) {
+      const currentValues = statusField.options.values;
+      const required = ["pending", "active", "cancelled"];
+      const missing = required.filter((v) => !currentValues.includes(v));
+      if (missing.length > 0) {
+        const merged = Array.from(new Set([...currentValues, ...required]));
+        const updatedSchema = (subColCurrent.schema || []).map((f) =>
+          f.name === "status" ? { ...f, options: { ...f.options, values: merged } } : f
+        );
+        await updateCollection("recurring_subscriptions", { schema: updatedSchema });
+        console.log(`   ✅ recurring_subscriptions.status: ${missing.join(", ")} hinzugefügt`);
+      } else {
+        console.log("   ⏭️  recurring_subscriptions.status: alle Werte vorhanden");
+      }
+    }
+
+    // Index auf provider_subscription_id
+    const idxName = "idx_recsub_provider_sub";
+    const idxSql = `CREATE INDEX ${idxName} ON recurring_subscriptions (provider_subscription_id)`;
+    const subColWithIdx = (await getExistingCollections()).find((c) => c.name === "recurring_subscriptions");
+    const existingIndexes = subColWithIdx?.indexes || [];
+    if (!existingIndexes.some((i) => i.includes(idxName))) {
+      await updateCollection("recurring_subscriptions", {
+        schema: subColWithIdx.schema,
+        indexes: [...existingIndexes, idxSql],
+      });
+      console.log(`   ✅ recurring_subscriptions: Index ${idxName} hinzugefügt`);
+    } else {
+      console.log(`   ⏭️  recurring_subscriptions: Index ${idxName} bereits vorhanden`);
+    }
+  }
+
+  // 20. donations: Status-Enum um "disputed" erweitern + Unique-Index auf provider_ref
+  if (collectionMap.donations) {
+    const donCol = (await getExistingCollections()).find((c) => c.name === "donations");
+    const statusField = (donCol?.schema || []).find((f) => f.name === "status");
+    if (statusField && statusField.options?.values) {
+      const currentValues = statusField.options.values;
+      if (!currentValues.includes("disputed")) {
+        const newValues = [...currentValues, "disputed"];
+        const updatedSchema = (donCol.schema || []).map((f) =>
+          f.name === "status" ? { ...f, options: { ...f.options, values: newValues } } : f
+        );
+        await updateCollection("donations", { schema: updatedSchema });
+        console.log("   ✅ donations.status: 'disputed' hinzugefügt");
+      } else {
+        console.log("   ⏭️  donations.status: 'disputed' bereits vorhanden");
+      }
+    }
+
+    // Unique-Index (mosque_id, provider, provider_ref) WHERE provider_ref != ""
+    const idxName = "idx_donations_provider_ref";
+    const idxSql = `CREATE UNIQUE INDEX ${idxName} ON donations (mosque_id, provider, provider_ref) WHERE provider_ref != ""`;
+    const donColWithIdx = (await getExistingCollections()).find((c) => c.name === "donations");
+    const existingIndexes = donColWithIdx?.indexes || [];
+    if (!existingIndexes.some((i) => i.includes(idxName))) {
+      await updateCollection("donations", {
+        schema: donColWithIdx.schema,
+        indexes: [...existingIndexes, idxSql],
+      });
+      console.log(`   ✅ donations: Unique-Index ${idxName} hinzugefügt`);
+    } else {
+      console.log(`   ⏭️  donations: Index ${idxName} bereits vorhanden`);
     }
   }
 

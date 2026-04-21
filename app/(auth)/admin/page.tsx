@@ -44,6 +44,8 @@ export default function AdminDashboard() {
     totalEvents: 0,
     upcomingEventsThisMonth: 0,
     registrationsThisMonth: 0,
+    activeRecurringCount: 0,
+    mrrCents: 0,
   });
   const [isLoading, setIsLoading] = useState(true);
 
@@ -71,6 +73,7 @@ export default function AdminDashboard() {
     { title: t("admin.stat.events"), value: stats.totalEvents, icon: CalendarDays, color: "text-cyan-600", bg: "bg-cyan-100" },
     { title: t("admin.stat.campaigns"), value: stats.activeCampaigns, icon: Target, color: "text-purple-600", bg: "bg-purple-100" },
     { title: t("admin.stat.donations"), value: formatCurrencyCents(stats.totalDonationsCents), icon: Heart, color: "text-rose-600", bg: "bg-rose-100" },
+    { title: t("admin.stat.mrr"), value: formatCurrencyCents(stats.mrrCents), icon: Heart, color: "text-purple-600", bg: "bg-purple-100" },
   ];
 
   return (

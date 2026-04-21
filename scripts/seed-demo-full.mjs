@@ -1311,6 +1311,113 @@ async function seedDonations(campaignIds, memberIds) {
   console.log(`  → ${totalDonations} Spenden gesamt\n`);
 }
 
+async function seedRecurringSubscriptions(memberIds) {
+  console.log("🔁 Wiederkehrende Spenden (löschen + neu erstellen)...");
+  const deleted = await deleteAllForMosque("recurring_subscriptions");
+  if (deleted > 0) console.log(`  🗑️  ${deleted} alte Daueraufträge gelöscht`);
+
+  const now = new Date();
+  const periodEnd = new Date(now.getTime() + 25 * 86400000).toISOString();
+
+  const subs = [
+    {
+      mosque_id: MOSQUE_ID,
+      donor_type: "member",
+      user_id: memberIds[0] || "",
+      donor_email: "demo-member-01@moschee.app",
+      amount_cents: 2500,
+      interval: "monthly",
+      status: "active",
+      provider: "stripe",
+      provider_subscription_id: "sub_demo_member01",
+      provider_ref: "cs_demo_member01",
+      started_at: isoDateTime(daysAgo(120)),
+      current_period_end: periodEnd,
+      last_payment_status: "paid",
+      last_payment_at: isoDateTime(daysAgo(5)),
+      cancel_at_period_end: false,
+    },
+    {
+      mosque_id: MOSQUE_ID,
+      donor_type: "guest",
+      user_id: "",
+      donor_email: "mehmet.guest@example.com",
+      amount_cents: 1000,
+      interval: "monthly",
+      status: "active",
+      provider: "stripe",
+      provider_subscription_id: "sub_demo_guest",
+      provider_ref: "cs_demo_guest",
+      started_at: isoDateTime(daysAgo(60)),
+      current_period_end: periodEnd,
+      last_payment_status: "failed",
+      last_payment_at: isoDateTime(daysAgo(3)),
+      cancel_at_period_end: false,
+    },
+    {
+      mosque_id: MOSQUE_ID,
+      donor_type: "member",
+      user_id: memberIds[1] || memberIds[0] || "",
+      donor_email: "demo-member-02@moschee.app",
+      amount_cents: 5000,
+      interval: "monthly",
+      status: "cancelled",
+      provider: "stripe",
+      provider_subscription_id: "sub_demo_cancelled",
+      provider_ref: "cs_demo_cancelled",
+      started_at: isoDateTime(daysAgo(200)),
+      cancelled_at: isoDateTime(daysAgo(15)),
+      current_period_end: isoDateTime(daysAgo(15)),
+      last_payment_status: "paid",
+      last_payment_at: isoDateTime(daysAgo(45)),
+      cancel_at_period_end: false,
+    },
+  ];
+
+  const subIds = [];
+  for (const s of subs) {
+    try {
+      const rec = await pbCreate("recurring_subscriptions", s);
+      subIds.push({ id: rec.id, sub: s });
+      console.log(`  ✅ ${s.donor_email} — ${(s.amount_cents / 100).toFixed(2)} €/Mo [${s.status}]`);
+    } catch (e) {
+      console.log(`  ⚠️  ${s.donor_email}: ${e.message}`);
+    }
+  }
+
+  // Historische Spenden pro Dauerauftrag
+  const histDonations = [];
+  for (const { id, sub } of subIds) {
+    const monthsBack = sub.status === "cancelled" ? 6 : sub.status === "active" ? 4 : 2;
+    for (let m = monthsBack; m >= 1; m--) {
+      const paidAt = isoDateTime(daysAgo(m * 30));
+      const isFailed = sub.last_payment_status === "failed" && m === 1;
+      histDonations.push({
+        mosque_id: MOSQUE_ID,
+        campaign_id: "",
+        donor_type: sub.donor_type,
+        user_id: sub.user_id,
+        donor_name: sub.donor_type === "member" ? "Demo Mitglied" : "Mehmet Guest",
+        donor_email: sub.donor_email,
+        amount_cents: sub.amount_cents,
+        amount: sub.amount_cents / 100,
+        currency: "EUR",
+        is_recurring: true,
+        subscription_id: id,
+        provider: "stripe",
+        provider_ref: `in_demo_${id}_${m}`,
+        status: isFailed ? "failed" : "paid",
+        paid_at: paidAt,
+      });
+    }
+  }
+  if (histDonations.length > 0) {
+    await batchCreate("donations", histDonations, 10);
+    console.log(`  ✅ ${histDonations.length} historische Abo-Spenden`);
+  }
+  console.log();
+}
+
 async function seedSettings() {
   console.log("⚙️  Einstellungen (Demo-Features aktivieren)...");
   // Prüfen ob Settings-Record für diese Moschee existiert
@@ -1331,6 +1438,9 @@ async function seedSettings() {
     sibling_discount_enabled: true,
     sibling_discount_2nd_percent: 20,
     sibling_discount_3rd_percent: 30,
+    recurring_donations_enabled: true,
+    recurring_min_cents: 300,
+    recurring_quick_amounts: "500,1000,2000,5000",
   };
 
   if (existing?.items?.length > 0) {
@@ -1453,6 +1563,7 @@ async function main() {
   await seedEventRegistrations(events, users.memberIds);
   const campaignIds = await seedCampaigns(users.admin);
   await seedDonations(campaignIds, users.memberIds);
+  await seedRecurringSubscriptions(users.memberIds);
 
   console.log("✅ Demo-Seed abgeschlossen!");
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");

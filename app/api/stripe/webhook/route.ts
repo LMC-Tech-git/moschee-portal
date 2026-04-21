@@ -78,6 +78,73 @@ async function markFeeMultiPaid(
   });
 }
 
+// ─── Recurring Subscription Helpers ─────────────────────────────────────────
+
+/**
+ * Findet PB-Sub per Stripe-subscription_id. Fallback: liest metadata.pb_subscription_id
+ * aus Stripe (für out-of-order Webhooks: invoice.paid kann vor checkout.session.completed kommen).
+ */
+async function findPbSubscription(
+  pb: Awaited<ReturnType<typeof getAdminPB>>,
+  stripe: Stripe,
+  stripeSubscriptionId: string
+): Promise<RecordModel | null> {
+  try {
+    return await pb
+      .collection("recurring_subscriptions")
+      .getFirstListItem(`provider_subscription_id = "${stripeSubscriptionId}"`);
+  } catch {
+    // Fallback: metadata.pb_subscription_id via Stripe
+    try {
+      const stripeSub = await stripe.subscriptions.retrieve(stripeSubscriptionId);
+      const pbSubId = stripeSub.metadata?.pb_subscription_id;
+      if (!pbSubId) return null;
+      const pbSub = await pb.collection("recurring_subscriptions").getOne(pbSubId);
+      // Fehlende Felder nachziehen
+      await pb.collection("recurring_subscriptions").update(pbSub.id, {
+        provider_subscription_id: stripeSub.id,
+        status: stripeSub.status === "active" ? "active" : pbSub.status,
+        current_period_end: new Date(stripeSub.current_period_end * 1000).toISOString(),
+        ...(pbSub.started_at ? {} : { started_at: new Date().toISOString() }),
+      });
+      return await pb.collection("recurring_subscriptions").getOne(pbSub.id);
+    } catch {
+      return null;
+    }
+  }
+}
+
+/**
+ * Prüft Feature-Toggle. Falls deaktiviert → flag setzen, trotzdem verarbeiten
+ * (Geld ist bereits da — Zahlung nicht ignorieren).
+ */
+async function checkRecurringFeatureFlag(
+  pb: Awaited<ReturnType<typeof getAdminPB>>,
+  mosqueId: string,
+  pbSubId: string
+): Promise<void> {
+  try {
+    const settings = await pb
+      .collection("settings")
+      .getFirstListItem(`mosque_id = "${mosqueId}"`, {
+        fields: "recurring_donations_enabled",
+      });
+    if (!settings.recurring_donations_enabled) {
+      await pb.collection("recurring_subscriptions").update(pbSubId, {
+        disabled_by_setting: true,
+      });
+      logAudit({
+        mosqueId,
+        action: "donation_subscription.processed_while_disabled",
+        entityType: "recurring_subscription",
+        entityId: pbSubId,
+      });
+    }
+  } catch {
+    // kein Settings → ignorieren
+  }
+}
+
 // ─── Event Payment Finalization ──────────────────────────────────────────────
 
 /**
@@ -319,6 +386,40 @@ export async function POST(request: NextRequest) {
             } catch {
               console.warn(`[Stripe Webhook] SEPA-Update fehlgeschlagen für ${registrationId}`);
             }
+          }
+          break;
+        }
+
+        if (paymentType === "donation_subscription") {
+          // --- Monatlicher Dauerauftrag: Abschluss ---
+          const pbSubId = session.metadata?.pb_subscription_id;
+          if (!pbSubId) {
+            console.warn("[Stripe Webhook] Keine pb_subscription_id in Metadata");
+            break;
+          }
+          const fullSession = typeof session.subscription === "object" && session.subscription
+            ? session
+            : await stripe.checkout.sessions.retrieve(session.id, { expand: ["subscription"] });
+          const stripeSub = fullSession.subscription as Stripe.Subscription | null;
+          if (!stripeSub) {
+            console.warn(`[Stripe Webhook] donation_subscription ${pbSubId}: keine Subscription im Session-Expand`);
+            break;
+          }
+          await pb.collection("recurring_subscriptions").update(pbSubId, {
+            provider_subscription_id: stripeSub.id,
+            started_at: new Date().toISOString(),
+            current_period_end: new Date(stripeSub.current_period_end * 1000).toISOString(),
+            status: "active",
+          });
+          if (mosqueId) {
+            logAudit({
+              mosqueId,
+              action: "donation_subscription.created",
+              entityType: "recurring_subscription",
+              entityId: pbSubId,
+              details: { stripe_sub_id: stripeSub.id },
+            });
+            await checkRecurringFeatureFlag(pb, mosqueId, pbSubId);
           }
           break;
         }
@@ -599,6 +700,285 @@ export async function POST(request: NextRequest) {
           } catch {
             console.warn(`[Stripe Webhook] payment_intent.payment_failed: Registrierung ${registrationId} nicht gefunden`);
           }
+        }
+        break;
+      }
+
+      case "invoice.paid": {
+        const invoice = event.data.object as Stripe.Invoice;
+        const subId = typeof invoice.subscription === "string"
+          ? invoice.subscription
+          : invoice.subscription?.id;
+        if (!subId) break;
+
+        const pbSub = await findPbSubscription(pb, stripe, subId);
+        if (!pbSub) {
+          console.warn(`[Stripe Webhook] invoice.paid: PB-Sub für ${subId} nicht auffindbar`);
+          break;
+        }
+
+        // Idempotenz: invoice.id bereits als donation?
+        try {
+          await pb
+            .collection("donations")
+            .getFirstListItem(
+              `mosque_id = "${pbSub.mosque_id}" && provider = "stripe" && provider_ref = "${invoice.id}"`
+            );
+          console.log(`[Stripe Webhook] invoice.paid: Donation für ${invoice.id} existiert schon`);
+          break;
+        } catch {
+          // nicht vorhanden → weiter
+        }
+
+        const paidTs =
+          invoice.status_transitions?.paid_at ??
+          (invoice as unknown as { paid_at?: number }).paid_at ??
+          invoice.created;
+        const paidAt = new Date(paidTs * 1000).toISOString();
+
+        try {
+          await pb.collection("donations").create({
+            mosque_id: pbSub.mosque_id,
+            campaign_id: pbSub.campaign_id || "",
+            donor_type: pbSub.donor_type,
+            user_id: pbSub.user_id || "",
+            donor_email: pbSub.donor_email || "",
+            amount: (invoice.amount_paid || 0) / 100,
+            amount_cents: invoice.amount_paid || 0,
+            currency: "EUR",
+            is_recurring: true,
+            subscription_id: pbSub.id,
+            provider: "stripe",
+            provider_ref: invoice.id,
+            status: "paid",
+            paid_at: paidAt,
+          });
+        } catch (e) {
+          console.warn(`[Stripe Webhook] invoice.paid: Donation create fehlgeschlagen (evtl. Race):`, e);
+        }
+
+        await pb.collection("recurring_subscriptions").update(pbSub.id, {
+          last_payment_status: "paid",
+          last_payment_at: paidAt,
+          ...(invoice.period_end
+            ? { current_period_end: new Date(invoice.period_end * 1000).toISOString() }
+            : {}),
+        });
+
+        logAudit({
+          mosqueId: pbSub.mosque_id,
+          action: "donation_subscription.payment_succeeded",
+          entityType: "recurring_subscription",
+          entityId: pbSub.id,
+          details: {
+            amount_cents: invoice.amount_paid,
+            invoice_id: invoice.id,
+            subscription_id: pbSub.id,
+            stripe_sub_id: subId,
+          },
+        });
+
+        await checkRecurringFeatureFlag(pb, pbSub.mosque_id, pbSub.id);
+
+        // Spendenquittung
+        (async () => {
+          try {
+            const mosque = await pb.collection("mosques").getOne(pbSub.mosque_id, {
+              fields: "name,brand_primary_color",
+            });
+            let toEmail: string | null = null;
+            let donorName: string | undefined;
+            if (pbSub.user_id) {
+              try {
+                const user = await pb.collection("users").getOne(pbSub.user_id, {
+                  fields: "email,first_name,name",
+                });
+                toEmail = user.email || null;
+                donorName = user.first_name || user.name || undefined;
+              } catch {}
+            }
+            if (!toEmail) toEmail = pbSub.donor_email || null;
+            if (toEmail) {
+              const amountEur = ((invoice.amount_paid || 0) / 100).toFixed(2).replace(".", ",");
+              const html = renderDonationReceipt({
+                mosqueName: mosque.name,
+                donorName,
+                amountEur,
+                donationDate: new Date(paidAt).toLocaleDateString("de-DE"),
+                accentColor: mosque.brand_primary_color || undefined,
+              });
+              await sendEmailDirect({
+                to: toEmail,
+                subject: `Ihre Spendenbestätigung (Dauerauftrag) — ${mosque.name}`,
+                html,
+              });
+            }
+          } catch (e) {
+            console.error("[Stripe Webhook] invoice.paid E-Mail-Fehler:", e);
+          }
+        })();
+
+        break;
+      }
+
+      case "invoice.payment_failed": {
+        const invoice = event.data.object as Stripe.Invoice;
+        const subId = typeof invoice.subscription === "string"
+          ? invoice.subscription
+          : invoice.subscription?.id;
+        if (!subId) break;
+
+        const pbSub = await findPbSubscription(pb, stripe, subId);
+        if (!pbSub) {
+          console.warn(`[Stripe Webhook] invoice.payment_failed: PB-Sub für ${subId} nicht auffindbar`);
+          break;
+        }
+
+        // Idempotenz für failed-Donation
+        try {
+          await pb
+            .collection("donations")
+            .getFirstListItem(
+              `mosque_id = "${pbSub.mosque_id}" && provider = "stripe" && provider_ref = "${invoice.id}"`
+            );
+        } catch {
+          try {
+            await pb.collection("donations").create({
+              mosque_id: pbSub.mosque_id,
+              campaign_id: pbSub.campaign_id || "",
+              donor_type: pbSub.donor_type,
+              user_id: pbSub.user_id || "",
+              donor_email: pbSub.donor_email || "",
+              amount: (invoice.amount_due || 0) / 100,
+              amount_cents: invoice.amount_due || 0,
+              currency: "EUR",
+              is_recurring: true,
+              subscription_id: pbSub.id,
+              provider: "stripe",
+              provider_ref: invoice.id,
+              status: "failed",
+            });
+          } catch (e) {
+            console.warn(`[Stripe Webhook] invoice.payment_failed: Donation create fehlgeschlagen:`, e);
+          }
+        }
+
+        await pb.collection("recurring_subscriptions").update(pbSub.id, {
+          last_payment_status: "failed",
+          last_payment_at: new Date().toISOString(),
+        });
+
+        logAudit({
+          mosqueId: pbSub.mosque_id,
+          action: "donation_subscription.payment_failed",
+          entityType: "recurring_subscription",
+          entityId: pbSub.id,
+          details: { invoice_id: invoice.id, attempt_count: invoice.attempt_count },
+        });
+        break;
+      }
+
+      case "customer.subscription.updated": {
+        const stripeSub = event.data.object as Stripe.Subscription;
+        const pbSub = await findPbSubscription(pb, stripe, stripeSub.id);
+        if (!pbSub) break;
+
+        await pb.collection("recurring_subscriptions").update(pbSub.id, {
+          cancel_at_period_end: stripeSub.cancel_at_period_end || false,
+          current_period_end: new Date(stripeSub.current_period_end * 1000).toISOString(),
+        });
+
+        logAudit({
+          mosqueId: pbSub.mosque_id,
+          action: "donation_subscription.updated",
+          entityType: "recurring_subscription",
+          entityId: pbSub.id,
+          details: {
+            status: stripeSub.status,
+            cancel_at_period_end: stripeSub.cancel_at_period_end,
+          },
+        });
+        break;
+      }
+
+      case "customer.subscription.deleted": {
+        const stripeSub = event.data.object as Stripe.Subscription;
+        const pbSub = await findPbSubscription(pb, stripe, stripeSub.id);
+        if (!pbSub) break;
+
+        await pb.collection("recurring_subscriptions").update(pbSub.id, {
+          status: "cancelled",
+          cancelled_at: new Date().toISOString(),
+        });
+
+        logAudit({
+          mosqueId: pbSub.mosque_id,
+          action: "donation_subscription.cancelled",
+          entityType: "recurring_subscription",
+          entityId: pbSub.id,
+          details: { reason: "period_end" },
+        });
+        break;
+      }
+
+      case "charge.dispute.created": {
+        const dispute = event.data.object as Stripe.Dispute;
+        const paymentIntentId = typeof dispute.payment_intent === "string"
+          ? dispute.payment_intent
+          : dispute.payment_intent?.id;
+        if (!paymentIntentId) break;
+
+        // Donation per payment_intent ODER invoice-ref suchen
+        let donation: RecordModel | null = null;
+        try {
+          donation = await pb
+            .collection("donations")
+            .getFirstListItem(`provider_ref = "${paymentIntentId}" && provider = "stripe"`);
+        } catch {}
+
+        if (!donation && dispute.charge) {
+          try {
+            const chargeId = typeof dispute.charge === "string" ? dispute.charge : dispute.charge.id;
+            const charge = await stripe.charges.retrieve(chargeId, { expand: ["invoice"] });
+            const inv = charge.invoice;
+            const invoiceId = typeof inv === "string" ? inv : inv?.id;
+            if (invoiceId) {
+              donation = await pb
+                .collection("donations")
+                .getFirstListItem(`provider_ref = "${invoiceId}" && provider = "stripe"`);
+            }
+          } catch {}
+        }
+
+        if (!donation) {
+          console.warn(`[Stripe Webhook] charge.dispute.created: Donation für ${paymentIntentId} nicht gefunden`);
+          break;
+        }
+
+        await pb.collection("donations").update(donation.id, { status: "disputed" });
+
+        logAudit({
+          mosqueId: donation.mosque_id,
+          action: "donation.disputed",
+          entityType: "donation",
+          entityId: donation.id,
+          details: { reason: dispute.reason, amount_cents: dispute.amount },
+        });
+
+        try {
+          const mosque = await pb.collection("mosques").getOne(donation.mosque_id, {
+            fields: "name,brand_primary_color",
+          });
+          const amountFormatted = ((dispute.amount || 0) / 100).toFixed(2).replace(".", ",") + " €";
+          await notifyAdmins({
+            mosqueId: donation.mosque_id,
+            mosqueName: mosque.name,
+            title: "Zahlungsanfechtung (Dispute)",
+            message: `Eine Spende von <strong>${amountFormatted}</strong> wurde angefochten. Grund: ${dispute.reason}. Bitte im Stripe-Dashboard prüfen.`,
+            accentColor: mosque.brand_primary_color || undefined,
+          });
+        } catch (e) {
+          console.error("[Stripe Webhook] dispute admin-notify Fehler:", e);
         }
         break;
       }

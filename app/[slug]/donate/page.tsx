@@ -45,7 +45,7 @@ export default async function DonatePage({
   searchParams,
 }: {
   params: { slug: string };
-  searchParams: { campaign?: string; success?: string; cancelled?: string };
+  searchParams: { campaign?: string; success?: string; cancelled?: string; sub_success?: string };
 }) {
   const result = await resolveMosqueWithSettings(params.slug);
   if (!result) notFound();
@@ -58,6 +58,14 @@ export default async function DonatePage({
     .map((s) => parseFloat(s.trim()))
     .filter((n) => !isNaN(n) && n > 0)
     .map((n) => Math.round(n * 100));
+
+  // Recurring-Quick-Amounts (als Cents gespeichert: "500,1000,2000,5000")
+  const recurringQuickAmounts = (settings.recurring_quick_amounts || "500,1000,2000,5000")
+    .split(",")
+    .map((s) => parseInt(s.trim(), 10))
+    .filter((n) => !isNaN(n) && n > 0);
+  const recurringDonationsEnabled = !!settings.recurring_donations_enabled;
+  const recurringMinCents = settings.recurring_min_cents || 300;
 
   const isDemoMosque =
     !!process.env.NEXT_PUBLIC_DEMO_MOSQUE_ID &&
@@ -87,6 +95,21 @@ export default async function DonatePage({
           <ChevronLeft className="h-4 w-4" />
           {t("back")}
         </Link>
+
+        {/* Dauerauftrag-Erfolgs-Banner */}
+        {searchParams.sub_success && (
+          <div className="mb-6 flex items-center gap-3 rounded-xl border border-purple-200 bg-purple-50 p-4">
+            <Heart className="h-6 w-6 flex-shrink-0 text-purple-500" />
+            <div>
+              <p className="font-semibold text-purple-800">
+                {t("subThankYou")}
+              </p>
+              <p className="text-sm text-purple-700">
+                {t("subThankYouDesc")}
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Erfolgs-Banner */}
         {searchParams.success && (
@@ -243,6 +266,9 @@ export default async function DonatePage({
             externalDonationLabel={mosque.external_donation_label}
             paypalDonateUrl={mosque.paypal_donate_url}
             quickAmounts={quickAmounts}
+            recurringDonationsEnabled={recurringDonationsEnabled}
+            recurringMinCents={recurringMinCents}
+            recurringQuickAmounts={recurringQuickAmounts}
           />
         </div>
       </div>

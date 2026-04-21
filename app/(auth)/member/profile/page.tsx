@@ -57,6 +57,7 @@ import {
 import { formatCurrencyCents, cn } from "@/lib/utils";
 import { getPerformanceLevel } from "@/lib/constants";
 import type { Donation, EventRegistration } from "@/types";
+import { MyRecurringSubscriptions } from "@/components/member/MyRecurringSubscriptions";
 
 type Tab = "profile" | "children" | "donations" | "events" | "madrasa" | "sponsor";
 
@@ -924,6 +925,14 @@ function DonationHistory({
 
   return (
     <div className="space-y-4">
+      {/* Meine Daueraufträge */}
+      <div>
+        <h3 className="mb-2 text-sm font-semibold text-gray-900">
+          {t("member.donations.myRecurringTitle")}
+        </h3>
+        <MyRecurringSubscriptions />
+      </div>
+
       {/* Gesamtsumme */}
       {paidDonations.length > 0 && (
         <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-center">

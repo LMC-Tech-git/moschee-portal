@@ -160,6 +160,18 @@ export const donationCheckoutSchema = z.object({
 });
 export type DonationCheckoutInput = z.infer<typeof donationCheckoutSchema>;
 
+// --- Donation Subscription (Dauerauftrag) ---
+
+export const donationSubscriptionSchema = z.object({
+  amount_cents: z.number().int().min(100, "Mindestbetrag unterschritten"),
+  campaign_id: z.string().optional().default(""),
+  donor_name: z.string().optional().default(""),
+  donor_email: z.string().email("Ungültige Email"),
+  payment_method_type: z.enum(["card", "sepa_debit"]).default("card"),
+  turnstile_token: z.string().optional().default(""),
+});
+export type DonationSubscriptionInput = z.infer<typeof donationSubscriptionSchema>;
+
 // --- Newsletter ---
 
 export const newsletterSchema = z.object({

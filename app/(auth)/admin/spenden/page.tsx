@@ -13,6 +13,13 @@ import {
   type DonationKPIs,
   type GetDonationsOptions,
 } from "@/lib/actions/donations";
+import {
+  getRecurringKPIs,
+  exportDonationsCSV,
+  type RecurringKPIs,
+} from "@/lib/actions/recurring-donations";
+import Link from "next/link";
+import { RecurringBadge } from "@/components/shared/RecurringBadge";
 import { DonationMonthlyChart } from "@/components/admin/DonationMonthlyChart";
 import { DonationProviderChart } from "@/components/admin/DonationProviderChart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -33,6 +40,10 @@ import {
   ChevronRight,
   User,
   CreditCard,
+  Users,
+  Heart,
+  Download,
+  Repeat,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 
@@ -248,6 +259,7 @@ export default function AdminSpendenPage() {
   const { mosqueId } = useMosque();
 
   const [kpis, setKpis] = useState<DonationKPIs | null>(null);
+  const [recurringKpis, setRecurringKpis] = useState<RecurringKPIs | null>(null);
   const [donations, setDonations] = useState<DonationWithMeta[]>([]);
   const [totalItems, setTotalItems] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
@@ -260,7 +272,9 @@ export default function AdminSpendenPage() {
   const [statusFilter, setStatusFilter] = useState<GetDonationsOptions["status"]>("all");
   const [campaignFilter, setCampaignFilter] = useState("");
   const [providerFilter, setProviderFilter] = useState<GetDonationsOptions["provider"]>("all");
+  const [recurringFilter, setRecurringFilter] = useState<GetDonationsOptions["is_recurring"]>("all");
   const [search, setSearch] = useState("");
+  const [isExporting, setIsExporting] = useState(false);
 
   // UI
   const [showManualDialog, setShowManualDialog] = useState(false);
@@ -278,16 +292,18 @@ export default function AdminSpendenPage() {
     setIsLoading(true);
     setActionError("");
 
-    const [donResult, kpiResult] = await Promise.all([
+    const [donResult, kpiResult, recKpiResult] = await Promise.all([
       getDonationsByMosque(mosqueId, {
         status: statusFilter,
         campaign_id: campaignFilter || undefined,
         provider: providerFilter,
+        is_recurring: recurringFilter,
         search: search || undefined,
         page,
         limit: 25,
       }),
       getDonationKPIs(mosqueId),
+      getRecurringKPIs(mosqueId),
     ]);
 
     if (donResult.success && donResult.data) {
@@ -300,8 +316,11 @@ export default function AdminSpendenPage() {
     if (kpiResult.success && kpiResult.data) {
       setKpis(kpiResult.data);
     }
+    if (recKpiResult.success && recKpiResult.data) {
+      setRecurringKpis(recKpiResult.data);
+    }
     setIsLoading(false);
-  }, [mosqueId, statusFilter, campaignFilter, providerFilter, search]);
+  }, [mosqueId, statusFilter, campaignFilter, providerFilter, recurringFilter, search]);
 
   // Kampagnen einmalig laden
   useEffect(() => {
@@ -334,6 +353,28 @@ export default function AdminSpendenPage() {
     }
   }
 
+  async function handleExport() {
+    if (!mosqueId) return;
+    setIsExporting(true);
+    const result = await exportDonationsCSV(mosqueId, {
+      year: "all",
+      month: "all",
+      is_recurring: recurringFilter,
+    });
+    setIsExporting(false);
+    if (result.success && result.data) {
+      const blob = new Blob([result.data.content], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = result.data.filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    } else {
+      setActionError(result.error || "Export fehlgeschlagen");
+    }
+  }
+
   if (!user) return null;
 
   return (
@@ -346,14 +387,43 @@ export default function AdminSpendenPage() {
             {t("subtitle")}
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => setShowManualDialog(true)}
-          className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-emerald-700"
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleExport}
+            disabled={isExporting}
+            className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+          >
+            <Download className="h-4 w-4" />
+            {t("export")}
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowManualDialog(true)}
+            className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-emerald-700"
+          >
+            <Plus className="h-4 w-4" />
+            {t("addManual")}
+          </button>
+        </div>
+      </div>
+
+      {/* Sub-Navigation */}
+      <div className="flex flex-wrap gap-2">
+        <Link
+          href="/admin/spenden/spender"
+          className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700 hover:bg-emerald-100"
         >
-          <Plus className="h-4 w-4" />
-          {t("addManual")}
-        </button>
+          <Users className="h-3.5 w-3.5" />
+          {t("nav.donors")}
+        </Link>
+        <Link
+          href="/admin/spenden/daueraufträge"
+          className="inline-flex items-center gap-1.5 rounded-full border border-purple-200 bg-purple-50 px-3 py-1.5 text-xs font-medium text-purple-700 hover:bg-purple-100"
+        >
+          <Repeat className="h-3.5 w-3.5" />
+          {t("nav.recurring")}
+        </Link>
       </div>
 
       {/* KPI-Kacheln */}
@@ -395,6 +465,48 @@ export default function AdminSpendenPage() {
               {kpis.pendingCount > 0
                 ? `${kpis.pendingCount} (${formatCurrencyCents(kpis.pendingCents)})`
                 : "—"}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Recurring KPIs */}
+      {recurringKpis && recurringKpis.activeCount >= 0 && (
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+          <div className="rounded-xl border border-purple-200 bg-purple-50 p-4">
+            <div className="flex items-center gap-2 text-xs text-purple-700">
+              <Repeat className="h-4 w-4" />
+              {t("kpi.activeSubs")}
+            </div>
+            <p className="mt-1 text-xl font-bold text-purple-900">
+              {recurringKpis.activeCount}
+            </p>
+          </div>
+          <div className="rounded-xl border border-purple-200 bg-purple-50 p-4">
+            <div className="flex items-center gap-2 text-xs text-purple-700">
+              <Heart className="h-4 w-4" />
+              {t("kpi.mrr")}
+            </div>
+            <p className="mt-1 text-xl font-bold text-purple-900">
+              {formatCurrencyCents(recurringKpis.mrrCents)}
+            </p>
+          </div>
+          <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+            <div className="flex items-center gap-2 text-xs text-emerald-700">
+              <CheckCircle className="h-4 w-4" />
+              {t("kpi.mrrHealthy")}
+            </div>
+            <p className="mt-1 text-xl font-bold text-emerald-900">
+              {formatCurrencyCents(recurringKpis.mrrHealthyCents)}
+            </p>
+          </div>
+          <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+            <div className="flex items-center gap-2 text-xs text-amber-700">
+              <AlertCircle className="h-4 w-4" />
+              {t("kpi.failed")}
+            </div>
+            <p className="mt-1 text-xl font-bold text-amber-900">
+              {recurringKpis.failedCount}
             </p>
           </div>
         </div>
@@ -472,6 +584,17 @@ export default function AdminSpendenPage() {
             ))}
           </select>
         )}
+
+        {/* Recurring-Filter */}
+        <select
+          value={recurringFilter}
+          onChange={(e) => setRecurringFilter(e.target.value as GetDonationsOptions["is_recurring"])}
+          className="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none"
+        >
+          <option value="all">{t("filterAllTypes")}</option>
+          <option value="yes">{t("filterRecurringYes")}</option>
+          <option value="no">{t("filterRecurringNo")}</option>
+        </select>
 
         {/* Provider-Filter */}
         <select
@@ -556,9 +679,12 @@ export default function AdminSpendenPage() {
                           <User className="h-3.5 w-3.5 text-gray-400" />
                         </div>
                         <div className="min-w-0">
-                          <p className="truncate font-medium text-gray-900">
-                            {d.donor_display}
-                          </p>
+                          <div className="flex items-center gap-1.5">
+                            <p className="truncate font-medium text-gray-900">
+                              {d.donor_display}
+                            </p>
+                            {d.is_recurring && <RecurringBadge />}
+                          </div>
                           {d.donor_email && d.donor_name && (
                             <p className="truncate text-xs text-gray-400">
                               {d.donor_email}

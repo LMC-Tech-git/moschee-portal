@@ -83,6 +83,10 @@ export interface Settings {
   contact_email: string;
   contact_notify_admin: boolean;
   contact_auto_reply: boolean;
+  // Wiederkehrende Spenden
+  recurring_donations_enabled: boolean;
+  recurring_min_cents: number;
+  recurring_quick_amounts: string; // CSV "500,1000,2000,5000"
   created: string;
   updated: string;
 }
@@ -276,7 +280,7 @@ export interface Donation {
   subscription_id: string; // optional, Relation → recurring_subscriptions
   provider: "stripe" | "paypal_link" | "external" | "manual";
   provider_ref: string; // Stripe Session ID, etc.
-  status: "created" | "pending" | "paid" | "failed" | "refunded" | "cancelled";
+  status: "created" | "pending" | "paid" | "failed" | "refunded" | "cancelled" | "external" | "disputed";
   paid_at: string;
   created: string;
   updated: string;
@@ -295,9 +299,16 @@ export interface RecurringSubscription {
   interval: "monthly";
   provider: "stripe";
   provider_subscription_id: string;
-  status: "active" | "paused" | "cancelled";
+  status: "pending" | "active" | "cancelled";
   started_at: string;
   cancelled_at: string;
+  // v2: Lifecycle / Payment Health
+  provider_ref: string;
+  cancel_at_period_end: boolean;
+  current_period_end: string;
+  last_payment_status: "paid" | "failed" | "pending" | "";
+  last_payment_at: string;
+  disabled_by_setting: boolean;
   created: string;
   updated: string;
 }

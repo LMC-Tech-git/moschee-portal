@@ -373,6 +373,8 @@
     "back": "Panoya Dön",
     "thankYou": "Bağışınız için çok teşekkürler!",
     "thankYouDesc": "Ödemeniz başarıyla iletildi. Desteğiniz için çok minnettarız.",
+    "subThankYou": "Düzenli bağışın aktif!",
+    "subThankYouDesc": "Aylık desteğin için teşekkürler. Düzenli bağışı istediğin zaman profilinden iptal edebilirsin.",
     "demoTitle": "Demo Modu — Test Ödemesi",
     "demoCard": "Kart Numarası:",
     "demoExpiry": "Son Kullanma:",
@@ -462,7 +464,8 @@
       "posts": "Haberler",
       "events": "Etkinlikler",
       "campaigns": "Kampanyalar",
-      "donations": "Bağışlar"
+      "donations": "Bağışlar",
+      "mrr": "Aylık Gelir (€)"
     },
     "quickAccess": {
       "posts": {
@@ -869,7 +872,11 @@
       "total": "Toplam (ödendi)",
       "thisMonth": "Bu Ay",
       "donors": "Bağışçılar",
-      "open": "Bekleyen"
+      "open": "Bekleyen",
+      "activeSubs": "Aktif Düzenli Bağışlar",
+      "mrr": "Aylık Gelir (€)",
+      "mrrHealthy": "Sağlıklı MRR",
+      "failed": "Başarısız Ödemeler"
     },
     "chart": {
       "monthlyTitle": "Aylık Gelir (son 12 ay)",
@@ -925,7 +932,93 @@
       "submit": "Bağışı Kaydet",
       "submitting": "Kaydediliyor...",
       "amountError": "Lütfen geçerli bir tutar girin (en az 0,01 €)",
-      "nameRequired": "Bağışçı adı zorunludur"
+      "nameRequired": "Bağışçı adı zorunludur",
+      "saveError": "Kaydedilemedi"
+    },
+    "export": "Dışa Aktar",
+    "filterAllTypes": "Tek seferlik & Düzenli",
+    "filterRecurringYes": "Sadece düzenli bağışlar",
+    "filterRecurringNo": "Sadece tek seferlik",
+    "nav": {
+      "donors": "Bağışçı Özeti",
+      "recurring": "Düzenli Bağışlar"
+    },
+    "recurring": {
+      "monthly": "Aylık",
+      "oneOff": "Tek seferlik",
+      "perMonth": "€/Ay",
+      "minAmount": "Minimum tutar",
+      "emailRequired": "Düzenli bağış için e-posta zorunludur"
+    },
+    "overview": {
+      "title": "Bağışçı Özeti",
+      "subtitle": "Her bağışçı için zaman aralığına göre toplam",
+      "backToDonations": "Bağışlara dön",
+      "allYears": "Tüm Yıllar",
+      "allMonths": "Tüm Aylar",
+      "empty": "Seçilen dönemde bağış yok",
+      "member": "Üye",
+      "guest": "Misafir",
+      "cancel": "İptal",
+      "cancelConfirm": "Düzenli bağışı dönem sonunda iptal et?",
+      "cancelError": "İptal başarısız",
+      "loadError": "Yüklenemedi",
+      "donations": "Bağışlar",
+      "kpi": {
+        "donors": "Bağışçılar",
+        "total": "Toplam €",
+        "activeSubs": "Aktif Düzenli",
+        "mrr": "Aylık Gelir (€)"
+      },
+      "col": {
+        "donor": "Ad",
+        "email": "E-posta",
+        "type": "Tür",
+        "total": "Toplam €",
+        "totalHint": "Seçilen dönem için",
+        "count": "# Bağış",
+        "last": "Son Bağış",
+        "sub": "Düzenli Bağış",
+        "subHint": "Güncel durum, zaman filtresi uygulanmaz",
+        "actions": "İşlemler"
+      }
+    },
+    "sub": {
+      "title": "Düzenli Bağışlar",
+      "subtitle": "Caminin tüm tekrarlayan bağışları",
+      "empty": "Düzenli bağış yok",
+      "loadError": "Yüklenemedi",
+      "cancelConfirm": "Düzenli bağışı dönem sonunda iptal et?",
+      "cancelError": "İptal başarısız",
+      "willEnd": "Dönem sonunda sona erer",
+      "status": {
+        "active": "Aktif",
+        "pending": "Beklemede",
+        "cancelled": "İptal Edildi"
+      },
+      "col": {
+        "donor": "Bağışçı",
+        "amount": "Tutar/Ay",
+        "start": "Başlangıç",
+        "lastPayment": "Son Ödeme",
+        "activeUntil": "Aktif kalma süresi",
+        "status": "Durum",
+        "actions": "İşlemler"
+      }
+    },
+    "mySub": {
+      "loadError": "Yüklenemedi",
+      "empty": "Aktif düzenli bağışın yok",
+      "month": "Ay",
+      "startedAt": "Başlangıç tarihi",
+      "activeUntil": "Aktif kalma süresi",
+      "endsAt": "{date} tarihinde sona erer",
+      "cancelConfirm": "Düzenli bağışı dönem sonunda iptal et? Dönem sonuna kadar tahsil edilecek.",
+      "cancelImmediateConfirm": "Düzenli bağışı hemen sonlandır? Daha fazla tahsilat yapılmayacak.",
+      "cancelError": "İptal başarısız",
+      "cancelPeriodEnd": "Dönem sonunda iptal et",
+      "cancelNow": "Hemen sonlandır",
+      "failedHint": "Son ödeme başarısız oldu. Stripe otomatik olarak tekrar deneyecek."
     }
   },
   "member": {
@@ -1016,6 +1109,7 @@
     "donations": {
       "totalLabel": "Toplam Bağışlar",
       "certificate": "Bağış Makbuzu",
+      "myRecurringTitle": "Düzenli Bağışlarım",
       "noDonations": "Henüz bağış yok",
       "monthly": "Aylık",
       "status": {
@@ -1224,6 +1318,7 @@
       "event_registration": "Kayıtlar",
       "campaign": "Kampanyalar",
       "donation": "Bağışlar",
+      "recurring_subscription": "Düzenli Bağışlar",
       "member": "Üyeler",
       "invite": "Davetler",
       "madrasa": "Medrese",
@@ -1239,6 +1334,7 @@
       "event_registration": "Kayıt",
       "campaign": "Kampanya",
       "donation": "Bağış",
+      "recurring_subscription": "Düzenli Bağış",
       "member": "Üye",
       "users": "Kullanıcı",
       "invite": "Davet",
@@ -1286,7 +1382,16 @@
         "status_changed": "Bağış durumu değiştirildi",
         "paid": "Bağış ödendi",
         "failed": "Bağış başarısız",
-        "refunded": "Bağış iade edildi"
+        "refunded": "Bağış iade edildi",
+        "disputed": "Bağış itiraz edildi"
+      },
+      "donation_subscription": {
+        "created": "Düzenli bağış oluşturuldu",
+        "cancelled": "Düzenli bağış iptal edildi",
+        "updated": "Düzenli bağış güncellendi",
+        "payment_succeeded": "Düzenli bağış ödemesi başarılı",
+        "payment_failed": "Düzenli bağış ödemesi başarısız",
+        "processed_while_disabled": "Özellik devre dışıyken ödeme işlendi"
       },
       "member": {
         "status_changed": "Durum değiştirildi",
@@ -1492,11 +1597,28 @@
       "prayer": "Namaz Vakitleri",
       "defaults": "Varsayılanlar",
       "madrasa": "Medrese",
+      "recurring": "Düzenli Bağışlar",
       "sponsors": "Destek Ortakları",
       "team": "Ekip",
       "contact": "İletişim Formu",
       "email": "E-posta"
     },
+    "recurring": {
+      "title": "Düzenli Bağışlar",
+      "desc": "Üyeler ve misafirler aylık düzenli bağış kurabilir.",
+      "needsStripe": "Düzenli bağış için Stripe ödeme sağlayıcısı aktif olmalı.",
+      "toggleLabel": "Düzenli bağışları etkinleştir",
+      "toggleDesc": "Aktif olduğunda, bağış sayfasında Tek seferlik/Aylık seçeneği görünür.",
+      "minLabel": "Minimum tutar (€)",
+      "minHint": "En az 1,00 €. Daha düşük tutarlar kabul edilmez.",
+      "quickLabel": "Hızlı seçim tutarları (kuruş, virgülle ayrılmış)",
+      "quickHint": "Örnek: 500,1000,2000,5000 = 5€, 10€, 20€, 50€",
+      "errorMin": "Minimum tutar en az 1,00 € olmalı"
+    },
+    "saved": "Kaydedildi",
+    "saveError": "Kaydedilemedi",
+    "save": "Kaydet",
+    "saving": "Kaydediliyor...",
     "team": {
       "title": "Ekip",
       "desc": "Yönetim kurulunuzu, imamlarınızı ve çalışanlarınızı halka açık bir sayfada tanıtın.",

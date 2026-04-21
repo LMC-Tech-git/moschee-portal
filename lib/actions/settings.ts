@@ -310,6 +310,9 @@ export async function getPortalSettings(mosqueId: string): Promise<{
         contact_email: "",
         contact_notify_admin: true,
         contact_auto_reply: true,
+        recurring_donations_enabled: false,
+        recurring_min_cents: 300,
+        recurring_quick_amounts: "500,1000,2000,5000",
         created: "",
         updated: "",
       };
@@ -737,6 +740,105 @@ export async function updatePaymentSettings(
   } catch (error) {
     console.error("[settings] updatePaymentSettings:", error);
     return { success: false, error: "Zahlungseinstellungen konnten nicht gespeichert werden." };
+  }
+}
+
+// =========================================
+// Wiederkehrende Spenden (Daueraufträge)
+// =========================================
+
+export interface RecurringDonationSettings {
+  recurring_donations_enabled: boolean;
+  recurring_min_cents: number;
+  recurring_quick_amounts: string;
+}
+
+export async function getRecurringDonationSettings(mosqueId: string): Promise<{
+  success: boolean;
+  data?: RecurringDonationSettings;
+  error?: string;
+}> {
+  try {
+    const pb = await getAdminPB();
+    try {
+      const record = await pb
+        .collection("settings")
+        .getFirstListItem(`mosque_id = "${mosqueId}"`, {
+          fields: "recurring_donations_enabled,recurring_min_cents,recurring_quick_amounts",
+        });
+      return {
+        success: true,
+        data: {
+          recurring_donations_enabled: record.recurring_donations_enabled ?? false,
+          recurring_min_cents: record.recurring_min_cents || 300,
+          recurring_quick_amounts: record.recurring_quick_amounts || "500,1000,2000,5000",
+        },
+      };
+    } catch {
+      return {
+        success: true,
+        data: {
+          recurring_donations_enabled: false,
+          recurring_min_cents: 300,
+          recurring_quick_amounts: "500,1000,2000,5000",
+        },
+      };
+    }
+  } catch (error) {
+    console.error("[settings] getRecurringDonationSettings:", error);
+    return { success: false, error: "Einstellungen konnten nicht geladen werden." };
+  }
+}
+
+export async function updateRecurringDonationSettings(
+  mosqueId: string,
+  userId: string,
+  data: RecurringDonationSettings
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    if (data.recurring_min_cents < 100) {
+      return { success: false, error: "Mindestbetrag ist 1,00 €." };
+    }
+    const quickAmounts = data.recurring_quick_amounts
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    if (quickAmounts.some((a) => !/^\d+$/.test(a))) {
+      return { success: false, error: "Schnell-Beträge müssen Ganzzahlen in Cent sein." };
+    }
+
+    const pb = await getAdminPB();
+    let settingsId: string | null = null;
+    try {
+      const record = await pb
+        .collection("settings")
+        .getFirstListItem(`mosque_id = "${mosqueId}"`);
+      settingsId = record.id;
+    } catch {
+      // kein Record
+    }
+
+    const payload = { mosque_id: mosqueId, ...data };
+
+    if (settingsId) {
+      await pb.collection("settings").update(settingsId, payload);
+    } else {
+      await pb.collection("settings").create(payload);
+    }
+
+    await logAudit({
+      mosqueId,
+      userId,
+      action: "update_recurring_donation_settings",
+      entityType: "settings",
+      entityId: settingsId || mosqueId,
+      after: { ...data },
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("[settings] updateRecurringDonationSettings:", error);
+    return { success: false, error: "Dauerauftrag-Einstellungen konnten nicht gespeichert werden." };
   }
 }
 

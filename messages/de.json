@@ -373,6 +373,8 @@
     "back": "Zurück zum Dashboard",
     "thankYou": "Vielen Dank für Ihre Spende!",
     "thankYouDesc": "Ihre Zahlung wurde erfolgreich übermittelt. Wir sind sehr dankbar für Ihre Unterstützung.",
+    "subThankYou": "Dein Dauerauftrag ist aktiv!",
+    "subThankYouDesc": "Vielen Dank für deine monatliche Unterstützung. Du kannst den Dauerauftrag jederzeit in deinem Profil kündigen.",
     "demoTitle": "Demo-Modus — Testzahlung",
     "demoCard": "Kartennummer:",
     "demoExpiry": "Ablaufdatum:",
@@ -462,7 +464,8 @@
       "posts": "Beiträge",
       "events": "Events",
       "campaigns": "Kampagnen",
-      "donations": "Spenden"
+      "donations": "Spenden",
+      "mrr": "MRR (€/Monat)"
     },
     "quickAccess": {
       "posts": {
@@ -869,7 +872,11 @@
       "total": "Gesamt (bezahlt)",
       "thisMonth": "Diesen Monat",
       "donors": "Spender",
-      "open": "Offen"
+      "open": "Offen",
+      "activeSubs": "Aktive Daueraufträge",
+      "mrr": "MRR (€/Monat)",
+      "mrrHealthy": "Gesundes MRR",
+      "failed": "Fehlgeschlagene Zahlungen"
     },
     "chart": {
       "monthlyTitle": "Monatliche Einnahmen (letzte 12 Monate)",
@@ -925,7 +932,93 @@
       "submit": "Spende erfassen",
       "submitting": "Wird gespeichert...",
       "amountError": "Bitte einen gültigen Betrag eingeben (mind. 0,01 €)",
-      "nameRequired": "Name des Spenders ist erforderlich"
+      "nameRequired": "Name des Spenders ist erforderlich",
+      "saveError": "Speichern fehlgeschlagen"
+    },
+    "export": "Exportieren",
+    "filterAllTypes": "Einmalig & Dauer",
+    "filterRecurringYes": "Nur Daueraufträge",
+    "filterRecurringNo": "Nur Einmalig",
+    "nav": {
+      "donors": "Spender-Übersicht",
+      "recurring": "Daueraufträge"
+    },
+    "recurring": {
+      "monthly": "Monatlich",
+      "oneOff": "Einmalig",
+      "perMonth": "€/Monat",
+      "minAmount": "Mindestbetrag",
+      "emailRequired": "E-Mail-Adresse ist für Daueraufträge erforderlich"
+    },
+    "overview": {
+      "title": "Spender-Übersicht",
+      "subtitle": "Pro Spender aggregiert nach Zeitraum",
+      "backToDonations": "Zurück zu Spenden",
+      "allYears": "Alle Jahre",
+      "allMonths": "Alle Monate",
+      "empty": "Keine Spenden im gewählten Zeitraum",
+      "member": "Mitglied",
+      "guest": "Gast",
+      "cancel": "Kündigen",
+      "cancelConfirm": "Dauerauftrag zum Periodenende kündigen?",
+      "cancelError": "Kündigung fehlgeschlagen",
+      "loadError": "Laden fehlgeschlagen",
+      "donations": "Spenden",
+      "kpi": {
+        "donors": "Spender",
+        "total": "Gesamt €",
+        "activeSubs": "Aktive Daueraufträge",
+        "mrr": "MRR (€/Monat)"
+      },
+      "col": {
+        "donor": "Name",
+        "email": "Email",
+        "type": "Typ",
+        "total": "Total €",
+        "totalHint": "Im gewählten Zeitraum",
+        "count": "# Spenden",
+        "last": "Letzte Spende",
+        "sub": "Dauerauftrag",
+        "subHint": "Aktueller Stand, unabhängig vom Zeitfilter",
+        "actions": "Aktionen"
+      }
+    },
+    "sub": {
+      "title": "Daueraufträge",
+      "subtitle": "Alle wiederkehrenden Spenden der Moschee",
+      "empty": "Keine Daueraufträge vorhanden",
+      "loadError": "Laden fehlgeschlagen",
+      "cancelConfirm": "Dauerauftrag zum Periodenende kündigen?",
+      "cancelError": "Kündigung fehlgeschlagen",
+      "willEnd": "Läuft am Periodenende aus",
+      "status": {
+        "active": "Aktiv",
+        "pending": "Ausstehend",
+        "cancelled": "Gekündigt"
+      },
+      "col": {
+        "donor": "Spender",
+        "amount": "Betrag/Monat",
+        "start": "Start",
+        "lastPayment": "Letzte Zahlung",
+        "activeUntil": "Aktiv bis",
+        "status": "Status",
+        "actions": "Aktionen"
+      }
+    },
+    "mySub": {
+      "loadError": "Laden fehlgeschlagen",
+      "empty": "Du hast keine aktiven Daueraufträge",
+      "month": "Monat",
+      "startedAt": "Gestartet am",
+      "activeUntil": "Aktiv bis",
+      "endsAt": "Läuft zum {date} aus",
+      "cancelConfirm": "Dauerauftrag zum Periodenende kündigen? Du wirst noch bis zum Periodenende gebucht.",
+      "cancelImmediateConfirm": "Dauerauftrag sofort beenden? Es werden keine weiteren Abbuchungen stattfinden.",
+      "cancelError": "Kündigung fehlgeschlagen",
+      "cancelPeriodEnd": "Zum Periodenende kündigen",
+      "cancelNow": "Sofort beenden",
+      "failedHint": "Die letzte Zahlung ist fehlgeschlagen. Stripe versucht automatisch erneut."
     }
   },
   "member": {
@@ -1018,6 +1111,7 @@
       "certificate": "Spendenbescheinigung",
       "noDonations": "Noch keine Spenden",
       "monthly": "Monatlich",
+      "myRecurringTitle": "Meine Daueraufträge",
       "status": {
         "paid": "Bezahlt",
         "pending": "Ausstehend",
@@ -1224,6 +1318,7 @@
       "event_registration": "Registrierungen",
       "campaign": "Kampagnen",
       "donation": "Spenden",
+      "recurring_subscription": "Daueraufträge",
       "member": "Mitglieder",
       "invite": "Einladungen",
       "madrasa": "Madrasa",
@@ -1239,6 +1334,7 @@
       "event_registration": "Registrierung",
       "campaign": "Kampagne",
       "donation": "Spende",
+      "recurring_subscription": "Dauerauftrag",
       "member": "Mitglied",
       "users": "Nutzer",
       "invite": "Einladung",
@@ -1286,7 +1382,16 @@
         "status_changed": "Spenden-Status geändert",
         "paid": "Spende bezahlt",
         "failed": "Spende fehlgeschlagen",
-        "refunded": "Spende erstattet"
+        "refunded": "Spende erstattet",
+        "disputed": "Spende beanstandet"
+      },
+      "donation_subscription": {
+        "created": "Dauerauftrag erstellt",
+        "cancelled": "Dauerauftrag gekündigt",
+        "updated": "Dauerauftrag aktualisiert",
+        "payment_succeeded": "Dauerauftrag-Zahlung erfolgreich",
+        "payment_failed": "Dauerauftrag-Zahlung fehlgeschlagen",
+        "processed_while_disabled": "Zahlung trotz deaktiviertem Feature verarbeitet"
       },
       "member": {
         "status_changed": "Status geändert",
@@ -1492,11 +1597,28 @@
       "prayer": "Gebetszeiten",
       "defaults": "Defaults",
       "madrasa": "Madrasa",
+      "recurring": "Daueraufträge",
       "sponsors": "Förderpartner",
       "team": "Team",
       "contact": "Kontaktformular",
       "email": "E-Mail"
     },
+    "recurring": {
+      "title": "Wiederkehrende Spenden",
+      "desc": "Mitglieder und Gäste können monatliche Daueraufträge einrichten.",
+      "needsStripe": "Stripe als Zahlungsanbieter muss aktiv sein, um Daueraufträge anzubieten.",
+      "toggleLabel": "Daueraufträge aktivieren",
+      "toggleDesc": "Wenn aktiviert, erscheint auf der Spenden-Seite ein Einmalig/Monatlich-Umschalter.",
+      "minLabel": "Mindestbetrag (€)",
+      "minHint": "Mindestens 1,00 €. Kleinere Beträge sind nicht erlaubt.",
+      "quickLabel": "Schnell-Beträge (Cents, kommasepariert)",
+      "quickHint": "Beispiel: 500,1000,2000,5000 = 5€, 10€, 20€, 50€",
+      "errorMin": "Mindestbetrag muss mindestens 1,00 € sein"
+    },
+    "saved": "Gespeichert",
+    "saveError": "Speichern fehlgeschlagen",
+    "save": "Speichern",
+    "saving": "Wird gespeichert...",
     "team": {
       "title": "Team",
       "desc": "Stellen Sie Ihren Vorstand, Imame und Mitarbeiter auf einer öffentlichen Seite vor.",
