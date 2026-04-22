@@ -139,7 +139,7 @@ export async function POST(
       const existing = await pb
         .collection("recurring_subscriptions")
         .getFirstListItem(
-          `mosque_id = "${mosque.id}" && donor_email = "${donor_email}" && status = "active"`
+          `mosque_id = "${mosque.id}" && donor_email = "${donor_email}" && (status = "active" || status = "pending")`
         );
       if (existing) {
         return NextResponse.json(

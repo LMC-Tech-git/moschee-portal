@@ -175,8 +175,8 @@ const SETTINGS_NEW_FIELDS = [
 
 const SETTINGS_RECURRING_FIELDS = [
   { name: "recurring_donations_enabled", type: "bool", options: { default: false } },
-  { name: "recurring_min_cents", type: "number", options: { min: 100, default: 300 } },
-  { name: "recurring_quick_amounts", type: "text", options: { default: "500,1000,2000,5000" } },
+  { name: "recurring_min_cents", type: "number", options: { min: 100, default: 1000 } },
+  { name: "recurring_quick_amounts", type: "text", options: { default: "1000,2000,5000,10000" } },
 ];
 
 const RECURRING_SUBSCRIPTIONS_NEW_FIELDS = [

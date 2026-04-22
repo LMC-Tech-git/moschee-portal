@@ -994,7 +994,8 @@
       "status": {
         "active": "Aktif",
         "pending": "Beklemede",
-        "cancelled": "İptal Edildi"
+        "cancelled": "İptal Edildi",
+        "abandoned": "Terk Edildi"
       },
       "col": {
         "donor": "Bağışçı",

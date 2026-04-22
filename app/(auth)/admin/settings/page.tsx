@@ -2440,8 +2440,8 @@ function RecurringDonationsTab({
 }) {
   const t = useTranslations("settings");
   const [enabled, setEnabled] = useState(settings.recurring_donations_enabled);
-  const [minEur, setMinEur] = useState(((settings.recurring_min_cents || 300) / 100).toFixed(2));
-  const [quickCsv, setQuickCsv] = useState(settings.recurring_quick_amounts || "500,1000,2000,5000");
+  const [minEur, setMinEur] = useState(((settings.recurring_min_cents ?? 1000) / 100).toFixed(2));
+  const [quickCsv, setQuickCsv] = useState(settings.recurring_quick_amounts ?? "1000,2000,5000,10000");
   const [isSaving, setIsSaving] = useState(false);
   const [status, setStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
 

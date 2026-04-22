@@ -994,7 +994,8 @@
       "status": {
         "active": "Aktiv",
         "pending": "Ausstehend",
-        "cancelled": "Gekündigt"
+        "cancelled": "Gekündigt",
+        "abandoned": "Abgebrochen"
       },
       "col": {
         "donor": "Spender",

@@ -1439,8 +1439,8 @@ async function seedSettings() {
     sibling_discount_2nd_percent: 20,
     sibling_discount_3rd_percent: 30,
     recurring_donations_enabled: true,
-    recurring_min_cents: 300,
-    recurring_quick_amounts: "500,1000,2000,5000",
+    recurring_min_cents: 1000,
+    recurring_quick_amounts: "1000,2000,5000,10000",
   };
 
   if (existing?.items?.length > 0) {

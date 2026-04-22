@@ -418,7 +418,7 @@ export default function AdminSpendenPage() {
           {t("nav.donors")}
         </Link>
         <Link
-          href="/admin/spenden/daueraufträge"
+          href="/admin/spenden/abonnements"
           className="inline-flex items-center gap-1.5 rounded-full border border-purple-200 bg-purple-50 px-3 py-1.5 text-xs font-medium text-purple-700 hover:bg-purple-100"
         >
           <Repeat className="h-3.5 w-3.5" />

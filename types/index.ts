@@ -299,7 +299,7 @@ export interface RecurringSubscription {
   interval: "monthly";
   provider: "stripe";
   provider_subscription_id: string;
-  status: "pending" | "active" | "cancelled";
+  status: "pending" | "active" | "cancelled" | "abandoned";
   started_at: string;
   cancelled_at: string;
   // v2: Lifecycle / Payment Health

@@ -281,7 +281,7 @@ export default function SpenderOverviewPage() {
                           )}
                           {row.donor_type === "member" && row.user_id && (
                             <Link
-                              href={`/admin/mitglieder`}
+                              href={`/admin/mitglieder/${row.user_id}`}
                               className="rounded-lg border border-gray-200 px-2.5 py-1 text-xs font-medium text-gray-600 hover:bg-gray-50"
                             >
                               →

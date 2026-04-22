@@ -121,6 +121,7 @@ export default function DaueraufträgePage() {
           <option value="active">{t("sub.status.active")}</option>
           <option value="pending">{t("sub.status.pending")}</option>
           <option value="cancelled">{t("sub.status.cancelled")}</option>
+          <option value="abandoned">{t("sub.status.abandoned")}</option>
         </select>
         <button
           type="button"

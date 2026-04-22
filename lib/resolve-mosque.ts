@@ -65,8 +65,8 @@ export async function resolveMosqueSettings(
     contact_notify_admin: true,
     contact_auto_reply: true,
     recurring_donations_enabled: false,
-    recurring_min_cents: 300,
-    recurring_quick_amounts: "500,1000,2000,5000",
+    recurring_min_cents: 1000,
+    recurring_quick_amounts: "1000,2000,5000,10000",
     created: "",
     updated: "",
   };

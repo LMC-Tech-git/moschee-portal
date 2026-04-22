@@ -45,7 +45,7 @@ function mapSub(r: RecordModel): RecurringSubscription {
 // =========================================
 
 export interface GetSubscriptionsOptions {
-  status?: "all" | "active" | "cancelled" | "pending";
+  status?: "all" | "active" | "cancelled" | "pending" | "abandoned";
   search?: string;
   page?: number;
   limit?: number;
@@ -428,13 +428,26 @@ export async function cleanupAbandonedPendingSubscriptions(
     const stripeKey = process.env.STRIPE_SECRET_KEY;
     const stripe = stripeKey ? new Stripe(stripeKey, { apiVersion: "2024-06-20" }) : null;
 
-    let deleted = 0;
+    let abandoned = 0;
     let synced = 0;
     for (const sub of pending) {
-      if (sub.provider_subscription_id && stripe) {
+      if (sub.provider_ref && stripe) {
+        // provider_ref = checkout session ID → Stripe-Check
+        try {
+          const session = await stripe.checkout.sessions.retrieve(sub.provider_ref);
+          if (session.status === "complete" || session.status === "open") {
+            // Session noch aktiv oder bereits abgeschlossen → webhook kommt noch / schon verarbeitet
+            synced++;
+            continue;
+          }
+          // Session expired/cancelled → abandoned
+        } catch {
+          // Session unbekannt → abandoned
+        }
+      } else if (sub.provider_subscription_id && stripe) {
+        // Fallback: direkt Subscription prüfen
         try {
           const stripeSub = await stripe.subscriptions.retrieve(sub.provider_subscription_id);
-          // Sub existiert → synchronisieren
           await pb.collection("recurring_subscriptions").update(sub.id, {
             status: stripeSub.status === "active" ? "active" : sub.status,
             current_period_end: new Date(stripeSub.current_period_end * 1000).toISOString(),
@@ -442,14 +455,17 @@ export async function cleanupAbandonedPendingSubscriptions(
           synced++;
           continue;
         } catch {
-          // Stripe kennt sie nicht → löschen
+          // unbekannt → abandoned
         }
       }
-      await pb.collection("recurring_subscriptions").delete(sub.id);
-      deleted++;
+      // Nicht löschen — als abandoned markieren (kein Datenverlust)
+      await pb.collection("recurring_subscriptions").update(sub.id, {
+        status: "abandoned",
+      });
+      abandoned++;
     }
 
-    return { success: true, data: { deleted, synced } };
+    return { success: true, data: { deleted: abandoned, synced } };
   } catch (error) {
     console.error("[recurring-donations] cleanupAbandonedPendingSubscriptions:", error);
     return { success: false, error: "Cleanup fehlgeschlagen." };

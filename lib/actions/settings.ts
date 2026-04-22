@@ -770,8 +770,8 @@ export async function getRecurringDonationSettings(mosqueId: string): Promise<{
         success: true,
         data: {
           recurring_donations_enabled: record.recurring_donations_enabled ?? false,
-          recurring_min_cents: record.recurring_min_cents || 300,
-          recurring_quick_amounts: record.recurring_quick_amounts || "500,1000,2000,5000",
+          recurring_min_cents: record.recurring_min_cents ?? 1000,
+          recurring_quick_amounts: record.recurring_quick_amounts ?? "1000,2000,5000,10000",
         },
       };
     } catch {
@@ -779,8 +779,8 @@ export async function getRecurringDonationSettings(mosqueId: string): Promise<{
         success: true,
         data: {
           recurring_donations_enabled: false,
-          recurring_min_cents: 300,
-          recurring_quick_amounts: "500,1000,2000,5000",
+          recurring_min_cents: 1000,
+          recurring_quick_amounts: "1000,2000,5000,10000",
         },
       };
     }
@@ -821,7 +821,16 @@ export async function updateRecurringDonationSettings(
     const payload = { mosque_id: mosqueId, ...data };
 
     if (settingsId) {
-      await pb.collection("settings").update(settingsId, payload);
+      const updated = await pb.collection("settings").update(settingsId, payload);
+      // PocketBase ignoriert unbekannte Felder still → Schema-Check
+      if (
+        "recurring_donations_enabled" in payload &&
+        typeof updated.recurring_donations_enabled === "undefined"
+      ) {
+        throw new Error(
+          "Recurring settings fields missing in schema — run: node scripts/migrate-v1.mjs"
+        );
+      }
     } else {
       await pb.collection("settings").create(payload);
     }
