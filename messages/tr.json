@@ -1004,7 +1004,7 @@
         "amount": "Tutar/Ay",
         "start": "Başlangıç",
         "lastPayment": "Son Ödeme",
-        "activeUntil": "Aktif kalma süresi",
+        "activeUntil": "Dönem sonu",
         "status": "Durum",
         "actions": "İşlemler"
       }
@@ -1014,7 +1014,7 @@
       "empty": "Aktif düzenli bağışın yok",
       "month": "Ay",
       "startedAt": "Başlangıç tarihi",
-      "activeUntil": "Aktif kalma süresi",
+      "activeUntil": "Sonraki ödeme",
       "endsAt": "{date} tarihinde sona erer",
       "cancelConfirm": "Düzenli bağışı dönem sonunda iptal et? Dönem sonuna kadar tahsil edilecek.",
       "cancelImmediateConfirm": "Düzenli bağışı hemen sonlandır? Daha fazla tahsilat yapılmayacak.",

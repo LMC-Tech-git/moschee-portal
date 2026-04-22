@@ -1004,7 +1004,7 @@
         "amount": "Betrag/Monat",
         "start": "Start",
         "lastPayment": "Letzte Zahlung",
-        "activeUntil": "Aktiv bis",
+        "activeUntil": "Periode bis",
         "status": "Status",
         "actions": "Aktionen"
       }
@@ -1014,7 +1014,7 @@
       "empty": "Du hast keine aktiven Daueraufträge",
       "month": "Monat",
       "startedAt": "Gestartet am",
-      "activeUntil": "Aktiv bis",
+      "activeUntil": "Nächste Abbuchung am",
       "endsAt": "Läuft zum {date} aus",
       "cancelConfirm": "Dauerauftrag zum Periodenende kündigen? Du wirst noch bis zum Periodenende gebucht.",
       "cancelImmediateConfirm": "Dauerauftrag sofort beenden? Es werden keine weiteren Abbuchungen stattfinden.",
