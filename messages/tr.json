@@ -883,6 +883,7 @@
       "providerTitle": "Ödeme Yöntemine Göre"
     },
     "searchPlaceholder": "Ad veya e-posta...",
+    "noSearchResults": "Bu arama için sonuç bulunamadı.",
     "filterAllStatus": "Tüm Durumlar",
     "filterAllCampaigns": "Tüm Kampanyalar",
     "filterAllSources": "Tüm Kaynaklar",
@@ -2310,6 +2311,9 @@
     "donationFailed": "Başarısız",
     "donationRefunded": "İade Edildi",
     "donationOpen": "Bekliyor",
+    "donationTypeGeneral": "Genel",
+    "donationTypeCampaign": "Kampanya",
+    "donationTypeRecurring": "Düzenli Ödeme",
     "eventTitle": "Etkinlik Katılımları",
     "noEvents": "Etkinlik katılımı bulunamadı.",
     "eventRegistered": "Kayıtlı",

@@ -18,6 +18,7 @@ import {
   Trash2,
   GraduationCap,
   ExternalLink,
+  Repeat,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
@@ -404,6 +405,18 @@ export default function MitgliedBearbeitenPage() {
                       </p>
                       <p className="text-xs text-gray-400">
                         {formatDate(d.paid_at || d.created)}
+                      </p>
+                      <p className="mt-0.5 flex items-center gap-1 text-xs text-gray-400">
+                        {d.is_recurring ? (
+                          <>
+                            <Repeat className="h-3 w-3 text-purple-500" />
+                            <span className="text-purple-600">{t("donationTypeRecurring")}</span>
+                          </>
+                        ) : d.campaign_id ? (
+                          <span className="text-blue-600">{t("donationTypeCampaign")}</span>
+                        ) : (
+                          <span>{t("donationTypeGeneral")}</span>
+                        )}
                       </p>
                     </div>
                     <Badge

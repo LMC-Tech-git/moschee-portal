@@ -883,6 +883,7 @@
       "providerTitle": "Nach Zahlungsweg"
     },
     "searchPlaceholder": "Name oder E-Mail...",
+    "noSearchResults": "Keine Ergebnisse für diese Suche.",
     "filterAllStatus": "Alle Status",
     "filterAllCampaigns": "Alle Kampagnen",
     "filterAllSources": "Alle Quellen",
@@ -2310,6 +2311,9 @@
     "donationFailed": "Fehlgeschlagen",
     "donationRefunded": "Erstattet",
     "donationOpen": "Offen",
+    "donationTypeGeneral": "Allgemein",
+    "donationTypeCampaign": "Kampagne",
+    "donationTypeRecurring": "Dauerauftrag",
     "eventTitle": "Event-Teilnahmen",
     "noEvents": "Keine Event-Teilnahmen vorhanden.",
     "eventRegistered": "Angemeldet",

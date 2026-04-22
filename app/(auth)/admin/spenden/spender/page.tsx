@@ -25,6 +25,7 @@ import {
   Mail,
   AlertTriangle,
   RefreshCw,
+  Search,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { PaymentHealthBadge } from "@/components/shared/PaymentHealthBadge";
@@ -44,6 +45,8 @@ export default function SpenderOverviewPage() {
   const [error, setError] = useState("");
   const [isExporting, setIsExporting] = useState(false);
   const [cancelingId, setCancelingId] = useState<string | null>(null);
+
+  const [search, setSearch] = useState("");
 
   type SortField = "donor_name" | "total_cents" | "donation_count" | "last_paid_at" | "active_subscription_amount_cents";
   const [sortBy, setSortBy] = useState<SortField>("total_cents");
@@ -116,19 +119,28 @@ export default function SpenderOverviewPage() {
       : <ChevronDown className="ml-1 inline h-3 w-3 text-emerald-600" />;
   }
 
-  const sortedRows = data
-    ? [...data.rows].sort((a, b) => {
-        let cmp = 0;
-        if (sortBy === "donor_name") {
-          cmp = (a.donor_name || a.donor_email).localeCompare(b.donor_name || b.donor_email, "de");
-        } else if (sortBy === "last_paid_at") {
-          cmp = (a.last_paid_at || "").localeCompare(b.last_paid_at || "");
-        } else {
-          cmp = (a[sortBy] as number) - (b[sortBy] as number);
-        }
-        return sortDir === "asc" ? cmp : -cmp;
-      })
+  const q = search.trim().toLowerCase();
+  const filteredRows = data
+    ? q
+      ? data.rows.filter(
+          (r) =>
+            (r.donor_name || "").toLowerCase().includes(q) ||
+            (r.donor_email || "").toLowerCase().includes(q)
+        )
+      : data.rows
     : [];
+
+  const sortedRows = [...filteredRows].sort((a, b) => {
+    let cmp = 0;
+    if (sortBy === "donor_name") {
+      cmp = (a.donor_name || a.donor_email).localeCompare(b.donor_name || b.donor_email, "de");
+    } else if (sortBy === "last_paid_at") {
+      cmp = (a.last_paid_at || "").localeCompare(b.last_paid_at || "");
+    } else {
+      cmp = (a[sortBy] as number) - (b[sortBy] as number);
+    }
+    return sortDir === "asc" ? cmp : -cmp;
+  });
 
   if (!user) return null;
 
@@ -158,6 +170,16 @@ export default function SpenderOverviewPage() {
           <p className="text-sm text-gray-500">{t("overview.subtitle")}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder={t("searchPlaceholder")}
+              className="w-48 rounded-lg border border-gray-200 py-2 pl-9 pr-3 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+            />
+          </div>
           <select
             value={year}
             onChange={(e) => setYear(e.target.value === "all" ? "all" : parseInt(e.target.value, 10))}
@@ -234,10 +256,12 @@ export default function SpenderOverviewPage() {
           <div className="flex items-center justify-center py-16">
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-200 border-t-emerald-600" />
           </div>
-        ) : !data || data.rows.length === 0 ? (
+        ) : !data || sortedRows.length === 0 ? (
           <div className="py-16 text-center">
             <Users className="mx-auto mb-3 h-10 w-10 text-gray-200" />
-            <p className="font-medium text-gray-500">{t("overview.empty")}</p>
+            <p className="font-medium text-gray-500">
+              {q ? t("noSearchResults") : t("overview.empty")}
+            </p>
           </div>
         ) : (
           <>
@@ -349,7 +373,7 @@ export default function SpenderOverviewPage() {
 
             {/* Mobile Cards */}
             <div className="divide-y divide-gray-100 sm:hidden">
-              {data.rows.map((row) => (
+              {sortedRows.map((row) => (
                 <div key={row.key} className="p-4">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">

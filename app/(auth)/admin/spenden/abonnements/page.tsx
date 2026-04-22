@@ -251,20 +251,30 @@ export default function DaueraufträgePage() {
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      {s.status === "active" && !s.cancel_at_period_end && (
-                        <button
-                          type="button"
-                          onClick={() => handleCancel(s)}
-                          disabled={cancelingId === s.id}
-                          className="rounded-lg bg-red-50 px-2.5 py-1 text-xs font-medium text-red-700 hover:bg-red-100 disabled:opacity-50"
-                        >
-                          {cancelingId === s.id ? (
-                            <RefreshCw className="h-3 w-3 animate-spin" />
-                          ) : (
-                            t("overview.cancel")
-                          )}
-                        </button>
-                      )}
+                      <div className="flex items-center gap-2">
+                        {s.status === "active" && !s.cancel_at_period_end && (
+                          <button
+                            type="button"
+                            onClick={() => handleCancel(s)}
+                            disabled={cancelingId === s.id}
+                            className="rounded-lg bg-red-50 px-2.5 py-1 text-xs font-medium text-red-700 hover:bg-red-100 disabled:opacity-50"
+                          >
+                            {cancelingId === s.id ? (
+                              <RefreshCw className="h-3 w-3 animate-spin" />
+                            ) : (
+                              t("overview.cancel")
+                            )}
+                          </button>
+                        )}
+                        {s.donor_type === "member" && s.user_id && (
+                          <Link
+                            href={`/admin/mitglieder/${s.user_id}`}
+                            className="rounded-lg border border-gray-200 px-2.5 py-1 text-xs font-medium text-gray-600 hover:bg-gray-50"
+                          >
+                            → Mitglied
+                          </Link>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}

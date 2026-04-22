@@ -717,6 +717,12 @@ export async function POST(request: NextRequest) {
           break;
         }
 
+        const paidTs =
+          invoice.status_transitions?.paid_at ??
+          (invoice as unknown as { paid_at?: number }).paid_at ??
+          invoice.created;
+        const paidAt = new Date(paidTs * 1000).toISOString();
+
         // Idempotenz: invoice.id bereits als donation?
         try {
           await pb
@@ -725,16 +731,20 @@ export async function POST(request: NextRequest) {
               `mosque_id = "${pbSub.mosque_id}" && provider = "stripe" && provider_ref = "${invoice.id}"`
             );
           console.log(`[Stripe Webhook] invoice.paid: Donation für ${invoice.id} existiert schon`);
+          // Donation existiert — aber Sub-Status ggf. noch nicht aktualisiert (Race-Condition)
+          if (pbSub.last_payment_status !== "paid") {
+            await pb.collection("recurring_subscriptions").update(pbSub.id, {
+              last_payment_status: "paid",
+              last_payment_at: paidAt,
+              ...(invoice.period_end
+                ? { current_period_end: new Date(invoice.period_end * 1000).toISOString() }
+                : {}),
+            });
+          }
           break;
         } catch {
           // nicht vorhanden → weiter
         }
-
-        const paidTs =
-          invoice.status_transitions?.paid_at ??
-          (invoice as unknown as { paid_at?: number }).paid_at ??
-          invoice.created;
-        const paidAt = new Date(paidTs * 1000).toISOString();
 
         try {
           await pb.collection("donations").create({
