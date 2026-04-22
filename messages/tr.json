@@ -1008,7 +1008,14 @@
         "activeUntil": "Dönem sonu",
         "status": "Durum",
         "actions": "İşlemler"
-      }
+      },
+      "paymentHealth": {
+        "paid": "Ödendi",
+        "failed": "Başarısız",
+        "pending": "Bekliyor",
+        "failedTitle": "Son ödeme başarısız — Stripe otomatik olarak yeniden deniyor"
+      },
+      "toMember": "→ Üye"
     },
     "mySub": {
       "loadError": "Yüklenemedi",

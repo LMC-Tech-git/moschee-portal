@@ -360,7 +360,7 @@ export default function SpenderOverviewPage() {
                               href={`/admin/mitglieder/${row.user_id}`}
                               className="rounded-lg border border-gray-200 px-2.5 py-1 text-xs font-medium text-gray-600 hover:bg-gray-50"
                             >
-                              → Mitglied
+                              {t("sub.toMember")}
                             </Link>
                           )}
                         </div>

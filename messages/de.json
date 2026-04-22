@@ -1008,7 +1008,14 @@
         "activeUntil": "Periode bis",
         "status": "Status",
         "actions": "Aktionen"
-      }
+      },
+      "paymentHealth": {
+        "paid": "Bezahlt",
+        "failed": "Fehlgeschlagen",
+        "pending": "Ausstehend",
+        "failedTitle": "Letzte Zahlung fehlgeschlagen — Stripe versucht automatisch erneut"
+      },
+      "toMember": "→ Mitglied"
     },
     "mySub": {
       "loadError": "Laden fehlgeschlagen",
