@@ -465,7 +465,7 @@
       "events": "Events",
       "campaigns": "Kampagnen",
       "donations": "Spenden",
-      "mrr": "MRR (€/Monat)"
+      "mrr": "Abo-Einnahmen/Mo"
     },
     "quickAccess": {
       "posts": {
@@ -874,8 +874,8 @@
       "donors": "Spender",
       "open": "Offen",
       "activeSubs": "Aktive Daueraufträge",
-      "mrr": "MRR (€/Monat)",
-      "mrrHealthy": "Gesundes MRR",
+      "mrr": "Abo-Einnahmen/Mo",
+      "mrrHealthy": "Davon fehlerfrei",
       "failed": "Fehlgeschlagene Zahlungen"
     },
     "chart": {
@@ -968,7 +968,7 @@
         "donors": "Spender",
         "total": "Gesamt €",
         "activeSubs": "Aktive Daueraufträge",
-        "mrr": "MRR (€/Monat)"
+        "mrr": "Abo-Einnahmen/Mo"
       },
       "col": {
         "donor": "Name",

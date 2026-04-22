@@ -1246,7 +1246,7 @@ async function seedDonations(campaignIds, memberIds) {
   if (deleted > 0) console.log(`  🗑️  ${deleted} alte Spenden gelöscht`);
 
   const AMOUNTS = [500, 1000, 2500, 5000, 10000];
-  const PROVIDERS = ["manual", "stripe", "paypal_link"];
+  const PROVIDERS = ["manual", "stripe", "stripe"];
 
   // Kampagne 1: abgeschlossen, ~110 % (~1.650.000 Ct.)
   // Kampagne 2: aktiv, ~60 % (~480.000 Ct.) — Story: Waschräume

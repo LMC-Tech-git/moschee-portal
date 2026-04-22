@@ -14,6 +14,8 @@ import { formatCurrencyCents, formatDateTime, formatDate } from "@/lib/utils";
 import {
   ChevronLeft,
   ChevronRight,
+  ChevronUp,
+  ChevronDown,
   Repeat,
   RefreshCw,
   User,
@@ -45,6 +47,8 @@ export default function DaueraufträgePage() {
 
   const [statusFilter, setStatusFilter] = useState<GetSubscriptionsOptions["status"]>("all");
   const [search, setSearch] = useState("");
+  const [orderBy, setOrderBy] = useState<GetSubscriptionsOptions["orderBy"]>("started_at");
+  const [orderDirection, setOrderDirection] = useState<GetSubscriptionsOptions["orderDirection"]>("desc");
 
   const load = useCallback(async (p = 1) => {
     if (!mosqueId) return;
@@ -53,6 +57,8 @@ export default function DaueraufträgePage() {
     const result = await getRecurringSubscriptionsByMosque(mosqueId, {
       status: statusFilter,
       search: search || undefined,
+      orderBy,
+      orderDirection,
       page: p,
       limit: 25,
     });
@@ -65,7 +71,7 @@ export default function DaueraufträgePage() {
     } else {
       setError(result.error || t("sub.loadError"));
     }
-  }, [mosqueId, statusFilter, search, t]);
+  }, [mosqueId, statusFilter, search, orderBy, orderDirection, t]);
 
   useEffect(() => { load(1); }, [load]);
 
@@ -80,6 +86,22 @@ export default function DaueraufträgePage() {
     } else {
       setError(res.error || t("sub.cancelError"));
     }
+  }
+
+  function toggleSort(field: GetSubscriptionsOptions["orderBy"]) {
+    if (orderBy === field) {
+      setOrderDirection((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setOrderBy(field);
+      setOrderDirection("desc");
+    }
+  }
+
+  function SortIcon({ field }: { field: GetSubscriptionsOptions["orderBy"] }) {
+    if (orderBy !== field) return <ChevronDown className="ml-1 inline h-3 w-3 opacity-30" />;
+    return orderDirection === "asc"
+      ? <ChevronUp className="ml-1 inline h-3 w-3 text-emerald-600" />
+      : <ChevronDown className="ml-1 inline h-3 w-3 text-emerald-600" />;
   }
 
   if (!user) return null;
@@ -154,12 +176,36 @@ export default function DaueraufträgePage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-100 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                  <th className="px-4 py-3">{t("sub.col.donor")}</th>
-                  <th className="px-4 py-3 text-right">{t("sub.col.amount")}</th>
-                  <th className="px-4 py-3">{t("sub.col.start")}</th>
-                  <th className="px-4 py-3">{t("sub.col.lastPayment")}</th>
-                  <th className="px-4 py-3">{t("sub.col.activeUntil")}</th>
-                  <th className="px-4 py-3">{t("sub.col.status")}</th>
+                  <th className="px-4 py-3">
+                    <button type="button" onClick={() => toggleSort("donor_name")} className="flex items-center hover:text-gray-700">
+                      {t("sub.col.donor")}<SortIcon field="donor_name" />
+                    </button>
+                  </th>
+                  <th className="px-4 py-3 text-right">
+                    <button type="button" onClick={() => toggleSort("amount_cents")} className="flex items-center ml-auto hover:text-gray-700">
+                      {t("sub.col.amount")}<SortIcon field="amount_cents" />
+                    </button>
+                  </th>
+                  <th className="px-4 py-3">
+                    <button type="button" onClick={() => toggleSort("started_at")} className="flex items-center hover:text-gray-700">
+                      {t("sub.col.start")}<SortIcon field="started_at" />
+                    </button>
+                  </th>
+                  <th className="px-4 py-3">
+                    <button type="button" onClick={() => toggleSort("last_payment_at")} className="flex items-center hover:text-gray-700">
+                      {t("sub.col.lastPayment")}<SortIcon field="last_payment_at" />
+                    </button>
+                  </th>
+                  <th className="px-4 py-3">
+                    <button type="button" onClick={() => toggleSort("current_period_end")} className="flex items-center hover:text-gray-700">
+                      {t("sub.col.activeUntil")}<SortIcon field="current_period_end" />
+                    </button>
+                  </th>
+                  <th className="px-4 py-3">
+                    <button type="button" onClick={() => toggleSort("status")} className="flex items-center hover:text-gray-700">
+                      {t("sub.col.status")}<SortIcon field="status" />
+                    </button>
+                  </th>
                   <th className="px-4 py-3">{t("sub.col.actions")}</th>
                 </tr>
               </thead>

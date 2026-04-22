@@ -14,6 +14,8 @@ import {
 import { formatCurrencyCents, formatDateTime } from "@/lib/utils";
 import {
   ChevronLeft,
+  ChevronUp,
+  ChevronDown,
   Users,
   Banknote,
   Heart,
@@ -42,6 +44,10 @@ export default function SpenderOverviewPage() {
   const [error, setError] = useState("");
   const [isExporting, setIsExporting] = useState(false);
   const [cancelingId, setCancelingId] = useState<string | null>(null);
+
+  type SortField = "donor_name" | "total_cents" | "donation_count" | "last_paid_at" | "active_subscription_amount_cents";
+  const [sortBy, setSortBy] = useState<SortField>("total_cents");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
 
   const load = useCallback(async () => {
     if (!mosqueId) return;
@@ -93,6 +99,36 @@ export default function SpenderOverviewPage() {
       setError(res.error || t("overview.cancelError"));
     }
   }
+
+  function toggleSort(field: SortField) {
+    if (sortBy === field) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortBy(field);
+      setSortDir(field === "donor_name" ? "asc" : "desc");
+    }
+  }
+
+  function SortIcon({ field }: { field: SortField }) {
+    if (sortBy !== field) return <ChevronDown className="ml-1 inline h-3 w-3 opacity-30" />;
+    return sortDir === "asc"
+      ? <ChevronUp className="ml-1 inline h-3 w-3 text-emerald-600" />
+      : <ChevronDown className="ml-1 inline h-3 w-3 text-emerald-600" />;
+  }
+
+  const sortedRows = data
+    ? [...data.rows].sort((a, b) => {
+        let cmp = 0;
+        if (sortBy === "donor_name") {
+          cmp = (a.donor_name || a.donor_email).localeCompare(b.donor_name || b.donor_email, "de");
+        } else if (sortBy === "last_paid_at") {
+          cmp = (a.last_paid_at || "").localeCompare(b.last_paid_at || "");
+        } else {
+          cmp = (a[sortBy] as number) - (b[sortBy] as number);
+        }
+        return sortDir === "asc" ? cmp : -cmp;
+      })
+    : [];
 
   if (!user) return null;
 
@@ -210,22 +246,38 @@ export default function SpenderOverviewPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-100 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                    <th className="px-4 py-3">{t("overview.col.donor")}</th>
+                    <th className="px-4 py-3">
+                      <button type="button" onClick={() => toggleSort("donor_name")} className="flex items-center hover:text-gray-700">
+                        {t("overview.col.donor")}<SortIcon field="donor_name" />
+                      </button>
+                    </th>
                     <th className="px-4 py-3">{t("overview.col.email")}</th>
                     <th className="px-4 py-3">{t("overview.col.type")}</th>
                     <th className="px-4 py-3 text-right" title={t("overview.col.totalHint")}>
-                      {t("overview.col.total")}
+                      <button type="button" onClick={() => toggleSort("total_cents")} className="flex items-center ml-auto hover:text-gray-700">
+                        {t("overview.col.total")}<SortIcon field="total_cents" />
+                      </button>
                     </th>
-                    <th className="px-4 py-3 text-right">{t("overview.col.count")}</th>
-                    <th className="px-4 py-3">{t("overview.col.last")}</th>
+                    <th className="px-4 py-3 text-right">
+                      <button type="button" onClick={() => toggleSort("donation_count")} className="flex items-center ml-auto hover:text-gray-700">
+                        {t("overview.col.count")}<SortIcon field="donation_count" />
+                      </button>
+                    </th>
+                    <th className="px-4 py-3">
+                      <button type="button" onClick={() => toggleSort("last_paid_at")} className="flex items-center hover:text-gray-700">
+                        {t("overview.col.last")}<SortIcon field="last_paid_at" />
+                      </button>
+                    </th>
                     <th className="px-4 py-3" title={t("overview.col.subHint")}>
-                      {t("overview.col.sub")}
+                      <button type="button" onClick={() => toggleSort("active_subscription_amount_cents")} className="flex items-center hover:text-gray-700">
+                        {t("overview.col.sub")}<SortIcon field="active_subscription_amount_cents" />
+                      </button>
                     </th>
                     <th className="px-4 py-3">{t("overview.col.actions")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  {data.rows.map((row) => (
+                  {sortedRows.map((row) => (
                     <tr key={row.key} className="hover:bg-gray-50">
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">

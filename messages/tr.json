@@ -465,7 +465,7 @@
       "events": "Etkinlikler",
       "campaigns": "Kampanyalar",
       "donations": "Bağışlar",
-      "mrr": "Aylık Gelir (€)"
+      "mrr": "Abo Geliri/Ay"
     },
     "quickAccess": {
       "posts": {
@@ -874,8 +874,8 @@
       "donors": "Bağışçılar",
       "open": "Bekleyen",
       "activeSubs": "Aktif Düzenli Bağışlar",
-      "mrr": "Aylık Gelir (€)",
-      "mrrHealthy": "Sağlıklı MRR",
+      "mrr": "Abo Geliri/Ay",
+      "mrrHealthy": "Başarılı Ödemeler",
       "failed": "Başarısız Ödemeler"
     },
     "chart": {
@@ -968,7 +968,7 @@
         "donors": "Bağışçılar",
         "total": "Toplam €",
         "activeSubs": "Aktif Düzenli",
-        "mrr": "Aylık Gelir (€)"
+        "mrr": "Abo Geliri/Ay"
       },
       "col": {
         "donor": "Ad",

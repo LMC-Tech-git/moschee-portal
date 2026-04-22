@@ -48,6 +48,8 @@ function mapSub(r: RecordModel): RecurringSubscription {
 export interface GetSubscriptionsOptions {
   status?: "all" | "active" | "cancelled" | "pending" | "abandoned";
   search?: string;
+  orderBy?: "donor_name" | "amount_cents" | "started_at" | "last_payment_at" | "current_period_end" | "status";
+  orderDirection?: "asc" | "desc";
   page?: number;
   limit?: number;
 }
@@ -70,9 +72,13 @@ export async function getRecurringSubscriptionsByMosque(
       filters.push(`(donor_email ~ "${q}" || donor_name ~ "${q}")`);
     }
 
+    const sortField = options.orderBy ?? "started_at";
+    const sortDir = options.orderDirection === "asc" ? "" : "-";
+    const sort = `${sortDir}${sortField}`;
+
     const res = await pb.collection("recurring_subscriptions").getList(page, limit, {
       filter: filters.join(" && "),
-      sort: "-created",
+      sort,
     });
 
     return {
