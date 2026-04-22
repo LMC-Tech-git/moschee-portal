@@ -1548,7 +1548,24 @@
       "relation_type": "Beziehung",
       "invite_type": "Einladungstyp",
       "assigned_role": "Zugewiesene Rolle",
-      "assigned_status": "Zugeteilter Status"
+      "assigned_status": "Zugeteilter Status",
+      "campaign_id": "Kampagne",
+      "stripe_sub_id": "Stripe-Abo-ID",
+      "invoice_id": "Rechnungs-ID",
+      "subscription_id": "Dauerauftrag-ID",
+      "attempt_count": "Versuchsanzahl",
+      "payment_intent": "Zahlung-ID",
+      "session_id": "Session-ID",
+      "actor_role": "Ausführende Rolle",
+      "reason": "Grund",
+      "donor_name": "Spendername",
+      "donor_email": "Spender-E-Mail",
+      "cancel_at_period_end": "Kündigung zum Periodenende",
+      "current_period_end": "Periode bis",
+      "async": "Asynchron",
+      "months": "Monate",
+      "start_month_key": "Startmonat",
+      "notes": "Notizen"
     },
     "value": {
       "relation_type": {
@@ -1574,7 +1591,15 @@
         "rejected": "Abgelehnt",
         "paid": "Bezahlt",
         "open": "Offen",
-        "waived": "Erlassen"
+        "waived": "Erlassen",
+        "published": "Veröffentlicht",
+        "draft": "Entwurf",
+        "archived": "Archiviert",
+        "cancelled": "Gekündigt",
+        "failed": "Fehlgeschlagen",
+        "refunded": "Erstattet",
+        "disputed": "Angefochten",
+        "external": "Extern"
       },
       "type": {
         "personal": "Persönlich",

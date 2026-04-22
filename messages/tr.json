@@ -1548,7 +1548,24 @@
       "relation_type": "İlişki",
       "invite_type": "Davet Türü",
       "assigned_role": "Atanan Rol",
-      "assigned_status": "Atanan Durum"
+      "assigned_status": "Atanan Durum",
+      "campaign_id": "Kampanya",
+      "stripe_sub_id": "Stripe Abonelik ID",
+      "invoice_id": "Fatura ID",
+      "subscription_id": "Abonelik ID",
+      "attempt_count": "Deneme Sayısı",
+      "payment_intent": "Ödeme ID",
+      "session_id": "Oturum ID",
+      "actor_role": "İşlemi Yapan Rol",
+      "reason": "Neden",
+      "donor_name": "Bağışçı Adı",
+      "donor_email": "Bağışçı E-Posta",
+      "cancel_at_period_end": "Dönem Sonunda İptal",
+      "current_period_end": "Dönem Sonu",
+      "async": "Asenkron",
+      "months": "Aylar",
+      "start_month_key": "Başlangıç Ayı",
+      "notes": "Notlar"
     },
     "value": {
       "relation_type": {
@@ -1574,7 +1591,15 @@
         "rejected": "Reddedildi",
         "paid": "Ödendi",
         "open": "Açık",
-        "waived": "Muaf"
+        "waived": "Muaf",
+        "published": "Yayınlandı",
+        "draft": "Taslak",
+        "archived": "Arşivlendi",
+        "cancelled": "İptal Edildi",
+        "failed": "Başarısız",
+        "refunded": "İade Edildi",
+        "disputed": "İtiraz Edildi",
+        "external": "Harici"
       },
       "type": {
         "personal": "Kişisel",
