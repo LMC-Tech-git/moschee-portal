@@ -1663,6 +1663,19 @@ async function main() {
       }
     }
 
+    // provider-Enum: "sepa" hinzufügen
+    const providerField = (donCol?.schema || []).find((f) => f.name === "provider");
+    if (providerField && providerField.options?.values && !providerField.options.values.includes("sepa")) {
+      const newProviderValues = [...providerField.options.values, "sepa"];
+      const updatedProviderSchema = (donCol.schema || []).map((f) =>
+        f.name === "provider" ? { ...f, options: { ...f.options, values: newProviderValues } } : f
+      );
+      await updateCollection("donations", { schema: updatedProviderSchema });
+      console.log("   ✅ donations.provider: 'sepa' hinzugefügt");
+    } else if (providerField?.options?.values?.includes("sepa")) {
+      console.log("   ⏭️  donations.provider: 'sepa' bereits vorhanden");
+    }
+
     // Unique-Index (mosque_id, provider, provider_ref) WHERE provider_ref != ""
     const idxName = "idx_donations_provider_ref";
     const idxSql = `CREATE UNIQUE INDEX ${idxName} ON donations (mosque_id, provider, provider_ref) WHERE provider_ref != ""`;
