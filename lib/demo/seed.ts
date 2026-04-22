@@ -486,7 +486,7 @@ async function seedCampaigns(pb: PocketBase, mosqueId: string, adminId: string):
 }
 
 async function seedDonations(pb: PocketBase, mosqueId: string, campaignIds: string[], memberIds: string[]): Promise<number> {
-  const PROVIDERS = ["manual","stripe","paypal_link"];
+  const PROVIDERS = ["manual","stripe","sepa"];
   const sets = [
     { cIdx:0, count:15, range:[180,32] as [number,number], amounts:[10000,25000,50000,100000,5000,50000,25000,10000,100000,50000,25000,50000,100000,25000,50000] },
     { cIdx:1, count:12, range:[40,2]   as [number,number], amounts:[25000,10000,50000,5000,25000,50000,10000,25000,100000,25000,5000,50000] },

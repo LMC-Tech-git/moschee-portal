@@ -46,7 +46,7 @@ export interface DonationWithMeta extends Donation {
 export interface GetDonationsOptions {
   status?: "all" | "paid" | "pending" | "created" | "failed" | "refunded" | "cancelled" | "disputed";
   campaign_id?: string;
-  provider?: "all" | "stripe" | "paypal_link" | "external" | "manual";
+  provider?: "all" | "stripe" | "sepa" | "paypal_link" | "external" | "manual";
   search?: string; // donor_name oder donor_email
   is_recurring?: "all" | "yes" | "no";
   orderBy?: "paid_at" | "donor_name" | "amount_cents";

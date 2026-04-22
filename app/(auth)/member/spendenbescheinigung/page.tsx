@@ -212,7 +212,9 @@ export default function SpendenbescheinigungPage() {
                   <td className="py-2 pr-4">{formatDateDE(d.paid_at)}</td>
                   <td className="py-2 pr-4 capitalize text-gray-600">
                     {d.provider === "stripe"
-                      ? "Kreditkarte/SEPA"
+                      ? "Kreditkarte (Stripe)"
+                      : d.provider === "sepa"
+                      ? "SEPA Lastschrift"
                       : d.provider === "paypal_link"
                       ? "PayPal"
                       : d.provider === "manual"

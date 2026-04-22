@@ -638,9 +638,9 @@ export default function AdminSpendenPage() {
           className="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none"
         >
           <option value="all">{t("filterAllSources" as Parameters<typeof t>[0])}</option>
-          <option value="stripe">Stripe</option>
+          <option value="stripe">{t("source.stripe" as Parameters<typeof t>[0])}</option>
+          <option value="sepa">{t("source.sepa" as Parameters<typeof t>[0])}</option>
           <option value="manual">{t("source.manual" as Parameters<typeof t>[0])}</option>
-          <option value="paypal_link">PayPal</option>
         </select>
 
         {/* Refresh */}

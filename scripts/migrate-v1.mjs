@@ -842,7 +842,7 @@ const DONATIONS_NEW_FIELDS = [
   {
     name: "provider",
     type: "select",
-    options: { values: ["stripe", "paypal_link", "external", "manual"], maxSelect: 1 },
+    options: { values: ["stripe", "sepa", "paypal_link", "external", "manual"], maxSelect: 1 },
   },
   { name: "provider_ref", type: "text" },
   { name: "paid_at", type: "date" },

@@ -278,7 +278,7 @@ export interface Donation {
   currency: string; // default "EUR"
   is_recurring: boolean;
   subscription_id: string; // optional, Relation → recurring_subscriptions
-  provider: "stripe" | "paypal_link" | "external" | "manual";
+  provider: "stripe" | "sepa" | "paypal_link" | "external" | "manual";
   provider_ref: string; // Stripe Session ID, etc.
   status: "created" | "pending" | "paid" | "failed" | "refunded" | "cancelled" | "external" | "disputed";
   paid_at: string;

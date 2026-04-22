@@ -908,7 +908,9 @@
       "cancelled": "İptal Edildi"
     },
     "source": {
-      "stripe": "Stripe",
+      "stripe": "Stripe (Kart)",
+      "sepa": "SEPA Otomatik Ödeme",
+      "paypal_link": "PayPal",
       "paypal": "PayPal",
       "external": "Harici",
       "manual": "Manuel",

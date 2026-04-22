@@ -908,7 +908,9 @@
       "cancelled": "Storniert"
     },
     "source": {
-      "stripe": "Stripe",
+      "stripe": "Stripe (Karte)",
+      "sepa": "SEPA Lastschrift",
+      "paypal_link": "PayPal",
       "paypal": "PayPal",
       "external": "Extern",
       "manual": "Manuell",

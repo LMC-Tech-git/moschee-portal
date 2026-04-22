@@ -241,7 +241,8 @@ export function renderAnnualDonationReceipt(data: {
     return new Intl.DateTimeFormat("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" }).format(new Date(dateStr));
   }
   function formatProvider(p: string): string {
-    if (p === "stripe") return "Kreditkarte/SEPA";
+    if (p === "stripe") return "Kreditkarte (Stripe)";
+    if (p === "sepa") return "SEPA Lastschrift";
     if (p === "paypal_link") return "PayPal";
     if (p === "manual") return "Barzahlung";
     return p;
