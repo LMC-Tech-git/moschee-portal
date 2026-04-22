@@ -26,6 +26,7 @@ const STATUS_COLORS: Record<string, string> = {
   active: "bg-emerald-100 text-emerald-700",
   pending: "bg-amber-100 text-amber-700",
   cancelled: "bg-gray-100 text-gray-600",
+  abandoned: "bg-slate-100 text-slate-500",
 };
 
 export default function DaueraufträgePage() {
@@ -170,7 +171,12 @@ export default function DaueraufträgePage() {
                         <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-gray-100">
                           <User className="h-3.5 w-3.5 text-gray-400" />
                         </div>
-                        <p className="font-medium text-gray-900">{s.donor_email}</p>
+                        <div>
+                          <p className="font-medium text-gray-900">{s.donor_name || s.donor_email}</p>
+                          {s.donor_name && (
+                            <p className="text-xs text-gray-400">{s.donor_email}</p>
+                          )}
+                        </div>
                       </div>
                     </td>
                     <td className="whitespace-nowrap px-4 py-3 text-right font-semibold text-gray-900">

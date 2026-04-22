@@ -15,9 +15,11 @@ import {
 } from "@/lib/actions/donations";
 import {
   getRecurringKPIs,
+  getRecurringSubscriptionsByMosque,
   exportDonationsCSV,
   type RecurringKPIs,
 } from "@/lib/actions/recurring-donations";
+import type { RecurringSubscription } from "@/types";
 import Link from "next/link";
 import { RecurringBadge } from "@/components/shared/RecurringBadge";
 import { DonationMonthlyChart } from "@/components/admin/DonationMonthlyChart";
@@ -38,6 +40,8 @@ import {
   RefreshCw,
   ChevronLeft,
   ChevronRight,
+  ChevronUp,
+  ChevronDown,
   User,
   CreditCard,
   Users,
@@ -274,6 +278,9 @@ export default function AdminSpendenPage() {
   const [providerFilter, setProviderFilter] = useState<GetDonationsOptions["provider"]>("all");
   const [recurringFilter, setRecurringFilter] = useState<GetDonationsOptions["is_recurring"]>("all");
   const [search, setSearch] = useState("");
+  const [orderBy, setOrderBy] = useState<GetDonationsOptions["orderBy"]>("paid_at");
+  const [orderDirection, setOrderDirection] = useState<GetDonationsOptions["orderDirection"]>("desc");
+  const [activeSubsMap, setActiveSubsMap] = useState<Map<string, RecurringSubscription>>(new Map());
   const [isExporting, setIsExporting] = useState(false);
 
   // UI
@@ -292,18 +299,21 @@ export default function AdminSpendenPage() {
     setIsLoading(true);
     setActionError("");
 
-    const [donResult, kpiResult, recKpiResult] = await Promise.all([
+    const [donResult, kpiResult, recKpiResult, activeSubsResult] = await Promise.all([
       getDonationsByMosque(mosqueId, {
         status: statusFilter,
         campaign_id: campaignFilter || undefined,
         provider: providerFilter,
         is_recurring: recurringFilter,
         search: search || undefined,
+        orderBy,
+        orderDirection,
         page,
         limit: 25,
       }),
       getDonationKPIs(mosqueId),
       getRecurringKPIs(mosqueId),
+      getRecurringSubscriptionsByMosque(mosqueId, { status: "active", limit: 500 }),
     ]);
 
     if (donResult.success && donResult.data) {
@@ -319,8 +329,17 @@ export default function AdminSpendenPage() {
     if (recKpiResult.success && recKpiResult.data) {
       setRecurringKpis(recKpiResult.data);
     }
+    if (activeSubsResult.success && activeSubsResult.data) {
+      const map = new Map<string, RecurringSubscription>();
+      activeSubsResult.data.items.forEach((sub) => {
+        if (sub.donor_email) {
+          map.set(sub.donor_email.toLowerCase().trim(), sub);
+        }
+      });
+      setActiveSubsMap(map);
+    }
     setIsLoading(false);
-  }, [mosqueId, statusFilter, campaignFilter, providerFilter, recurringFilter, search]);
+  }, [mosqueId, statusFilter, campaignFilter, providerFilter, recurringFilter, search, orderBy, orderDirection]);
 
   // Kampagnen einmalig laden
   useEffect(() => {
@@ -373,6 +392,22 @@ export default function AdminSpendenPage() {
     } else {
       setActionError(result.error || "Export fehlgeschlagen");
     }
+  }
+
+  function toggleSort(field: GetDonationsOptions["orderBy"]) {
+    if (orderBy === field) {
+      setOrderDirection((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setOrderBy(field);
+      setOrderDirection("desc");
+    }
+  }
+
+  function SortIcon({ field }: { field: GetDonationsOptions["orderBy"] }) {
+    if (orderBy !== field) return <ChevronDown className="ml-1 inline h-3 w-3 opacity-30" />;
+    return orderDirection === "asc"
+      ? <ChevronUp className="ml-1 inline h-3 w-3 text-emerald-600" />
+      : <ChevronDown className="ml-1 inline h-3 w-3 text-emerald-600" />;
   }
 
   if (!user) return null;
@@ -656,10 +691,22 @@ export default function AdminSpendenPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-100 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                  <th className="px-4 py-3">{t("colDate" as Parameters<typeof t>[0])}</th>
-                  <th className="px-4 py-3">{t("colDonor" as Parameters<typeof t>[0])}</th>
+                  <th className="px-4 py-3">
+                    <button type="button" onClick={() => toggleSort("paid_at")} className="flex items-center hover:text-gray-700">
+                      {t("colDate" as Parameters<typeof t>[0])}<SortIcon field="paid_at" />
+                    </button>
+                  </th>
+                  <th className="px-4 py-3">
+                    <button type="button" onClick={() => toggleSort("donor_name")} className="flex items-center hover:text-gray-700">
+                      {t("colDonor" as Parameters<typeof t>[0])}<SortIcon field="donor_name" />
+                    </button>
+                  </th>
                   <th className="px-4 py-3">{t("colCampaign" as Parameters<typeof t>[0])}</th>
-                  <th className="px-4 py-3 text-right">{t("colAmount" as Parameters<typeof t>[0])}</th>
+                  <th className="px-4 py-3 text-right">
+                    <button type="button" onClick={() => toggleSort("amount_cents")} className="flex items-center ml-auto hover:text-gray-700">
+                      {t("colAmount" as Parameters<typeof t>[0])}<SortIcon field="amount_cents" />
+                    </button>
+                  </th>
                   <th className="px-4 py-3">{t("colSource" as Parameters<typeof t>[0])}</th>
                   <th className="px-4 py-3">{t("colStatus" as Parameters<typeof t>[0])}</th>
                   <th className="px-4 py-3">{t("colAction" as Parameters<typeof t>[0])}</th>
@@ -690,6 +737,18 @@ export default function AdminSpendenPage() {
                               {d.donor_email}
                             </p>
                           )}
+                          {(() => {
+                            const key = d.donor_email?.toLowerCase().trim();
+                            const sub = key ? activeSubsMap.get(key) : undefined;
+                            if (!sub) return null;
+                            return (
+                              <span className={`mt-0.5 inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-xs font-medium ${sub.last_payment_status === "failed" ? "bg-red-50 text-red-600" : "bg-purple-50 text-purple-700"}`}>
+                                <Repeat className="h-2.5 w-2.5" />
+                                {formatCurrencyCents(sub.amount_cents)}/Mo
+                                {sub.last_payment_status === "failed" && " ⚠"}
+                              </span>
+                            );
+                          })()}
                         </div>
                       </div>
                     </td>

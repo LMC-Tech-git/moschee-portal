@@ -49,6 +49,8 @@ export interface GetDonationsOptions {
   provider?: "all" | "stripe" | "paypal_link" | "external" | "manual";
   search?: string; // donor_name oder donor_email
   is_recurring?: "all" | "yes" | "no";
+  orderBy?: "paid_at" | "donor_name" | "amount_cents";
+  orderDirection?: "asc" | "desc";
   page?: number;
   limit?: number;
 }
@@ -94,9 +96,13 @@ export async function getDonationsByMosque(
       filters.push(`is_recurring = false`);
     }
 
+    const sortField = options.orderBy ?? "paid_at";
+    const sortDir = options.orderDirection === "asc" ? "" : "-";
+    const sort = `${sortDir}${sortField}`;
+
     const records = await pb.collection("donations").getList(page, limit, {
       filter: filters.join(" && "),
-      sort: "-created",
+      sort,
       expand: "campaign_id",
     });
 

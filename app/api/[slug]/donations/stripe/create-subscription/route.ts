@@ -187,6 +187,7 @@ export async function POST(
       mosque_id: mosque.id,
       donor_type: donorType,
       user_id: authenticatedUserId || "",
+      donor_name: donor_name || "",
       donor_email,
       campaign_id: campaign_id || "",
       amount_cents,

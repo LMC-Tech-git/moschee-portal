@@ -19,6 +19,7 @@ function mapSub(r: RecordModel): RecurringSubscription {
     mosque_id: r.mosque_id || "",
     donor_type: r.donor_type || "guest",
     user_id: r.user_id || "",
+    donor_name: r.donor_name || "",
     donor_email: r.donor_email || "",
     campaign_id: r.campaign_id || "",
     amount_cents: r.amount_cents || 0,
@@ -66,7 +67,7 @@ export async function getRecurringSubscriptionsByMosque(
     }
     if (options.search?.trim()) {
       const q = options.search.trim().replace(/"/g, '\\"');
-      filters.push(`donor_email ~ "${q}"`);
+      filters.push(`(donor_email ~ "${q}" || donor_name ~ "${q}")`);
     }
 
     const res = await pb.collection("recurring_subscriptions").getList(page, limit, {

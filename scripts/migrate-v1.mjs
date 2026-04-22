@@ -190,6 +190,7 @@ const RECURRING_SUBSCRIPTIONS_NEW_FIELDS = [
   },
   { name: "last_payment_at", type: "date" },
   { name: "disabled_by_setting", type: "bool", options: { default: false } },
+  { name: "donor_name", type: "text" },
 ];
 
 // Cache für monatliche Gebetszeiten-Kalender (AlAdhan)

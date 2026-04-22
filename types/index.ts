@@ -292,6 +292,7 @@ export interface RecurringSubscription {
   mosque_id: string;
   donor_type: "member" | "guest";
   user_id: string;
+  donor_name: string;
   donor_email: string;
   campaign_id: string;
   amount_cents: number;
