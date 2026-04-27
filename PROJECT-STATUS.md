@@ -57,9 +57,11 @@
 | Audit-Log (paginiert, gefiltert) | `app/(auth)/admin/audit/` |
 | Einstellungen (Branding, Gebetszeiten, Defaults, Madrasa, Kontaktformular) | `app/(auth)/admin/settings/` |
 | **Madrasa: Schuljahre, Kurse, Einschreibungen** | `app/(auth)/admin/madrasa/` |
-| **Madrasa: Anwesenheit + Statistiken** | `app/(auth)/admin/madrasa/[id]/attendance/` |
+| **Madrasa: Schüler-Verwaltung** — alle Schüler einer Moschee, getrennt von Kursen, mit Eltern-Verknüpfung | `app/(auth)/admin/madrasa/schueler/` |
+| **Madrasa: Anwesenheit + Statistiken + Leistungsbewertung** (1–5 Skala je Session, Trend-Detection, Eltern sehen Schnitt) | `app/(auth)/admin/madrasa/[id]/attendance/`, `components/madrasa/PerformanceStats.tsx` |
 | **Madrasa: Gebühren (Bar/Überweisung/Erlassen)** | `app/(auth)/admin/madrasa/gebuehren/` |
 | **Förderpartner (CRUD, Stripe, Kontakt, Laufzeit, Erinnerungs-Indikator)** | `app/(auth)/admin/foerderpartner/` |
+| **Leitung/Team verwalten** — Admin-Pendant zur öffentlichen Team-Seite, CRUD für Vorstand/Imam/Sekretariat-Einträge mit Foto, Rolle, Bio, Sortierung | `app/(auth)/admin/leitung/` |
 | **Demo-Reset Button** (Super-Admin) | `app/(auth)/admin/platform/` |
 
 ### Lehrer-Panel (`/lehrer/...`)
@@ -115,6 +117,10 @@
 | `POST /api/auth/request-password-reset` | Passwort-Reset anfordern (Resend) |
 | `POST /api/auth/confirm-password-reset` | Passwort-Reset bestätigen (PB-API) |
 | `GET /api/admin/demo-reset` | Demo-Reset per Admin-Button |
+| `POST /api/demo/auto-login` | Demo-Auto-Login mit fest hinterlegten Demo-Credentials je Rolle (admin/teacher/member) für 1-Click-Demo-Buttons |
+| `GET /api/email-change/confirm` | Bestätigt E-Mail-Adressänderung via Token-Link aus Mail, setzt neue E-Mail + löscht Token-Felder |
+| `POST /api/email/fee-reminders` | Cron-Job für tägliche automatische Gebühren-Erinnerungen an Eltern mit offenen Madrasa-Beträgen (X-API-Secret) |
+| `POST /api/lmctech-contact` | CORS-Endpunkt für externe lmctech.de-Website (Kontaktformular leitet Mails an Tech-Support weiter, rate-limited) |
 
 ### Server Actions (`lib/actions/`)
 | Action-File | Zuständig für |
@@ -138,10 +144,13 @@
 | `students.ts` | Schüler CRUD + Bulk-Import (CSV/Excel) |
 | `student-fees.ts` | Gebühren: Overview, Bulk-Erstellen, Markieren, Stripe, Mehrmonats-Zahlung |
 | `sponsors.ts` | Förderpartner CRUD, Stripe Checkout, Contact-Suche, Laufzeit, Ablauf-Check |
+| `team.ts` | Team/Leitung CRUD — Vorstandsmitglieder, Imam, Sekretariat mit Foto/Bio/Sortierung/Gruppe für Leitungs-Seite |
+| `mosques.ts` | Moschee CRUD — Branding, Stripe-Config, Kontaktdaten, public_enabled-Flag (genutzt von Super-Admin + Settings) |
+| `parent-child.ts` | Eltern-Kind-Verknüpfung (Junction-Table) — flexible n:m-Beziehung zwischen Users (Eltern) und Students (Kinder) inkl. Beziehungstyp (Vater/Mutter/Vormund) |
 
 ---
 
-## 🗃️ PocketBase Collections (21)
+## 🗃️ PocketBase Collections (24)
 
 | Collection | Beschreibung |
 |---|---|
@@ -163,10 +172,12 @@
 | `courses` | Madrasa-Kurse |
 | `students` | Schüler (Kinder, ohne Portal-Account) |
 | `course_enrollments` | Kurseinschreibungen |
-| `attendance` | Anwesenheitserfassung |
+| `attendance` | Anwesenheitserfassung + Leistungsbewertung (`performance` 1–5 Skala je Session) |
 | `student_fees` | Monatliche Madrasa-Gebühren |
 | `sponsors` | Förderpartner (Name, Logo, Kontakt-User, Stripe, Laufzeit, Erinnerung) |
 | `contact_messages` | Per-Moschee Kontaktnachrichten |
+| `team_members` | Team/Leitung-Einträge (Vorstand, Imam, Sekretariat) — Foto, Bio, Rolle, Sortierung, Gruppe |
+| `parent_child_relations` | Eltern-Kind-Verknüpfung (Junction-Table) — n:m zwischen Users und Students inkl. Beziehungstyp (Vater/Mutter/Vormund) |
 
 ---
 
@@ -195,7 +206,8 @@
 | Feature | Beschreibung | Aufwand |
 |---|---|---|
 | **Push-Notifications** | Web Push API für Member (neue Events, Posts) | L |
-| **Schüler: Noten-/Leistungserfassung** | Zusätzlich zur Anwesenheit | L |
+| ~~**Schüler: Leistungsbewertung (1–5 Skala)**~~ | ✅ Erledigt — `attendance.performance` Feld, PerformanceStats-Komponente mit Trend-Detection, Eltern sehen Durchschnitt | — |
+| **Schüler: Vollständiges Notensystem** | Halbjahres-Zeugnisse, separates Gradebook getrennt von Anwesenheit, Aggregation pro Schuljahr | L |
 | **Multi-Moschee Super-Admin Dashboard** | Plattform-Ebene: alle Moscheen verwalten | XL |
 | **2FA** | TOTP für Admins | M |
 | **Dark Mode** | Tailwind dark: Klassen aktivieren | M |
