@@ -1,4 +1,4 @@
-# Moschee-Portal — Projektstatus (Stand: April 2026, Session 23)
+# Moschee-Portal — Projektstatus (Stand: April 2026, Session 25)
 
 ## Tech-Stack
 - **Frontend:** Next.js 14 (App Router), TypeScript, Tailwind CSS, Shadcn/ui (12 Komponenten)
@@ -47,7 +47,9 @@
 | Dashboard (KPI-Tiles, Diagramme) | `app/(auth)/admin/page.tsx`, `lib/actions/dashboard.ts` |
 | Beiträge (CRUD, Kategorien, Sichtbarkeit) | `app/(auth)/admin/posts/` |
 | Veranstaltungen (CRUD, Anmeldungen, CSV-Export, **Wiederkehrend**) | `app/(auth)/admin/events/` |
-| Spenden (Liste, manuell erfassen, Stripe-Status) | `app/(auth)/admin/spenden/` |
+| Spenden (Liste, manuell erfassen, Stripe-Status, sortierbare Spalten, Dauerauftrag-Badge) | `app/(auth)/admin/spenden/` |
+| **Daueraufträge (Abonnements)** — Liste, Suche, Sortierung, Kündigen, Mitglied-Link | `app/(auth)/admin/spenden/abonnements/` |
+| **Spender-Übersicht** — Suche, Sortierung, Zeitfilter, Dauerauftrag-Spalte, CSV-Export | `app/(auth)/admin/spenden/spender/` |
 | Kampagnen (CRUD, Fortschritt SUM-basiert) | `app/(auth)/admin/kampagnen/` |
 | Mitglieder (Liste, Detail) | `app/(auth)/admin/mitglieder/` |
 | Newsletter (email_outbox) | `app/(auth)/admin/newsletter/` |
@@ -74,7 +76,8 @@
 | Feature | Dateien |
 |---|---|
 | Profil (bearbeiten) | `app/(auth)/member/profile/` |
-| Spenden-Verlauf | `app/(auth)/member/profile/` (Tab) |
+| Spenden-Verlauf (inkl. Typ-Badge: Allgemein / Kampagne / Dauerauftrag) | `app/(auth)/member/profile/` (Tab) |
+| **Meine Daueraufträge** — Liste, Status, Kündigen | `app/(auth)/member/profile/` (Tab) |
 | Event-Anmeldungen | `app/(auth)/member/profile/` (Tab) |
 | **Madrasa-Gebühren (Kinder, Online-Zahlung via Stripe)** | `app/(auth)/member/profile/` (Tab) |
 | **Madrasa: Anwesenheitsstatistiken der Kinder** | `app/(auth)/member/profile/` (Madrasa-Tab) |
@@ -89,7 +92,7 @@
 | **Eigener Passwort-Reset Flow** | Vollständiger Reset via Resend HTTP API (kein PB-SMTP nötig) |
 | **Email Queue** | `email_outbox` Collection → `GET/POST /api/email/process-queue` (CRON_SECRET) |
 | **Cron-Job** | Alle 5 Min: `curl https://moschee.app/api/email/process-queue` via Linux-Crontab |
-| **Stripe Webhook** | `checkout.session.completed` → Spendenbestätigungs-Mail |
+| **Stripe Webhook** | `checkout.session.completed` → Spendenbestätigungs-Mail + Subscription-Aktivierung; `invoice.paid/payment_failed` → Dauerauftrag-Zahlung; `customer.subscription.updated/deleted` → Status-Sync; `charge.dispute.created` → disputed-Status |
 | **E-Mail-Templates** | 10 HTML-Templates: Newsletter, Event-Bestätigung, Gebühren-Erinnerung, Admin-Notiz, Spendenquittung, Jahresbescheinigung, Sponsor-Ablauferinnerung, Kontakt-Benachrichtigung, Kontakt-Auto-Reply, **Einladungsmail** |
 | **Cron: Sponsor-Erinnerungen** | Jeden 21. des Monats (`app/api/cron/sponsor-reminders/`) |
 | **Cron: Demo-Reset** | Jeden Montag 03:00 Uhr (`app/api/cron/demo-reset/`) |
@@ -97,7 +100,9 @@
 ### API-Endpunkte
 | Endpunkt | Zweck |
 |---|---|
-| `POST /api/[slug]/donations/stripe/create-checkout` | Stripe Checkout für Spenden |
+| `POST /api/[slug]/donations/stripe/create-checkout` | Stripe Checkout für Einzel-Spenden |
+| `POST /api/[slug]/donations/stripe/create-subscription` | Stripe Checkout für Daueraufträge (Rate-Limit, Turnstile, Duplicate-Guard, pending→active Flow) |
+| `GET /api/cron/cleanup-pending-subscriptions` | Verwaiste pending-Subs bereinigen (Stripe-Check → abandoned) |
 | `POST /api/[slug]/events/[id]/register-guest` | Gast-Anmeldung zu Events |
 | `GET/POST /api/[slug]/invite/[token]` | Einladungs-Token validieren + registrieren |
 | `POST /api/stripe/webhook` | Stripe Webhooks (Spenden + Gebühren + Förderpartner) |
@@ -117,7 +122,8 @@
 | `posts.ts` | Beiträge CRUD |
 | `events.ts` | Events CRUD, Anmeldungen, CSV-Export, Statistik |
 | `campaigns.ts` | Kampagnen CRUD + Fortschritt |
-| `donations.ts` | Spenden CRUD + KPIs |
+| `donations.ts` | Spenden CRUD + KPIs (inkl. `is_recurring`-Filter, `sepa`-Provider, server-seitige Sortierung) |
+| `recurring-donations.ts` | Daueraufträge: Liste (paginiert, sortierbar, suchbar), KPIs, Spender-Übersicht, Kündigen, CSV-Export, Cleanup |
 | `members.ts` | Mitglieder CRUD + sendDonationReceiptByEmail + **Superadmin-Filter** |
 | `newsletter.ts` | email_outbox CRUD |
 | `email.ts` | Gebühren-Erinnerungsmails |
@@ -135,7 +141,7 @@
 
 ---
 
-## 🗃️ PocketBase Collections (20)
+## 🗃️ PocketBase Collections (21)
 
 | Collection | Beschreibung |
 |---|---|
@@ -145,7 +151,8 @@
 | `posts` | Blog-Beiträge |
 | `events` | Veranstaltungen (inkl. Wiederkehrend: `is_recurring`, `recurrence_type` etc.) |
 | `event_registrations` | Gast- + Mitglieds-Anmeldungen |
-| `donations` | Einzel-Spenden |
+| `donations` | Einzel-Spenden (inkl. `is_recurring`, `subscription_id`, `provider: sepa`, `status: disputed`) |
+| `recurring_subscriptions` | Daueraufträge — `status` (pending/active/cancelled/abandoned), `amount_cents`, `donor_*`, `provider_subscription_id`, `current_period_end`, `last_payment_status`, `cancel_at_period_end`, `provider_ref`, `donor_name` |
 | `campaigns` | Spendenaktionen |
 | `campaign_contributions` | Spenden einer Kampagne |
 | `email_outbox` | Ausgehende Emails (Queue) |
@@ -181,7 +188,7 @@
 | **Öffentliche Gebetszeiten-Seite** | `/[slug]/gebetszeiten` — volle Monatsansicht | S |
 | **Member: Profil-Bild** | Upload + Anzeige im Profil | S |
 | **Dashboard-Widgets konfigurierbar** | Admin wählt welche Widgets öffentlich sichtbar sind | M |
-| ~~**Spenden: Wiederkehrende Spenden**~~ | ⏸ Zurückgestellt — Types + Schema vorhanden, keine Implementierung geplant | — |
+| ~~**Spenden: Wiederkehrende Spenden**~~ | ✅ Erledigt (Session 24–25) — vollständige Implementierung inkl. Stripe Subscription, Webhook (5 neue Cases), Admin-UI, Member-UI, Spender-Übersicht, MRR-KPIs, CSV-Export | — |
 
 ### P3 — Niedrige Priorität / Nice-to-have
 
@@ -210,7 +217,7 @@
 
 ---
 
-## 🔍 Qualitätsprüfung (Stand: 2026-04-08)
+## 🔍 Qualitätsprüfung (Stand: 2026-04-27)
 
 ### Internationalisierung (i18n) — 🟡 Gut, 6 Verstöße
 
@@ -300,3 +307,5 @@ Das System ist produktionsbereit. Alle V1-Kernfunktionen sind implementiert.
 | **21** | **Per-Moschee Kontaktformular** — contact_messages Collection, 4 Settings-Felder, API-Route mit Rate-Limit/Honeypot/Demo-Guard, Admin-Settings-Tab, E-Mail-Templates, i18n; Header-Fix (Registrieren-Button auf Root-Domain) |
 | **22** | **Passwort-Reset via Resend**, Demo-Reset Cron (wöchentlich), SEPA-Lastschrift-Toggle (Demo), Stripe-Gebühren-Wahl + Transparenzhinweis, Anwesenheitsstatistiken im Eltern-Profil (Member-Profil), pb_auth Cookie auf Root-Domain fix, Subdomain-Routing verbessert |
 | **23** | **Bugfixes + Security** — Mobile Overflow-Fix (grid-cols-1), Superadmin-Schutz (unsichtbar + nicht löschbar), Invite-Mail (automatischer E-Mail-Versand bei Einladung), Admin-Notif nur an aktive User, Demo-Banner Datenschutzhinweis, BFCache-Guard + Cookie-Logout-Fix (members-only Inhalte nach Logout), Header-Nav-Links komplett gefixt (RESERVED_PATHS, Subdomain-Erkennung für alle *.moschee.app, Race-Condition-Guard im MosqueContext), team_visibility im Header, pb_auth Cookie speichert status+role |
+| **24** | **Wiederkehrende Spenden (Kern)** — `recurring_subscriptions` Collection + Migration (3 Settings-Felder, 6 Sub-Felder, erweitertes Status-Enum), `create-subscription` API-Route (Stripe Checkout mode=subscription, Duplicate-Guard 409, Turnstile, Rate-Limit), Webhook: 5 neue Cases (`checkout.session.completed` Subscription-Branch, `invoice.paid`, `invoice.payment_failed`, `customer.subscription.updated/deleted`, `charge.dispute.created`), `lib/actions/recurring-donations.ts` (Admin-Liste, KPIs, Spender-Übersicht, Kündigen, CSV-Export, Cleanup), Admin-Settings RecurringDonationsTab, Dashboard MRR-KPI, Donation-Form (Einmalig/Monatlich Toggle), Member-Profil (MyRecurringSubscriptions), Admin Spenden: KPI-Cards + Badge + Filter, Abonnements-Seite, Spender-Übersicht-Seite, `PaymentHealthBadge`, `RecurringBadge`, `normalize-email.ts`, Seed-Daten (3 Demo-Abos), i18n ~80 neue Keys |
+| **25** | **Recurring-Bugfixes + UX-Polish** — Sortierbare Spalten (Spenden, Abonnements, Spender-Übersicht), SEPA statt PayPal in Seed + Filter + Types + Migration, Webhook-Idempotenz-Fix (`last_payment_status` blieb „pending" wenn Donation bereits existierte), Suche in Spender-Übersicht (client-seitig, Name+Email), Suche in Daueraufträge (server-seitig), „→ Mitglied"-Link in Abonnements + Spender-Übersicht, Spendenhistorie in Mitglied-Detail: Typ-Badge (Allgemein/Kampagne/Dauerauftrag), PaymentHealthBadge: i18n (DE/TR), Label-Fix „Aktiv bis" → „Nächste Abbuchung am", MRR → „Abo-Einnahmen/Mo", Audit-Log: ~25 fehlende Übersetzungs-Keys ergänzt, Demo-Reset-Button: SEPA statt PayPal |
