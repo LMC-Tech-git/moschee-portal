@@ -185,7 +185,7 @@
 | Feature | Beschreibung | Aufwand |
 |---|---|---|
 | **Events: Warteliste** | Wenn max_participants erreicht → Warteliste | M |
-| **Öffentliche Gebetszeiten-Seite** | `/[slug]/gebetszeiten` — volle Monatsansicht | S |
+| ~~**Öffentliche Gebetszeiten-Seite**~~ | ~~`/[slug]/gebetszeiten` — volle Monatsansicht~~ — gestrichen | — |
 | **Member: Profil-Bild** | Upload + Anzeige im Profil | S |
 | **Dashboard-Widgets konfigurierbar** | Admin wählt welche Widgets öffentlich sichtbar sind | M |
 | ~~**Spenden: Wiederkehrende Spenden**~~ | ✅ Erledigt (Session 24–25) — vollständige Implementierung inkl. Stripe Subscription, Webhook (5 neue Cases), Admin-UI, Member-UI, Spender-Übersicht, MRR-KPIs, CSV-Export | — |
