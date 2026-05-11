@@ -249,6 +249,7 @@
     "noAccount": "Hesabınız yok mu?",
     "registerNow": "Şimdi kayıt olun",
     "success": "Başarıyla giriş yapıldı!",
+    "passwordChangedNotice": "Şifre değiştirildi — lütfen tekrar giriş yapın.",
     "error": {
       "wrongCredentials": "E-posta veya şifre hatalı.",
       "generic": "Giriş başarısız. Lütfen tekrar deneyin.",
@@ -1107,6 +1108,25 @@
         "errorTaken": "Bu e-posta adresi başka bir hesap tarafından kullanılmaktadır.",
         "errorServer": "Bir hata oluştu. Lütfen tekrar deneyin."
       },
+      "passwordChange": {
+        "title": "Şifre",
+        "changeButton": "Değiştir",
+        "currentLabel": "Mevcut şifre",
+        "newLabel": "Yeni şifre",
+        "confirmLabel": "Yeni şifre (tekrar)",
+        "showPassword": "Göster",
+        "hidePassword": "Gizle",
+        "submit": "Şifreyi değiştir",
+        "saving": "Kaydediliyor...",
+        "cancel": "İptal",
+        "successMessage": "Şifre başarıyla değiştirildi. Giriş sayfasına yönlendiriliyorsunuz.",
+        "errorCurrentWrong": "Mevcut şifre yanlış.",
+        "errorMismatch": "Yeni şifreler eşleşmiyor.",
+        "errorTooShort": "Yeni şifre en az {min} karakter olmalıdır.",
+        "errorSame": "Yeni şifre mevcut şifreyle aynı olamaz.",
+        "errorRateLimit": "Çok fazla deneme. Lütfen daha sonra tekrar deneyin.",
+        "errorServer": "Bir hata oluştu. Lütfen tekrar deneyin."
+      },
       "status": {
         "active": "Aktif",
         "blocked": "Engellendi",
@@ -1409,6 +1429,9 @@
         "role_changed": "Rol değiştirildi",
         "updated": "Üye düzenlendi",
         "deleted": "Üye silindi"
+      },
+      "password": {
+        "change": "Şifre değiştirildi"
       },
       "invite": {
         "created": "Davet oluşturuldu",

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { LogIn, Mail, Lock, Eye, EyeOff, AlertCircle } from "lucide-react";
@@ -19,11 +19,21 @@ export default function LoginPage() {
   const redirect = searchParams.get("redirect") || "/";
   const { login, pb } = useAuth();
 
+  const reason = searchParams.get("reason");
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const noticeShown = useRef(false);
+  useEffect(() => {
+    if (reason === "password_changed" && !noticeShown.current) {
+      noticeShown.current = true;
+      toast.success(t("login.passwordChangedNotice"));
+    }
+  }, [reason, t]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

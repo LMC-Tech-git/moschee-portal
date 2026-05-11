@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createHash } from "crypto";
 import { getAdminPB } from "@/lib/pocketbase-admin";
 import { checkRateLimit, hashIP, getRateLimitHeaders } from "@/lib/rate-limit";
+import { MIN_PASSWORD_LENGTH } from "@/lib/auth/constants";
 
 /**
  * POST /api/auth/confirm-password-reset
@@ -35,8 +36,11 @@ export async function POST(request: NextRequest) {
   if (!token || !password) {
     return NextResponse.json({ error: "Token und Passwort sind erforderlich." }, { status: 400 });
   }
-  if (password.length < 8) {
-    return NextResponse.json({ error: "Das Passwort muss mindestens 8 Zeichen lang sein." }, { status: 400 });
+  if (password.length < MIN_PASSWORD_LENGTH) {
+    return NextResponse.json(
+      { error: `Das Passwort muss mindestens ${MIN_PASSWORD_LENGTH} Zeichen lang sein.` },
+      { status: 400 }
+    );
   }
 
   try {

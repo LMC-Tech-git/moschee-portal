@@ -249,6 +249,7 @@
     "noAccount": "Noch kein Konto?",
     "registerNow": "Jetzt registrieren",
     "success": "Erfolgreich eingeloggt!",
+    "passwordChangedNotice": "Passwort geändert — bitte erneut anmelden.",
     "error": {
       "wrongCredentials": "E-Mail oder Passwort ist falsch.",
       "generic": "Anmeldung fehlgeschlagen. Bitte versuchen Sie es erneut.",
@@ -1107,6 +1108,25 @@
         "errorTaken": "Diese E-Mail-Adresse wird bereits von einem anderen Konto verwendet.",
         "errorServer": "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut."
       },
+      "passwordChange": {
+        "title": "Passwort",
+        "changeButton": "Ändern",
+        "currentLabel": "Aktuelles Passwort",
+        "newLabel": "Neues Passwort",
+        "confirmLabel": "Neues Passwort bestätigen",
+        "showPassword": "Anzeigen",
+        "hidePassword": "Verbergen",
+        "submit": "Passwort ändern",
+        "saving": "Wird gespeichert...",
+        "cancel": "Abbrechen",
+        "successMessage": "Passwort erfolgreich geändert. Sie werden zur Anmeldung weitergeleitet.",
+        "errorCurrentWrong": "Aktuelles Passwort ist falsch.",
+        "errorMismatch": "Die neuen Passwörter stimmen nicht überein.",
+        "errorTooShort": "Das neue Passwort muss mindestens {min} Zeichen lang sein.",
+        "errorSame": "Das neue Passwort darf nicht dem aktuellen entsprechen.",
+        "errorRateLimit": "Zu viele Versuche. Bitte später erneut.",
+        "errorServer": "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut."
+      },
       "status": {
         "active": "Aktiv",
         "blocked": "Gesperrt",
@@ -1409,6 +1429,9 @@
         "role_changed": "Rolle geändert",
         "updated": "Mitglied bearbeitet",
         "deleted": "Mitglied gelöscht"
+      },
+      "password": {
+        "change": "Passwort geändert"
       },
       "invite": {
         "created": "Einladung erstellt",

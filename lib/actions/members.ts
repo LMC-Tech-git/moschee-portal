@@ -1,11 +1,14 @@
 "use server";
 
 import { randomBytes } from "crypto";
+import PocketBase from "pocketbase";
 import { getAdminPB } from "@/lib/pocketbase-admin";
 import { logAudit } from "@/lib/audit";
 import { applyPhoneNorm, detectCountryFromMosque } from "@/lib/phone";
 import { sendEmailDirect } from "@/lib/email";
 import { renderEmailChangeConfirmation } from "@/lib/email/templates";
+import { checkRateLimit } from "@/lib/rate-limit";
+import { MIN_PASSWORD_LENGTH } from "@/lib/auth/constants";
 import type { User, Donation, EventRegistration } from "@/types";
 import type { RecordModel } from "pocketbase";
 
@@ -386,6 +389,92 @@ export async function requestEmailChange(
   } catch (error) {
     console.error("[requestEmailChange] Fehler:", error);
     return { success: false, error: "E-Mail-Änderung konnte nicht gestartet werden." };
+  }
+}
+
+/**
+ * Eigenes Passwort ändern: Verifiziert das aktuelle Passwort und setzt
+ * dann das neue. Eingeloggte User-Flow (kein Token-Reset).
+ *
+ * Sicherheit:
+ * - Re-Authentifizierung via authWithPassword in separater PB-Instanz
+ * - Rate-Limit pro userId (5/10min)
+ * - Admin-PB-Update (kein oldPassword-Feld nötig — Re-Auth ist Schutz)
+ *
+ * Nach Erfolg: Client sollte den User ausloggen + zur Anmeldung leiten.
+ */
+export async function changePassword(
+  userId: string,
+  currentPassword: string,
+  newPassword: string
+): Promise<ActionResult> {
+  try {
+    if (!userId || !currentPassword || !newPassword) {
+      return { success: false, error: "Eingabe unvollständig." };
+    }
+    if (newPassword.length < MIN_PASSWORD_LENGTH) {
+      return {
+        success: false,
+        error: `Das neue Passwort muss mindestens ${MIN_PASSWORD_LENGTH} Zeichen lang sein.`,
+      };
+    }
+    if (newPassword === currentPassword) {
+      return {
+        success: false,
+        error: "Das neue Passwort darf nicht dem aktuellen entsprechen.",
+      };
+    }
+
+    const limit = checkRateLimit(`pw-change:${userId}`, 5, 10 * 60 * 1000);
+    if (!limit.allowed) {
+      return {
+        success: false,
+        error: "Zu viele Versuche. Bitte später erneut.",
+      };
+    }
+
+    const adminPB = await getAdminPB();
+    const user = await adminPB.collection("users").getOne(userId);
+
+    // Verifikation in separater PB-Instanz, damit der Admin-authStore unberührt bleibt.
+    const pbUrl =
+      process.env.POCKETBASE_URL || process.env.NEXT_PUBLIC_POCKETBASE_URL;
+    if (!pbUrl) {
+      return { success: false, error: "Server nicht konfiguriert." };
+    }
+    const verifyPB = new PocketBase(pbUrl);
+    verifyPB.autoCancellation(false);
+
+    try {
+      await verifyPB
+        .collection("users")
+        .authWithPassword(user.email, currentPassword);
+    } catch {
+      return { success: false, error: "Aktuelles Passwort ist falsch." };
+    } finally {
+      verifyPB.authStore.clear();
+    }
+
+    await adminPB.collection("users").update(userId, {
+      password: newPassword,
+      passwordConfirm: newPassword,
+    });
+
+    await logAudit({
+      mosqueId: user.mosque_id || "",
+      userId,
+      action: "password.change",
+      entityType: "user",
+      entityId: userId,
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("[changePassword] Fehler:", error);
+    return {
+      success: false,
+      error: "Passwort konnte nicht geändert werden.",
+    };
   }
 }
 
