@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Settings, Palette, Clock, Sliders, Save, RotateCcw, Upload, X, Check, ChevronDown, ChevronUp, GraduationCap, Mail, CheckCircle, AlertCircle, Send, Handshake, Users, MessageSquare, ExternalLink, Repeat } from "lucide-react";
+import { Settings, Palette, Clock, Sliders, Save, RotateCcw, Upload, X, Check, ChevronDown, ChevronUp, GraduationCap, Mail, CheckCircle, AlertCircle, Send, Handshake, Users, MessageSquare, ExternalLink, Repeat, Wallet } from "lucide-react";
 import { useMosque } from "@/lib/mosque-context";
 import { useAuth } from "@/lib/auth-context";
 import {
@@ -29,6 +29,7 @@ import type { TuneOffsets } from "@/lib/prayer";
 import { DEFAULT_TUNE } from "@/lib/prayer";
 import type { Mosque, Settings as SettingsType } from "@/types";
 import { useTranslations } from "next-intl";
+import StripeConnectTab from "@/components/admin/StripeConnectTab";
 
 const PB_URL = process.env.NEXT_PUBLIC_POCKETBASE_URL || "";
 
@@ -36,6 +37,7 @@ const TABS = [
   { id: "branding", icon: Palette },
   { id: "prayer", icon: Clock },
   { id: "defaults", icon: Sliders },
+  { id: "payouts", icon: Wallet },
   { id: "madrasa", icon: GraduationCap },
   { id: "recurring", icon: Repeat },
   { id: "sponsors", icon: Handshake },
@@ -239,6 +241,9 @@ export default function AdminSettingsPage() {
             }
           }}
         />
+      )}
+      {activeTab === "payouts" && (
+        <StripeConnectTab mosqueId={mosqueId} />
       )}
       {activeTab === "defaults" && (
         <DefaultsTab

@@ -1433,6 +1433,16 @@
       "password": {
         "change": "Passwort geändert"
       },
+      "stripe": {
+        "connect": {
+          "onboarding_started": "Stripe-Onboarding gestartet",
+          "onboarding_returned": "Stripe-Onboarding abgeschlossen",
+          "account_updated": "Stripe-Account aktualisiert",
+          "dashboard_login": "Stripe-Dashboard geöffnet",
+          "deauthorized": "Stripe-Verknüpfung getrennt",
+          "synced": "Stripe-Status synchronisiert"
+        }
+      },
       "invite": {
         "created": "Einladung erstellt",
         "revoked": "Einladung widerrufen",
@@ -1655,12 +1665,70 @@
       "branding": "Branding",
       "prayer": "Gebetszeiten",
       "defaults": "Defaults",
+      "payouts": "Auszahlungen",
       "madrasa": "Madrasa",
       "recurring": "Daueraufträge",
       "sponsors": "Förderpartner",
       "team": "Team",
       "contact": "Kontaktformular",
       "email": "E-Mail"
+    },
+    "payouts": {
+      "title": "Stripe-Auszahlungen (Connect)",
+      "desc": "Spenden landen direkt auf Ihrem eigenen Stripe-Konto. Stripe übernimmt Auszahlungen aufs Bankkonto, KYC-Verifizierung und Compliance.",
+      "lastSync": "Zuletzt synchronisiert",
+      "mode": {
+        "disabled": "Zahlungen deaktiviert",
+        "platform_legacy": "Plattform-Modus (Übergang)",
+        "connect_test": "Connect — Test-Modus",
+        "connect_live": "Connect — Live"
+      },
+      "banner": {
+        "platformLegacy": {
+          "title": "Zahlungen laufen vorübergehend über die Plattform",
+          "desc": "Bitte starten Sie das Stripe-Onboarding, damit Spenden direkt auf Ihr Konto fließen."
+        },
+        "disabled": {
+          "title": "Stripe-Verknüpfung getrennt",
+          "desc": "Zahlungen sind blockiert. Bitte erneutes Onboarding starten, um Zahlungen wieder zu aktivieren."
+        },
+        "restricted": {
+          "title": "Onboarding unvollständig",
+          "desc": "Stripe verlangt zusätzliche Daten, bevor Zahlungen aktiviert werden."
+        },
+        "pending": {
+          "title": "Onboarding wartet auf Abschluss",
+          "desc": "Bitte vervollständigen Sie das Stripe-Onboarding."
+        },
+        "healthy": {
+          "title": "Aktiv — Zahlungen laufen direkt an Sie",
+          "desc": "Karten- und SEPA-Zahlungen sind freigeschaltet."
+        }
+      },
+      "card": {
+        "account": "Stripe-Konto",
+        "account_none": "Noch nicht angelegt",
+        "details": "Daten eingereicht",
+        "charges": "Karten-/SEPA-Zahlungen",
+        "payouts": "Auszahlungen"
+      },
+      "action": {
+        "startOnboarding": "Onboarding starten",
+        "continueOnboarding": "Onboarding fortsetzen",
+        "openDashboard": "Stripe-Dashboard öffnen",
+        "sync": "Status aktualisieren"
+      },
+      "requirements": {
+        "title": "Fehlende Anforderungen",
+        "empty": "Keine offenen Anforderungen.",
+        "itemPrefix": "•"
+      },
+      "error": {
+        "generic": "Ein Fehler ist aufgetreten.",
+        "notReady": "Stripe-Onboarding noch nicht abgeschlossen.",
+        "disabled": "Zahlungen sind für diese Moschee deaktiviert.",
+        "onboardingFailed": "Onboarding konnte nicht gestartet werden."
+      }
     },
     "recurring": {
       "title": "Wiederkehrende Spenden",

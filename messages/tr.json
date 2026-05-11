@@ -1433,6 +1433,16 @@
       "password": {
         "change": "Şifre değiştirildi"
       },
+      "stripe": {
+        "connect": {
+          "onboarding_started": "Stripe onboarding başlatıldı",
+          "onboarding_returned": "Stripe onboarding tamamlandı",
+          "account_updated": "Stripe hesabı güncellendi",
+          "dashboard_login": "Stripe paneli açıldı",
+          "deauthorized": "Stripe bağlantısı kesildi",
+          "synced": "Stripe durumu senkronize edildi"
+        }
+      },
       "invite": {
         "created": "Davet oluşturuldu",
         "revoked": "Davet iptal edildi",
@@ -1655,12 +1665,70 @@
       "branding": "Marka",
       "prayer": "Namaz Vakitleri",
       "defaults": "Varsayılanlar",
+      "payouts": "Ödemeler",
       "madrasa": "Medrese",
       "recurring": "Düzenli Bağışlar",
       "sponsors": "Destek Ortakları",
       "team": "Ekip",
       "contact": "İletişim Formu",
       "email": "E-posta"
+    },
+    "payouts": {
+      "title": "Stripe Ödemeleri (Connect)",
+      "desc": "Bağışlar doğrudan kendi Stripe hesabınıza gider. Stripe banka hesabına ödeme, KYC doğrulaması ve uyumluluk işlemlerini üstlenir.",
+      "lastSync": "Son senkronizasyon",
+      "mode": {
+        "disabled": "Ödemeler devre dışı",
+        "platform_legacy": "Platform Modu (Geçiş)",
+        "connect_test": "Connect — Test",
+        "connect_live": "Connect — Canlı"
+      },
+      "banner": {
+        "platformLegacy": {
+          "title": "Ödemeler geçici olarak platform üzerinden işleniyor",
+          "desc": "Bağışların doğrudan hesabınıza gelmesi için lütfen Stripe onboarding'i başlatın."
+        },
+        "disabled": {
+          "title": "Stripe bağlantısı kesildi",
+          "desc": "Ödemeler engellendi. Ödemeleri yeniden etkinleştirmek için onboarding'i yeniden başlatın."
+        },
+        "restricted": {
+          "title": "Onboarding eksik",
+          "desc": "Stripe, ödemelerin etkinleştirilmesi için ek bilgi istiyor."
+        },
+        "pending": {
+          "title": "Onboarding tamamlanmayı bekliyor",
+          "desc": "Lütfen Stripe onboarding'i tamamlayın."
+        },
+        "healthy": {
+          "title": "Aktif — Ödemeler doğrudan size geliyor",
+          "desc": "Kart ve SEPA ödemeleri açık."
+        }
+      },
+      "card": {
+        "account": "Stripe Hesabı",
+        "account_none": "Henüz oluşturulmadı",
+        "details": "Veriler gönderildi",
+        "charges": "Kart/SEPA Ödemeleri",
+        "payouts": "Ödemeler"
+      },
+      "action": {
+        "startOnboarding": "Onboarding'i başlat",
+        "continueOnboarding": "Onboarding'e devam et",
+        "openDashboard": "Stripe Panelini Aç",
+        "sync": "Durumu Güncelle"
+      },
+      "requirements": {
+        "title": "Eksik Gereksinimler",
+        "empty": "Açık gereksinim yok.",
+        "itemPrefix": "•"
+      },
+      "error": {
+        "generic": "Bir hata oluştu.",
+        "notReady": "Stripe onboarding henüz tamamlanmadı.",
+        "disabled": "Bu cami için ödemeler devre dışı.",
+        "onboardingFailed": "Onboarding başlatılamadı."
+      }
     },
     "recurring": {
       "title": "Düzenli Bağışlar",
