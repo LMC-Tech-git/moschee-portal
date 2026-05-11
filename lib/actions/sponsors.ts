@@ -4,7 +4,8 @@ import { getAdminPB } from "@/lib/pocketbase-admin";
 import { logAudit } from "@/lib/audit";
 import type { Sponsor, SponsorCategory } from "@/types";
 import type { RecordModel } from "pocketbase";
-import Stripe from "stripe";
+import { getStripe, stripeAccountFor } from "@/lib/stripe/client";
+import type { Mosque } from "@/types";
 
 // --- Helper ---
 
@@ -496,12 +497,18 @@ export async function createSponsorStripeCheckout(
   months: number = 1
 ): Promise<ActionResult<{ checkout_url: string }>> {
   try {
-    const stripeKey = process.env.STRIPE_SECRET_KEY;
-    if (!stripeKey) {
-      return { success: false, error: "Stripe ist nicht konfiguriert." };
+    const pb = await getAdminPB();
+    const mosqueRec = await pb.collection("mosques").getOne(mosqueId);
+    const mosque = mosqueRec as unknown as Mosque;
+    let stripe;
+    let stripeOpts: { stripeAccount: string } | undefined;
+    try {
+      stripe = getStripe();
+      stripeOpts = stripeAccountFor(mosque);
+    } catch (err) {
+      return { success: false, error: String((err as Error).message) };
     }
 
-    const pb = await getAdminPB();
     const sponsorRecord = await pb.collection("sponsors").getOne(sponsorId);
 
     if (sponsorRecord.mosque_id !== mosqueId) {
@@ -527,34 +534,36 @@ export async function createSponsorStripeCheckout(
     const totalCents = sponsorRecord.amount_cents * months;
     const monthsLabel = months === 1 ? "1 Monat" : `${months} Monate`;
 
-    const stripe = new Stripe(stripeKey, { apiVersion: "2024-06-20" });
-    const session = await stripe.checkout.sessions.create({
-      mode: "payment",
-      payment_method_types: ["card"],
-      customer_email: contactEmail,
-      line_items: [
-        {
-          price_data: {
-            currency: "eur",
-            product_data: {
-              name: sponsorRecord.name,
-              description: `Förderpartner-Beitrag (${monthsLabel})`,
+    const session = await stripe.checkout.sessions.create(
+      {
+        mode: "payment",
+        payment_method_types: ["card"],
+        customer_email: contactEmail,
+        line_items: [
+          {
+            price_data: {
+              currency: "eur",
+              product_data: {
+                name: sponsorRecord.name,
+                description: `Förderpartner-Beitrag (${monthsLabel})`,
+              },
+              unit_amount: totalCents,
             },
-            unit_amount: totalCents,
+            quantity: 1,
           },
-          quantity: 1,
+        ],
+        metadata: {
+          mosque_id: mosqueId,
+          sponsor_id: sponsorId,
+          payment_type: "sponsor",
+          contact_user_id: userId,
+          months: months.toString(),
         },
-      ],
-      metadata: {
-        mosque_id: mosqueId,
-        sponsor_id: sponsorId,
-        payment_type: "sponsor",
-        contact_user_id: userId,
-        months: months.toString(),
+        success_url: `${baseUrl}/member/profile?sponsor_paid=true`,
+        cancel_url: `${baseUrl}/member/profile`,
       },
-      success_url: `${baseUrl}/member/profile?sponsor_paid=true`,
-      cancel_url: `${baseUrl}/member/profile`,
-    });
+      stripeOpts,
+    );
 
     // Session-ID speichern
     await pb.collection("sponsors").update(sponsorId, { provider_ref: session.id });

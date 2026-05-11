@@ -1,5 +1,4 @@
 import { NextResponse, type NextRequest } from "next/server";
-import Stripe from "stripe";
 import { resolveMosqueBySlug } from "@/lib/resolve-mosque";
 import { getAdminPB } from "@/lib/pocketbase-admin";
 import { donationSubscriptionSchema } from "@/lib/validations";
@@ -7,6 +6,7 @@ import { checkRateLimit, hashIP, getRateLimitHeaders } from "@/lib/rate-limit";
 import { verifyTurnstileToken } from "@/lib/turnstile";
 import { logAudit } from "@/lib/audit";
 import { normalizeEmail } from "@/lib/normalize-email";
+import { getStripe, stripeAccountFor } from "@/lib/stripe/client";
 
 /**
  * POST /api/[slug]/donations/stripe/create-subscription
@@ -155,30 +155,40 @@ export async function POST(
       // keine aktive Sub → OK
     }
 
-    const stripeKey = process.env.STRIPE_SECRET_KEY;
-    if (!stripeKey) {
+    let stripe;
+    let stripeOpts: { stripeAccount: string } | undefined;
+    try {
+      stripe = getStripe();
+      stripeOpts = stripeAccountFor(mosque);
+    } catch (err) {
       return NextResponse.json(
-        { success: false, error: "Stripe ist nicht konfiguriert" },
-        { status: 500 }
+        { success: false, error: String((err as Error).message) },
+        { status: 400 }
       );
     }
-    const stripe = new Stripe(stripeKey, { apiVersion: "2024-06-20" });
 
-    // Stripe Customer reuse
+    // Customer am Connected Account suchen/erstellen (NICHT Plattform).
+    // Bei platform_legacy (stripeOpts undefined) wie bisher.
     let customerId: string;
-    const existingCustomers = await stripe.customers.list({ email: donor_email, limit: 10 });
+    const existingCustomers = await stripe.customers.list(
+      { email: donor_email, limit: 10 },
+      stripeOpts,
+    );
     const reuse = existingCustomers.data.find((c) => c.metadata?.mosque_id === mosque.id);
     if (reuse) {
       customerId = reuse.id;
     } else {
-      const customer = await stripe.customers.create({
-        email: donor_email,
-        name: donor_name || undefined,
-        metadata: {
-          mosque_id: mosque.id,
-          ...(authenticatedUserId ? { user_id: authenticatedUserId } : {}),
+      const customer = await stripe.customers.create(
+        {
+          email: donor_email,
+          name: donor_name || undefined,
+          metadata: {
+            mosque_id: mosque.id,
+            ...(authenticatedUserId ? { user_id: authenticatedUserId } : {}),
+          },
         },
-      });
+        stripeOpts,
+      );
       customerId = customer.id;
     }
 
@@ -247,7 +257,7 @@ export async function POST(
         success_url: `${origin}/${params.slug}/donate?sub_success=true`,
         cancel_url: `${origin}/${params.slug}/donate?cancelled=true`,
       },
-      { idempotencyKey: `sub:${subRecord.id}` }
+      { idempotencyKey: `sub:${subRecord.id}`, ...(stripeOpts || {}) }
     );
 
     await pb.collection("recurring_subscriptions").update(subRecord.id, {

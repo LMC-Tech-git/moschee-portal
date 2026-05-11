@@ -1,11 +1,11 @@
 import { NextResponse, type NextRequest } from "next/server";
-import Stripe from "stripe";
 import { resolveMosqueBySlug } from "@/lib/resolve-mosque";
 import { getAdminPB } from "@/lib/pocketbase-admin";
 import { donationCheckoutSchema } from "@/lib/validations";
 import { checkRateLimit, hashIP, getRateLimitHeaders } from "@/lib/rate-limit";
 import { verifyTurnstileToken } from "@/lib/turnstile";
 import { logAudit } from "@/lib/audit";
+import { getStripe, stripeAccountFor } from "@/lib/stripe/client";
 
 /**
  * POST /api/[slug]/donations/stripe/create-checkout
@@ -123,16 +123,18 @@ export async function POST(
       }
     }
 
-    // 3. Stripe API Key prüfen
-    const stripeKey = process.env.STRIPE_SECRET_KEY;
-    if (!stripeKey) {
+    // 3. Stripe-Init + Connect-Account-Routing
+    let stripe;
+    let stripeOpts: { stripeAccount: string } | undefined;
+    try {
+      stripe = getStripe();
+      stripeOpts = stripeAccountFor(mosque);
+    } catch (err) {
       return NextResponse.json(
-        { success: false, error: "Stripe ist nicht konfiguriert" },
-        { status: 500 }
+        { success: false, error: String((err as Error).message) },
+        { status: 400 }
       );
     }
-
-    const stripe = new Stripe(stripeKey, { apiVersion: "2024-06-20" });
 
     // 4. Donation in PB erstellen (Status: "created")
     const pbAdmin = await getAdminPB();
@@ -178,41 +180,44 @@ export async function POST(
     const origin = forwardedHost
       ? `${forwardedProto}://${forwardedHost}`
       : request.nextUrl.origin;
-    const session = await stripe.checkout.sessions.create({
-      mode: "payment",
-      // Wenn eine spezifische Methode gewählt wurde (Demo), nur diese anbieten.
-      // Sonst: Karte + SEPA zur Auswahl stellen.
-      payment_method_types: payment_method_type === "sepa_debit"
-        ? ["sepa_debit"]
-        : payment_method_type === "card"
-          ? ["card"]
-          : ["card", "sepa_debit"],
-      line_items: [
-        {
-          price_data: {
-            currency: "eur",
-            unit_amount: stripeCents,
-            product_data: {
-              name: campaign_id
-                ? `Spende — ${mosque.name} (Kampagne)`
-                : `Spende — ${mosque.name}`,
-              description: "Moschee.App erhebt keine Provision. Zahlung direkt an die Moschee.",
+    const session = await stripe.checkout.sessions.create(
+      {
+        mode: "payment",
+        // Wenn eine spezifische Methode gewählt wurde (Demo), nur diese anbieten.
+        // Sonst: Karte + SEPA zur Auswahl stellen.
+        payment_method_types: payment_method_type === "sepa_debit"
+          ? ["sepa_debit"]
+          : payment_method_type === "card"
+            ? ["card"]
+            : ["card", "sepa_debit"],
+        line_items: [
+          {
+            price_data: {
+              currency: "eur",
+              unit_amount: stripeCents,
+              product_data: {
+                name: campaign_id
+                  ? `Spende — ${mosque.name} (Kampagne)`
+                  : `Spende — ${mosque.name}`,
+                description: "Moschee.App erhebt keine Provision. Zahlung direkt an die Moschee.",
+              },
             },
+            quantity: 1,
           },
-          quantity: 1,
+        ],
+        customer_email: donor_email || undefined,
+        metadata: {
+          mosque_id: mosque.id,
+          donation_id: donation.id,
+          campaign_id: campaign_id || "",
+          original_amount_cents: String(amount_cents),
+          cover_fees: cover_fees ? "true" : "false",
         },
-      ],
-      customer_email: donor_email || undefined,
-      metadata: {
-        mosque_id: mosque.id,
-        donation_id: donation.id,
-        campaign_id: campaign_id || "",
-        original_amount_cents: String(amount_cents),
-        cover_fees: cover_fees ? "true" : "false",
+        success_url: `${origin}/${params.slug}/donate?success=true`,
+        cancel_url: `${origin}/${params.slug}/donate?cancelled=true`,
       },
-      success_url: `${origin}/${params.slug}/donate?success=true`,
-      cancel_url: `${origin}/${params.slug}/donate?cancelled=true`,
-    });
+      stripeOpts,
+    );
 
     // 6. Provider-Ref speichern
     await pbAdmin.collection("donations").update(donation.id, {

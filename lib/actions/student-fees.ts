@@ -5,7 +5,8 @@ import { logAudit } from "@/lib/audit";
 import { getMadrasaFeeSettings } from "@/lib/actions/settings";
 import type { StudentFee, Student } from "@/types";
 import type { RecordModel } from "pocketbase";
-import Stripe from "stripe";
+import { getStripe, stripeAccountFor } from "@/lib/stripe/client";
+import type { Mosque } from "@/types";
 
 // --- Helpers ---
 
@@ -505,12 +506,20 @@ export async function createFeeStripeCheckout(
   baseUrl: string
 ): Promise<ActionResult<{ checkout_url: string }>> {
   try {
-    const stripeKey = process.env.STRIPE_SECRET_KEY;
-    if (!stripeKey) {
-      return { success: false, error: "Stripe nicht konfiguriert" };
-    }
-
     const pb = await getAdminPB();
+
+    // Mosque für Connect-Routing laden
+    const mosqueRec = await pb.collection("mosques").getOne(mosqueId);
+    const mosque = mosqueRec as unknown as Mosque;
+
+    let stripe;
+    let stripeOpts: { stripeAccount: string } | undefined;
+    try {
+      stripe = getStripe();
+      stripeOpts = stripeAccountFor(mosque);
+    } catch (err) {
+      return { success: false, error: String((err as Error).message) };
+    }
 
     // Fee laden + Tenant-Check
     const feeRecord = await pb.collection("student_fees").getOne(feeId, {
@@ -535,36 +544,37 @@ export async function createFeeStripeCheckout(
       parentEmail = parentRecord.email || undefined;
     } catch {}
 
-    // Stripe Checkout Session erstellen
-    const stripe = new Stripe(stripeKey, { apiVersion: "2024-06-20" });
-    const session = await stripe.checkout.sessions.create({
-      mode: "payment",
-      payment_method_types: ["card", "sepa_debit"],
-      customer_email: parentEmail,
-      line_items: [
-        {
-          price_data: {
-            currency: "eur",
-            product_data: {
-              name: `Madrasa-Gebühr ${fee.month_key}`,
-              description: `Schüler: ${studentName} · Moschee.App erhebt keine Provision.`,
+    const session = await stripe.checkout.sessions.create(
+      {
+        mode: "payment",
+        payment_method_types: ["card", "sepa_debit"],
+        customer_email: parentEmail,
+        line_items: [
+          {
+            price_data: {
+              currency: "eur",
+              product_data: {
+                name: `Madrasa-Gebühr ${fee.month_key}`,
+                description: `Schüler: ${studentName} · Moschee.App erhebt keine Provision.`,
+              },
+              unit_amount: fee.amount_cents,
             },
-            unit_amount: fee.amount_cents,
+            quantity: 1,
           },
-          quantity: 1,
+        ],
+        metadata: {
+          mosque_id: mosqueId,
+          fee_id: feeId,
+          payment_type: "fee",
+          parent_user_id: parentUserId,
+          original_amount_cents: String(fee.amount_cents),
+          cover_fees: "false",
         },
-      ],
-      metadata: {
-        mosque_id: mosqueId,
-        fee_id: feeId,
-        payment_type: "fee",
-        parent_user_id: parentUserId,
-        original_amount_cents: String(fee.amount_cents),
-        cover_fees: "false",
+        success_url: `${baseUrl}/member/profile?fees_success=true`,
+        cancel_url: `${baseUrl}/member/profile`,
       },
-      success_url: `${baseUrl}/member/profile?fees_success=true`,
-      cancel_url: `${baseUrl}/member/profile`,
-    });
+      stripeOpts,
+    );
 
     // Fee auf "pending" setzen + provider_ref speichern
     await pb.collection("student_fees").update(feeId, {
@@ -604,10 +614,19 @@ export async function createMultiMonthFeeCheckout(
   baseUrl: string
 ): Promise<ActionResult<{ checkout_url: string }>> {
   try {
-    const stripeKey = process.env.STRIPE_SECRET_KEY;
-    if (!stripeKey) return { success: false, error: "Stripe nicht konfiguriert" };
-
     const pb = await getAdminPB();
+
+    // Mosque + Stripe-Routing
+    const mosqueRec = await pb.collection("mosques").getOne(mosqueId);
+    const mosque = mosqueRec as unknown as Mosque;
+    let stripe;
+    let stripeOpts: { stripeAccount: string } | undefined;
+    try {
+      stripe = getStripe();
+      stripeOpts = stripeAccountFor(mosque);
+    } catch (err) {
+      return { success: false, error: String((err as Error).message) };
+    }
 
     // Standardbetrag aus Settings laden
     const settingsResult = await getMadrasaFeeSettings(mosqueId);
@@ -662,36 +681,38 @@ export async function createMultiMonthFeeCheckout(
       parentEmail = parent.email || undefined;
     } catch { /* ignore */ }
 
-    const stripe = new Stripe(stripeKey, { apiVersion: "2024-06-20" });
-    const session = await stripe.checkout.sessions.create({
-      mode: "payment",
-      payment_method_types: ["card", "sepa_debit"],
-      customer_email: parentEmail,
-      line_items: [
-        {
-          price_data: {
-            currency: "eur",
-            product_data: {
-              name: `Madrasa-Gebühren ${months === 1 ? monthKeys[0] : `${monthKeys[0]} – ${monthKeys[monthKeys.length - 1]}`}`,
-              description: `${students.length} Schüler × ${months} Monate · Moschee.App erhebt keine Provision.`,
+    const session = await stripe.checkout.sessions.create(
+      {
+        mode: "payment",
+        payment_method_types: ["card", "sepa_debit"],
+        customer_email: parentEmail,
+        line_items: [
+          {
+            price_data: {
+              currency: "eur",
+              product_data: {
+                name: `Madrasa-Gebühren ${months === 1 ? monthKeys[0] : `${monthKeys[0]} – ${monthKeys[monthKeys.length - 1]}`}`,
+                description: `${students.length} Schüler × ${months} Monate · Moschee.App erhebt keine Provision.`,
+              },
+              unit_amount: totalCents,
             },
-            unit_amount: totalCents,
+            quantity: 1,
           },
-          quantity: 1,
+        ],
+        metadata: {
+          mosque_id: mosqueId,
+          payment_type: "fee_multi",
+          parent_user_id: parentUserId,
+          start_month_key: startMonthKey,
+          months: months.toString(),
+          original_amount_cents: String(totalCents),
+          cover_fees: "false",
         },
-      ],
-      metadata: {
-        mosque_id: mosqueId,
-        payment_type: "fee_multi",
-        parent_user_id: parentUserId,
-        start_month_key: startMonthKey,
-        months: months.toString(),
-        original_amount_cents: String(totalCents),
-        cover_fees: "false",
+        success_url: `${baseUrl}/member/profile?fees_success=true`,
+        cancel_url: `${baseUrl}/member/profile`,
       },
-      success_url: `${baseUrl}/member/profile?fees_success=true`,
-      cancel_url: `${baseUrl}/member/profile`,
-    });
+      stripeOpts,
+    );
 
     return { success: true, data: { checkout_url: session.url || "" } };
   } catch (error) {

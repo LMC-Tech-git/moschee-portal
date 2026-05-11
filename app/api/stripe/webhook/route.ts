@@ -5,6 +5,14 @@ import { logAudit } from "@/lib/audit";
 import { sendEmailDirect } from "@/lib/email";
 import { renderDonationReceipt } from "@/lib/email/templates";
 import { notifyAdmins } from "@/lib/email/notify-admin";
+import { getStripe } from "@/lib/stripe/client";
+import { accountFromEvent, fetchAccountState } from "@/lib/stripe/connect";
+import {
+  isAlreadyProcessed,
+  recordEventReceived,
+  markProcessed,
+  markFailed,
+} from "@/lib/stripe/idempotency";
 import type { RecordModel } from "pocketbase";
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -229,10 +237,8 @@ async function finalizeEventRegistration(
  */
 export async function POST(request: NextRequest) {
   try {
-    const stripeKey = process.env.STRIPE_SECRET_KEY;
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
-
-    if (!stripeKey || !webhookSecret) {
+    if (!webhookSecret) {
       console.error("[Stripe Webhook] Fehlende Konfiguration");
       return NextResponse.json(
         { error: "Webhook nicht konfiguriert" },
@@ -240,7 +246,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const stripe = new Stripe(stripeKey, { apiVersion: "2024-06-20" });
+    const stripe = getStripe();
 
     // Raw Body für Signatur-Verifikation
     const body = await request.text();
@@ -264,18 +270,42 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Logging: Event-Typ und relevante Metadata für Debugging
+    const pb = await getAdminPB();
+
+    // Idempotenz-Guard — Stripe sendet Events mehrfach
+    if (await isAlreadyProcessed(pb, event.id)) {
+      console.log("[Stripe Webhook] Bereits verarbeitet:", event.id);
+      return NextResponse.json({ received: true, deduped: true });
+    }
+
+    // Connect-Account-Resolution: bei Direct Charges trägt event.account
+    // die Connected-Account-ID. mosque per Lookup auflösen.
+    const connectedAccountId = accountFromEvent(event);
+    let connectMosque: RecordModel | null = null;
+    if (connectedAccountId) {
+      try {
+        connectMosque = await pb
+          .collection("mosques")
+          .getFirstListItem(`stripe_account_id = "${connectedAccountId}"`);
+      } catch {
+        // Account-ID unbekannt — Event trotzdem persistieren für Audit
+      }
+    }
+
+    await recordEventReceived(pb, event, body, connectedAccountId, connectMosque?.id);
+
     const _meta = (event.data.object as Stripe.Checkout.Session | Stripe.PaymentIntent)?.metadata;
     console.log("[Stripe Webhook]", {
       type: event.type,
       id: event.id,
+      account: connectedAccountId || "platform",
+      mosque: connectMosque?.id,
       payment_type: _meta?.payment_type,
       registration_id: _meta?.registration_id,
       fee_id: _meta?.fee_id,
     });
 
-    const pb = await getAdminPB();
-
+    try {
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
@@ -993,9 +1023,85 @@ export async function POST(request: NextRequest) {
         break;
       }
 
+      // ─── Stripe Connect Account-Events ──────────────────────────
+      case "account.updated": {
+        const acc = event.data.object as Stripe.Account;
+        try {
+          const m = await pb
+            .collection("mosques")
+            .getFirstListItem(`stripe_account_id = "${acc.id}"`);
+          const currentlyDue = acc.requirements?.currently_due ?? [];
+          const eventuallyDue = acc.requirements?.eventually_due ?? [];
+          const update: Record<string, unknown> = {
+            stripe_charges_enabled: acc.charges_enabled ?? false,
+            stripe_payouts_enabled: acc.payouts_enabled ?? false,
+            stripe_details_submitted: acc.details_submitted ?? false,
+            stripe_requirements_currently_due: currentlyDue,
+            stripe_requirements_eventually_due: eventuallyDue,
+            stripe_last_synced_at: new Date().toISOString(),
+          };
+          if (acc.details_submitted && !m.stripe_onboarded_at) {
+            update.stripe_onboarded_at = new Date().toISOString();
+          }
+          await pb.collection("mosques").update(m.id, update);
+          logAudit({
+            mosqueId: m.id,
+            action: "stripe.connect.account_updated",
+            entityType: "mosque",
+            entityId: m.id,
+            details: {
+              charges_enabled: acc.charges_enabled ?? false,
+              payouts_enabled: acc.payouts_enabled ?? false,
+              currently_due_count: currentlyDue.length,
+            },
+          });
+        } catch {
+          console.warn("[Stripe Webhook] account.updated für unbekannten Account:", acc.id);
+        }
+        break;
+      }
+
+      case "account.application.deauthorized": {
+        // Mosque-Admin hat die App in Stripe getrennt → Zahlungen BLOCKIEREN.
+        // payments_mode wird auf "disabled" gesetzt — NICHT "platform_legacy",
+        // sonst landen Spenden ungewollt wieder auf dem Plattform-Konto.
+        // event.data.object ist hier ein Application-Objekt — die Account-ID
+        // kommt aus connectedAccountId (event.account).
+        const accountId = connectedAccountId;
+        if (!accountId) break;
+        try {
+          const m = await pb
+            .collection("mosques")
+            .getFirstListItem(`stripe_account_id = "${accountId}"`);
+          await pb.collection("mosques").update(m.id, {
+            payments_mode: "disabled",
+            stripe_charges_enabled: false,
+            stripe_payouts_enabled: false,
+            stripe_last_synced_at: new Date().toISOString(),
+          });
+          logAudit({
+            mosqueId: m.id,
+            action: "stripe.connect.deauthorized",
+            entityType: "mosque",
+            entityId: m.id,
+            details: { account_id_redacted: accountId.slice(0, 10) + "..." },
+          });
+          // TODO: Admin-Email "Stripe getrennt — Zahlungen blockiert"
+        } catch {
+          console.warn("[Stripe Webhook] deauthorized für unbekannten Account:", accountId);
+        }
+        break;
+      }
+
       default:
         // Nicht behandelte Events einfach ignorieren
         break;
+    }
+
+    await markProcessed(pb, event.id);
+    } catch (procErr) {
+      await markFailed(pb, event.id, String((procErr as Error).message));
+      throw procErr;
     }
 
     return NextResponse.json({ received: true });
