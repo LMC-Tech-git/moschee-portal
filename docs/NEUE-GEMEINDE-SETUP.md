@@ -2,105 +2,84 @@
 
 > Legende:
 > - 🤖 **Claude übernimmt** — du sagst es, Claude erledigt es
-> - 👤 **Du** — musst du selbst machen (SSH, Browser, externe Dienste)
-> - ✅ **Einmalig** — nur beim allerersten Mal nötig, danach automatisch
+> - 👤 **Du** — musst du selbst machen (Browser, externe Dienste)
+> - ✅ **Einmalig erledigt** — einmalig eingerichtet, läuft dauerhaft
 
 ---
 
 ## Übersicht (Kurzversion)
 
 ```
-1. [Einmalig] Caddy-Config auf Server → Wildcard-TLS
-2. PocketBase-Records anlegen (Claude)
-3. Branding + Logo setzen (Du, im Admin-Panel)
-4. Smoke-Test (Du)
+1. [✅ Erledigt] DNS Wildcard + Caddy On-Demand TLS → läuft automatisch
+2. 🤖 Claude: PocketBase-Records anlegen (Slug, Name, Stadt, Farbe, Module, Admin-Email)
+3. 👤 Du: Branding + Logo im Admin-Panel setzen
+4. 👤 Du: Smoke-Test
 5. Fertig
 ```
 
+> **Für jede neue Gemeinde nur noch Schritt 2–4 nötig.**
+> Kein DNS-Eintrag, kein Server-Zugriff, kein Caddy-Eingriff.
+
 ---
 
-## Schritt 1 — Caddy Wildcard-TLS einrichten ✅ Einmalig 👤 Du
+## Schritt 1 — DNS + Caddy ✅ Einmalig erledigt
 
-> Nur EINMAL nötig. Danach gilt jede neue `*.moschee.app`-Subdomain automatisch.
+**DNS:** Wildcard `*.moschee.app → 91.98.142.128` in Hetzner DNS aktiv.
+Jede neue Subdomain (`ditib-ulm.moschee.app`, `berlin.moschee.app`, ...) funktioniert automatisch — kein extra DNS-Record nötig.
 
-Das aktuelle Problem: Caddy stellt nur für bekannte Domains ein Zertifikat aus.
-Lösung: On-Demand TLS aktivieren → Caddy holt Zertifikat automatisch für jede neue Subdomain.
+**Caddy:** On-Demand TLS konfiguriert (`/etc/caddy/Caddyfile`).
+Caddy holt TLS-Zertifikat automatisch beim ersten Aufruf einer neuen Subdomain.
 
-### 1.1 SSH in den Server
-
-```bash
-ssh root@91.98.142.128
-```
-
-### 1.2 Aktuelle Caddy-Config anzeigen und zeigen (mir schicken)
-
-```bash
-cat /etc/caddy/Caddyfile
-```
-
-→ Inhalt hier reinschicken, dann passe ich die Config an.
-
-### 1.3 Caddyfile ersetzen (ich gebe dir den exakten Inhalt)
-
-Wahrscheinlich wird es so aussehen:
-
+Aktuelles Caddyfile (zur Referenz, nicht ändern):
 ```caddy
 {
-    # On-Demand TLS: Caddy holt automatisch Zertifikate für neue Subdomains
     on_demand_tls {
-        interval 2m
-        burst     5
+        ask http://localhost:2019/config/
     }
 }
 
-# Alle moschee.app-Subdomains → Next.js
-*.moschee.app moschee.app {
+moschee.app, www.moschee.app {
+    handle /pb/* {
+        uri strip_prefix /pb
+        reverse_proxy 127.0.0.1:8090
+    }
+    handle {
+        reverse_proxy 127.0.0.1:3000
+    }
+}
+
+*.moschee.app {
     tls {
         on_demand
     }
-    reverse_proxy localhost:3000 {
-        header_up Host {host}
-        header_up X-Real-IP {remote_host}
-    }
+    reverse_proxy 127.0.0.1:3000
 }
-```
 
-```bash
-nano /etc/caddy/Caddyfile
-# Inhalt ersetzen, dann:
-caddy validate --config /etc/caddy/Caddyfile
-caddy reload --config /etc/caddy/Caddyfile
-```
-
-### 1.4 Test
-
-```bash
-# Vom Server aus:
-curl -I https://halim.moschee.app
-# Erwartung: HTTP 200 oder 308-Redirect (kein TLS-Fehler)
+lmctech.de, www.lmctech.de {
+    root * /var/www/lmctech.de
+    file_server
+}
 ```
 
 ---
 
 ## Schritt 2 — PocketBase-Records anlegen 🤖 Claude
 
-**Du sagst mir:**
-- Slug (z.B. `ditib-ulm`)
+**Du sagst Claude:**
+- Slug (z.B. `ditib-ulm`) — wird Teil der URL
 - Name der Gemeinde
-- Stadt
-- Adresse
-- Kontakt-Email
-- GPS-Koordinaten (Lat/Lng — via [Google Maps](https://maps.google.com): Rechtsklick → "Was ist hier?")
-- Brand-Farbe (Hex, z.B. `#1d6b38`)
-- Welche Module aktiv: Spenden / Events / Posts / Madrasa / Gebetszeiten
-- Email-Adresse für ersten Admin-User
+- Stadt + Adresse
+- GPS-Koordinaten (Lat/Lng) → [maps.google.com](https://maps.google.com): Rechtsklick auf Moschee → erste Zeile
+- Brand-Farbe (Hex, z.B. `#1d6b38`) — oder "Standard grün"
+- Module aktiv: Spenden / Events / Posts / Madrasa / Gebetszeiten (oder "alles")
+- Email für ersten Admin-User
 
-**Claude erstellt dann automatisch:**
-- [ ] `mosques`-Record (slug, name, adresse, koordinaten, farbe)
-- [ ] `settings`-Record (alle Module, Gebetszeiten-Methode Diyanet=13)
-- [ ] Erster `users`-Record mit `role=admin`
+**Claude erstellt automatisch:**
+- `mosques`-Record (slug, name, adresse, koordinaten, farbe)
+- `settings`-Record (Module, Gebetszeiten-Methode Diyanet=13)
+- Erster `users`-Record mit `role=admin`
 
-**Ausgabe:** Mosque-ID + Login-Daten
+**Ausgabe von Claude:** URL + Login-Daten
 
 > ⚠️ Login-Daten sicher übergeben — NICHT per Email. 1Password Share oder Bitwarden Send nutzen.
 
@@ -110,24 +89,24 @@ curl -I https://halim.moschee.app
 
 Login: `https://<slug>.moschee.app/login`
 
-- [ ] Passwort ändern (Admin → Profil)
+- [ ] Passwort ändern (Profil-Seite)
 - [ ] Logo hochladen: Admin → Einstellungen → Branding
 - [ ] Brand-Farbe prüfen / anpassen
-- [ ] Gebetszeiten prüfen: Admin → Einstellungen → Gebetszeiten → Widget auf Dashboard sichtbar?
+- [ ] Gebetszeiten prüfen: Dashboard → Widget mit Uhrzeiten sichtbar?
 - [ ] Stripe Connect-ID eintragen (wenn Spenden aktiv): PB-Admin-UI → `mosques`-Record → `stripe_account`
 
 ---
 
 ## Schritt 4 — Smoke-Test 👤 Du
 
-| Test | URL / Aktion | Erwartung |
-|------|-------------|-----------|
-| Public-Portal | `https://<slug>.moschee.app` | Portal mit Gemeinde-Name |
-| Admin-Login | `/login` → Admin-Daten | Weiterleitung zu `/admin` |
+| Test | Aktion | Erwartung |
+|------|--------|-----------|
+| Public-Portal | `https://<slug>.moschee.app` | Portal mit Gemeinde-Name + Farbe |
+| Admin-Login | `/login` → Daten eingeben | Weiterleitung zu `/admin` |
 | Gebetszeiten | Dashboard | Widget mit Uhrzeiten |
 | Event anlegen | Admin → Events → Neu | Erscheint auf Portal |
 | Post anlegen | Admin → Neuigkeiten → Neu | Erscheint auf Portal |
-| Mitglied einladen | Admin → Einladungen | Invite-Link kopieren, Browser-Tab öffnen, Registrierung |
+| Mitglied einladen | Admin → Einladungen | Invite-Link → Registrierung klappt |
 | Test-Spende | Portal → Spenden | Stripe Testkarte `4242 4242 4242 4242` |
 | Mobile | Smartphone | Kein horizontaler Overflow |
 | PWA | Smartphone → "Zum Homescreen" | App-Icon erscheint |
@@ -149,42 +128,34 @@ Halim kommuniziert:
 
 ## Troubleshooting
 
-### Subdomain erreichbar, aber nur HTTP (kein HTTPS / Zertifikatsfehler)
-→ Schritt 1 noch nicht gemacht oder Caddy-Reload fehlt.
+### TLS-Fehler / Seite nicht erreichbar beim ersten Aufruf
+Caddy holt Zertifikat beim ersten Aufruf — das dauert 3–10 Sekunden.
+Einfach 10 Sekunden warten und nochmal laden. Falls dauerhaft:
 ```bash
-caddy reload --config /etc/caddy/Caddyfile
-journalctl -u caddy -n 50
+journalctl -u caddy -n 30 --no-pager
 ```
 
-### Portal öffnet, zeigt aber falsche Gemeinde
-→ Slug im PocketBase-Record prüfen. Muss exakt mit Subdomain übereinstimmen (lowercase, kein Leerzeichen).
+### Portal öffnet, zeigt aber falsche Gemeinde / 404
+Slug im `mosques`-Record prüfen — muss exakt mit Subdomain übereinstimmen (lowercase, keine Leerzeichen, keine Sonderzeichen).
 
 ### Gebetszeiten-Widget fehlt
-→ Lat/Lng-Koordinaten im `mosques`-Record prüfen. Beide müssen gesetzt sein. `prayer_provider` in `settings` muss `aladhan` sein (nicht `off`).
+Lat/Lng im `mosques`-Record prüfen (beide müssen gesetzt sein).
+`prayer_provider` in `settings` muss `aladhan` sein (nicht `off`).
 
 ### Admin-Login schlägt fehl
-→ `status` im `users`-Record prüfen: muss `active` sein. `mosque_id` muss gesetzt sein.
+`status` im `users`-Record: muss `active` sein.
+`mosque_id` im `users`-Record: muss gesetzt sein.
 
-### Gemeinde sieht Demo-Daten
-→ Kann nicht passieren (Tenant-Isolation über `mosque_id` serverseitig). Aber prüfen: ist `mosque_id` im `users`-Record korrekt?
+### Gemeinde sieht Daten einer anderen Gemeinde
+Kann durch korrekte Architektur nicht passieren — `mosque_id` wird immer serverseitig via Slug aufgelöst, nie vom Client.
+Zur Sicherheit: `mosque_id` im `users`-Record des betroffenen Admins prüfen.
 
----
-
-## Für halim.moschee.app (aktueller Stand)
-
-| Schritt | Status |
-|---------|--------|
-| DNS Wildcard | ✅ Aktiv (`*.moschee.app → 91.98.142.128`) |
-| PocketBase-Records | ✅ Angelegt (Mosque-ID: `e2l5ggycgowidzr`) |
-| Caddy Wildcard-TLS | ❌ **Noch nicht gemacht** → Schritt 1 oben |
-| Branding / Logo | ⏳ Nach Schritt 1 |
-| Smoke-Test | ⏳ Nach Schritt 1 |
-
-**Login (nach Schritt 1):**
-- URL: `https://halim.moschee.app/login`
-- Email: `admin@halim.moschee.app`
-- Passwort: `Halim1234!`
+### Gemeinde komplett löschen (Reset / Kündigung)
+```bash
+node scripts/cleanup-mosque.mjs http://91.98.142.128:8090 <admin-email> <password> <mosque-id>
+```
+Löscht: Mosque + Settings + Users + alle Inhalte (Events, Posts, Donations, Students, ...).
 
 ---
 
-*Letzte Aktualisierung: 2026-05 | Nächste Aktion: SSH → Caddyfile zeigen*
+*Letzte Aktualisierung: 2026-05 | DNS + Caddy einmalig eingerichtet — ab jetzt nur noch PB-Records anlegen.*
