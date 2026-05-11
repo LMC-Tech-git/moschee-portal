@@ -636,7 +636,49 @@ const MOSQUES_NEW_FIELDS = [
   { name: "website", type: "url" },
   { name: "brand_hero_type", type: "text", options: { default: "color" } },
   { name: "brand_hero_image", type: "file", options: { maxSelect: 1, maxSize: 5242880 } },
+  // Stripe Connect (Express, Direct Charges)
+  { name: "stripe_account_id", type: "text" },
+  { name: "stripe_charges_enabled", type: "bool", options: { default: false } },
+  { name: "stripe_payouts_enabled", type: "bool", options: { default: false } },
+  { name: "stripe_details_submitted", type: "bool", options: { default: false } },
+  { name: "stripe_requirements_currently_due", type: "json", options: { maxSize: 200000 } },
+  { name: "stripe_requirements_eventually_due", type: "json", options: { maxSize: 200000 } },
+  {
+    name: "payments_mode",
+    type: "select",
+    options: { values: ["disabled", "platform_legacy", "connect_test", "connect_live"], maxSelect: 1 },
+  },
+  { name: "stripe_onboarded_at", type: "date" },
+  { name: "stripe_last_synced_at", type: "date" },
 ];
+
+// Stripe Webhook Idempotenz
+const STRIPE_EVENTS_COLLECTION = {
+  name: "stripe_events",
+  type: "base",
+  schema: [
+    { name: "event_id", type: "text", required: true, options: { max: 100 } },
+    { name: "type", type: "text", required: true, options: { max: 100 } },
+    { name: "api_version", type: "text", options: { max: 30 } },
+    { name: "account_id", type: "text", options: { max: 100 } },
+    { name: "mosque_id", type: "relation", options: { collectionId: "", maxSelect: 1 } },
+    { name: "received_at", type: "date" },
+    { name: "processed_at", type: "date" },
+    {
+      name: "status",
+      type: "select",
+      options: { values: ["received", "processed", "failed"], maxSelect: 1 },
+    },
+    { name: "error", type: "text", options: { max: 2000 } },
+    { name: "payload_hash", type: "text", options: { max: 100 } },
+    { name: "payload_preview", type: "text", options: { max: 4000 } },
+  ],
+  indexes: [
+    "CREATE UNIQUE INDEX idx_stripe_events_event_id ON stripe_events (event_id)",
+    "CREATE INDEX idx_stripe_events_account ON stripe_events (account_id)",
+    "CREATE INDEX idx_stripe_events_status ON stripe_events (status)",
+  ],
+};
 
 const USERS_NEW_FIELDS = [
   { name: "first_name", type: "text" },
@@ -949,6 +991,7 @@ async function main() {
     SPONSORS_COLLECTION,
     TEAM_MEMBERS_COLLECTION,
     PARENT_CHILD_RELATIONS_COLLECTION,
+    STRIPE_EVENTS_COLLECTION,
   ];
 
   for (const colDef of newCollections) {
@@ -1692,11 +1735,34 @@ async function main() {
     }
   }
 
+  // 6c. Backfill: bestehende Moscheen ohne payments_mode → "platform_legacy"
+  console.log("\n=== Daten-Migration: payments_mode (mosques) ===");
+  if (collectionMap.mosques) {
+    let page = 1;
+    let updated = 0;
+    while (true) {
+      const res = await pbFetch(`/api/collections/mosques/records?page=${page}&perPage=200`);
+      for (const m of res.items || []) {
+        if (!m.payments_mode) {
+          await pbFetch(`/api/collections/mosques/records/${m.id}`, {
+            method: "PATCH",
+            body: JSON.stringify({ payments_mode: "platform_legacy" }),
+          });
+          updated++;
+        }
+      }
+      if (page >= (res.totalPages || 1)) break;
+      page++;
+    }
+    console.log(`   ${updated > 0 ? "✅" : "⏭️ "} ${updated} Moscheen auf "platform_legacy" gesetzt`);
+  }
+
   console.log("\n=== ✅ Migration abgeschlossen ===\n");
 
   // 7. .env.local Hinweis
   console.log("📝 Stelle sicher, dass folgende Keys in .env.local gesetzt sind:");
   console.log("   PB_ADMIN_EMAIL, PB_ADMIN_PASSWORD, POCKETBASE_URL, STRIPE_WEBHOOK_SECRET");
+  console.log("   STRIPE_CONNECT_STATE_SECRET (32-byte hex), STRIPE_DEFAULT_CONNECT_MODE=connect_test|connect_live");
   console.log("");
 }
 

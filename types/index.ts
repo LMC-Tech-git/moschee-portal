@@ -7,6 +7,8 @@
 export type RelationType = 'father' | 'mother' | 'guardian' | 'other';
 
 // --- 1. Mosques (Moscheen / Vereine) ---
+export type PaymentsMode = "disabled" | "platform_legacy" | "connect_test" | "connect_live";
+
 export interface Mosque {
   id: string;
   name: string;
@@ -32,9 +34,39 @@ export interface Mosque {
   brand_theme: string; // preset-id oder "custom"
   brand_hero_type: string; // "color" | "image"
   brand_hero_image: string;
+  // Stripe Connect (Express, Direct Charges)
+  stripe_account_id: string;
+  stripe_charges_enabled: boolean;
+  stripe_payouts_enabled: boolean;
+  stripe_details_submitted: boolean;
+  stripe_requirements_currently_due: string[];
+  stripe_requirements_eventually_due: string[];
+  payments_mode: PaymentsMode;
+  stripe_onboarded_at: string;
+  stripe_last_synced_at: string;
   created: string;
   updated: string;
 }
+
+// Stripe Webhook Idempotenz
+export interface StripeEvent {
+  id: string;
+  event_id: string;
+  type: string;
+  api_version: string;
+  account_id: string;
+  mosque_id: string;
+  received_at: string;
+  processed_at: string;
+  status: "received" | "processed" | "failed";
+  error: string;
+  payload_hash: string;
+  payload_preview: string;
+  created: string;
+  updated: string;
+}
+
+export type StripeHealth = "disabled" | "pending" | "restricted" | "healthy";
 
 // --- Hilfstyp: Externe Spendenkonfiguration ---
 export interface ExternalDonationConfig {
