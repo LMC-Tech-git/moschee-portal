@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ChevronLeft, Heart, TrendingUp } from "lucide-react";
 import { resolveMosqueWithSettings } from "@/lib/resolve-mosque";
+import { sepaAvailable } from "@/lib/stripe/client";
 import { getTranslations } from "next-intl/server";
 import { getPublicCampaigns, getCampaignById } from "@/lib/actions/campaigns";
 import { DonationForm } from "./DonationForm";
@@ -269,6 +270,9 @@ export default async function DonatePage({
             recurringDonationsEnabled={recurringDonationsEnabled}
             recurringMinCents={recurringMinCents}
             recurringQuickAmounts={recurringQuickAmounts}
+            sepaEnabled={sepaAvailable(mosque, settings)}
+            isTestMode={mosque.payments_mode === "connect_test"}
+            isDemoMode={isDemoMosque}
           />
         </div>
       </div>

@@ -1,12 +1,12 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { resolveMosqueBySlug } from "@/lib/resolve-mosque";
+import { resolveMosqueBySlug, resolveMosqueSettings } from "@/lib/resolve-mosque";
 import { getAdminPB } from "@/lib/pocketbase-admin";
 import { donationSubscriptionSchema } from "@/lib/validations";
 import { checkRateLimit, hashIP, getRateLimitHeaders } from "@/lib/rate-limit";
 import { verifyTurnstileToken } from "@/lib/turnstile";
 import { logAudit } from "@/lib/audit";
 import { normalizeEmail } from "@/lib/normalize-email";
-import { getStripe, stripeAccountFor } from "@/lib/stripe/client";
+import { getStripe, stripeAccountFor, sepaAvailable } from "@/lib/stripe/client";
 
 /**
  * POST /api/[slug]/donations/stripe/create-subscription
@@ -165,6 +165,17 @@ export async function POST(
         { success: false, error: String((err as Error).message) },
         { status: 400 }
       );
+    }
+
+    // SEPA-Capability prüfen wenn explizit gewählt
+    if (payment_method_type === "sepa_debit") {
+      const settings = await resolveMosqueSettings(mosque.id);
+      if (!sepaAvailable(mosque, settings)) {
+        return NextResponse.json(
+          { success: false, error: "SEPA-Lastschrift ist für diese Moschee nicht verfügbar." },
+          { status: 400 }
+        );
+      }
     }
 
     // Customer am Connected Account suchen/erstellen (NICHT Plattform).

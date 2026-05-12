@@ -24,6 +24,11 @@ interface DonationFormProps {
   recurringDonationsEnabled?: boolean;
   recurringMinCents?: number;
   recurringQuickAmounts?: number[];
+  // SEPA: Server-seitig berechnet (sepaAvailable). Demo + Connect identisch.
+  sepaEnabled?: boolean;
+  // Stripe-Mode Hinweise (Test-IBAN-Hint vs Live-Hint)
+  isTestMode?: boolean;
+  isDemoMode?: boolean;
 }
 
 export function DonationForm({
@@ -38,6 +43,9 @@ export function DonationForm({
   recurringDonationsEnabled = false,
   recurringMinCents = 300,
   recurringQuickAmounts,
+  sepaEnabled = false,
+  isTestMode = false,
+  isDemoMode = false,
 }: DonationFormProps) {
   const oneOffPresets = (quickAmounts && quickAmounts.length > 0) ? quickAmounts : DEFAULT_PRESET_AMOUNTS;
   const recurringPresets = (recurringQuickAmounts && recurringQuickAmounts.length > 0)
@@ -57,7 +65,8 @@ export function DonationForm({
   const [donorEmail, setDonorEmail] = useState("");
   const [coverFees, setCoverFees] = useState(false);
   const [paymentMethodType, setPaymentMethodType] = useState<"card" | "sepa_debit">("card");
-  const isDemo = DEMO_MOSQUE_ID !== "" && mosqueId === DEMO_MOSQUE_ID;
+  // Legacy-Alias für Demo-Banner (außerhalb Zahlungsmethoden-Logik)
+  const isDemo = isDemoMode || (DEMO_MOSQUE_ID !== "" && mosqueId === DEMO_MOSQUE_ID);
   const [turnstileToken, setTurnstileToken] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -173,7 +182,7 @@ export function DonationForm({
               campaign_id: campaignId || undefined,
               donor_name: donorName || undefined,
               donor_email: donorEmail,
-              payment_method_type: isDemo ? paymentMethodType : "card",
+              payment_method_type: paymentMethodType,
               turnstile_token: turnstileToken,
             }),
           }
@@ -199,7 +208,7 @@ export function DonationForm({
             donor_email: donorEmail || undefined,
             turnstile_token: turnstileToken,
             cover_fees: coverFees,
-            payment_method_type: isDemo ? paymentMethodType : undefined,
+            payment_method_type: paymentMethodType,
           }),
         }
       );
@@ -408,16 +417,13 @@ export function DonationForm({
         )}
       </div>
 
-      {/* Zahlungsmethode (nur Demo) */}
-      {isDemo && (
+      {/* Zahlungsmethode — sichtbar wenn SEPA aktiv (Demo + Connect identisch) */}
+      {sepaEnabled && (
         <div>
           <p className="mb-2 text-sm font-medium text-gray-700">
-            Zahlungsmethode{" "}
-            <span className="ml-1 rounded bg-amber-100 px-1.5 py-0.5 text-xs font-semibold text-amber-700">
-              Demo
-            </span>
+            {t("paymentMethodTitle")}
           </p>
-          <div className="grid grid-cols-2 gap-2" role="group" aria-label="Zahlungsmethode wählen">
+          <div className="grid grid-cols-2 gap-2" role="group" aria-label={t("paymentMethodTitle")}>
             <button
               type="button"
               onClick={() => setPaymentMethodType("card")}
@@ -428,7 +434,7 @@ export function DonationForm({
               }`}
             >
               <CreditCard className="h-4 w-4" aria-hidden="true" />
-              Kartenzahlung
+              {t("paymentMethodCard")}
             </button>
             <button
               type="button"
@@ -440,13 +446,17 @@ export function DonationForm({
               }`}
             >
               <Building2 className="h-4 w-4" aria-hidden="true" />
-              SEPA-Lastschrift
+              {t("paymentMethodSepa")}
             </button>
           </div>
-          {paymentMethodType === "sepa_debit" && (
+          {paymentMethodType === "sepa_debit" && (isTestMode || isDemoMode) && (
             <p className="mt-2 rounded-lg bg-blue-50 px-3 py-2 text-xs text-blue-700">
-              <strong>Test-IBAN:</strong> DE08 3704 0044 0532 0130 03 — Zahlung wechselt nach ~3 Min. auf
-              &bdquo;erfolgreich&rdquo;.
+              {t.rich("sepaTestHint", { strong: (chunks) => <strong>{chunks}</strong> })}
+            </p>
+          )}
+          {paymentMethodType === "sepa_debit" && !isTestMode && !isDemoMode && (
+            <p className="mt-2 rounded-lg bg-blue-50 px-3 py-2 text-xs text-blue-700">
+              {t("sepaLiveHint")}
             </p>
           )}
         </div>

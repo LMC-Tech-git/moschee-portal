@@ -428,7 +428,12 @@
     "submitBtn": "Jetzt spenden",
     "securePayment": "Sichere Zahlung über Stripe. Ihre Daten werden verschlüsselt übertragen.",
     "errorPayment": "Fehler beim Erstellen der Zahlung",
-    "errorNetwork": "Ein Netzwerkfehler ist aufgetreten"
+    "errorNetwork": "Ein Netzwerkfehler ist aufgetreten",
+    "paymentMethodTitle": "Zahlungsmethode",
+    "paymentMethodCard": "Kartenzahlung",
+    "paymentMethodSepa": "SEPA-Lastschrift",
+    "sepaTestHint": "<strong>Test-IBAN:</strong> DE08 3704 0044 0532 0130 03 — Zahlung wechselt nach ~3 Min. auf erfolgreich.",
+    "sepaLiveHint": "SEPA-Lastschrift dauert 3–5 Werktage. Sie erhalten eine Bestätigung sobald die Zahlung verarbeitet wurde."
   },
   "eventCard": {
     "recurring": "Wiederkehrend",
@@ -1413,6 +1418,7 @@
         "status_changed": "Spenden-Status geändert",
         "paid": "Spende bezahlt",
         "failed": "Spende fehlgeschlagen",
+        "failed_expired": "Spende abgelaufen (14 Tage)",
         "refunded": "Spende erstattet",
         "disputed": "Spende beanstandet"
       },
@@ -1441,6 +1447,12 @@
           "dashboard_login": "Stripe-Dashboard geöffnet",
           "deauthorized": "Stripe-Verknüpfung getrennt",
           "synced": "Stripe-Status synchronisiert"
+        },
+        "mandate": {
+          "updated": "SEPA-Mandat aktualisiert"
+        },
+        "payment_intent": {
+          "failed": "Stripe Payment-Intent fehlgeschlagen"
         }
       },
       "invite": {

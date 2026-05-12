@@ -1,11 +1,11 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { resolveMosqueBySlug } from "@/lib/resolve-mosque";
+import { resolveMosqueBySlug, resolveMosqueSettings } from "@/lib/resolve-mosque";
 import { getAdminPB } from "@/lib/pocketbase-admin";
 import { donationCheckoutSchema } from "@/lib/validations";
 import { checkRateLimit, hashIP, getRateLimitHeaders } from "@/lib/rate-limit";
 import { verifyTurnstileToken } from "@/lib/turnstile";
 import { logAudit } from "@/lib/audit";
-import { getStripe, stripeAccountFor } from "@/lib/stripe/client";
+import { getStripe, stripeAccountFor, sepaAvailable } from "@/lib/stripe/client";
 
 /**
  * POST /api/[slug]/donations/stripe/create-checkout
@@ -136,6 +136,43 @@ export async function POST(
       );
     }
 
+    // 3b. SEPA-Capability prüfen wenn explizit SEPA gewählt
+    if (payment_method_type === "sepa_debit") {
+      const settings = await resolveMosqueSettings(mosque.id);
+      if (!sepaAvailable(mosque, settings)) {
+        return NextResponse.json(
+          { success: false, error: "SEPA-Lastschrift ist für diese Moschee nicht verfügbar." },
+          { status: 400 }
+        );
+      }
+    }
+
+    // 3c. Duplicate-Guard: blockt nur created-Status (Stripe-Session noch offen, 5min Fenster).
+    // pending wird NICHT blockiert — SEPA-Pending dauert Tage, mehrfache Spenden sind legitim.
+    if (donor_email) {
+      const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+      try {
+        const pbAdminDupe = await getAdminPB();
+        const dupe = await pbAdminDupe.collection("donations").getList(1, 1, {
+          filter: [
+            `mosque_id = "${mosque.id}"`,
+            `donor_email = "${donor_email}"`,
+            `amount_cents = ${amount_cents}`,
+            `status = "created"`,
+            `created >= "${fiveMinAgo}"`,
+          ].join(" && "),
+        });
+        if (dupe.totalItems > 0) {
+          return NextResponse.json(
+            { success: false, error: "Bereits laufender Spendenvorgang — bitte Browser-Tab prüfen." },
+            { status: 409 }
+          );
+        }
+      } catch {
+        // Bei Lookup-Fehler durchlassen — kein Block-by-Error
+      }
+    }
+
     // 4. Donation in PB erstellen (Status: "created")
     const pbAdmin = await getAdminPB();
 
@@ -216,7 +253,10 @@ export async function POST(
         success_url: `${origin}/${params.slug}/donate?success=true`,
         cancel_url: `${origin}/${params.slug}/donate?cancelled=true`,
       },
-      stripeOpts,
+      {
+        idempotencyKey: `donation:${donation.id}`,
+        ...(stripeOpts || {}),
+      },
     );
 
     // 6. Provider-Ref speichern

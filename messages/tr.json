@@ -428,7 +428,12 @@
     "submitBtn": "Şimdi bağış yap",
     "securePayment": "Stripe üzerinden güvenli ödeme. Verileriniz şifreli olarak iletilir.",
     "errorPayment": "Ödeme oluşturulurken hata oluştu",
-    "errorNetwork": "Bir ağ hatası oluştu"
+    "errorNetwork": "Bir ağ hatası oluştu",
+    "paymentMethodTitle": "Ödeme yöntemi",
+    "paymentMethodCard": "Kart ile ödeme",
+    "paymentMethodSepa": "SEPA Otomatik Ödeme",
+    "sepaTestHint": "<strong>Test IBAN:</strong> DE08 3704 0044 0532 0130 03 — ödeme yaklaşık 3 dakika sonra başarılı olur.",
+    "sepaLiveHint": "SEPA otomatik ödeme 3–5 iş günü sürer. Ödeme tamamlandığında onay alacaksınız."
   },
   "eventCard": {
     "recurring": "Tekrarlayan",
@@ -1413,6 +1418,7 @@
         "status_changed": "Bağış durumu değiştirildi",
         "paid": "Bağış ödendi",
         "failed": "Bağış başarısız",
+        "failed_expired": "Bağış süresi doldu (14 gün)",
         "refunded": "Bağış iade edildi",
         "disputed": "Bağış itiraz edildi"
       },
@@ -1441,6 +1447,12 @@
           "dashboard_login": "Stripe paneli açıldı",
           "deauthorized": "Stripe bağlantısı kesildi",
           "synced": "Stripe durumu senkronize edildi"
+        },
+        "mandate": {
+          "updated": "SEPA mandatı güncellendi"
+        },
+        "payment_intent": {
+          "failed": "Stripe ödeme niyeti başarısız"
         }
       },
       "invite": {
