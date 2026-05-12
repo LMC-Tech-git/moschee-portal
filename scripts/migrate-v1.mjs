@@ -1821,7 +1821,10 @@ async function main() {
     console.log(`   ${updated > 0 ? "✅" : "⏭️ "} Capability-Status auf ${updated} Moscheen gesetzt`);
   }
 
-  // 6e. Backfill: settings.sepa_enabled = true für alle bestehenden Records ohne Wert
+  // 6e. Backfill: settings.sepa_enabled = true für ALLE Records bei denen false ist.
+  // PB setzt neue bool-Felder auf existing Records initial auf false (nicht null),
+  // daher kann der Feld-Default beim Schema-Update nicht greifen. Wir setzen explizit
+  // alle bestehenden Settings auf true — neue Records bekommen Default vom Schema.
   console.log("\n=== Daten-Migration: settings.sepa_enabled ===");
   if (collectionMap.settings) {
     let page = 1;
@@ -1829,8 +1832,7 @@ async function main() {
     while (true) {
       const res = await pbFetch(`/api/collections/settings/records?page=${page}&perPage=200`);
       for (const s of res.items || []) {
-        // PB liefert bei booleans manchmal undefined statt false bei neuen Feldern
-        if (s.sepa_enabled === undefined || s.sepa_enabled === null) {
+        if (s.sepa_enabled !== true) {
           await pbFetch(`/api/collections/settings/records/${s.id}`, {
             method: "PATCH",
             body: JSON.stringify({ sepa_enabled: true }),
