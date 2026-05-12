@@ -80,10 +80,16 @@ export async function getAdminPB(): Promise<PocketBase> {
   // still abgebrochen → raised_cents = 0.
   pb.autoCancellation(false);
 
-  // Versuche zuerst alten Endpunkt (PB < 0.23), dann neuen (PB v0.23+)
-  const oldAuth = await authViaAdminsEndpoint(pb, url, email, password);
-  if (!oldAuth) {
+  // Versuche zuerst _superusers (PB v0.23+), dann alten Endpunkt (PB <0.23).
+  // Reihenfolge ist wichtig: PB 0.23+ akzeptiert das alte /admins/-Token-Format
+  // nicht mehr als Superuser für Collection-Rule-Checks → muss _superusers sein.
+  try {
     await pb.collection("_superusers").authWithPassword(email, password);
+  } catch {
+    const ok = await authViaAdminsEndpoint(pb, url, email, password);
+    if (!ok) {
+      throw new Error("Admin-Authentifizierung fehlgeschlagen (weder _superusers noch /admins/)");
+    }
   }
 
   _adminPB = pb;
