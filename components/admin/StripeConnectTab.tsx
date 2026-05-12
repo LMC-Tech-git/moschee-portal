@@ -150,7 +150,8 @@ export default function StripeConnectTab({ mosqueId }: Props) {
             {t("action.startOnboarding")}
           </button>
         )}
-        {status.accountId && !status.detailsSubmitted && (
+        {status.accountId &&
+          (!status.detailsSubmitted || status.currentlyDue.length > 0) && (
           <button
             type="button"
             onClick={startOnboarding}
