@@ -73,7 +73,8 @@ export async function createConnectAccount(
     capabilities: {
       card_payments: { requested: true },
       sepa_debit_payments: { requested: true },
-      // KEIN transfers (Direct Charges braucht es nicht)
+      // transfers ist Stripe-Pflicht bei card_payments — auch bei Direct Charges
+      transfers: { requested: true },
       // KEIN business_type (Stripe-Wizard fragt selbst)
     },
     metadata: {
