@@ -191,6 +191,7 @@ export async function POST(
       is_recurring: false,
       provider: "stripe",
       payment_method: "stripe",
+      payment_method_detail: payment_method_type || "card",
       status: "created",
     };
     if (authenticatedUserId) {

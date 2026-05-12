@@ -1718,6 +1718,22 @@ async function main() {
     }
   }
 
+  // 20a. donations: payment_method_detail hinzufügen (card/sepa_debit Unterscheidung)
+  if (collectionMap.donations) {
+    const donCol = (await getExistingCollections()).find((c) => c.name === "donations");
+    const existingFieldNames = (donCol?.schema || []).map((f) => f.name);
+    if (!existingFieldNames.includes("payment_method_detail")) {
+      const newSchema = [
+        ...(donCol?.schema || []),
+        { name: "payment_method_detail", type: "text", options: { max: 50 } },
+      ];
+      await updateCollection("donations", { schema: newSchema });
+      console.log("   ✅ donations: payment_method_detail hinzugefügt");
+    } else {
+      console.log("   ⏭️  donations: payment_method_detail bereits vorhanden");
+    }
+  }
+
   // 20. donations: Status-Enum um "disputed" + "failed_expired" erweitern
   if (collectionMap.donations) {
     const donCol = (await getExistingCollections()).find((c) => c.name === "donations");

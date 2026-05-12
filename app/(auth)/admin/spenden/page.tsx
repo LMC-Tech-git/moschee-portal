@@ -767,7 +767,16 @@ export default function AdminSpendenPage() {
                     <td className="px-4 py-3">
                       <span className="flex items-center gap-1 text-xs text-gray-500">
                         <CreditCard className="h-3 w-3" />
-                        {t(`source.${d.provider}` as Parameters<typeof t>[0]) || d.provider}
+                        {(() => {
+                          const detail = (d as { payment_method_detail?: string }).payment_method_detail;
+                          if (d.provider === "stripe" && detail === "sepa_debit") {
+                            return t("source.stripe_sepa" as Parameters<typeof t>[0]) || "Stripe (SEPA)";
+                          }
+                          if (d.provider === "stripe" && detail === "card") {
+                            return t("source.stripe_card" as Parameters<typeof t>[0]) || "Stripe (Karte)";
+                          }
+                          return t(`source.${d.provider}` as Parameters<typeof t>[0]) || d.provider;
+                        })()}
                       </span>
                     </td>
                     <td className="px-4 py-3">

@@ -776,6 +776,28 @@ export async function POST(request: NextRequest) {
           // nicht vorhanden → weiter
         }
 
+        // Payment-Method-Detail aus PaymentIntent (card / sepa_debit) extrahieren
+        let methodDetail = "";
+        try {
+          const piId = typeof invoice.payment_intent === "string"
+            ? invoice.payment_intent
+            : invoice.payment_intent?.id;
+          if (piId) {
+            const piOpts = connectedAccountId ? { stripeAccount: connectedAccountId } : undefined;
+            const pi = await stripe.paymentIntents.retrieve(
+              piId,
+              { expand: ["latest_charge"] },
+              piOpts,
+            );
+            const charge = pi.latest_charge as Stripe.Charge | string | null;
+            if (charge && typeof charge !== "string") {
+              methodDetail = charge.payment_method_details?.type || "";
+            }
+          }
+        } catch {
+          // best-effort, weiter ohne Detail
+        }
+
         let newDonationId: string | null = null;
         try {
           const created = await pb.collection("donations").create({
@@ -790,6 +812,8 @@ export async function POST(request: NextRequest) {
             is_recurring: true,
             subscription_id: pbSub.id,
             provider: "stripe",
+            payment_method: "stripe",
+            payment_method_detail: methodDetail,
             provider_ref: invoice.id,
             status: "pending", // Finalizer setzt paid + sendet Quittung
           });

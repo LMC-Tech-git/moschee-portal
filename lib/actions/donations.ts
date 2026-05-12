@@ -23,6 +23,7 @@ function mapRecord(r: RecordModel): Donation {
     subscription_id: r.subscription_id || "",
     provider: r.provider || "manual",
     provider_ref: r.provider_ref || "",
+    payment_method_detail: r.payment_method_detail || "",
     status: r.status || "pending",
     paid_at: r.paid_at || "",
     created: r.created || "",

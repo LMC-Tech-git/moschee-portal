@@ -320,6 +320,9 @@ export interface Donation {
   provider: "stripe" | "sepa" | "paypal_link" | "external" | "manual";
   provider_ref: string; // Stripe Session ID, etc.
   status: "created" | "pending" | "paid" | "failed" | "failed_expired" | "refunded" | "cancelled" | "external" | "disputed";
+  // "card" | "sepa_debit" | "" (legacy/unknown). Wird beim Donation-Create gespeichert
+  // bzw. aus Stripe-PaymentIntent ausgelesen.
+  payment_method_detail?: string;
   paid_at: string;
   created: string;
   updated: string;
