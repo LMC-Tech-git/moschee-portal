@@ -645,3 +645,61 @@ export function renderInviteEmail(data: {
   `;
   return baseTemplate(content, data.mosqueName, data.accentColor);
 }
+
+// =========================================
+// SEPA-Lastschrift fehlgeschlagen
+// =========================================
+
+export function renderSepaFailureEmail(data: {
+  mosqueName: string;
+  mosqueSlug?: string;
+  donorName?: string;
+  amountEur: string;
+  reason?: string;
+  accentColor?: string;
+  expired?: boolean;
+}): string {
+  const greeting = data.donorName ? `Liebe/r ${data.donorName},` : "Liebe Spenderin, lieber Spender,";
+  const reasonBlock = data.reason
+    ? `<p style="margin:0 0 12px;color:#374151;font-size:14px;line-height:1.6;">
+         <strong>Grund:</strong> ${data.reason}
+       </p>`
+    : "";
+  const expiredHint = data.expired
+    ? `<p style="margin:0 0 16px;color:#6b7280;font-size:14px;line-height:1.6;">
+         Die Zahlung wurde nach 14 Tagen ohne Bestätigung von uns automatisch beendet.
+       </p>`
+    : "";
+  const retryUrl = data.mosqueSlug
+    ? `https://${data.mosqueSlug}.moschee.app/donate`
+    : null;
+  const retryButton = retryUrl
+    ? `<table cellpadding="0" cellspacing="0" style="margin:24px 0;">
+         <tr>
+           <td style="background:${data.accentColor || DEFAULT_COLOR};border-radius:8px;">
+             <a href="${retryUrl}" style="display:inline-block;padding:12px 24px;color:#ffffff;text-decoration:none;font-weight:600;font-size:14px;">
+               Erneut spenden
+             </a>
+           </td>
+         </tr>
+       </table>`
+    : "";
+
+  const content = `
+    <h2 style="margin:0 0 16px;color:#dc2626;font-size:22px;">SEPA-Lastschrift fehlgeschlagen</h2>
+    <p style="margin:0 0 16px;color:#374151;font-size:15px;line-height:1.6;">${greeting}</p>
+    <p style="margin:0 0 16px;color:#374151;font-size:15px;line-height:1.6;">
+      Leider konnte Ihre Spende über <strong>${data.amountEur} €</strong> nicht eingezogen werden.
+    </p>
+    ${reasonBlock}
+    ${expiredHint}
+    <p style="margin:0 0 16px;color:#374151;font-size:14px;line-height:1.6;">
+      Mögliche Ursachen: unzureichende Kontodeckung, falsche IBAN, oder widerrufenes Mandat. Bitte prüfen Sie Ihre Kontodaten und versuchen Sie es erneut.
+    </p>
+    ${retryButton}
+    <p style="margin:24px 0 0;color:#9ca3af;font-size:13px;line-height:1.6;">
+      Bei Fragen erreichen Sie uns über das Kontaktformular Ihrer Moschee.
+    </p>
+  `;
+  return baseTemplate(content, data.mosqueName, data.accentColor);
+}

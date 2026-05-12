@@ -13,6 +13,7 @@ import {
   markProcessed,
   markFailed,
 } from "@/lib/stripe/idempotency";
+import { finalizeSuccessfulPayment, finalizeFailedPayment } from "@/lib/stripe/finalize";
 import type { RecordModel } from "pocketbase";
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -544,25 +545,16 @@ export async function POST(request: NextRequest) {
         // SEPA-Lastschrift: Payment kommt verzögert
         const session = event.data.object as Stripe.Checkout.Session;
         const paymentTypeAsync = session.metadata?.payment_type;
-        const mosqueIdAsync = session.metadata?.mosque_id;
+        const mosqueIdAsync = session.metadata?.mosque_id || connectMosque?.id;
         const donationId = session.metadata?.donation_id;
 
-        if (donationId) {
-          // Spende
-          await pb.collection("donations").update(donationId, {
-            status: "paid",
-            paid_at: new Date().toISOString(),
+        if (donationId && mosqueIdAsync) {
+          // Zentraler Finalizer: setzt status=paid + sendet Quittung + Admin-Notif
+          await finalizeSuccessfulPayment({
+            donationId,
+            mosqueId: mosqueIdAsync,
+            source: "checkout_async",
           });
-          console.log(`[Stripe Webhook] Async-Payment Spende ${donationId} bezahlt`);
-          if (mosqueIdAsync) {
-            logAudit({
-              mosqueId: mosqueIdAsync,
-              action: "donation.paid",
-              entityType: "donation",
-              entityId: donationId,
-              details: { async: true, provider: "stripe" },
-            });
-          }
         } else if (paymentTypeAsync === "fee" && mosqueIdAsync) {
           // Einzelne Madrasa-Gebühr (SEPA)
           const feeId = session.metadata?.fee_id;
@@ -602,22 +594,17 @@ export async function POST(request: NextRequest) {
       case "checkout.session.async_payment_failed": {
         const session = event.data.object as Stripe.Checkout.Session;
         const paymentTypeFailed = session.metadata?.payment_type;
-        const mosqueIdFailed = session.metadata?.mosque_id;
+        const mosqueIdFailed = session.metadata?.mosque_id || connectMosque?.id;
         const donationId = session.metadata?.donation_id;
 
-        if (donationId) {
-          // Spende
-          await pb.collection("donations").update(donationId, { status: "failed" });
-          console.log(`[Stripe Webhook] Payment Spende ${donationId} fehlgeschlagen`);
-          if (mosqueIdFailed) {
-            logAudit({
-              mosqueId: mosqueIdFailed,
-              action: "donation.failed",
-              entityType: "donation",
-              entityId: donationId,
-              details: { provider: "stripe" },
-            });
-          }
+        if (donationId && mosqueIdFailed) {
+          // Zentraler Failure-Handler: status=failed + SEPA-Failure-Email
+          await finalizeFailedPayment({
+            donationId,
+            mosqueId: mosqueIdFailed,
+            source: "checkout_async",
+            reason: "SEPA-Lastschrift konnte nicht eingezogen werden",
+          });
         } else if (paymentTypeFailed === "fee" && mosqueIdFailed) {
           // Einzelne Madrasa-Gebühr
           const feeId = session.metadata?.fee_id;
@@ -713,6 +700,19 @@ export async function POST(request: NextRequest) {
 
       case "payment_intent.payment_failed": {
         const pi = event.data.object as Stripe.PaymentIntent;
+        // Audit-only für Connect-Account (Donations laufen separat über checkout/invoice failed)
+        if (connectMosque) {
+          logAudit({
+            mosqueId: connectMosque.id,
+            action: "stripe.payment_intent.failed",
+            entityType: "mosque",
+            entityId: connectMosque.id,
+            details: {
+              payment_intent_id: pi.id.slice(0, 14) + "...",
+              error: pi.last_payment_error?.message?.slice(0, 200) || pi.status,
+            },
+          });
+        }
         const registrationId = pi.metadata?.registration_id;
         if (registrationId && pi.metadata?.payment_type === "event") {
           try {
@@ -776,8 +776,9 @@ export async function POST(request: NextRequest) {
           // nicht vorhanden → weiter
         }
 
+        let newDonationId: string | null = null;
         try {
-          await pb.collection("donations").create({
+          const created = await pb.collection("donations").create({
             mosque_id: pbSub.mosque_id,
             campaign_id: pbSub.campaign_id || "",
             donor_type: pbSub.donor_type,
@@ -790,9 +791,9 @@ export async function POST(request: NextRequest) {
             subscription_id: pbSub.id,
             provider: "stripe",
             provider_ref: invoice.id,
-            status: "paid",
-            paid_at: paidAt,
+            status: "pending", // Finalizer setzt paid + sendet Quittung
           });
+          newDonationId = created.id;
         } catch (e) {
           console.warn(`[Stripe Webhook] invoice.paid: Donation create fehlgeschlagen (evtl. Race):`, e);
         }
@@ -820,43 +821,14 @@ export async function POST(request: NextRequest) {
 
         await checkRecurringFeatureFlag(pb, pbSub.mosque_id, pbSub.id);
 
-        // Spendenquittung
-        (async () => {
-          try {
-            const mosque = await pb.collection("mosques").getOne(pbSub.mosque_id, {
-              fields: "name,brand_primary_color",
-            });
-            let toEmail: string | null = null;
-            let donorName: string | undefined;
-            if (pbSub.user_id) {
-              try {
-                const user = await pb.collection("users").getOne(pbSub.user_id, {
-                  fields: "email,first_name,name",
-                });
-                toEmail = user.email || null;
-                donorName = user.first_name || user.name || undefined;
-              } catch {}
-            }
-            if (!toEmail) toEmail = pbSub.donor_email || null;
-            if (toEmail) {
-              const amountEur = ((invoice.amount_paid || 0) / 100).toFixed(2).replace(".", ",");
-              const html = renderDonationReceipt({
-                mosqueName: mosque.name,
-                donorName,
-                amountEur,
-                donationDate: new Date(paidAt).toLocaleDateString("de-DE"),
-                accentColor: mosque.brand_primary_color || undefined,
-              });
-              await sendEmailDirect({
-                to: toEmail,
-                subject: `Ihre Spendenbestätigung (Dauerauftrag) — ${mosque.name}`,
-                html,
-              });
-            }
-          } catch (e) {
-            console.error("[Stripe Webhook] invoice.paid E-Mail-Fehler:", e);
-          }
-        })();
+        // Zentraler Finalizer: setzt paid + sendet Quittung + Admin-Notif
+        if (newDonationId) {
+          await finalizeSuccessfulPayment({
+            donationId: newDonationId,
+            mosqueId: pbSub.mosque_id,
+            source: "invoice_paid",
+          });
+        }
 
         break;
       }
@@ -874,16 +846,18 @@ export async function POST(request: NextRequest) {
           break;
         }
 
-        // Idempotenz für failed-Donation
+        // Idempotenz für failed-Donation: bestehend → finalize, sonst neu mit pending → finalize fail
+        let failDonationId: string | null = null;
         try {
-          await pb
+          const existing = await pb
             .collection("donations")
             .getFirstListItem(
               `mosque_id = "${pbSub.mosque_id}" && provider = "stripe" && provider_ref = "${invoice.id}"`
             );
+          failDonationId = existing.id;
         } catch {
           try {
-            await pb.collection("donations").create({
+            const created = await pb.collection("donations").create({
               mosque_id: pbSub.mosque_id,
               campaign_id: pbSub.campaign_id || "",
               donor_type: pbSub.donor_type,
@@ -896,8 +870,9 @@ export async function POST(request: NextRequest) {
               subscription_id: pbSub.id,
               provider: "stripe",
               provider_ref: invoice.id,
-              status: "failed",
+              status: "pending", // Finalizer setzt failed + sendet Email
             });
+            failDonationId = created.id;
           } catch (e) {
             console.warn(`[Stripe Webhook] invoice.payment_failed: Donation create fehlgeschlagen:`, e);
           }
@@ -915,6 +890,17 @@ export async function POST(request: NextRequest) {
           entityId: pbSub.id,
           details: { invoice_id: invoice.id, attempt_count: invoice.attempt_count },
         });
+
+        // Zentraler Failure-Handler — sendet User-Email "SEPA fehlgeschlagen"
+        if (failDonationId) {
+          await finalizeFailedPayment({
+            donationId: failDonationId,
+            mosqueId: pbSub.mosque_id,
+            source: "invoice_failed",
+            reason: (invoice as unknown as { last_finalization_error?: { message?: string } })
+              .last_finalization_error?.message || `Versuch ${invoice.attempt_count || 1}`,
+          });
+        }
         break;
       }
 
@@ -1101,6 +1087,25 @@ export async function POST(request: NextRequest) {
           // TODO: Admin-Email "Stripe getrennt — Zahlungen blockiert"
         } catch {
           console.warn("[Stripe Webhook] deauthorized für unbekannten Account:", accountId);
+        }
+        break;
+      }
+
+      // ─── Audit-only Cases (kein Business-Effekt, nur Tracking) ─────────
+      case "mandate.updated": {
+        // SEPA-Mandat geändert (Widerruf, Status-Update). Nur loggen.
+        const mandate = event.data.object as { id?: string; status?: string; payment_method?: string };
+        if (connectMosque) {
+          logAudit({
+            mosqueId: connectMosque.id,
+            action: "stripe.mandate.updated",
+            entityType: "mosque",
+            entityId: connectMosque.id,
+            details: {
+              mandate_id: mandate.id?.slice(0, 12) + "..." || "?",
+              status: mandate.status || "?",
+            },
+          });
         }
         break;
       }
