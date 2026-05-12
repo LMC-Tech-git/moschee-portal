@@ -650,6 +650,22 @@ const MOSQUES_NEW_FIELDS = [
   },
   { name: "stripe_onboarded_at", type: "date" },
   { name: "stripe_last_synced_at", type: "date" },
+  // Per-Capability Tracking (Stripe = Source of Truth, lokal Cache)
+  {
+    name: "stripe_card_payments_status",
+    type: "select",
+    options: { values: ["inactive", "pending", "active"], maxSelect: 1 },
+  },
+  {
+    name: "stripe_sepa_debit_payments_status",
+    type: "select",
+    options: { values: ["inactive", "pending", "active"], maxSelect: 1 },
+  },
+];
+
+// Settings: SEPA-Lastschrift Opt-In pro Moschee
+const SETTINGS_SEPA_FIELDS = [
+  { name: "sepa_enabled", type: "bool", options: { default: true } },
 ];
 
 // Stripe Webhook Idempotenz
@@ -1278,6 +1294,20 @@ async function main() {
     }
   }
 
+  // 9f. settings: SEPA-Felder
+  if (collectionMap.settings) {
+    const settingsCol = (await getExistingCollections()).find((c) => c.name === "settings");
+    const existingFieldNames = (settingsCol?.schema || []).map((f) => f.name);
+    const fieldsToAdd = SETTINGS_SEPA_FIELDS.filter((f) => !existingFieldNames.includes(f.name));
+    if (fieldsToAdd.length > 0) {
+      const newSchema = [...(settingsCol?.schema || []), ...fieldsToAdd];
+      await updateCollection("settings", { schema: newSchema });
+      console.log(`   ✅ settings (sepa): ${fieldsToAdd.map((f) => f.name).join(", ")} hinzugefügt`);
+    } else {
+      console.log("   ⏭️  settings: SEPA-Feld bereits vorhanden");
+    }
+  }
+
   // 9c. student_fees: reminder_sent_at hinzufügen
   if (collectionMap.student_fees) {
     const feesCol = (await getExistingCollections()).find((c) => c.name === "student_fees");
@@ -1688,21 +1718,23 @@ async function main() {
     }
   }
 
-  // 20. donations: Status-Enum um "disputed" erweitern + Unique-Index auf provider_ref
+  // 20. donations: Status-Enum um "disputed" + "failed_expired" erweitern
   if (collectionMap.donations) {
     const donCol = (await getExistingCollections()).find((c) => c.name === "donations");
     const statusField = (donCol?.schema || []).find((f) => f.name === "status");
     if (statusField && statusField.options?.values) {
       const currentValues = statusField.options.values;
-      if (!currentValues.includes("disputed")) {
-        const newValues = [...currentValues, "disputed"];
+      const required = ["disputed", "failed_expired"];
+      const missing = required.filter((v) => !currentValues.includes(v));
+      if (missing.length > 0) {
+        const newValues = [...currentValues, ...missing];
         const updatedSchema = (donCol.schema || []).map((f) =>
           f.name === "status" ? { ...f, options: { ...f.options, values: newValues } } : f
         );
         await updateCollection("donations", { schema: updatedSchema });
-        console.log("   ✅ donations.status: 'disputed' hinzugefügt");
+        console.log(`   ✅ donations.status: ${missing.join(", ")} hinzugefügt`);
       } else {
-        console.log("   ⏭️  donations.status: 'disputed' bereits vorhanden");
+        console.log("   ⏭️  donations.status: 'disputed' + 'failed_expired' bereits vorhanden");
       }
     }
 
@@ -1755,6 +1787,61 @@ async function main() {
       page++;
     }
     console.log(`   ${updated > 0 ? "✅" : "⏭️ "} ${updated} Moscheen auf "platform_legacy" gesetzt`);
+  }
+
+  // 6d. Backfill: Capability-Status. platform_legacy → active (Plattform-Konto).
+  //     Connect-Moscheen: bei stripe_charges_enabled=true → card_payments=active,
+  //     sepa_debit übernimmt Wert aus charges_enabled (best-guess, wird beim
+  //     nächsten Sync vom Stripe-API präzisiert).
+  console.log("\n=== Daten-Migration: Capability-Status (mosques) ===");
+  if (collectionMap.mosques) {
+    let page = 1;
+    let updated = 0;
+    while (true) {
+      const res = await pbFetch(`/api/collections/mosques/records?page=${page}&perPage=200`);
+      for (const m of res.items || []) {
+        const isLegacy = m.payments_mode === "platform_legacy";
+        const isConnectActive = !!m.stripe_account_id && m.stripe_charges_enabled === true;
+        const wantCard = isLegacy ? "active" : (isConnectActive ? "active" : "inactive");
+        const wantSepa = isLegacy ? "active" : (isConnectActive ? "active" : "inactive");
+        const patch = {};
+        if (!m.stripe_card_payments_status) patch.stripe_card_payments_status = wantCard;
+        if (!m.stripe_sepa_debit_payments_status) patch.stripe_sepa_debit_payments_status = wantSepa;
+        if (Object.keys(patch).length > 0) {
+          await pbFetch(`/api/collections/mosques/records/${m.id}`, {
+            method: "PATCH",
+            body: JSON.stringify(patch),
+          });
+          updated++;
+        }
+      }
+      if (page >= (res.totalPages || 1)) break;
+      page++;
+    }
+    console.log(`   ${updated > 0 ? "✅" : "⏭️ "} Capability-Status auf ${updated} Moscheen gesetzt`);
+  }
+
+  // 6e. Backfill: settings.sepa_enabled = true für alle bestehenden Records ohne Wert
+  console.log("\n=== Daten-Migration: settings.sepa_enabled ===");
+  if (collectionMap.settings) {
+    let page = 1;
+    let updated = 0;
+    while (true) {
+      const res = await pbFetch(`/api/collections/settings/records?page=${page}&perPage=200`);
+      for (const s of res.items || []) {
+        // PB liefert bei booleans manchmal undefined statt false bei neuen Feldern
+        if (s.sepa_enabled === undefined || s.sepa_enabled === null) {
+          await pbFetch(`/api/collections/settings/records/${s.id}`, {
+            method: "PATCH",
+            body: JSON.stringify({ sepa_enabled: true }),
+          });
+          updated++;
+        }
+      }
+      if (page >= (res.totalPages || 1)) break;
+      page++;
+    }
+    console.log(`   ${updated > 0 ? "✅" : "⏭️ "} ${updated} Settings-Records auf sepa_enabled=true`);
   }
 
   console.log("\n=== ✅ Migration abgeschlossen ===\n");

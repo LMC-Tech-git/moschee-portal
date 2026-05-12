@@ -39,6 +39,8 @@ function mapRecord(record: RecordModel): Mosque {
     payments_mode: record.payments_mode || "platform_legacy",
     stripe_onboarded_at: record.stripe_onboarded_at || "",
     stripe_last_synced_at: record.stripe_last_synced_at || "",
+    stripe_card_payments_status: record.stripe_card_payments_status || "inactive",
+    stripe_sepa_debit_payments_status: record.stripe_sepa_debit_payments_status || "inactive",
     created: record.created || "",
     updated: record.updated || "",
   };

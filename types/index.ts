@@ -44,9 +44,14 @@ export interface Mosque {
   payments_mode: PaymentsMode;
   stripe_onboarded_at: string;
   stripe_last_synced_at: string;
+  // Per-Capability Status (Stripe = Source of Truth, lokal Cache)
+  stripe_card_payments_status: CapabilityStatus;
+  stripe_sepa_debit_payments_status: CapabilityStatus;
   created: string;
   updated: string;
 }
+
+export type CapabilityStatus = "inactive" | "pending" | "active";
 
 // Stripe Webhook Idempotenz
 export interface StripeEvent {
@@ -119,6 +124,8 @@ export interface Settings {
   recurring_donations_enabled: boolean;
   recurring_min_cents: number;
   recurring_quick_amounts: string; // CSV "500,1000,2000,5000"
+  // SEPA-Lastschrift Opt-In pro Moschee
+  sepa_enabled: boolean;
   created: string;
   updated: string;
 }
@@ -312,7 +319,7 @@ export interface Donation {
   subscription_id: string; // optional, Relation → recurring_subscriptions
   provider: "stripe" | "sepa" | "paypal_link" | "external" | "manual";
   provider_ref: string; // Stripe Session ID, etc.
-  status: "created" | "pending" | "paid" | "failed" | "refunded" | "cancelled" | "external" | "disputed";
+  status: "created" | "pending" | "paid" | "failed" | "failed_expired" | "refunded" | "cancelled" | "external" | "disputed";
   paid_at: string;
   created: string;
   updated: string;

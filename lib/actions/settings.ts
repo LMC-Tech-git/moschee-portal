@@ -313,6 +313,7 @@ export async function getPortalSettings(mosqueId: string): Promise<{
         recurring_donations_enabled: false,
         recurring_min_cents: 300,
         recurring_quick_amounts: "500,1000,2000,5000",
+        sepa_enabled: true,
         created: "",
         updated: "",
       };

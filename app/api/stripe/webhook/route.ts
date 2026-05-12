@@ -1032,12 +1032,22 @@ export async function POST(request: NextRequest) {
             .getFirstListItem(`stripe_account_id = "${acc.id}"`);
           const currentlyDue = acc.requirements?.currently_due ?? [];
           const eventuallyDue = acc.requirements?.eventually_due ?? [];
+          const cardStatus =
+            acc.capabilities?.card_payments === "active" || acc.capabilities?.card_payments === "pending"
+              ? acc.capabilities.card_payments
+              : "inactive";
+          const sepaStatus =
+            acc.capabilities?.sepa_debit_payments === "active" || acc.capabilities?.sepa_debit_payments === "pending"
+              ? acc.capabilities.sepa_debit_payments
+              : "inactive";
           const update: Record<string, unknown> = {
             stripe_charges_enabled: acc.charges_enabled ?? false,
             stripe_payouts_enabled: acc.payouts_enabled ?? false,
             stripe_details_submitted: acc.details_submitted ?? false,
             stripe_requirements_currently_due: currentlyDue,
             stripe_requirements_eventually_due: eventuallyDue,
+            stripe_card_payments_status: cardStatus,
+            stripe_sepa_debit_payments_status: sepaStatus,
             stripe_last_synced_at: new Date().toISOString(),
           };
           if (acc.details_submitted && !m.stripe_onboarded_at) {
@@ -1053,6 +1063,8 @@ export async function POST(request: NextRequest) {
               charges_enabled: acc.charges_enabled ?? false,
               payouts_enabled: acc.payouts_enabled ?? false,
               currently_due_count: currentlyDue.length,
+              card_payments: cardStatus,
+              sepa_debit_payments: sepaStatus,
             },
           });
         } catch {

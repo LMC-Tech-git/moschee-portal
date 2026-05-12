@@ -60,6 +60,13 @@ export interface AccountState {
   detailsSubmitted: boolean;
   currentlyDue: string[];
   eventuallyDue: string[];
+  cardPaymentsStatus: "inactive" | "pending" | "active";
+  sepaDebitPaymentsStatus: "inactive" | "pending" | "active";
+}
+
+function mapCapability(s: string | undefined): "inactive" | "pending" | "active" {
+  if (s === "active" || s === "pending") return s;
+  return "inactive";
 }
 
 export async function createConnectAccount(
@@ -117,6 +124,8 @@ export async function fetchAccountState(accountId: string): Promise<AccountState
     detailsSubmitted: acc.details_submitted ?? false,
     currentlyDue: acc.requirements?.currently_due ?? [],
     eventuallyDue: acc.requirements?.eventually_due ?? [],
+    cardPaymentsStatus: mapCapability(acc.capabilities?.card_payments),
+    sepaDebitPaymentsStatus: mapCapability(acc.capabilities?.sepa_debit_payments),
   };
 }
 

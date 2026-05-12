@@ -67,6 +67,7 @@ export async function resolveMosqueSettings(
     recurring_donations_enabled: false,
     recurring_min_cents: 1000,
     recurring_quick_amounts: "1000,2000,5000,10000",
+    sepa_enabled: true,
     created: "",
     updated: "",
   };

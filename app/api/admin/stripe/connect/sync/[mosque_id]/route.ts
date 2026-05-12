@@ -37,6 +37,8 @@ export async function POST(
       stripe_details_submitted: state.detailsSubmitted,
       stripe_requirements_currently_due: state.currentlyDue,
       stripe_requirements_eventually_due: state.eventuallyDue,
+      stripe_card_payments_status: state.cardPaymentsStatus,
+      stripe_sepa_debit_payments_status: state.sepaDebitPaymentsStatus,
       stripe_last_synced_at: new Date().toISOString(),
     });
 
