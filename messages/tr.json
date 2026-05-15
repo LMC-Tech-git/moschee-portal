@@ -2907,6 +2907,7 @@
       "title": "Modern cami yönetimi için adil fiyatlar",
       "subtitle": "Tüm özellikler dahil. Gizli maliyet yok."
     },
+    "allFeaturesIncluded": "Tüm özellikler dahil",
     "billing": {
       "monthly": "Aylık",
       "yearly": "Yıllık",
@@ -2919,28 +2920,11 @@
       "recommended": "Tavsiye edilen",
       "small": {
         "name": "Küçük",
-        "tagline": "Küçük cemaatler için",
-        "cta": "Danışmanlık talep et",
-        "features": {
-          "f1": "Tüm özellikler dahil",
-          "f2": "200 üyeye kadar",
-          "f3": "Namaz vakitleri, etkinlikler, bağışlar",
-          "f4": "Medrese yönetimi",
-          "f5": "E-posta desteği"
-        }
+        "cta": "Danışmanlık talep et"
       },
       "standard": {
         "name": "Standart",
-        "tagline": "Köklü cemaatler için",
-        "cta": "Canlı demo planla",
-        "features": {
-          "f1": "Tüm özellikler dahil",
-          "f2": "Sınırsız üye",
-          "f3": "Namaz vakitleri, etkinlikler, bağışlar, kampanyalar",
-          "f4": "Medrese yönetimi (ücretler dahil)",
-          "f5": "Bülten ve denetim günlüğü",
-          "f6": "Öncelikli destek"
-        }
+        "cta": "Canlı demo planla"
       }
     },
     "trust": {
@@ -3000,11 +2984,6 @@
         "onRequest": "Talep üzerine"
       }
     },
-    "pilot": {
-      "title": "Pilot Ortak Programı",
-      "body": "Küçük ama hırslı bir cemaat misiniz ve gelişime aktif katkı sunmak ister misiniz? Bize ulaşın — pilot ortaklar için özel koşullarımız var.",
-      "cta": "İletişime geç"
-    },
     "faq": {
       "title": "Sıkça sorulan sorular",
       "items": {
@@ -3023,10 +3002,6 @@
         "export": {
           "q": "İptal durumunda verilerime ne olur?",
           "a": "Sözleşme bitiminden önce tüm verilerin (üyeler, bağışlar, etkinlikler, kurslar) tam CSV dışa aktarımını alırsınız. Verileriniz size aittir."
-        },
-        "small": {
-          "q": "„Küçük cemaat\" nedir?",
-          "a": "Bunu bireysel olarak değerlendiriyoruz — üye sayısı, aktivite, bütçe. Bize ulaşın, birlikte uygun tarifeyi buluruz."
         },
         "stripe": {
           "q": "Çevrimiçi bağışlarda ek ücret var mı?",

@@ -12,7 +12,6 @@ import {
   ArrowRight,
   Sparkles,
   Wrench,
-  Headphones,
 } from "lucide-react";
 import { PricingPlans } from "@/components/pricing/PricingPlans";
 
@@ -42,7 +41,7 @@ const TRUST_ITEMS = [
 
 const ONBOARDING_ITEMS = ["i1", "i2", "i3", "i4", "i5"] as const;
 
-const FAQ_ITEMS = ["cancellation", "vat", "yearly", "export", "small", "stripe"] as const;
+const FAQ_ITEMS = ["cancellation", "vat", "yearly", "export", "stripe"] as const;
 
 const COMPARE_ROWS = [
   { key: "hosting", wp: "extraCost", agency: "agencyHosted", moschee: "inclusive" },
@@ -294,31 +293,6 @@ export default async function PreisePage() {
                 </p>
               </details>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Pilot-Hinweis (dezent) ───────────────────────────────────── */}
-      <section className="bg-gray-50 px-4 py-12" aria-labelledby="pilot-heading">
-        <div className="mx-auto max-w-3xl">
-          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
-            <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <h2 id="pilot-heading" className="mb-1 text-lg font-bold text-gray-900">
-                  {t("pilot.title")}
-                </h2>
-                <p className="text-sm leading-relaxed text-gray-600">
-                  {t("pilot.body")}
-                </p>
-              </div>
-              <Link
-                href="/kontakt?topic=pilot"
-                className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-gray-200 bg-white px-5 py-2.5 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50"
-              >
-                <Headphones className="h-4 w-4" aria-hidden="true" />
-                {t("pilot.cta")}
-              </Link>
-            </div>
           </div>
         </div>
       </section>

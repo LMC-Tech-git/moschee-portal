@@ -2907,6 +2907,7 @@
       "title": "Faire Preise für moderne Moscheeverwaltung",
       "subtitle": "Alle Features inklusive. Keine versteckten Kosten."
     },
+    "allFeaturesIncluded": "Alle Features inklusive",
     "billing": {
       "monthly": "Monatlich",
       "yearly": "Jährlich",
@@ -2919,28 +2920,11 @@
       "recommended": "Empfohlen",
       "small": {
         "name": "Klein",
-        "tagline": "Für kleinere Gemeinden",
-        "cta": "Beratung anfragen",
-        "features": {
-          "f1": "Alle Features inklusive",
-          "f2": "Bis zu 200 Mitglieder",
-          "f3": "Gebetszeiten, Events, Spenden",
-          "f4": "Madrasa-Verwaltung",
-          "f5": "E-Mail-Support"
-        }
+        "cta": "Beratung anfragen"
       },
       "standard": {
         "name": "Standard",
-        "tagline": "Für etablierte Gemeinden",
-        "cta": "Live-Demo vereinbaren",
-        "features": {
-          "f1": "Alle Features inklusive",
-          "f2": "Unbegrenzte Mitglieder",
-          "f3": "Gebetszeiten, Events, Spenden, Kampagnen",
-          "f4": "Madrasa-Verwaltung inkl. Gebühren",
-          "f5": "Newsletter & Audit-Log",
-          "f6": "Priorisierter Support"
-        }
+        "cta": "Live-Demo vereinbaren"
       }
     },
     "trust": {
@@ -3000,11 +2984,6 @@
         "onRequest": "Auf Anfrage"
       }
     },
-    "pilot": {
-      "title": "Pilotpartner-Programm",
-      "body": "Sie sind eine kleine, ambitionierte Gemeinde und möchten beim Aufbau aktiv mitwirken? Sprechen Sie uns an — wir haben besondere Konditionen für Pilotpartner.",
-      "cta": "Kontakt aufnehmen"
-    },
     "faq": {
       "title": "Häufige Fragen",
       "items": {
@@ -3023,10 +3002,6 @@
         "export": {
           "q": "Was passiert mit meinen Daten bei Kündigung?",
           "a": "Vor Vertragsende erhalten Sie einen vollständigen CSV-Export aller Daten (Mitglieder, Spenden, Events, Kurse). Ihre Daten gehören Ihnen."
-        },
-        "small": {
-          "q": "Was zählt als „kleine Gemeinde\"?",
-          "a": "Wir bewerten das individuell — Mitgliederzahl, Aktivität, Budget. Sprechen Sie uns an, dann finden wir gemeinsam den passenden Tarif."
         },
         "stripe": {
           "q": "Fallen zusätzliche Gebühren bei Online-Spenden an?",
