@@ -20,7 +20,6 @@ export type ScreenshotKey =
   | "admin-posts"
   | "admin-donations"
   // Member-Tour
-  | "member-profile"
   | "member-donations"
   | "member-fees"
   | "member-child";
@@ -149,7 +148,6 @@ export const MEMBER_TOUR: PhaseGuide[] = [
       {
         titleKey: "memberTour.profile.title",
         descKey: "memberTour.profile.desc",
-        screenshotKey: "member-profile",
       },
       {
         titleKey: "memberTour.donations.title",

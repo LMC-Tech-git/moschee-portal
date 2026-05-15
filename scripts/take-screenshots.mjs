@@ -199,11 +199,6 @@ async function main() {
     await page.deleteCookie(...(await page.cookies()));
     await login(page, MEMBER_EMAIL, MEMBER_PASSWORD);
 
-    // Member profile overview (Profil tab is default)
-    await screenshot(page, `${BASE_URL}/member/profile?tab=profile`, "member-profile", {
-      extraDelay: 2000,
-    });
-
     // Member donations tab
     await screenshot(page, `${BASE_URL}/member/profile?tab=donations`, "member-donations", {
       extraDelay: 2000,
