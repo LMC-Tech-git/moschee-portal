@@ -25,6 +25,7 @@ import {
   Crown,
   Edit3,
   Handshake,
+  Tag,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useAuth } from "@/lib/auth-context";
@@ -68,7 +69,7 @@ export default function Header() {
   const isTeacher = user?.role === "teacher";
   const isImam = user?.role === "imam";
   // URL-Slug hat Vorrang auf öffentlichen Moschee-Seiten (verhindert falsche Links bei eingeloggten Usern)
-  const HEADER_RESERVED = ['admin','member','lehrer','imam','login','register','api','invite','impressum','datenschutz','agb','leitung','foerderpartner','kontakt','offline','passwort-vergessen','passwort-zuruecksetzen','events','donate','posts','campaigns','anleitung'];
+  const HEADER_RESERVED = ['admin','member','lehrer','imam','login','register','api','invite','impressum','datenschutz','agb','leitung','foerderpartner','kontakt','offline','passwort-vergessen','passwort-zuruecksetzen','events','donate','posts','campaigns','anleitung','preise'];
   const pathParts = pathname.split('/').filter(Boolean);
   const urlSlug = pathParts.length > 0 && !HEADER_RESERVED.includes(pathParts[0]) ? pathParts[0] : null;
   // mosque?.slug hat Vorrang: Kommt vom MosqueProvider (initialMosque = sofort verfügbar),
@@ -179,7 +180,7 @@ export default function Header() {
             </>
           )}
 
-          {/* Startseite + Anleitung wenn kein Slug (Hauptdomain) */}
+          {/* Startseite + Preise + Anleitung wenn kein Slug (Hauptdomain) */}
           {!slug && (
             <>
               <Link
@@ -188,6 +189,17 @@ export default function Header() {
               >
                 <Home className="h-4 w-4" aria-hidden="true" />
                 {t("nav.home")}
+              </Link>
+              <Link
+                href="/preise"
+                className={`flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-emerald-50 hover:text-emerald-600 ${
+                  pathname === "/preise"
+                    ? "bg-emerald-50 text-emerald-600"
+                    : "text-gray-700"
+                }`}
+              >
+                <Tag className="h-4 w-4" aria-hidden="true" />
+                {t("nav.pricing")}
               </Link>
               <Link
                 href="/anleitung"
@@ -366,6 +378,18 @@ export default function Header() {
               >
                 <Home className="h-4 w-4" />
                 {t("nav.home")}
+              </Link>
+              <Link
+                href="/preise"
+                className={`flex items-center gap-2 rounded-lg px-4 py-3 text-sm font-medium hover:bg-emerald-50 hover:text-emerald-600 ${
+                  pathname === "/preise"
+                    ? "bg-emerald-50 text-emerald-600"
+                    : "text-gray-700"
+                }`}
+                onClick={closeMobileMenu}
+              >
+                <Tag className="h-4 w-4" />
+                {t("nav.pricing")}
               </Link>
               <Link
                 href="/anleitung"

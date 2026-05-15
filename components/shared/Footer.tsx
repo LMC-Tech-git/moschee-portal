@@ -14,6 +14,7 @@ export default async function Footer({
 
   const quickLinks = [
     { label: t("nav.home"), href: "/" },
+    ...(showGuideLink ? [{ label: t("nav.pricing"), href: "/preise" }] : []),
     ...(showGuideLink ? [{ label: t("nav.guide"), href: "/anleitung" }] : []),
     ...(contactEnabled ? [{ label: t("footer.contact"), href: "/kontakt" }] : []),
     { label: t("nav.login"), href: "/login" },

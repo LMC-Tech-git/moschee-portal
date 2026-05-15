@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
-import { Mail, Clock, MessageSquare } from "lucide-react";
+import { Mail, Clock, MessageSquare, Sparkles } from "lucide-react";
 import { ContactForm } from "@/components/contact/ContactForm";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -19,8 +19,24 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default async function KontaktPage() {
+type SearchParams = { tarif?: string; billing?: string; topic?: string };
+
+export default async function KontaktPage({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>;
+}) {
   const t = await getTranslations("contact");
+  const tp = await getTranslations("pricing.tarifBanner");
+  const params = await searchParams;
+
+  const tarifKey =
+    params.tarif === "small" || params.tarif === "standard"
+      ? params.tarif
+      : params.topic === "pilot"
+        ? "pilot"
+        : null;
+  const isYearly = params.billing === "yearly";
 
   return (
     <section className="py-16">
@@ -35,6 +51,26 @@ export default async function KontaktPage() {
             {t("pageSubtitle")}
           </p>
         </div>
+
+        {/* Tarif-Banner (wenn ?tarif=... oder ?topic=pilot) */}
+        {tarifKey && (
+          <div className="mb-10 rounded-2xl border border-emerald-200 bg-emerald-50 p-5 sm:p-6">
+            <div className="flex items-start gap-4">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-emerald-600 shadow-sm">
+                <Sparkles className="h-5 w-5" aria-hidden="true" />
+              </div>
+              <p className="text-sm leading-relaxed text-emerald-900">
+                {tp(tarifKey)}
+                {isYearly && tarifKey !== "pilot" && (
+                  <>
+                    {" "}
+                    <span className="font-semibold">{tp("yearly")}</span>
+                  </>
+                )}
+              </p>
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-5">
 

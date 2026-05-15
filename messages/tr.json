@@ -53,7 +53,8 @@
     "menuClose": "Menüyü kapat",
     "digitalCommunity": "Dijital cemaatiniz",
     "platformSubtitle": "Cami cemaatleri için platform",
-    "guide": "Rehber"
+    "guide": "Rehber",
+    "pricing": "Fiyatlar"
   },
   "header": {
     "adminSection": "Yönetici",
@@ -2896,6 +2897,153 @@
         "question": "Medrese ücretleri görünmüyor",
         "answer": "'Ayarlar → Medrese' altında kontrol edin: Ücret anahtarı etkin mi? Mevcut ay için ücretler oluşturulmuş mu?"
       }
+    }
+  },
+  "pricing": {
+    "metaTitle": "Fiyatlar — moschee.app",
+    "metaDescription": "Modern cami yönetimi için şeffaf fiyatlandırma. Tüm özellikler dahil, gizli maliyet yok.",
+    "hero": {
+      "badge": "Şeffaf fiyatlandırma",
+      "title": "Modern cami yönetimi için adil fiyatlar",
+      "subtitle": "Tüm özellikler dahil. Gizli maliyet yok."
+    },
+    "billing": {
+      "monthly": "Aylık",
+      "yearly": "Yıllık",
+      "yearlyHint": "2 ay ücretsiz",
+      "perMonth": "/ay",
+      "perYear": "/yıl",
+      "vatNote": "yasal KDV hariç"
+    },
+    "plans": {
+      "recommended": "Tavsiye edilen",
+      "small": {
+        "name": "Küçük",
+        "tagline": "Küçük cemaatler için",
+        "cta": "Danışmanlık talep et",
+        "features": {
+          "f1": "Tüm özellikler dahil",
+          "f2": "200 üyeye kadar",
+          "f3": "Namaz vakitleri, etkinlikler, bağışlar",
+          "f4": "Medrese yönetimi",
+          "f5": "E-posta desteği"
+        }
+      },
+      "standard": {
+        "name": "Standart",
+        "tagline": "Köklü cemaatler için",
+        "cta": "Canlı demo planla",
+        "features": {
+          "f1": "Tüm özellikler dahil",
+          "f2": "Sınırsız üye",
+          "f3": "Namaz vakitleri, etkinlikler, bağışlar, kampanyalar",
+          "f4": "Medrese yönetimi (ücretler dahil)",
+          "f5": "Bülten ve denetim günlüğü",
+          "f6": "Öncelikli destek"
+        }
+      }
+    },
+    "trust": {
+      "title": "Cemaatler neden moschee.app'a güveniyor",
+      "subtitle": "Güvenlik, gizlilik ve güvenilirlik — baştan itibaren.",
+      "items": {
+        "hosting": "Almanya'da barındırma",
+        "gdpr": "KVKK/GDPR uyumlu veri işleme",
+        "payments": "Stripe ile güvenli ödeme işleme",
+        "roles": "Rol ve yetki yönetimi",
+        "backups": "Düzenli yedekleme",
+        "multilang": "Çok dilli (Almanca / Türkçe)"
+      }
+    },
+    "onboarding": {
+      "title": "Tek seferlik kurulum",
+      "price": "149 €",
+      "vatNote": "KDV hariç, tek seferlik",
+      "lead": "Başlangıçta cemaatinize eşlik ediyoruz:",
+      "items": {
+        "i1": "Portalın kurulması",
+        "i2": "Marka ve alan adı yapılandırması",
+        "i3": "Veri aktarımında destek",
+        "i4": "Yönetim ve adminler için eğitim",
+        "i5": "İlk haftalarda destek"
+      },
+      "cta": "Kurulum talep et"
+    },
+    "compare": {
+      "title": "Neden WordPress yerine moschee.app?",
+      "subtitle": "Web sitesi, dernek platformu ile aynı şey değildir.",
+      "rows": {
+        "hosting": "Barındırma ve alan adı",
+        "updates": "Güncelleme ve bakım",
+        "members": "Üye yönetimi",
+        "donations": "Stripe ile bağışlar",
+        "madrasa": "Medrese ve kurs yönetimi",
+        "security": "Güvenlik ve yedekleme",
+        "support": "Kişisel destek"
+      },
+      "cols": {
+        "wp": "Kendi WordPress",
+        "agency": "Ajans web sitesi",
+        "moschee": "moschee.app"
+      },
+      "values": {
+        "selfHosted": "Kendiniz",
+        "agencyHosted": "Ajans",
+        "inclusive": "Dahil",
+        "selfMaintained": "Kendiniz",
+        "extraCost": "Ek ücret",
+        "missing": "Yok",
+        "plugin": "Eklenti gerekli",
+        "limited": "Sınırlı",
+        "yes": "Evet",
+        "no": "Hayır",
+        "onRequest": "Talep üzerine"
+      }
+    },
+    "pilot": {
+      "title": "Pilot Ortak Programı",
+      "body": "Küçük ama hırslı bir cemaat misiniz ve gelişime aktif katkı sunmak ister misiniz? Bize ulaşın — pilot ortaklar için özel koşullarımız var.",
+      "cta": "İletişime geç"
+    },
+    "faq": {
+      "title": "Sıkça sorulan sorular",
+      "items": {
+        "cancellation": {
+          "q": "Fesih süresi nedir?",
+          "a": "Aylık ödemede aboneliğinizi aylık olarak iptal edebilirsiniz. Yıllık abonelik 12 ay geçerlidir ve yalnızca onayınızla uzatılır."
+        },
+        "vat": {
+          "q": "Fiyatlara KDV dahil mi?",
+          "a": "Tüm fiyatlar net fiyatlardır ve yasal KDV hariçtir."
+        },
+        "yearly": {
+          "q": "Yıllık abonelikteki tasarruf nasıl işliyor?",
+          "a": "10 aylık ücreti ödersiniz ve portalı 12 ay boyunca kullanırsınız — yani iki ay ücretsizdir."
+        },
+        "export": {
+          "q": "İptal durumunda verilerime ne olur?",
+          "a": "Sözleşme bitiminden önce tüm verilerin (üyeler, bağışlar, etkinlikler, kurslar) tam CSV dışa aktarımını alırsınız. Verileriniz size aittir."
+        },
+        "small": {
+          "q": "„Küçük cemaat\" nedir?",
+          "a": "Bunu bireysel olarak değerlendiriyoruz — üye sayısı, aktivite, bütçe. Bize ulaşın, birlikte uygun tarifeyi buluruz."
+        },
+        "stripe": {
+          "q": "Çevrimiçi bağışlarda ek ücret var mı?",
+          "a": "Stripe standart işlem ücretini alır (Almanya'da SEPA başına yaklaşık 1,5 % + 0,25 €). Bu şeffaf şekilde gösterilir — biz ek ücret talep etmiyoruz."
+        }
+      }
+    },
+    "ctaBanner": {
+      "title": "Bir sonraki adıma hazır mısınız?",
+      "subtitle": "Ücretsiz ön görüşme — portalı canlı gösterir ve tüm sorularınızı cevaplarız.",
+      "cta": "Canlı demo planla"
+    },
+    "tarifBanner": {
+      "small": "„Küçük\" tarifesiyle ilgileniyorsunuz (49 € / ay net). Sorularınızı yazın — kısa sürede sizinle iletişime geçeceğiz.",
+      "standard": "„Standart\" tarifesiyle ilgileniyorsunuz (79 € / ay net). Sorularınızı yazın — kısa sürede sizinle iletişime geçeceğiz.",
+      "pilot": "Pilot Ortak Programı ile ilgileniyorsunuz. Cemaatinizden bahsedin — uygun koşulları değerlendirelim.",
+      "yearly": "Yıllık abonelikle (2 ay ücretsiz)."
     }
   }
 }

@@ -53,7 +53,8 @@
     "menuClose": "Menü schließen",
     "digitalCommunity": "Ihre digitale Gemeinde",
     "platformSubtitle": "Die Plattform für Moscheegemeinden",
-    "guide": "Anleitung"
+    "guide": "Anleitung",
+    "pricing": "Preise"
   },
   "header": {
     "adminSection": "Admin",
@@ -2896,6 +2897,153 @@
         "question": "Madrasa-Gebühren werden nicht angezeigt",
         "answer": "Unter 'Einstellungen → Madrasa' prüfen: Ist der Gebühren-Toggle aktiviert? Sind Gebühren für den aktuellen Monat erstellt?"
       }
+    }
+  },
+  "pricing": {
+    "metaTitle": "Preise — moschee.app",
+    "metaDescription": "Transparente Preise für moderne Moscheeverwaltung. Alle Features inklusive, keine versteckten Kosten.",
+    "hero": {
+      "badge": "Transparente Preisgestaltung",
+      "title": "Faire Preise für moderne Moscheeverwaltung",
+      "subtitle": "Alle Features inklusive. Keine versteckten Kosten."
+    },
+    "billing": {
+      "monthly": "Monatlich",
+      "yearly": "Jährlich",
+      "yearlyHint": "2 Monate gratis",
+      "perMonth": "/Monat",
+      "perYear": "/Jahr",
+      "vatNote": "zzgl. gesetzl. MwSt."
+    },
+    "plans": {
+      "recommended": "Empfohlen",
+      "small": {
+        "name": "Klein",
+        "tagline": "Für kleinere Gemeinden",
+        "cta": "Beratung anfragen",
+        "features": {
+          "f1": "Alle Features inklusive",
+          "f2": "Bis zu 200 Mitglieder",
+          "f3": "Gebetszeiten, Events, Spenden",
+          "f4": "Madrasa-Verwaltung",
+          "f5": "E-Mail-Support"
+        }
+      },
+      "standard": {
+        "name": "Standard",
+        "tagline": "Für etablierte Gemeinden",
+        "cta": "Live-Demo vereinbaren",
+        "features": {
+          "f1": "Alle Features inklusive",
+          "f2": "Unbegrenzte Mitglieder",
+          "f3": "Gebetszeiten, Events, Spenden, Kampagnen",
+          "f4": "Madrasa-Verwaltung inkl. Gebühren",
+          "f5": "Newsletter & Audit-Log",
+          "f6": "Priorisierter Support"
+        }
+      }
+    },
+    "trust": {
+      "title": "Warum Gemeinden moschee.app vertrauen",
+      "subtitle": "Sicherheit, Datenschutz und Verlässlichkeit — von Anfang an.",
+      "items": {
+        "hosting": "Hosting in Deutschland",
+        "gdpr": "DSGVO-konforme Datenverarbeitung",
+        "payments": "Sichere Zahlungsabwicklung via Stripe",
+        "roles": "Rollen- und Rechteverwaltung",
+        "backups": "Regelmäßige Backups",
+        "multilang": "Mehrsprachig (Deutsch / Türkisch)"
+      }
+    },
+    "onboarding": {
+      "title": "Einmaliges Onboarding",
+      "price": "149 €",
+      "vatNote": "zzgl. MwSt., einmalig",
+      "lead": "Wir begleiten Ihre Gemeinde beim Einstieg:",
+      "items": {
+        "i1": "Einrichtung des Portals",
+        "i2": "Branding & Domain-Konfiguration",
+        "i3": "Unterstützung bei der Datenübernahme",
+        "i4": "Einführung für Vorstand und Admins",
+        "i5": "Support in den ersten Wochen"
+      },
+      "cta": "Onboarding anfragen"
+    },
+    "compare": {
+      "title": "Warum moschee.app statt WordPress?",
+      "subtitle": "Eine Website ist nicht dasselbe wie eine Vereinsplattform.",
+      "rows": {
+        "hosting": "Hosting & Domain",
+        "updates": "Updates & Wartung",
+        "members": "Mitgliederverwaltung",
+        "donations": "Spenden mit Stripe",
+        "madrasa": "Madrasa & Kursverwaltung",
+        "security": "Sicherheit & Backups",
+        "support": "Persönlicher Support"
+      },
+      "cols": {
+        "wp": "DIY-WordPress",
+        "agency": "Agentur-Webseite",
+        "moschee": "moschee.app"
+      },
+      "values": {
+        "selfHosted": "Selbst gehostet",
+        "agencyHosted": "Agentur",
+        "inclusive": "Inklusive",
+        "selfMaintained": "Selbst",
+        "extraCost": "Aufpreis",
+        "missing": "Nicht enthalten",
+        "plugin": "Plugin nötig",
+        "limited": "Eingeschränkt",
+        "yes": "Ja",
+        "no": "Nein",
+        "onRequest": "Auf Anfrage"
+      }
+    },
+    "pilot": {
+      "title": "Pilotpartner-Programm",
+      "body": "Sie sind eine kleine, ambitionierte Gemeinde und möchten beim Aufbau aktiv mitwirken? Sprechen Sie uns an — wir haben besondere Konditionen für Pilotpartner.",
+      "cta": "Kontakt aufnehmen"
+    },
+    "faq": {
+      "title": "Häufige Fragen",
+      "items": {
+        "cancellation": {
+          "q": "Wie lange ist die Kündigungsfrist?",
+          "a": "Bei monatlicher Zahlung ist Ihr Abo monatlich kündbar. Das Jahresabo läuft 12 Monate und verlängert sich nur, wenn Sie zustimmen."
+        },
+        "vat": {
+          "q": "Sind die Preise inkl. MwSt.?",
+          "a": "Alle Preise sind Nettopreise und verstehen sich zzgl. der gesetzlichen Umsatzsteuer."
+        },
+        "yearly": {
+          "q": "Wie funktioniert die Ersparnis beim Jahresabo?",
+          "a": "Sie zahlen den 10-fachen Monatspreis und nutzen das Portal volle 12 Monate — zwei Monate sind also kostenfrei."
+        },
+        "export": {
+          "q": "Was passiert mit meinen Daten bei Kündigung?",
+          "a": "Vor Vertragsende erhalten Sie einen vollständigen CSV-Export aller Daten (Mitglieder, Spenden, Events, Kurse). Ihre Daten gehören Ihnen."
+        },
+        "small": {
+          "q": "Was zählt als „kleine Gemeinde\"?",
+          "a": "Wir bewerten das individuell — Mitgliederzahl, Aktivität, Budget. Sprechen Sie uns an, dann finden wir gemeinsam den passenden Tarif."
+        },
+        "stripe": {
+          "q": "Fallen zusätzliche Gebühren bei Online-Spenden an?",
+          "a": "Stripe berechnet die übliche Transaktionsgebühr (in Deutschland ca. 1,5 % + 0,25 € pro SEPA-Zahlung). Diese wird transparent ausgewiesen — wir verlangen keinen Aufschlag."
+        }
+      }
+    },
+    "ctaBanner": {
+      "title": "Bereit für den nächsten Schritt?",
+      "subtitle": "Kostenloses Erstgespräch — wir zeigen Ihnen das Portal live und beantworten alle Fragen.",
+      "cta": "Live-Demo vereinbaren"
+    },
+    "tarifBanner": {
+      "small": "Sie interessieren sich für den Tarif „Klein\" (49 € / Monat netto). Schreiben Sie uns Ihre Fragen — wir melden uns zeitnah.",
+      "standard": "Sie interessieren sich für den Tarif „Standard\" (79 € / Monat netto). Schreiben Sie uns Ihre Fragen — wir melden uns zeitnah.",
+      "pilot": "Sie interessieren sich für das Pilotpartner-Programm. Erzählen Sie uns von Ihrer Gemeinde — wir prüfen passende Konditionen.",
+      "yearly": "Mit Jahresabo (2 Monate gratis)."
     }
   }
 }
