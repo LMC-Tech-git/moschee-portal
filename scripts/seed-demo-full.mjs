@@ -706,9 +706,9 @@ async function seedStudentFees(studentIds, adminId) {
   const firstTwelve = studentIds.slice(0, 12);
   const FEE_CENTS = 5000;
   // Geschwister-Rang passend zu seedParentChildRelations:
-  // Member-01: Kinder 0(rank1), 1(rank2), 2(rank3) | Member-02: Kind 3(rank1)
-  // Member-03: Kinder 4(rank1), 5(rank2) | Admin: Kinder 8(rank1), 9(rank2)
-  const DEMO_RANKS = [1, 2, 3, 1, 1, 2, 1, 1, 1, 2, 1, 1];
+  // Member-01: Kinder 0(rank1), 1(rank2) | Schüler 2 alleinstehend (rank1)
+  // Member-02: Kind 3(rank1) | Member-03: Kinder 4(rank1), 5(rank2) | Admin: Kinder 8(rank1), 9(rank2)
+  const DEMO_RANKS = [1, 2, 1, 1, 1, 2, 1, 1, 1, 2, 1, 1];
   // Individueller Rabatt: Schüler 6+7 (Hatice Ozturk, Yusuf Kurt) haben 50%
   const DEMO_CUSTOM_PCT = [0, 0, 0, 0, 0, 0, 50, 50, 0, 0, 0, 0];
   const discount2nd = 20;
@@ -1557,11 +1557,10 @@ async function seedParentChildRelations(users, studentIds) {
     links.push({ parent: users.admin, student: studentIds[9], label: "Admin → Kind 2", relation_type: "father" });
   }
 
-  // Demo-Member-01 → Schüler 0, 1, 2 (3 Kinder → zeigt alle 3 Rabattstufen)
-  if (users.memberIds?.length >= 1 && studentIds.length >= 3) {
+  // Demo-Member-01 → Schüler 0, 1 (2 Kinder, beide in Kurs "Quran Anfänger")
+  if (users.memberIds?.length >= 1 && studentIds.length >= 2) {
     links.push({ parent: users.memberIds[0], student: studentIds[0], label: "Member-01 → Kind 1 (Vollpreis)", relation_type: "mother" });
     links.push({ parent: users.memberIds[0], student: studentIds[1], label: "Member-01 → Kind 2 (-20%)", relation_type: "mother" });
-    links.push({ parent: users.memberIds[0], student: studentIds[2], label: "Member-01 → Kind 3 (-30%)", relation_type: "mother" });
   }
 
   // Demo-Member-02 → Schüler 3 (Einzelkind, Vollpreis)
