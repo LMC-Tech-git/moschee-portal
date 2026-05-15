@@ -2786,6 +2786,30 @@
       "madrasa": {
         "title": "Medrese",
         "desc": "Kurslar, eğitim yılları, öğrenci aktarımı, yoklama, ücretler ve online ödeme."
+      },
+      "attendance": {
+        "title": "Yoklama & Veli Canlı Görünümü",
+        "desc": "Öğretmenler yoklamayı tek tıkla girer. Veliler çocuklarının bugün derste olup olmadığını anında görür — gecikme, oran ve trend dahil."
+      },
+      "recurring": {
+        "title": "Düzenli Bağışlar",
+        "desc": "Stripe abonelik ile aylık bağışlar. Üyeler düzenli bağışlarını kendileri yönetir, yönetim aylık geliri tek bakışta görür."
+      },
+      "sponsors": {
+        "title": "Destekçiler",
+        "desc": "Firmalar ve bağışçılar için kendi destekçi sayfası. Stripe ile çok aylı ödeme, sona ermeden önce otomatik hatırlatma."
+      },
+      "team": {
+        "title": "Yönetim & Ekip",
+        "desc": "Yönetim kurulu, imam ve sekreterlik için kendi sayfa — foto, görev, biyografi ve serbest sıralama ile."
+      },
+      "contact": {
+        "title": "İletişim Formu",
+        "desc": "Cemaatten gelen talepler doğrudan yönetici paneline ve yönetim e-posta kutusuna düşer. CAPTCHA ile spam koruması."
+      },
+      "multilingual": {
+        "title": "Almanca & Türkçe",
+        "desc": "Tamamen iki dilli. Üyeler ve ziyaretçiler dilini kendisi seçer — portal, e-postalar ve veli görünümü."
       }
     },
     "quickstartTitle": "5 dakikada başlayın",

@@ -2786,6 +2786,30 @@
       "madrasa": {
         "title": "Madrasa",
         "desc": "Kurse, Schuljahre, Schüler-Import, Anwesenheit, Gebühren und Online-Zahlung."
+      },
+      "attendance": {
+        "title": "Anwesenheit & Eltern-Live-Blick",
+        "desc": "Lehrer tragen Anwesenheit per Klick ein. Eltern sehen sofort, ob ihr Kind heute im Unterricht ist — inkl. Verspätung, Quote und Trend."
+      },
+      "recurring": {
+        "title": "Daueraufträge",
+        "desc": "Monatliche Spenden mit Stripe-Subscription. Mitglieder verwalten ihre Daueraufträge selbst, Vorstand sieht die monatlichen Einnahmen auf einen Blick."
+      },
+      "sponsors": {
+        "title": "Förderpartner",
+        "desc": "Eigene Förderpartner-Seite für Firmen und Spender. Mehrmonats-Zahlung per Stripe, automatische Erinnerung vor Ablauf."
+      },
+      "team": {
+        "title": "Leitung & Team",
+        "desc": "Eigene Seite für Vorstand, Imam und Sekretariat — mit Foto, Rolle, Bio und frei wählbarer Sortierung."
+      },
+      "contact": {
+        "title": "Kontaktformular",
+        "desc": "Anfragen aus der Gemeinde landen direkt im Admin-Panel und als E-Mail im Vorstand-Postfach. Spam-geschützt durch CAPTCHA."
+      },
+      "multilingual": {
+        "title": "Deutsch & Türkisch",
+        "desc": "Komplett zweisprachig. Mitglieder und Besucher wählen ihre Sprache selbst — Portal, E-Mails und Eltern-Ansicht."
       }
     },
     "quickstartTitle": "In 5 Minuten starten",

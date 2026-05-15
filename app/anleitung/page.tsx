@@ -12,6 +12,12 @@ import {
   Users,
   Bell,
   BookOpen,
+  ClipboardCheck,
+  Handshake,
+  Repeat,
+  Languages,
+  Mail,
+  UserCheck,
   ArrowRight,
   ExternalLink,
 } from "lucide-react";
@@ -32,6 +38,12 @@ const ICON_MAP = {
   users: Users,
   bell: Bell,
   "book-open": BookOpen,
+  "clipboard-check": ClipboardCheck,
+  handshake: Handshake,
+  repeat: Repeat,
+  languages: Languages,
+  mail: Mail,
+  "user-check": UserCheck,
 } as const;
 
 export async function generateMetadata(): Promise<Metadata> {
