@@ -773,13 +773,40 @@ async function seedPosts(adminId) {
       daysBack: 30,
     },
     {
-      title: "Ramadan Mubarak — Gebetszeiten & Programm",
-      content: "Wir wünschen unserer gesamten Gemeinschaft einen gesegneten Ramadan! Die aktuellen Gebetszeiten sowie das vollständige Ramadan-Programm mit Tarawih und Iftar-Veranstaltungen finden Sie auf unserer Website. Möge Allah unsere Gebete und unser Fasten annehmen.",
+      title: "Eid al-Adha steht bevor — Programm & Festgebet",
+      content: "In wenigen Tagen feiern wir gemeinsam das Opferfest (Eid al-Adha). Das Festgebet beginnt um 06:30 Uhr im Hauptgebetsraum, anschließend laden wir alle zu Frühstück und Süßigkeiten ein. Informationen zur Opfertier-Vermittlung über unsere Partner-Organisation finden Sie im Aushang. Eid Mubarak im Voraus!",
       category: "announcement",
       visibility: "public",
       status: "published",
       pinned: true,
-      daysBack: 25,
+      daysBack: 5,
+    },
+    {
+      title: "Sommer-Kirmes 2026 — Save the Date",
+      content: "Unsere große Sommer-Kirmes findet am 10. Juni von 14 bis 20 Uhr im Innenhof statt — keine Anmeldung erforderlich, einfach vorbeikommen! Für Kinder gibt es Hüpfburg, Karussell, Glücksrad und Zuckerwatte. Für Erwachsene: BBQ, türkischer Kaffee, Basar und Live-Musik. Eintritt frei, Spenden für die Jugendarbeit willkommen.",
+      category: "event",
+      visibility: "public",
+      status: "published",
+      pinned: true,
+      daysBack: 2,
+    },
+    {
+      title: "Rückblick Ramadan 2026 — Alhamdulillah",
+      content: "Ein bewegender Ramadan liegt hinter uns. Über 800 Gäste haben gemeinsam mit uns Iftar gemacht, die Tarawih-Gebete waren jeden Abend voll besetzt, und über 24.000 € wurden für unsere Spendenprojekte gesammelt. Wir bedanken uns bei allen Helfern, Spendern und Familien, die diesen Monat zu etwas Besonderem gemacht haben.",
+      category: "general",
+      visibility: "public",
+      status: "published",
+      pinned: false,
+      daysBack: 50,
+    },
+    {
+      title: "Hajj 2026 — Vorbereitungstreffen für Pilger",
+      content: "12 Mitglieder unserer Gemeinde brechen dieses Jahr zur Hajj auf. Am kommenden Samstag findet ein Vorbereitungstreffen mit unserem Imam statt: Rituale, Reiseablauf, Tipps zur Gesundheit und gemeinsames Bittgebet. Auch Interessierte für Hajj 2027 sind herzlich eingeladen.",
+      category: "general",
+      visibility: "public",
+      status: "published",
+      pinned: false,
+      daysBack: 14,
     },
     {
       title: "Neue Arabisch-Kurse ab Herbst",
@@ -791,7 +818,7 @@ async function seedPosts(adminId) {
       daysBack: 20,
     },
     {
-      title: "Spendenkampagne: Neue Waschräume 2025",
+      title: "Spendenkampagne: Neue Waschräume",
       content: "Unsere Gemeinde benötigt dringend renovierte Waschräume. Wir haben eine Spendenkampagne gestartet und sind bereits auf gutem Weg zum Ziel. Jede Spende zählt — helfen Sie uns, dieses wichtige Projekt zu verwirklichen! Mehr Informationen finden Sie auf der Kampagnenseite.",
       category: "campaign",
       visibility: "public",
@@ -827,8 +854,8 @@ async function seedPosts(adminId) {
       daysBack: 3,
     },
     {
-      title: "Einladung zum Iftar-Abend",
-      content: "Wir laden herzlich zum gemeinsamen Iftar ein! Nächsten Freitag öffnen wir unsere Türen für Mitglieder und Gäste. Bitte melden Sie sich zur besseren Planung an. Wir freuen uns auf einen gemeinschaftlichen Abend mit Gebet, Essen und Gesprächen.",
+      title: "Halal-BBQ am See — Gemeinsamer Familientag",
+      content: "Sommer ist da! Am kommenden Sonntag treffen wir uns am Wannsee zum gemeinsamen Halal-BBQ. Fleisch, Salate und Getränke werden gestellt — bitte bringen Sie Decken, Spielzeug und gute Laune mit. Anmeldung bis Donnerstag, damit wir genug einkaufen können.",
       category: "event",
       visibility: "public",
       status: "published",
@@ -845,13 +872,13 @@ async function seedPosts(adminId) {
       daysBack: 0,
     },
     {
-      title: "Ramazan Mübarek — Oruç ve İbadet",
-      content: "Değerli cemaat mensuplarımız, mübarek Ramazan ayına kavuşmanın heyecanı ve sevinci içindeyiz. Bu ay boyunca sabah iftarından akşam iftarına kadar birlikte ibadet edip güçleneceğiz. Teravih namazları her gece saat 21:30'da kılınacaktır. Allah oruçlarımızı ve namazlarımızı kabul etsin.",
+      title: "Kurban Bayramı Yaklaşıyor — Bayram Programı",
+      content: "Değerli cemaat, mübarek Kurban Bayramı'na sadece birkaç gün kaldı. Bayram namazı sabah saat 06:30'da kılınacaktır. Namaz sonrası camide kahvaltı ikramımız olacak — tüm cemaat ve aileleri davetlidir. Kurban kesimleri için ortak organizasyonumuza kaydolmak isteyenler ofise başvurabilir. Şimdiden Bayramınız mübarek olsun!",
       category: "announcement",
       visibility: "public",
       status: "published",
       pinned: true,
-      daysBack: 22,
+      daysBack: 4,
     },
     {
       title: "Kuran Kursu Kayıtları Başladı",
@@ -897,10 +924,10 @@ async function seedEvents(adminId) {
       durationH: 1.5, location: "Hauptgebetsraum",
     },
     {
-      title: "Ramadan-Abschlussfeier",
-      description: "Gemeinsame Feier zum Ende des Ramadan mit Leckereien, Vorträgen und einem besonderen Programm für Kinder.",
-      category: "community", visibility: "public", capacity: 100, daysOff: -21,
-      durationH: 3, location: "Gemeinschaftssaal",
+      title: "Frühjahrs-Putzaktion der Moschee",
+      description: "Gemeinsame Putz- und Aufräumaktion in Vorbereitung auf die Sommer-Saison. Material und Verpflegung werden gestellt. Wer kann, bringt eigene Putzhandschuhe mit.",
+      category: "community", visibility: "public", capacity: 40, daysOff: -28,
+      durationH: 4, location: "Gesamte Moschee",
     },
     {
       title: "Arabisch-Intensivkurs",
@@ -963,10 +990,28 @@ async function seedEvents(adminId) {
       durationH: 3, location: "Hauptgebetsraum",
     },
     {
-      title: "Mevlid Kandili Programı",
-      description: "Peygamber Efendimiz Hz. Muhammed'in (s.a.v.) doğumunu kutlayacağımız özel programımıza tüm cemaat davetlidir. Kuran-ı Kerim tilaveti, ilahiler ve dualar eşliğinde güzel bir gece geçireceğiz. İkram yapılacaktır.",
-      category: "community", visibility: "public", capacity: 120, daysOff: 14,
-      durationH: 2.5, location: "Hauptgebetsraum",
+      title: "Kurban Bayramı Namazı ve Kahvaltı",
+      description: "Kurban Bayramı namazımız sabah saat 06:30'da kılınacak, ardından tüm cemaat ve aileleri için kahvaltı ikramımız vardır. Çocuklarımız için bayram şekerleri ve küçük hediyeler hazırlandı. Herkese açık, kayıt gerekmiyor — Bayramınız mübarek olsun!",
+      category: "community", visibility: "public", capacity: 0, daysOff: 11,
+      durationH: 3, location: "Hauptgebetsraum + Innenhof",
+    },
+    {
+      title: "Sommer-Kirmes der Gemeinde",
+      description: "Unsere große Sommer-Kirmes für die ganze Nachbarschaft! Hüpfburg, Karussell, Glücksrad, Zuckerwatte, BBQ-Stände, türkischer Mokka, Kalligraphie-Tisch, Kinderschminken und Live-Musik. Eintritt frei, keine Anmeldung nötig — einfach mit Familie und Freunden vorbeikommen. Spenden für die Jugendarbeit sind willkommen.",
+      category: "community", visibility: "public", capacity: 0, daysOff: 25,
+      durationH: 6, location: "Innenhof + Vorplatz",
+    },
+    {
+      title: "Kinder-Fußballturnier U14",
+      description: "Spaß-Turnier für Kinder und Jugendliche bis 14 Jahre. 4er-Teams, jedes Spiel 10 Minuten, alle bekommen Medaillen. Im Anschluss gemeinsame Pizza-Runde. Anmeldung der Teams im Madrasa-Büro oder per E-Mail.",
+      category: "youth", visibility: "public", capacity: 60, daysOff: 18,
+      durationH: 4, location: "Bolzplatz hinter der Moschee",
+    },
+    {
+      title: "Hajj-Vorbereitungsworkshop",
+      description: "Praktischer Workshop für die 12 Pilger unserer Gemeinde — und alle Interessierten für 2027. Themen: Ihram, Tawaf, Sa'i, Aufenthalt in Mina und Arafat, Gesundheits-Tipps, Packliste. Imam Musa Al-Amin teilt seine Erfahrungen aus drei Pilgerfahrten.",
+      category: "lecture", visibility: "public", capacity: 30, daysOff: 7,
+      durationH: 2.5, location: "Seminarraum",
     },
     {
       title: "Türkçe Seminar: Aile ve İslam",
@@ -988,6 +1033,8 @@ async function seedEvents(adminId) {
     const startDate = e.daysOff >= 0 ? daysFromNow(e.daysOff) : daysAgo(-e.daysOff);
     startDate.setHours(e.daysOff < 0 ? 19 : 14, 0, 0, 0); // vergangene = 19 Uhr, zukünftige = 14 Uhr
     if (e.category === "other") startDate.setHours(12, 30, 0, 0); // Freitagsgebet = 12:30
+    if (e.title.includes("Bayramı Namazı")) startDate.setHours(6, 30, 0, 0); // Bayram-Namaz = 06:30
+    if (e.title.includes("Kirmes")) startDate.setHours(14, 0, 0, 0); // Kirmes-Start = 14:00
 
     const endDate = addHours(startDate, e.durationH);
     const { record, created } = await findOrCreate(
@@ -1052,6 +1099,12 @@ async function seedEventRegistrations(events, memberIds) {
   let totalCreated = 0;
 
   for (const event of events) {
+    // Kirmes/Bayram-Kahvaltı: öffentliche Events ohne Anmeldung — überspringen
+    if (event.title.includes("Kirmes") || event.title.includes("Bayramı Namazı")) {
+      console.log(`  ⏭️  ${event.title} (ohne Anmeldung)`);
+      continue;
+    }
+
     // Nur vergangene und heutige Events + einige zukünftige
     const isPast    = event.daysOff < 0;
     const isToday   = event.daysOff === 0 || event.daysOff === 1;
@@ -1584,8 +1637,8 @@ async function main() {
   console.log("   🏅  6 Team-Mitglieder");
   console.log(`   📅  2 Schuljahre (${ARCHIVED_YEAR_NAME} + ${ACTIVE_YEAR_NAME}), 5 Kurse`);
   console.log("   🧒  20 Schüler, Einschreibungen, Anwesenheiten, Gebühren");
-  console.log("   📝  11 Beiträge (inkl. 2 türkische)");
-  console.log("   📅  14 Veranstaltungen + Teilnahmen (inkl. 2 türkische)");
+  console.log("   📝  14 Beiträge (inkl. 2 türkische, saisonal: Eid al-Adha, Kirmes, Hajj)");
+  console.log("   📅  18 Veranstaltungen + Teilnahmen (inkl. Sommer-Kirmes ohne Anmeldung)");
   console.log("   💰  3 Kampagnen + ~32 Spenden");
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 }
