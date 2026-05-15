@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { GuideStepCard } from "./GuideStepCard";
 
@@ -66,6 +66,19 @@ export function MadrasaGuide({ phases }: MadrasaGuideProps) {
   const [openPhase, setOpenPhase] = useState<string | null>(
     phases[0]?.phase ?? null,
   );
+  const buttonRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+
+  const handleToggle = (phaseKey: string, wasOpen: boolean) => {
+    setOpenPhase(wasOpen ? null : phaseKey);
+    // Wait for layout to settle, then keep clicked header in view.
+    // Prevents content-shift jump when collapsing a long open phase above.
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const btn = buttonRefs.current[phaseKey];
+        btn?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    });
+  };
 
   return (
     <div className="space-y-4">
@@ -79,15 +92,16 @@ export function MadrasaGuide({ phases }: MadrasaGuideProps) {
             className={`overflow-hidden rounded-xl border ${colors.border} bg-white`}
           >
             <button
+              ref={(el) => {
+                buttonRefs.current[phase.phase] = el;
+              }}
               type="button"
               className={`flex w-full items-center gap-3 px-5 py-4 text-left transition-colors ${
                 isOpen ? colors.bg : "hover:bg-gray-50"
               }`}
               aria-expanded={isOpen}
               aria-controls={`madrasa-panel-${phase.phase}`}
-              onClick={() =>
-                setOpenPhase(isOpen ? null : phase.phase)
-              }
+              onClick={() => handleToggle(phase.phase, isOpen)}
             >
               <span
                 className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${colors.badge}`}

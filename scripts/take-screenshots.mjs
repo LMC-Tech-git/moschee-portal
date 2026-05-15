@@ -23,6 +23,8 @@ const ADMIN_EMAIL = "demo-admin@moschee.app";
 const ADMIN_PASSWORD = "Demo1234!";
 const MEMBER_EMAIL = "demo-member@moschee.app";
 const MEMBER_PASSWORD = "Demo1234!";
+const TEACHER_EMAIL = "demo-teacher@moschee.app";
+const TEACHER_PASSWORD = "Demo1234!";
 
 const VIEWPORT = { width: 1280, height: 720 };
 
@@ -139,29 +141,34 @@ async function main() {
       extraDelay: 2000,
     });
 
-    // 4. Madrasa Attendance (pick first course)
-    // First get a course ID from madrasa page
-    await page.goto(`${BASE_URL}/admin/madrasa`, { waitUntil: "networkidle2" });
-    await delay(2000);
+    // 4. Madrasa Attendance — must log in as TEACHER to reach /lehrer/<id>/attendance
+    console.log("\n🔑 Logging in as teacher for attendance view...");
+    await page.deleteCookie(...(await page.cookies()));
+    await login(page, TEACHER_EMAIL, TEACHER_PASSWORD);
 
-    // Try to find an attendance link
-    const attendanceLink = await page.evaluate(() => {
-      // Look for attendance icon links in the course table
-      const links = Array.from(document.querySelectorAll("a[href*='/attendance']"));
+    await page.goto(`${BASE_URL}/lehrer`, { waitUntil: "networkidle2" });
+    await delay(2500);
+
+    const teacherAttendanceLink = await page.evaluate(() => {
+      const links = Array.from(document.querySelectorAll("a[href*='/lehrer/'][href*='/attendance']"));
       return links.length > 0 ? links[0].getAttribute("href") : null;
     });
 
-    if (attendanceLink) {
-      await screenshot(page, `${BASE_URL}${attendanceLink}`, "madrasa-attendance", {
-        extraDelay: 2000,
+    if (teacherAttendanceLink) {
+      await screenshot(page, `${BASE_URL}${teacherAttendanceLink}`, "madrasa-attendance", {
+        extraDelay: 2500,
       });
     } else {
-      console.log("   ⚠️ No attendance link found, trying direct URL pattern...");
-      // Fallback: take madrasa overview instead
-      await screenshot(page, `${BASE_URL}/admin/madrasa`, "madrasa-attendance", {
+      console.log("   ⚠️ No teacher attendance link found, falling back to lehrer dashboard");
+      await screenshot(page, `${BASE_URL}/lehrer`, "madrasa-attendance", {
         extraDelay: 2000,
       });
     }
+
+    // Re-login as admin for remaining admin-tour captures
+    console.log("\n🔑 Re-logging as admin for tour captures...");
+    await page.deleteCookie(...(await page.cookies()));
+    await login(page, ADMIN_EMAIL, ADMIN_PASSWORD);
 
     // --- Admin tour screenshots ---
     console.log("\n📋 Admin tour captures...");
