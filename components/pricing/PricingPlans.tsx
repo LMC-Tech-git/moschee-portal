@@ -11,30 +11,15 @@ interface PlanCardProps {
   id: "small" | "standard";
   priceMonthly: number;
   billing: Billing;
-  highlight?: boolean;
 }
 
-function PlanCard({ id, priceMonthly, billing, highlight }: PlanCardProps) {
+function PlanCard({ id, priceMonthly, billing }: PlanCardProps) {
   const t = useTranslations("pricing");
   const displayPrice = billing === "monthly" ? priceMonthly : priceMonthly * 10;
   const suffix = billing === "monthly" ? t("billing.perMonth") : t("billing.perYear");
 
   return (
-    <div
-      className={`relative flex flex-col rounded-2xl border bg-white p-8 shadow-sm transition-shadow hover:shadow-md ${
-        highlight
-          ? "border-emerald-500 ring-2 ring-emerald-100"
-          : "border-gray-200"
-      }`}
-    >
-      {highlight && (
-        <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-          <span className="inline-flex items-center rounded-full bg-emerald-600 px-3 py-1 text-xs font-semibold text-white shadow-sm">
-            {t("plans.recommended")}
-          </span>
-        </div>
-      )}
-
+    <div className="relative flex flex-col rounded-2xl border border-gray-200 bg-white p-8 shadow-sm transition-shadow hover:shadow-md">
       <div className="mb-8">
         <h3 className="text-xl font-bold text-gray-900">
           {t(`plans.${id}.name`)}
@@ -60,11 +45,7 @@ function PlanCard({ id, priceMonthly, billing, highlight }: PlanCardProps) {
 
       <Link
         href={`/kontakt?tarif=${id}&billing=${billing}`}
-        className={`inline-flex items-center justify-center gap-2 rounded-xl px-6 py-3 text-sm font-bold shadow-sm transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 ${
-          highlight
-            ? "bg-emerald-600 text-white hover:bg-emerald-700 hover:shadow-lg"
-            : "border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:shadow-md"
-        }`}
+        className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-6 py-3 text-sm font-bold text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-emerald-700 hover:shadow-lg active:translate-y-0"
       >
         {t(`plans.${id}.cta`)}
         <ArrowRight className="h-4 w-4" aria-hidden="true" />
@@ -92,7 +73,7 @@ export function PricingPlans() {
         <div
           role="tablist"
           aria-label={t("billing.monthly") + " / " + t("billing.yearly")}
-          className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white p-1 shadow-sm"
+          className="inline-flex items-center gap-2"
         >
           <button
             type="button"
@@ -135,7 +116,7 @@ export function PricingPlans() {
       {/* Tarif-Cards */}
       <div className="mx-auto grid max-w-4xl grid-cols-1 gap-6 md:grid-cols-2">
         <PlanCard id="small" priceMonthly={49} billing={billing} />
-        <PlanCard id="standard" priceMonthly={79} billing={billing} highlight />
+        <PlanCard id="standard" priceMonthly={79} billing={billing} />
       </div>
     </div>
   );
