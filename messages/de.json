@@ -2765,7 +2765,7 @@
     "features": {
       "prayer": {
         "title": "Gebetszeiten",
-        "desc": "Automatische Gebetszeiten via AlAdhan (Diyanet-Methode). Feinabstimmung je Gebet möglich."
+        "desc": "Automatische Gebetszeiten via AlAdhan. 7 Berechnungsmethoden zur Wahl (Diyanet, MWL, Umm Al-Qura, ISNA u. a.), Feinabstimmung je Gebet."
       },
       "events": {
         "title": "Veranstaltungen",

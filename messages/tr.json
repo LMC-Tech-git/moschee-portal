@@ -2765,7 +2765,7 @@
     "features": {
       "prayer": {
         "title": "Namaz Vakitleri",
-        "desc": "AlAdhan ile otomatik namaz vakitleri (Diyanet yöntemi). Her namaz için ince ayar yapılabilir."
+        "desc": "AlAdhan üzerinden otomatik namaz vakitleri. 7 hesaplama yöntemi seçilebilir (Diyanet, MWL, Umm Al-Qura, ISNA vb.), her vakit için ince ayar."
       },
       "events": {
         "title": "Etkinlikler",
