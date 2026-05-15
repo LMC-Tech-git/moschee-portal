@@ -1,5 +1,7 @@
-export const dynamic = "force-static";
-export const revalidate = 86400;
+// Dynamic so cookie-based locale (NEXT_LOCALE) is read per request and the
+// LanguageSwitcher can flip DE ↔ TR. Static rendering would freeze the page
+// on the build-time default locale.
+export const dynamic = "force-dynamic";
 
 import { existsSync } from "fs";
 import path from "path";
