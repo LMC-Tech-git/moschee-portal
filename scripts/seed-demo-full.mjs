@@ -388,7 +388,32 @@ async function seedUsers() {
     memberIds.push(record.id);
   }
 
-  console.log(`  → ${staffDefs.length + MEMBER_DATA.length} Benutzer gesamt\n`);
+  // Primärer Familien-Demo-Account (für Auto-Login + Profil-Demo "Meine Kinder")
+  const familyEmail = "demo-member@moschee.app";
+  const { record: familyRec, created: familyCreated } = await findOrCreate(
+    "users",
+    `email = "${familyEmail}"`,
+    {
+      email: familyEmail,
+      password: DEMO_PASSWORD,
+      passwordConfirm: DEMO_PASSWORD,
+      emailVisibility: true,
+      first_name: "Mehmet",
+      last_name: "Öztürk",
+      full_name: "Mehmet Öztürk",
+      mosque_id: MOSQUE_ID,
+      role: "member",
+      status: "active",
+      member_no: "DEMO-100",
+      membership_number: "DEMO-100",
+      phone: "+49 30 100100",
+      address: "Familienweg 12, 10115 Berlin",
+    }
+  );
+  console.log(familyCreated ? `  ✅ ${familyEmail} (Familien-Account)` : `  ⏭️  ${familyEmail}`);
+  ids.familyMember = familyRec.id;
+
+  console.log(`  → ${staffDefs.length + MEMBER_DATA.length + 1} Benutzer gesamt\n`);
   return { ...ids, memberIds };
 }
 
@@ -706,9 +731,9 @@ async function seedStudentFees(studentIds, adminId) {
   const firstTwelve = studentIds.slice(0, 12);
   const FEE_CENTS = 5000;
   // Geschwister-Rang passend zu seedParentChildRelations:
-  // Member-01: Kinder 0(rank1), 1(rank2) | Schüler 2 alleinstehend (rank1)
-  // Member-02: Kind 3(rank1) | Member-03: Kinder 4(rank1), 5(rank2) | Admin: Kinder 8(rank1), 9(rank2)
-  const DEMO_RANKS = [1, 2, 1, 1, 1, 2, 1, 1, 1, 2, 1, 1];
+  // Member-01: 0(r1), 1(r2) | Schüler 2 alleinstehend | Member-02: 3(r1)
+  // Member-03: 4(r1), 5(r2) | demo-member: 6(r1), 7(r2) | Admin: 8(r1), 9(r2)
+  const DEMO_RANKS = [1, 2, 1, 1, 1, 2, 1, 2, 1, 2, 1, 1];
   // Individueller Rabatt: Schüler 6+7 (Hatice Ozturk, Yusuf Kurt) haben 50%
   const DEMO_CUSTOM_PCT = [0, 0, 0, 0, 0, 0, 50, 50, 0, 0, 0, 0];
   const discount2nd = 20;
@@ -791,13 +816,13 @@ async function seedPosts(adminId) {
       daysBack: 2,
     },
     {
-      title: "Rückblick Ramadan 2026 — Alhamdulillah",
-      content: "Ein bewegender Ramadan liegt hinter uns. Über 800 Gäste haben gemeinsam mit uns Iftar gemacht, die Tarawih-Gebete waren jeden Abend voll besetzt, und über 24.000 € wurden für unsere Spendenprojekte gesammelt. Wir bedanken uns bei allen Helfern, Spendern und Familien, die diesen Monat zu etwas Besonderem gemacht haben.",
-      category: "general",
-      visibility: "public",
+      title: "Mitgliederversammlung April — Ergebnisse",
+      content: "Die diesjährige Mitgliederversammlung am 19. April war mit über 90 Teilnehmern sehr gut besucht. Beschlossen wurden: Aufnahme der Waschraum-Renovierung im Sommer, Erweiterung der Madrasa um zwei zusätzliche Klassen ab Herbst sowie ein neues Jugendreferat. Das vollständige Protokoll liegt im Vorstandsbüro aus.",
+      category: "announcement",
+      visibility: "members",
       status: "published",
       pinned: false,
-      daysBack: 50,
+      daysBack: 26,
     },
     {
       title: "Hajj 2026 — Vorbereitungstreffen für Pilger",
@@ -1557,6 +1582,13 @@ async function seedParentChildRelations(users, studentIds) {
     links.push({ parent: users.admin, student: studentIds[9], label: "Admin → Kind 2", relation_type: "father" });
   }
 
+  // Demo-Member (Familien-Account, demo-member@moschee.app) → Schüler 6 + 7
+  // Beide in Quran A, Quran B, Islamkunde + Anwesenheits-Daten + Gebühren
+  if (users.familyMember && studentIds.length >= 8) {
+    links.push({ parent: users.familyMember, student: studentIds[6], label: "demo-member → Kind 1 (Hatice)", relation_type: "father" });
+    links.push({ parent: users.familyMember, student: studentIds[7], label: "demo-member → Kind 2 (Yusuf)", relation_type: "father" });
+  }
+
   // Demo-Member-01 → Schüler 0, 1 (2 Kinder, beide in Kurs "Quran Anfänger")
   if (users.memberIds?.length >= 1 && studentIds.length >= 2) {
     links.push({ parent: users.memberIds[0], student: studentIds[0], label: "Member-01 → Kind 1 (Vollpreis)", relation_type: "mother" });
@@ -1626,13 +1658,14 @@ async function main() {
   console.log("🔑 Passwort aller Demo-Accounts: " + DEMO_PASSWORD);
   console.log("");
   console.log("📧 Accounts:");
-  console.log("   Admin:     demo-admin@moschee.app");
-  console.log("   Imam:      demo-imam@moschee.app  /  demo-imam2@moschee.app");
-  console.log("   Lehrer:    demo-teacher@moschee.app  /  demo-teacher2  /  demo-teacher3");
-  console.log("   Mitglieder: demo-member-01@moschee.app … demo-member-20@moschee.app");
+  console.log("   Admin:        demo-admin@moschee.app          (2 Kinder: Quran A+B + Islamkunde)");
+  console.log("   Familie:      demo-member@moschee.app         (2 Kinder: Quran A+B + Islamkunde)");
+  console.log("   Imam:         demo-imam@moschee.app  /  demo-imam2@moschee.app");
+  console.log("   Lehrer:       demo-teacher@moschee.app  /  demo-teacher2  /  demo-teacher3");
+  console.log("   Mitglieder:   demo-member-01@moschee.app … demo-member-20@moschee.app");
   console.log("");
   console.log("📊 Erstellt:");
-  console.log("   👥  25 Benutzer (1 Admin, 2 Imame, 3 Lehrer, 20 Mitglieder)");
+  console.log("   👥  26 Benutzer (1 Admin, 1 Familien-Demo, 2 Imame, 3 Lehrer, 20 Mitglieder)");
   console.log("   🏅  6 Team-Mitglieder");
   console.log(`   📅  2 Schuljahre (${ARCHIVED_YEAR_NAME} + ${ACTIVE_YEAR_NAME}), 5 Kurse`);
   console.log("   🧒  20 Schüler, Einschreibungen, Anwesenheiten, Gebühren");
