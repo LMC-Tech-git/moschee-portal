@@ -2919,11 +2919,11 @@
     "plans": {
       "recommended": "Tavsiye edilen",
       "small": {
-        "name": "Küçük ve orta cemaatler",
+        "name": "Küçük cemaatler için",
         "cta": "Danışmanlık talep et"
       },
       "standard": {
-        "name": "Büyük cemaatler",
+        "name": "Köklü cemaatler için",
         "cta": "Canlı demo planla"
       }
     },
@@ -3015,8 +3015,8 @@
       "cta": "Canlı demo planla"
     },
     "tarifBanner": {
-      "small": "Küçük ve orta cemaatler için tarife ilgileniyorsunuz (49 € / ay net). Sorularınızı yazın — kısa sürede sizinle iletişime geçeceğiz.",
-      "standard": "Büyük cemaatler için tarife ilgileniyorsunuz (79 € / ay net). Sorularınızı yazın — kısa sürede sizinle iletişime geçeceğiz.",
+      "small": "Küçük cemaatler için tarifeyle ilgileniyorsunuz (49 € / ay net). Sorularınızı yazın — kısa sürede sizinle iletişime geçeceğiz.",
+      "standard": "Köklü cemaatler için tarifeyle ilgileniyorsunuz (79 € / ay net). Sorularınızı yazın — kısa sürede sizinle iletişime geçeceğiz.",
       "pilot": "Pilot Ortak Programı ile ilgileniyorsunuz. Cemaatinizden bahsedin — uygun koşulları değerlendirelim.",
       "yearly": "Yıllık abonelikle (2 ay ücretsiz)."
     }
