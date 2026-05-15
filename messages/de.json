@@ -2919,11 +2919,11 @@
     "plans": {
       "recommended": "Empfohlen",
       "small": {
-        "name": "Klein",
+        "name": "Kleine bis mittlere Gemeinden",
         "cta": "Beratung anfragen"
       },
       "standard": {
-        "name": "Standard",
+        "name": "Große Gemeinden",
         "cta": "Live-Demo vereinbaren"
       }
     },
@@ -3015,8 +3015,8 @@
       "cta": "Live-Demo vereinbaren"
     },
     "tarifBanner": {
-      "small": "Sie interessieren sich für den Tarif „Klein\" (49 € / Monat netto). Schreiben Sie uns Ihre Fragen — wir melden uns zeitnah.",
-      "standard": "Sie interessieren sich für den Tarif „Standard\" (79 € / Monat netto). Schreiben Sie uns Ihre Fragen — wir melden uns zeitnah.",
+      "small": "Sie interessieren sich für den Tarif für kleine bis mittlere Gemeinden (49 € / Monat netto). Schreiben Sie uns Ihre Fragen — wir melden uns zeitnah.",
+      "standard": "Sie interessieren sich für den Tarif für große Gemeinden (79 € / Monat netto). Schreiben Sie uns Ihre Fragen — wir melden uns zeitnah.",
       "pilot": "Sie interessieren sich für das Pilotpartner-Programm. Erzählen Sie uns von Ihrer Gemeinde — wir prüfen passende Konditionen.",
       "yearly": "Mit Jahresabo (2 Monate gratis)."
     }
