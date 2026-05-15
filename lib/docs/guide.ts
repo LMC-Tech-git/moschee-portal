@@ -22,7 +22,8 @@ export type ScreenshotKey =
   // Member-Tour
   | "member-profile"
   | "member-donations"
-  | "member-fees";
+  | "member-fees"
+  | "member-child";
 
 export type GuideStep = {
   titleKey: string;
@@ -96,6 +97,7 @@ export const MADRASA_GUIDES: PhaseGuide[] = [
       {
         titleKey: "madrasa.parents.step1.title",
         descKey: "madrasa.parents.step1.desc",
+        screenshotKey: "member-child",
       },
       {
         titleKey: "madrasa.parents.step2.title",
