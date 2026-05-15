@@ -1,6 +1,8 @@
 export const dynamic = "force-static";
 export const revalidate = 86400;
 
+import { existsSync } from "fs";
+import path from "path";
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
@@ -16,7 +18,8 @@ import {
 import { getTranslations } from "next-intl/server";
 import { FEATURES } from "@/lib/docs/features";
 import { QUICKSTART } from "@/lib/docs/quickstart";
-import { MADRASA_GUIDES } from "@/lib/docs/guide";
+import { MADRASA_GUIDES, ADMIN_TOUR, MEMBER_TOUR } from "@/lib/docs/guide";
+import type { PhaseGuide } from "@/lib/docs/guide";
 import { FAQ_ITEMS } from "@/lib/docs/faq";
 import { MadrasaGuide } from "@/components/anleitung/MadrasaGuide";
 import type { TranslatedPhase } from "@/components/anleitung/MadrasaGuide";
@@ -58,16 +61,29 @@ export default async function AnleitungPage() {
     ...FEATURES.filter((f) => !f.highlight),
   ];
 
-  // Resolve Madrasa guide translations server-side
-  const translatedPhases: TranslatedPhase[] = MADRASA_GUIDES.map((guide) => ({
-    phase: guide.phase,
-    title: t(guide.titleKey as Parameters<typeof t>[0]),
-    steps: guide.steps.map((step) => ({
-      title: t(step.titleKey as Parameters<typeof t>[0]),
-      desc: t(step.descKey as Parameters<typeof t>[0]),
-      screenshotKey: step.screenshotKey,
-    })),
-  }));
+  const screenshotExists = (key?: string): boolean => {
+    if (!key) return false;
+    return existsSync(
+      path.join(process.cwd(), "public", "screenshots", `${key}.png`),
+    );
+  };
+
+  // Resolve guide translations server-side
+  const resolvePhases = (guides: PhaseGuide[]): TranslatedPhase[] =>
+    guides.map((guide) => ({
+      phase: guide.phase,
+      title: t(guide.titleKey as Parameters<typeof t>[0]),
+      steps: guide.steps.map((step) => ({
+        title: t(step.titleKey as Parameters<typeof t>[0]),
+        desc: t(step.descKey as Parameters<typeof t>[0]),
+        screenshotKey: step.screenshotKey,
+        screenshotAvailable: screenshotExists(step.screenshotKey),
+      })),
+    }));
+
+  const translatedPhases = resolvePhases(MADRASA_GUIDES);
+  const adminPhases = resolvePhases(ADMIN_TOUR);
+  const memberPhases = resolvePhases(MEMBER_TOUR);
 
   // Resolve FAQ
   const faqItems = FAQ_ITEMS.map((item) => ({
@@ -195,8 +211,21 @@ export default async function AnleitungPage() {
         </div>
       </section>
 
+      {/* Admin Tour */}
+      <section id="admin-tour" className="bg-gray-50 py-16">
+        <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+          <h2 className="mb-2 text-center text-2xl font-extrabold text-gray-900">
+            {t("adminTourTitle")}
+          </h2>
+          <p className="mb-10 text-center text-sm text-gray-500">
+            {t("adminTourSubtitle")}
+          </p>
+          <MadrasaGuide phases={adminPhases} />
+        </div>
+      </section>
+
       {/* Madrasa Journey */}
-      <section id="madrasa-guide" className="bg-gray-50 py-16">
+      <section id="madrasa-guide" className="py-16">
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
           <h2 className="mb-2 text-center text-2xl font-extrabold text-gray-900">
             {t("madrasaTitle")}
@@ -205,6 +234,19 @@ export default async function AnleitungPage() {
             {t("madrasaSubtitle")}
           </p>
           <MadrasaGuide phases={translatedPhases} />
+        </div>
+      </section>
+
+      {/* Member Tour */}
+      <section id="member-tour" className="bg-gray-50 py-16">
+        <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+          <h2 className="mb-2 text-center text-2xl font-extrabold text-gray-900">
+            {t("memberTourTitle")}
+          </h2>
+          <p className="mb-10 text-center text-sm text-gray-500">
+            {t("memberTourSubtitle")}
+          </p>
+          <MadrasaGuide phases={memberPhases} />
         </div>
       </section>
 

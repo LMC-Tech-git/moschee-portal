@@ -6,6 +6,7 @@ interface GuideStepCardProps {
   title: string;
   desc: string;
   screenshotKey?: string;
+  screenshotAvailable?: boolean;
 }
 
 export function GuideStepCard({
@@ -13,6 +14,7 @@ export function GuideStepCard({
   title,
   desc,
   screenshotKey,
+  screenshotAvailable,
 }: GuideStepCardProps) {
   return (
     <div className="flex flex-col gap-4 rounded-xl border border-gray-200 bg-white p-5 shadow-sm sm:flex-row sm:gap-6">
@@ -28,7 +30,11 @@ export function GuideStepCard({
           <p className="mt-1 text-sm leading-relaxed text-gray-600">{desc}</p>
         </div>
         {screenshotKey && (
-          <ScreenshotSlot screenshotKey={screenshotKey as ScreenshotKey} aspectRatio="16/7" />
+          <ScreenshotSlot
+            screenshotKey={screenshotKey as ScreenshotKey}
+            aspectRatio="16/7"
+            available={screenshotAvailable}
+          />
         )}
       </div>
     </div>

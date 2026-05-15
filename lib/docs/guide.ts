@@ -1,13 +1,28 @@
-export type MadrasaPhase = "setup" | "teaching" | "parents";
+export type MadrasaPhase =
+  | "setup"
+  | "teaching"
+  | "parents"
+  | "admin"
+  | "member";
 
 export const MADRASA_PHASES: MadrasaPhase[] = ["setup", "teaching", "parents"];
 
 export type ScreenshotKey =
+  // Madrasa
   | "madrasa-settings"
   | "madrasa-students"
   | "madrasa-fees"
   | "madrasa-attendance"
-  | "madrasa-parent";
+  | "madrasa-parent"
+  // Admin-Tour
+  | "admin-dashboard"
+  | "admin-events"
+  | "admin-posts"
+  | "admin-donations"
+  // Member-Tour
+  | "member-profile"
+  | "member-donations"
+  | "member-fees";
 
 export type GuideStep = {
   titleKey: string;
@@ -90,6 +105,59 @@ export const MADRASA_GUIDES: PhaseGuide[] = [
       {
         titleKey: "madrasa.parents.step3.title",
         descKey: "madrasa.parents.step3.desc",
+      },
+    ],
+  },
+];
+
+export const ADMIN_TOUR: PhaseGuide[] = [
+  {
+    phase: "admin",
+    titleKey: "adminTour.phase.title",
+    steps: [
+      {
+        titleKey: "adminTour.dashboard.title",
+        descKey: "adminTour.dashboard.desc",
+        screenshotKey: "admin-dashboard",
+      },
+      {
+        titleKey: "adminTour.events.title",
+        descKey: "adminTour.events.desc",
+        screenshotKey: "admin-events",
+      },
+      {
+        titleKey: "adminTour.posts.title",
+        descKey: "adminTour.posts.desc",
+        screenshotKey: "admin-posts",
+      },
+      {
+        titleKey: "adminTour.donations.title",
+        descKey: "adminTour.donations.desc",
+        screenshotKey: "admin-donations",
+      },
+    ],
+  },
+];
+
+export const MEMBER_TOUR: PhaseGuide[] = [
+  {
+    phase: "member",
+    titleKey: "memberTour.phase.title",
+    steps: [
+      {
+        titleKey: "memberTour.profile.title",
+        descKey: "memberTour.profile.desc",
+        screenshotKey: "member-profile",
+      },
+      {
+        titleKey: "memberTour.donations.title",
+        descKey: "memberTour.donations.desc",
+        screenshotKey: "member-donations",
+      },
+      {
+        titleKey: "memberTour.fees.title",
+        descKey: "memberTour.fees.desc",
+        screenshotKey: "member-fees",
       },
     ],
   },

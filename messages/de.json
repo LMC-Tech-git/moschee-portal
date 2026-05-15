@@ -2809,6 +2809,48 @@
         "desc": "Klicke auf 'Veranstaltung erstellen' oder 'Beitrag erstellen' und informiere die Gemeinde."
       }
     },
+    "adminTourTitle": "Admin-Tour",
+    "adminTourSubtitle": "Die wichtigsten Werkzeuge für Vorstand und Verwaltung.",
+    "adminTour": {
+      "phase": {
+        "title": "Verwaltung & Inhalte"
+      },
+      "dashboard": {
+        "title": "Dashboard im Überblick",
+        "desc": "KPI-Kacheln für Mitglieder, Spenden, Veranstaltungen und Madrasa. Trends und aktuelle Aktivitäten auf einen Blick."
+      },
+      "events": {
+        "title": "Veranstaltungen verwalten",
+        "desc": "Einmalige und wiederkehrende Events erstellen, Kategorien zuweisen, Anmeldungen verwalten und Teilnehmer per CSV exportieren."
+      },
+      "posts": {
+        "title": "Beiträge & Ankündigungen",
+        "desc": "Beiträge mit Kategorie veröffentlichen, als Entwurf speichern und optional als Newsletter an Mitglieder senden."
+      },
+      "donations": {
+        "title": "Spenden im Blick",
+        "desc": "Online- und manuelle Spenden erfassen, Kampagnen mit Fortschrittsbalken anlegen und alle Buchungen prüfen."
+      }
+    },
+    "memberTourTitle": "Mitglieder-Tour",
+    "memberTourSubtitle": "Was Gemeindemitglieder im Portal sehen und tun können.",
+    "memberTour": {
+      "phase": {
+        "title": "Profil & Mitwirkung"
+      },
+      "profile": {
+        "title": "Eigenes Profil verwalten",
+        "desc": "Persönliche Daten pflegen, Mitgliedsnummer einsehen, eigene Veranstaltungs-Anmeldungen und Kinder im Überblick."
+      },
+      "donations": {
+        "title": "Spenden & Belege",
+        "desc": "Eigene Spendenhistorie einsehen, wiederkehrende Spenden verwalten und Zahlungsbelege herunterladen."
+      },
+      "fees": {
+        "title": "Madrasa-Gebühren bezahlen",
+        "desc": "Offene Gebühren je Kind und Monat sichtbar. Direkt online bezahlen oder mehrere Monate im Voraus begleichen."
+      }
+    },
     "madrasaTitle": "Madrasa — Schritt für Schritt",
     "madrasaSubtitle": "Vom Einrichten bis zur Eltern-Ansicht: Alles zur Madrasa-Verwaltung.",
     "madrasa": {

@@ -8,6 +8,7 @@ export interface TranslatedStep {
   title: string;
   desc: string;
   screenshotKey?: string;
+  screenshotAvailable?: boolean;
 }
 
 export interface TranslatedPhase {
@@ -39,16 +40,32 @@ const PHASE_COLORS: Record<string, { border: string; bg: string; text: string; b
     text: "text-violet-700",
     badge: "bg-violet-100 text-violet-700",
   },
+  admin: {
+    border: "border-amber-200",
+    bg: "bg-amber-50",
+    text: "text-amber-700",
+    badge: "bg-amber-100 text-amber-700",
+  },
+  member: {
+    border: "border-rose-200",
+    bg: "bg-rose-50",
+    text: "text-rose-700",
+    badge: "bg-rose-100 text-rose-700",
+  },
 };
 
 const PHASE_LABELS: Record<string, string> = {
   setup: "1",
   teaching: "2",
   parents: "3",
+  admin: "★",
+  member: "♥",
 };
 
 export function MadrasaGuide({ phases }: MadrasaGuideProps) {
-  const [openPhase, setOpenPhase] = useState<string | null>("setup");
+  const [openPhase, setOpenPhase] = useState<string | null>(
+    phases[0]?.phase ?? null,
+  );
 
   return (
     <div className="space-y-4">
@@ -101,6 +118,7 @@ export function MadrasaGuide({ phases }: MadrasaGuideProps) {
                     title={step.title}
                     desc={step.desc}
                     screenshotKey={step.screenshotKey}
+                    screenshotAvailable={step.screenshotAvailable}
                   />
                 ))}
               </div>

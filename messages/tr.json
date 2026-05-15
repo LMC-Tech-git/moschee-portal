@@ -2809,6 +2809,48 @@
         "desc": "'Etkinlik oluştur' veya 'Yazı oluştur'a tıklayın ve cemaati bilgilendirin."
       }
     },
+    "adminTourTitle": "Yönetici Turu",
+    "adminTourSubtitle": "Yönetim kurulu ve idare için en önemli araçlar.",
+    "adminTour": {
+      "phase": {
+        "title": "Yönetim ve İçerik"
+      },
+      "dashboard": {
+        "title": "Genel Bakış Panosu",
+        "desc": "Üyeler, bağışlar, etkinlikler ve medrese için KPI kartları. Trendler ve son etkinlikler bir bakışta."
+      },
+      "events": {
+        "title": "Etkinlik Yönetimi",
+        "desc": "Tek seferlik ve tekrarlanan etkinlikler oluşturun, kategori atayın, kayıtları yönetin ve katılımcıları CSV olarak dışa aktarın."
+      },
+      "posts": {
+        "title": "Yazılar ve Duyurular",
+        "desc": "Kategoriyle yazı yayınlayın, taslak olarak kaydedin ve dilerseniz üyelere bülten olarak gönderin."
+      },
+      "donations": {
+        "title": "Bağışlara Genel Bakış",
+        "desc": "Çevrimiçi ve manuel bağışları kaydedin, ilerleme çubuklu kampanyalar oluşturun ve tüm işlemleri kontrol edin."
+      }
+    },
+    "memberTourTitle": "Üye Turu",
+    "memberTourSubtitle": "Cemaat üyelerinin portalda neler görüp yapabileceği.",
+    "memberTour": {
+      "phase": {
+        "title": "Profil ve Katılım"
+      },
+      "profile": {
+        "title": "Kendi Profilini Yönet",
+        "desc": "Kişisel verileri güncelle, üyelik numaranı gör, kendi etkinlik kayıtlarına ve çocuklarına genel bakış."
+      },
+      "donations": {
+        "title": "Bağışlar ve Makbuzlar",
+        "desc": "Kendi bağış geçmişini gör, düzenli bağışları yönet ve ödeme makbuzlarını indir."
+      },
+      "fees": {
+        "title": "Medrese Ücretlerini Öde",
+        "desc": "Her çocuk ve ay için açık ücretler görünür. Doğrudan çevrimiçi öde veya birkaç ayı önceden kapat."
+      }
+    },
     "madrasaTitle": "Medrese — Adım adım",
     "madrasaSubtitle": "Kurulumdan veli görünümüne kadar: Medrese yönetimi hakkında her şey.",
     "madrasa": {

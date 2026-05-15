@@ -163,17 +163,51 @@ async function main() {
       });
     }
 
+    // --- Admin tour screenshots ---
+    console.log("\n📋 Admin tour captures...");
+
+    // Admin dashboard
+    await screenshot(page, `${BASE_URL}/admin`, "admin-dashboard", {
+      extraDelay: 2000,
+    });
+
+    // Admin events list
+    await screenshot(page, `${BASE_URL}/admin/events`, "admin-events", {
+      extraDelay: 2000,
+    });
+
+    // Admin posts list
+    await screenshot(page, `${BASE_URL}/admin/posts`, "admin-posts", {
+      extraDelay: 2000,
+    });
+
+    // Admin donations
+    await screenshot(page, `${BASE_URL}/admin/spenden`, "admin-donations", {
+      extraDelay: 2000,
+    });
+
     // --- Member screenshots ---
     console.log("\n🔑 Logging in as member...");
     // Clear cookies and login fresh
     await page.deleteCookie(...(await page.cookies()));
     await login(page, MEMBER_EMAIL, MEMBER_PASSWORD);
 
-    // 5. Member profile Madrasa tab
-    await screenshot(page, `${BASE_URL}/member/profile`, "madrasa-parent", {
+    // Member profile overview (Profil tab is default)
+    await screenshot(page, `${BASE_URL}/member/profile?tab=profile`, "member-profile", {
       extraDelay: 2000,
-      // Try to click Madrasa tab
-      clickSelector: '[value="madrasa"]',
+    });
+
+    // Member donations tab
+    await screenshot(page, `${BASE_URL}/member/profile?tab=donations`, "member-donations", {
+      extraDelay: 2000,
+    });
+
+    // Member madrasa tab → both "member-fees" and "madrasa-parent" (same view)
+    await screenshot(page, `${BASE_URL}/member/profile?tab=madrasa`, "madrasa-parent", {
+      extraDelay: 2000,
+    });
+    await screenshot(page, `${BASE_URL}/member/profile?tab=madrasa`, "member-fees", {
+      extraDelay: 2000,
     });
 
     console.log("\n✅ All screenshots done!");
