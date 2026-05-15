@@ -58,6 +58,15 @@ function delay(ms) {
 
 async function screenshot(page, url, filename, options = {}) {
   console.log(`📸 ${filename} → ${url}`);
+
+  // Per-capture viewport override (member-tab captures need taller viewport
+  // to show feature content below the user-card hero)
+  if (options.viewport) {
+    await page.setViewport(options.viewport);
+  } else {
+    await page.setViewport(VIEWPORT);
+  }
+
   await page.goto(url, { waitUntil: "networkidle2", timeout: 20000 });
   await delay(options.extraDelay || 1500);
 
@@ -70,6 +79,23 @@ async function screenshot(page, url, filename, options = {}) {
     });
     await delay(300);
   } catch {}
+
+  // Hide noisy chrome (demo banner, top nav) so feature content is visible
+  if (options.hideDemoBanner) {
+    try {
+      await page.evaluate(() => {
+        // DemoBanner uses amber-50 bg + role=note pattern. Match by text.
+        const all = Array.from(document.querySelectorAll("div, section, aside"));
+        for (const el of all) {
+          const txt = el.textContent || "";
+          if (txt.startsWith("Demo-Modus") && el.children.length < 10) {
+            el.style.display = "none";
+            break;
+          }
+        }
+      });
+    } catch {}
+  }
 
   // Click tab by text content
   if (options.clickTabText) {
@@ -95,7 +121,7 @@ async function screenshot(page, url, filename, options = {}) {
     }
   }
 
-  // Scroll to specific position
+  // Scroll to specific element
   if (options.scrollTo) {
     await page.evaluate((selector) => {
       const el = document.querySelector(selector);
@@ -104,8 +130,19 @@ async function screenshot(page, url, filename, options = {}) {
     await delay(500);
   }
 
+  // Scroll by pixels — useful to skip page hero/user-card so feature
+  // content fills the viewport
+  if (typeof options.scrollY === "number") {
+    await page.evaluate((y) => window.scrollTo(0, y), options.scrollY);
+    await delay(500);
+  }
+
   const outputPath = path.join(OUTPUT_DIR, `${filename}.png`);
-  await page.screenshot({ path: outputPath, type: "png" });
+  await page.screenshot({
+    path: outputPath,
+    type: "png",
+    fullPage: options.fullPage === true,
+  });
   console.log(`   ✅ Saved ${outputPath}`);
 }
 
@@ -199,18 +236,44 @@ async function main() {
     await page.deleteCookie(...(await page.cookies()));
     await login(page, MEMBER_EMAIL, MEMBER_PASSWORD);
 
+    // Member tab captures share these options: skip page hero (banner + nav +
+    // user-card) so the actual feature content fills the viewport.
+    const memberTabOptions = {
+      extraDelay: 2500,
+      viewport: { width: 1280, height: 800 },
+      hideDemoBanner: true,
+      scrollY: 280,
+    };
+
+    // Member children tab
+    await screenshot(
+      page,
+      `${BASE_URL}/member/profile?tab=children`,
+      "member-child",
+      memberTabOptions,
+    );
+
     // Member donations tab
-    await screenshot(page, `${BASE_URL}/member/profile?tab=donations`, "member-donations", {
-      extraDelay: 2000,
-    });
+    await screenshot(
+      page,
+      `${BASE_URL}/member/profile?tab=donations`,
+      "member-donations",
+      memberTabOptions,
+    );
 
     // Member madrasa tab → both "member-fees" and "madrasa-parent" (same view)
-    await screenshot(page, `${BASE_URL}/member/profile?tab=madrasa`, "madrasa-parent", {
-      extraDelay: 2000,
-    });
-    await screenshot(page, `${BASE_URL}/member/profile?tab=madrasa`, "member-fees", {
-      extraDelay: 2000,
-    });
+    await screenshot(
+      page,
+      `${BASE_URL}/member/profile?tab=madrasa`,
+      "madrasa-parent",
+      memberTabOptions,
+    );
+    await screenshot(
+      page,
+      `${BASE_URL}/member/profile?tab=madrasa`,
+      "member-fees",
+      memberTabOptions,
+    );
 
     console.log("\n✅ All screenshots done!");
   } catch (err) {
