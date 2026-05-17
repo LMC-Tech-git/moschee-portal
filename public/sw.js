@@ -3,12 +3,19 @@
 // Strategie: Mandanten-sicher, kein Cache-Mixing
 // ============================================================
 
-const CACHE_VERSION = "v5";
+// WICHTIG: Bei jeder Änderung an dieser Datei CACHE_VERSION hochzählen,
+// sonst bleibt der alte Service Worker bei Clients aktiv.
+const CACHE_VERSION = "v6";
 const STATIC_CACHE = `moschee-static-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `moschee-runtime-${CACHE_VERSION}`;
+const IMAGE_CACHE = `moschee-images-${CACHE_VERSION}`;
+
+// Max. Einträge im Cross-Origin-Bilder-Cache (PocketBase-Dateien)
+const IMAGE_CACHE_MAX = 80;
 
 // Statische Assets die beim Install gecacht werden
 const PRECACHE_URLS = [
+  "/",
   "/offline",
   "/icons/icon-192x192.png",
   "/icons/icon-180x180.png",
@@ -36,7 +43,17 @@ self.addEventListener("install", (event) => {
   event.waitUntil(
     caches
       .open(STATIC_CACHE)
-      .then((cache) => cache.addAll(PRECACHE_URLS))
+      .then((cache) =>
+        // Einzeln cachen statt addAll: ein 4xx/5xx (z.B. "/") darf
+        // die gesamte Installation nicht abbrechen.
+        Promise.all(
+          PRECACHE_URLS.map((u) =>
+            cache.add(u).catch((err) => {
+              console.warn("[SW] Precache fehlgeschlagen:", u, err);
+            })
+          )
+        )
+      )
       .then(() => self.skipWaiting())
   );
 });
@@ -51,7 +68,12 @@ self.addEventListener("activate", (event) => {
       .then((keys) =>
         Promise.all(
           keys
-            .filter((key) => key !== STATIC_CACHE && key !== RUNTIME_CACHE)
+            .filter(
+              (key) =>
+                key !== STATIC_CACHE &&
+                key !== RUNTIME_CACHE &&
+                key !== IMAGE_CACHE
+            )
             .map((key) => caches.delete(key))
         )
       )
@@ -66,11 +88,18 @@ self.addEventListener("fetch", (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // 1. Nur Same-Origin Requests behandeln
-  if (url.origin !== self.location.origin) return;
-
-  // 2. Nur GET-Requests cachen (POST/PUT/DELETE = Mutationen)
+  // 0. Nur GET-Requests behandeln (POST/PUT/DELETE = Mutationen)
   if (request.method !== "GET") return;
+
+  // 1. Cross-Origin: nur PocketBase-Dateien (Bilder/Logos) cachen.
+  //    Mandanten-sicher, da Cache-Key die volle URL ist (inkl. Collection+Record-ID).
+  //    PB-Dateien sind public; verschiedene Moscheen haben verschiedene URLs.
+  if (url.origin !== self.location.origin) {
+    if (url.pathname.includes("/api/files/")) {
+      event.respondWith(imageStaleWhileRevalidate(request));
+    }
+    return;
+  }
 
   // 3. Niemals Auth/Admin/API cachen
   if (NO_CACHE_PATTERNS.some((pattern) => pattern.test(url.pathname))) return;
@@ -132,5 +161,36 @@ async function networkFirst(request) {
       status: 503,
       headers: { "Content-Type": "text/html" },
     });
+  }
+}
+
+// ============================================================
+// Stale-While-Revalidate (Cross-Origin PocketBase-Bilder)
+// Sofort aus Cache liefern, im Hintergrund aktualisieren.
+// ============================================================
+async function imageStaleWhileRevalidate(request) {
+  const cache = await caches.open(IMAGE_CACHE);
+  const cached = await cache.match(request);
+
+  const network = fetch(request)
+    .then((response) => {
+      if (response && response.ok) {
+        cache.put(request, response.clone()).then(() => trimImageCache(cache));
+      }
+      return response;
+    })
+    .catch(() => null);
+
+  // Cache zuerst (schnell), sonst auf Netzwerk warten
+  return cached || (await network) || new Response("", { status: 504 });
+}
+
+// Einfache LRU-artige Begrenzung: älteste Einträge entfernen
+async function trimImageCache(cache) {
+  const keys = await cache.keys();
+  if (keys.length <= IMAGE_CACHE_MAX) return;
+  const overflow = keys.length - IMAGE_CACHE_MAX;
+  for (let i = 0; i < overflow; i++) {
+    await cache.delete(keys[i]);
   }
 }
