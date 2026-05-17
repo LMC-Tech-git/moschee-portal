@@ -5,7 +5,7 @@
 
 // WICHTIG: Bei jeder Änderung an dieser Datei CACHE_VERSION hochzählen,
 // sonst bleibt der alte Service Worker bei Clients aktiv.
-const CACHE_VERSION = "v7";
+const CACHE_VERSION = "v8";
 const STATIC_CACHE = `moschee-static-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `moschee-runtime-${CACHE_VERSION}`;
 const IMAGE_CACHE = `moschee-images-${CACHE_VERSION}`;
@@ -223,7 +223,14 @@ self.addEventListener("push", (event) => {
 // ============================================================
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const target = (event.notification.data && event.notification.data.url) || "/";
+
+  // Sicherheit: nur interne, relative Pfade zulassen (kein Open-Redirect /
+  // Phishing über manipulierte Payloads). Protokoll-relative "//host" sperren.
+  const raw = (event.notification.data && event.notification.data.url) || "/";
+  const target =
+    typeof raw === "string" && raw.startsWith("/") && !raw.startsWith("//")
+      ? raw
+      : "/";
 
   event.waitUntil(
     self.clients

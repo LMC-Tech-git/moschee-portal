@@ -45,6 +45,11 @@ interface SubRecord {
   topics: string[] | string | null;
 }
 
+/** PocketBase-Record-IDs sind alphanumerisch. Block für Filter-Injection. */
+function safeId(id: string): string {
+  return /^[A-Za-z0-9_-]{1,40}$/.test(id) ? id : "";
+}
+
 function parseTopics(raw: SubRecord["topics"]): string[] {
   if (Array.isArray(raw)) return raw;
   if (typeof raw === "string" && raw) {
@@ -99,13 +104,14 @@ export async function sendPushToMosque(
   topic: string,
   payload: PushPayload
 ): Promise<number> {
-  if (!isPushConfigured() || !mosqueId) return 0;
+  const mid = safeId(mosqueId);
+  if (!isPushConfigured() || !mid) return 0;
 
   const pb = await getAdminPB();
   let records: SubRecord[] = [];
   try {
     const list = await pb.collection("push_subscriptions").getFullList({
-      filter: `mosque_id = "${mosqueId}"`,
+      filter: `mosque_id = "${mid}"`,
     });
     records = list as unknown as SubRecord[];
   } catch (err) {
@@ -129,13 +135,14 @@ export async function sendPushToUser(
   userId: string,
   payload: PushPayload
 ): Promise<number> {
-  if (!isPushConfigured() || !userId) return 0;
+  const uid = safeId(userId);
+  if (!isPushConfigured() || !uid) return 0;
 
   const pb = await getAdminPB();
   let records: SubRecord[] = [];
   try {
     const list = await pb.collection("push_subscriptions").getFullList({
-      filter: `user_id = "${userId}"`,
+      filter: `user_id = "${uid}"`,
     });
     records = list as unknown as SubRecord[];
   } catch {

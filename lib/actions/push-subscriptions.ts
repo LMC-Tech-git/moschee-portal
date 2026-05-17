@@ -32,6 +32,8 @@ async function resolveUser(): Promise<
 > {
   const auth = getAuthFromCookie();
   if (!auth.isLoggedIn || !auth.userId) return null;
+  // pb_auth ist client-kontrolliert — ID-Format strikt prüfen
+  if (!/^[A-Za-z0-9_-]{1,40}$/.test(auth.userId)) return null;
   try {
     const pb = await getAdminPB();
     const user = await pb.collection("users").getOne(auth.userId);
