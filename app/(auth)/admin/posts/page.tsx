@@ -25,6 +25,7 @@ import {
 } from "@/lib/constants";
 import type { Post } from "@/types";
 import { useTranslations } from "next-intl";
+import { EmptyState } from "@/components/shared/EmptyState";
 
 export default function AdminPostsPage() {
   const t = useTranslations("posts");
@@ -134,25 +135,12 @@ export default function AdminPostsPage() {
               ))}
             </div>
           ) : posts.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12">
-              <FileText
-                className="mb-3 h-10 w-10 text-gray-300"
-                aria-hidden="true"
-              />
-              <p className="mb-1 text-sm font-medium text-gray-600">
-                {t("noPostsYet")}
-              </p>
-              <p className="mb-4 text-xs text-gray-400">
-                {t("noPostsHint")}
-              </p>
-              <Link
-                href="/admin/posts/new"
-                className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
-              >
-                <Plus className="h-4 w-4" />
-                {t("newPost")}
-              </Link>
-            </div>
+            <EmptyState
+              icon={FileText}
+              title={t("noPostsYet")}
+              description={t("noPostsHint")}
+              action={{ label: t("newPost"), href: "/admin/posts/new" }}
+            />
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
