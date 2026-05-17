@@ -635,7 +635,7 @@ function ChildrenTab({
                             <div className="pl-3 sm:pl-5 text-xs space-y-1">
                               {/* Heute */}
                               <div className="flex items-center gap-2">
-                                <div className="w-[70px] sm:w-[90px] text-gray-400 shrink-0">
+                                <div className="w-[112px] sm:w-[128px] text-gray-400 shrink-0 whitespace-nowrap">
                                   {t("member.profile.children.attendance.todayLabel")}:
                                 </div>
                                 <div className="flex-1">
@@ -654,7 +654,7 @@ function ChildrenTab({
                               {/* Anwesenheit + Progress Bar */}
                               {course.total > 0 && (
                                 <div className="flex items-start gap-2">
-                                  <div className="w-[70px] sm:w-[90px] text-gray-400 shrink-0 pt-0.5">
+                                  <div className="w-[112px] sm:w-[128px] text-gray-400 shrink-0 whitespace-nowrap pt-0.5">
                                     {t("member.profile.children.attendance.attendanceLabel")}:
                                   </div>
                                   <div className="flex-1">
@@ -669,7 +669,7 @@ function ChildrenTab({
                               {/* Entwicklung */}
                               {course.trend && (
                                 <div className="flex items-center gap-2">
-                                  <div className="w-[70px] sm:w-[90px] text-gray-400 shrink-0">
+                                  <div className="w-[112px] sm:w-[128px] text-gray-400 shrink-0 whitespace-nowrap">
                                     {t("member.profile.children.attendance.developmentLabel")}:
                                   </div>
                                   <div className={cn(
@@ -688,10 +688,10 @@ function ChildrenTab({
                                 const lvl = getPerformanceLevel(course.lastPerformance);
                                 return lvl ? (
                                   <div className="flex items-center gap-2">
-                                    <div className="w-[70px] sm:w-[90px] text-gray-400 shrink-0">
+                                    <div className="w-[112px] sm:w-[128px] text-gray-400 shrink-0 whitespace-nowrap">
                                       {t("member.profile.children.attendance.ratingLabel")}:
                                     </div>
-                                    <div className="flex-1 flex items-center gap-0.5 text-gray-700">
+                                    <div className="flex-1 min-w-0 flex items-center gap-0.5 text-gray-700">
                                       {lvl.shortLabel}
                                       <span className="ml-1">
                                         {Array.from({ length: 5 }, (_, i) => (
