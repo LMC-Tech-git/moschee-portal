@@ -3086,5 +3086,53 @@
       "pilot": "Sie interessieren sich für das Pilotpartner-Programm. Erzählen Sie uns von Ihrer Gemeinde — wir prüfen passende Konditionen.",
       "yearly": "Mit Jahresabo (2 Monate gratis)."
     }
+  },
+  "pwa": {
+    "install": {
+      "title": "App installieren",
+      "description": "Moschee-Portal als App auf dem Homescreen speichern.",
+      "action": "Installieren",
+      "later": "Nicht jetzt",
+      "close": "Schließen"
+    },
+    "ios": {
+      "title": "App installieren",
+      "description": "Diese Seite als App auf den Home-Bildschirm legen — schneller Zugriff, Vollbild, offline-fähig.",
+      "step1": "Tippe auf das Teilen-Symbol unten in der Leiste.",
+      "step2": "Wähle „Zum Home-Bildschirm“.",
+      "step3": "Bestätige mit „Hinzufügen“.",
+      "close": "Verstanden"
+    }
+  },
+  "push": {
+    "toggle": {
+      "title": "Benachrichtigungen",
+      "description": "Erhalte Push-Nachrichten zu neuen Beiträgen, Veranstaltungen und mehr.",
+      "enable": "Benachrichtigungen aktivieren",
+      "disable": "Benachrichtigungen deaktivieren",
+      "enabled": "Benachrichtigungen aktiv",
+      "denied": "Benachrichtigungen im Browser blockiert. Bitte in den Browser-Einstellungen erlauben.",
+      "unsupported": "Dein Browser unterstützt keine Push-Benachrichtigungen.",
+      "saving": "Wird gespeichert...",
+      "error": "Konnte nicht gespeichert werden. Bitte erneut versuchen."
+    },
+    "topics": {
+      "title": "Wofür möchtest du benachrichtigt werden?",
+      "prayer_times": "Gebetszeiten",
+      "events": "Veranstaltungen",
+      "donations": "Spendenkampagnen",
+      "posts": "Beiträge & Ankündigungen",
+      "madrasa": "Madrasa (Kinder)"
+    },
+    "test": {
+      "button": "Test-Nachricht senden",
+      "sent": "Test-Nachricht gesendet.",
+      "title": "Test-Benachrichtigung",
+      "body": "Push funktioniert. As-salamu alaikum!"
+    },
+    "send": {
+      "optIn": "Mitglieder per Push benachrichtigen",
+      "sent": "Push-Benachrichtigung an {count} Geräte gesendet."
+    }
   }
 }

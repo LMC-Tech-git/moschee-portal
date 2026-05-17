@@ -3086,5 +3086,53 @@
       "pilot": "Pilot Ortak Programı ile ilgileniyorsunuz. Cemaatinizden bahsedin — uygun koşulları değerlendirelim.",
       "yearly": "Yıllık abonelikle (2 ay ücretsiz)."
     }
+  },
+  "pwa": {
+    "install": {
+      "title": "Uygulamayı yükle",
+      "description": "Cami Portalı'nı uygulama olarak ana ekrana ekle.",
+      "action": "Yükle",
+      "later": "Şimdi değil",
+      "close": "Kapat"
+    },
+    "ios": {
+      "title": "Uygulamayı yükle",
+      "description": "Bu sayfayı uygulama olarak ana ekrana ekle — hızlı erişim, tam ekran, çevrimdışı kullanım.",
+      "step1": "Alttaki çubuktan Paylaş simgesine dokun.",
+      "step2": "„Ana Ekrana Ekle“ seçeneğini seç.",
+      "step3": "„Ekle“ ile onayla.",
+      "close": "Anladım"
+    }
+  },
+  "push": {
+    "toggle": {
+      "title": "Bildirimler",
+      "description": "Yeni gönderiler, etkinlikler ve daha fazlası için push bildirimleri al.",
+      "enable": "Bildirimleri etkinleştir",
+      "disable": "Bildirimleri devre dışı bırak",
+      "enabled": "Bildirimler etkin",
+      "denied": "Bildirimler tarayıcıda engellendi. Lütfen tarayıcı ayarlarından izin ver.",
+      "unsupported": "Tarayıcın push bildirimlerini desteklemiyor.",
+      "saving": "Kaydediliyor...",
+      "error": "Kaydedilemedi. Lütfen tekrar dene."
+    },
+    "topics": {
+      "title": "Hangi konularda bildirim almak istersin?",
+      "prayer_times": "Namaz vakitleri",
+      "events": "Etkinlikler",
+      "donations": "Bağış kampanyaları",
+      "posts": "Gönderiler ve duyurular",
+      "madrasa": "Medrese (Çocuklar)"
+    },
+    "test": {
+      "button": "Test mesajı gönder",
+      "sent": "Test mesajı gönderildi.",
+      "title": "Test bildirimi",
+      "body": "Push çalışıyor. Selamün aleyküm!"
+    },
+    "send": {
+      "optIn": "Üyeleri push ile bilgilendir",
+      "sent": "{count} cihaza push bildirimi gönderildi."
+    }
   }
 }

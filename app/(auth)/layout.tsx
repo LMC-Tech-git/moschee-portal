@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { PWAInstallPrompt } from "@/components/shared/PWAInstallPrompt";
+import { IOSInstallHint } from "@/components/shared/IOSInstallHint";
 export default function AuthLayout({
   children,
 }: {
@@ -37,6 +38,7 @@ export default function AuthLayout({
     <>
       {children}
       <PWAInstallPrompt />
+      <IOSInstallHint />
     </>
   );
 }

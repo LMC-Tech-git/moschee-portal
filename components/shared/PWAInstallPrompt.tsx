@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Download, X } from "lucide-react";
 
 interface BeforeInstallPromptEvent extends Event {
@@ -11,6 +12,7 @@ interface BeforeInstallPromptEvent extends Event {
 const STORAGE_KEY = "pwa_install_dismissed";
 
 export function PWAInstallPrompt() {
+  const t = useTranslations("pwa.install");
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [visible, setVisible] = useState(false);
 
@@ -55,29 +57,27 @@ export function PWAInstallPrompt() {
           <Download className="h-5 w-5 text-emerald-700" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-gray-900">App installieren</p>
-          <p className="mt-0.5 text-xs text-gray-500">
-            Moschee-Portal als App auf dem Homescreen speichern.
-          </p>
+          <p className="text-sm font-semibold text-gray-900">{t("title")}</p>
+          <p className="mt-0.5 text-xs text-gray-500">{t("description")}</p>
           <div className="mt-3 flex gap-2">
             <button
               onClick={handleInstall}
-              className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-1"
+              className="rounded-md bg-emerald-600 px-3 py-2 text-xs font-medium text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-1"
             >
-              Installieren
+              {t("action")}
             </button>
             <button
               onClick={handleDismiss}
-              className="rounded-md px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-1"
+              className="rounded-md px-3 py-2 text-xs font-medium text-gray-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-1"
             >
-              Nicht jetzt
+              {t("later")}
             </button>
           </div>
         </div>
         <button
           onClick={handleDismiss}
           className="shrink-0 rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
-          aria-label="Schließen"
+          aria-label={t("close")}
         >
           <X className="h-4 w-4" />
         </button>

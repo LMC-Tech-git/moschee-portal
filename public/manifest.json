@@ -1,8 +1,9 @@
 {
+  "id": "/",
   "name": "Moschee-Portal",
   "short_name": "Moschee",
   "description": "Die digitale Plattform für muslimische Gemeinden in Deutschland. Gebetszeiten, Events, Spenden und mehr.",
-  "start_url": "/",
+  "start_url": "/?utm_source=pwa",
   "scope": "/",
   "display": "standalone",
   "display_override": ["window-controls-overlay", "standalone"],
@@ -11,7 +12,7 @@
   "theme_color": "#059669",
   "lang": "de",
   "dir": "ltr",
-  "categories": ["social", "lifestyle"],
+  "categories": ["social", "lifestyle", "education"],
   "icons": [
     {
       "src": "/icons/icon-192x192.png",
@@ -36,6 +37,90 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Gebetszeiten",
+      "short_name": "Gebet",
+      "url": "/?utm_source=pwa_shortcut",
+      "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Veranstaltungen",
+      "short_name": "Events",
+      "url": "/events?utm_source=pwa_shortcut",
+      "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Spenden",
+      "short_name": "Spenden",
+      "url": "/donate?utm_source=pwa_shortcut",
+      "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Beiträge",
+      "short_name": "Beiträge",
+      "url": "/posts?utm_source=pwa_shortcut",
+      "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshots/admin-dashboard.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Admin-Dashboard mit Kennzahlen"
+    },
+    {
+      "src": "/screenshots/admin-events.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Veranstaltungen verwalten"
+    },
+    {
+      "src": "/screenshots/admin-posts.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Beiträge und Ankündigungen"
+    },
+    {
+      "src": "/screenshots/admin-donations.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Spendenübersicht"
+    },
+    {
+      "src": "/screenshots/madrasa-students.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Madrasa: Schülerverwaltung"
+    },
+    {
+      "src": "/screenshots/madrasa-attendance.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Madrasa: Anwesenheit"
+    },
+    {
+      "src": "/screenshots/madrasa-fees.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Madrasa: Gebühren"
+    },
+    {
+      "src": "/screenshots/member-donations.png",
+      "sizes": "1280x800",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Mitglied: Eigene Spenden"
     }
   ]
 }
