@@ -4,6 +4,7 @@ import { getAdminPB } from "@/lib/pocketbase-admin";
 import { postSchema } from "@/lib/validations";
 import { logAudit } from "@/lib/audit";
 import { checkDemoLimit } from "@/lib/demo";
+import { sendPushToMosque } from "@/lib/push";
 import type { Post } from "@/types";
 import type { RecordModel } from "pocketbase";
 
@@ -297,6 +298,33 @@ export async function createPost(
       entityId: record.id,
       details: { title: validated.title, status: validated.status },
     });
+
+    // Opt-In: Mitglieder per Push benachrichtigen (nur veröffentlichte Beiträge)
+    if (
+      formData.get("notify_push") === "true" &&
+      validated.status === "published"
+    ) {
+      try {
+        const delivered = await sendPushToMosque(mosqueId, "posts", {
+          title: validated.title,
+          body: validated.content.slice(0, 120),
+          url: "/posts",
+          tag: `post-${record.id}`,
+        });
+        if (delivered > 0) {
+          await logAudit({
+            mosqueId,
+            userId,
+            action: "push_sent",
+            entityType: "push_subscription",
+            entityId: record.id,
+            details: { source: "post", delivered },
+          });
+        }
+      } catch (e) {
+        console.error("[Posts] Push-Versand fehlgeschlagen:", e);
+      }
+    }
 
     return { success: true, data: mapRecordToPost(record) };
   } catch (error) {

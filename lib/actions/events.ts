@@ -8,6 +8,7 @@ import { renderEventConfirmation } from "@/lib/email/templates";
 import type { Event, EventRegistration } from "@/types";
 import type { RecordModel } from "pocketbase";
 import { checkDemoLimit } from "@/lib/demo";
+import { sendPushToMosque } from "@/lib/push";
 import Stripe from "stripe";
 
 // --- Helpers ---
@@ -273,7 +274,8 @@ export async function getEventById(
 export async function createEvent(
   mosqueId: string,
   userId: string,
-  input: EventInput
+  input: EventInput,
+  notifyPush = false
 ): Promise<ActionResult<Event>> {
   try {
     const validated = eventSchema.parse(input);
@@ -296,6 +298,29 @@ export async function createEvent(
       entityId: record.id,
       details: { title: validated.title },
     });
+
+    if (notifyPush) {
+      try {
+        const delivered = await sendPushToMosque(mosqueId, "events", {
+          title: validated.title,
+          body: validated.description?.slice(0, 120) || validated.title,
+          url: "/events",
+          tag: `event-${record.id}`,
+        });
+        if (delivered > 0) {
+          await logAudit({
+            mosqueId,
+            userId,
+            action: "push_sent",
+            entityType: "push_subscription",
+            entityId: record.id,
+            details: { source: "event", delivered },
+          });
+        }
+      } catch (e) {
+        console.error("[Events] Push-Versand fehlgeschlagen:", e);
+      }
+    }
 
     return { success: true, data: mapRecordToEvent(record) };
   } catch (error) {

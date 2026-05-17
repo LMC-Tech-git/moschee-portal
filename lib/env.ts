@@ -18,6 +18,9 @@ const envSchema = z.object({
   NEXT_PUBLIC_APP_URL: z.string().url().optional(),
   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().optional(),
 
+  // Web-Push (VAPID Public Key). Ohne Keys werden Push-Funktionen graceful deaktiviert.
+  NEXT_PUBLIC_VAPID_PUBLIC_KEY: z.string().optional(),
+
   // -------------------------------------------------------
   // Server-only
   // -------------------------------------------------------
@@ -33,6 +36,10 @@ const envSchema = z.object({
   // Stripe — optional (Portal funktioniert ohne Zahlungen)
   STRIPE_SECRET_KEY: z.string().optional(),
   STRIPE_WEBHOOK_SECRET: z.string().optional(),
+
+  // Web-Push VAPID — Server-Keys. Ohne diese werden Push-Sends übersprungen.
+  VAPID_PRIVATE_KEY: z.string().optional(),
+  VAPID_SUBJECT: z.string().optional(),
 
   // -------------------------------------------------------
   // CAPTCHA (Cloudflare Turnstile)

@@ -616,6 +616,26 @@ const INVITES_COLLECTION = {
   ],
 };
 
+// Web-Push Subscriptions (PWA-Benachrichtigungen)
+const PUSH_SUBSCRIPTIONS_COLLECTION = {
+  name: "push_subscriptions",
+  type: "base",
+  schema: [
+    { name: "mosque_id", type: "relation", required: true, options: { collectionId: "", maxSelect: 1 } },
+    { name: "user_id", type: "relation", required: true, options: { collectionId: "", maxSelect: 1, cascadeDelete: true } },
+    { name: "endpoint", type: "text", required: true, options: { max: 600 } },
+    { name: "p256dh_key", type: "text", required: true, options: { max: 200 } },
+    { name: "auth_key", type: "text", required: true, options: { max: 100 } },
+    { name: "device_label", type: "text", options: { max: 120 } },
+    { name: "topics", type: "json", options: { maxSize: 2000 } },
+  ],
+  indexes: [
+    "CREATE UNIQUE INDEX idx_push_sub_endpoint ON push_subscriptions (endpoint)",
+    "CREATE INDEX idx_push_sub_mosque ON push_subscriptions (mosque_id)",
+    "CREATE INDEX idx_push_sub_user ON push_subscriptions (user_id)",
+  ],
+};
+
 // --- Felder für bestehende Collections ---
 
 const MOSQUES_NEW_FIELDS = [
@@ -1008,6 +1028,7 @@ async function main() {
     TEAM_MEMBERS_COLLECTION,
     PARENT_CHILD_RELATIONS_COLLECTION,
     STRIPE_EVENTS_COLLECTION,
+    PUSH_SUBSCRIPTIONS_COLLECTION,
   ];
 
   for (const colDef of newCollections) {

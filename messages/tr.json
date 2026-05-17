@@ -1365,7 +1365,8 @@
       "newsletter": "Bülten",
       "settings": "Ayarlar",
       "sponsors": "Destekçiler",
-      "team": "Ekip"
+      "team": "Ekip",
+      "push_subscription": "Bildirimler"
     },
     "entity": {
       "post": "Haber",
@@ -1389,9 +1390,16 @@
       "mosques": "Cami",
       "sponsors": "Destekçi",
       "team_members": "Ekip",
-      "parent_child_relations": "Veli-Çocuk İlişkisi"
+      "parent_child_relations": "Veli-Çocuk İlişkisi",
+      "push_subscription": "Bildirim"
     },
     "action": {
+      "push_subscription": {
+        "push_subscribe": "Push aboneliği",
+        "push_unsubscribe": "Push aboneliği iptal",
+        "push_update": "Push konuları değişti",
+        "push_sent": "Push bildirimi gönderildi"
+      },
       "post": {
         "created": "Haber oluşturuldu",
         "updated": "Haber düzenlendi",

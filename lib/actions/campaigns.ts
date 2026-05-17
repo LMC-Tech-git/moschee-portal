@@ -3,6 +3,7 @@
 import { getAdminPB } from "@/lib/pocketbase-admin";
 import { campaignSchema, type CampaignInput } from "@/lib/validations";
 import { logAudit } from "@/lib/audit";
+import { sendPushToMosque } from "@/lib/push";
 import type { Campaign, CampaignWithProgress } from "@/types";
 import type { RecordModel } from "pocketbase";
 
@@ -248,7 +249,8 @@ export async function getCampaignById(
 export async function createCampaign(
   mosqueId: string,
   userId: string,
-  input: CampaignInput
+  input: CampaignInput,
+  notifyPush = false
 ): Promise<ActionResult<Campaign>> {
   try {
     const validated = campaignSchema.parse(input);
@@ -279,6 +281,29 @@ export async function createCampaign(
         end_at: validated.end_at,
       },
     });
+
+    if (notifyPush && validated.status === "active") {
+      try {
+        const delivered = await sendPushToMosque(mosqueId, "donations", {
+          title: validated.title,
+          body: validated.description?.slice(0, 120) || validated.title,
+          url: "/campaigns",
+          tag: `campaign-${record.id}`,
+        });
+        if (delivered > 0) {
+          await logAudit({
+            mosqueId,
+            userId,
+            action: "push_sent",
+            entityType: "push_subscription",
+            entityId: record.id,
+            details: { source: "campaign", delivered },
+          });
+        }
+      } catch (e) {
+        console.error("[Campaigns] Push-Versand fehlgeschlagen:", e);
+      }
+    }
 
     return { success: true, data: mapRecordToCampaign(record) };
   } catch (error) {

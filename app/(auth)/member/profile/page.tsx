@@ -13,6 +13,7 @@ import {
 } from "@/lib/actions/members";
 import EmailChangeSection from "./components/EmailChangeSection";
 import PasswordChangeSection from "./components/PasswordChangeSection";
+import { PushSubscriptionToggle } from "@/components/shared/PushSubscriptionToggle";
 import { cancelMemberRegistration } from "@/lib/actions/events";
 import { getStudentsByParent } from "@/lib/actions/students";
 import {
@@ -269,7 +270,12 @@ export default function MemberProfilePage() {
       )}
 
       {/* Tab Content */}
-      {activeTab === "profile" && <ProfileEditForm user={user} />}
+      {activeTab === "profile" && (
+        <div className="space-y-6">
+          <ProfileEditForm user={user} />
+          <PushSubscriptionToggle showMadrasa={feesEnabled} />
+        </div>
+      )}
       {activeTab === "children" && (
         <ChildrenTab userId={user.id} userName={`${user.first_name} ${user.last_name}`.trim()} userPhone={user.phone} userAddress={user.address || ""} mosqueId={mosqueId} />
       )}

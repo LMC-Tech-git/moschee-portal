@@ -5,7 +5,7 @@
 
 // WICHTIG: Bei jeder Änderung an dieser Datei CACHE_VERSION hochzählen,
 // sonst bleibt der alte Service Worker bei Clients aktiv.
-const CACHE_VERSION = "v6";
+const CACHE_VERSION = "v7";
 const STATIC_CACHE = `moschee-static-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `moschee-runtime-${CACHE_VERSION}`;
 const IMAGE_CACHE = `moschee-images-${CACHE_VERSION}`;
@@ -194,3 +194,54 @@ async function trimImageCache(cache) {
     await cache.delete(keys[i]);
   }
 }
+
+// ============================================================
+// Push: eingehende Benachrichtigung anzeigen
+// ============================================================
+self.addEventListener("push", (event) => {
+  let data = {};
+  try {
+    data = event.data ? event.data.json() : {};
+  } catch {
+    data = { title: "Moschee-Portal", body: event.data ? event.data.text() : "" };
+  }
+
+  const title = data.title || "Moschee-Portal";
+  const options = {
+    body: data.body || "",
+    icon: data.icon || "/icons/icon-192x192.png",
+    badge: data.badge || "/icons/icon-192x192.png",
+    tag: data.tag || "moschee-push",
+    data: { url: data.url || "/" },
+  };
+
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
+// ============================================================
+// Notification-Klick: vorhandenen Tab fokussieren oder neuen öffnen
+// ============================================================
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const target = (event.notification.data && event.notification.data.url) || "/";
+
+  event.waitUntil(
+    self.clients
+      .matchAll({ type: "window", includeUncontrolled: true })
+      .then((clientList) => {
+        for (const client of clientList) {
+          // Gleiche Origin → fokussieren und navigieren
+          if ("focus" in client) {
+            client.focus();
+            if ("navigate" in client && target) {
+              return client.navigate(target).catch(() => {});
+            }
+            return;
+          }
+        }
+        if (self.clients.openWindow) {
+          return self.clients.openWindow(target);
+        }
+      })
+  );
+});

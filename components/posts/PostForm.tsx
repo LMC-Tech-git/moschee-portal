@@ -24,6 +24,7 @@ export function PostForm({ initialData, onSubmit, isEdit, backPath = "/admin/pos
   const tL = useTranslations("labels");
   const tP = useTranslations("posts.form");
   const tCommon = useTranslations("common");
+  const tPush = useTranslations("push");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const categoryOptions = [
@@ -50,6 +51,7 @@ export function PostForm({ initialData, onSubmit, isEdit, backPath = "/admin/pos
     initialData?.visibility ?? (defaultVisibility as PostInput["visibility"]) ?? "public"
   );
   const [pinned, setPinned] = useState(initialData?.pinned || false);
+  const [notifyPush, setNotifyPush] = useState(false);
 
   // Wenn defaultVisibility nachgeladen wird (Settings-Fetch in der Elternseite), übernehmen
   useEffect(() => {
@@ -103,6 +105,7 @@ export function PostForm({ initialData, onSubmit, isEdit, backPath = "/admin/pos
       fd.append("visibility", visibility);
       fd.append("pinned", String(pinned));
       fd.append("status", status);
+      fd.append("notify_push", String(notifyPush && status === "published"));
 
       // Neue Bilder anhängen
       newImages.forEach((file) => fd.append("images", file));
@@ -214,6 +217,22 @@ export function PostForm({ initialData, onSubmit, isEdit, backPath = "/admin/pos
           {tP("pinnedLabel")}
         </Label>
       </div>
+
+      {/* Push-Benachrichtigung (nur bei Neuanlage) */}
+      {!isEdit && (
+        <div className="flex items-center gap-2">
+          <input
+            id="notify_push"
+            type="checkbox"
+            checked={notifyPush}
+            onChange={(e) => setNotifyPush(e.target.checked)}
+            className="h-4 w-4 rounded border-gray-300 text-primary-500 focus:ring-ring"
+          />
+          <Label htmlFor="notify_push" className="font-normal">
+            {tPush("send.optIn")}
+          </Label>
+        </div>
+      )}
 
       {/* Bilder */}
       <div className="space-y-3">

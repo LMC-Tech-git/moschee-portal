@@ -197,6 +197,27 @@ export interface User {
   updated: string;
 }
 
+// --- Web-Push Subscriptions ---
+export type PushTopic =
+  | "prayer_times"
+  | "events"
+  | "donations"
+  | "posts"
+  | "madrasa";
+
+export interface PushSubscriptionRecord {
+  id: string;
+  mosque_id: string;
+  user_id: string;
+  endpoint: string;
+  p256dh_key: string;
+  auth_key: string;
+  device_label: string;
+  topics: PushTopic[];
+  created: string;
+  updated: string;
+}
+
 // --- 4. Posts (WhatsApp-Ersatz / Beiträge) ---
 export interface Post {
   id: string;

@@ -2,6 +2,7 @@
 
 import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useMosque } from "@/lib/mosque-context";
 import { useAuth } from "@/lib/auth-context";
@@ -14,10 +15,12 @@ export default function NewCampaignPage() {
   const { user } = useAuth();
   const t = useTranslations("campaigns");
   const tCommon = useTranslations("common");
+  const tPush = useTranslations("push");
+  const [notifyPush, setNotifyPush] = useState(false);
 
   async function handleCreate(data: CampaignInput) {
     if (!user) return { success: false, error: tCommon("notLoggedIn") };
-    return createCampaign(mosqueId, user.id, data);
+    return createCampaign(mosqueId, user.id, data, notifyPush);
   }
 
   return (
@@ -34,6 +37,15 @@ export default function NewCampaignPage() {
       </div>
 
       <div className="rounded-xl border border-gray-200 bg-white p-6">
+        <label className="mb-4 flex items-center gap-2 text-sm text-gray-700">
+          <input
+            type="checkbox"
+            checked={notifyPush}
+            onChange={(e) => setNotifyPush(e.target.checked)}
+            className="h-4 w-4 rounded border-gray-300 text-primary-500 focus:ring-ring"
+          />
+          {tPush("send.optIn")}
+        </label>
         <CampaignForm onSubmit={handleCreate} />
       </div>
     </div>

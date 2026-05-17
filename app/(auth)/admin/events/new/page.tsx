@@ -16,7 +16,9 @@ export default function NewEventPage() {
   const { user } = useAuth();
   const t = useTranslations("events");
   const tCommon = useTranslations("common");
+  const tPush = useTranslations("push");
   const [defaultVisibility, setDefaultVisibility] = useState<string>("public");
+  const [notifyPush, setNotifyPush] = useState(false);
 
   useEffect(() => {
     if (!mosqueId) return;
@@ -29,7 +31,7 @@ export default function NewEventPage() {
 
   async function handleCreate(data: EventInput) {
     if (!user) return { success: false, error: tCommon("notLoggedIn") };
-    return createEvent(mosqueId, user.id, data);
+    return createEvent(mosqueId, user.id, data, notifyPush);
   }
 
   return (
@@ -48,6 +50,15 @@ export default function NewEventPage() {
       </div>
 
       <div className="rounded-xl border border-gray-200 bg-white p-6">
+        <label className="mb-4 flex items-center gap-2 text-sm text-gray-700">
+          <input
+            type="checkbox"
+            checked={notifyPush}
+            onChange={(e) => setNotifyPush(e.target.checked)}
+            className="h-4 w-4 rounded border-gray-300 text-primary-500 focus:ring-ring"
+          />
+          {tPush("send.optIn")}
+        </label>
         <EventForm onSubmit={handleCreate} defaultVisibility={defaultVisibility} />
       </div>
     </div>

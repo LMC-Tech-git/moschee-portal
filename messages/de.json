@@ -1365,7 +1365,8 @@
       "newsletter": "Newsletter",
       "settings": "Einstellungen",
       "sponsors": "Förderpartner",
-      "team": "Team"
+      "team": "Team",
+      "push_subscription": "Benachrichtigungen"
     },
     "entity": {
       "post": "Post",
@@ -1389,9 +1390,16 @@
       "mosques": "Moschee",
       "sponsors": "Förderpartner",
       "team_members": "Team",
-      "parent_child_relations": "Eltern-Kind-Verknüpfung"
+      "parent_child_relations": "Eltern-Kind-Verknüpfung",
+      "push_subscription": "Benachrichtigung"
     },
     "action": {
+      "push_subscription": {
+        "push_subscribe": "Push abonniert",
+        "push_unsubscribe": "Push abgemeldet",
+        "push_update": "Push-Themen geändert",
+        "push_sent": "Push-Benachrichtigung gesendet"
+      },
       "post": {
         "created": "Post erstellt",
         "updated": "Post bearbeitet",
