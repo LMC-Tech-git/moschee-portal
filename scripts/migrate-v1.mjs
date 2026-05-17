@@ -1866,9 +1866,17 @@ async function main() {
   if (collectionMap.settings) {
     let page = 1;
     let updated = 0;
+    let skipped = 0;
     while (true) {
       const res = await pbFetch(`/api/collections/settings/records?page=${page}&perPage=200`);
       for (const s of res.items || []) {
+        // Verwaiste Settings ohne mosque_id überspringen: PB re-validiert den Record
+        // beim Partial-Update, mosque_id ist required → 400 würde Migration abbrechen.
+        if (!s.mosque_id) {
+          console.warn(`   ⚠️  Settings-Record ${s.id} ohne mosque_id übersprungen (verwaister Record)`);
+          skipped++;
+          continue;
+        }
         if (s.sepa_enabled !== true) {
           await pbFetch(`/api/collections/settings/records/${s.id}`, {
             method: "PATCH",
@@ -1880,7 +1888,7 @@ async function main() {
       if (page >= (res.totalPages || 1)) break;
       page++;
     }
-    console.log(`   ${updated > 0 ? "✅" : "⏭️ "} ${updated} Settings-Records auf sepa_enabled=true`);
+    console.log(`   ${updated > 0 ? "✅" : "⏭️ "} ${updated} Settings-Records auf sepa_enabled=true${skipped > 0 ? ` (${skipped} verwaiste übersprungen)` : ""}`);
   }
 
   console.log("\n=== ✅ Migration abgeschlossen ===\n");
