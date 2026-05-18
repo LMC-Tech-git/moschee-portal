@@ -145,10 +145,21 @@ async function createPbBackup() {
   const name = `pre-migrate-${ts}.zip`;
   console.log(`💾 Erstelle PB-Backup "${name}" ...`);
   try {
-    await pbFetch("/api/backups", {
+    // POST /api/backups antwortet mit 204 (leerer Body) → NICHT via
+    // pbFetch (das erzwingt res.json()). Rohes fetch, Body ignorieren.
+    const res = await fetch(`${PB_URL}/api/backups`, {
       method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(authToken ? { Authorization: authToken } : {}),
+      },
       body: JSON.stringify({ name }),
     });
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`PB API ${res.status} /api/backups: ${text}`);
+    }
+    // Verifikation über die Liste (liefert JSON).
     const list = await pbFetch("/api/backups");
     const found = (Array.isArray(list) ? list : list?.items || []).some(
       (b) => b.key === name || b.name === name
