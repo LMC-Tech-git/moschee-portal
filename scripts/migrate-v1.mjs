@@ -124,6 +124,44 @@ async function createCollection(schema) {
   }
 }
 
+/**
+ * Erzeugt ein natives PocketBase-Backup VOR jeder Schema-Migration.
+ * Sicherheitsnetz: bei unerwartetem Datenverlust sofort wiederherstellbar
+ * (PB Admin UI → Settings → Backups, oder POST /api/backups/{key}/restore).
+ * Schlägt das Backup fehl, wird die Migration abgebrochen (außer
+ * SKIP_PB_BACKUP=1) — kein Schema-Schreiben ohne Snapshot.
+ */
+async function createPbBackup() {
+  if (process.env.SKIP_PB_BACKUP === "1") {
+    console.log("⚠️  PB-Backup übersprungen (SKIP_PB_BACKUP=1)\n");
+    return;
+  }
+  const ts = new Date().toISOString().replace(/[:.]/g, "-");
+  const name = `pre-migrate-${ts}.zip`;
+  console.log(`💾 Erstelle PB-Backup "${name}" ...`);
+  try {
+    await pbFetch("/api/backups", {
+      method: "POST",
+      body: JSON.stringify({ name }),
+    });
+    const list = await pbFetch("/api/backups");
+    const found = (Array.isArray(list) ? list : list?.items || []).some(
+      (b) => b.key === name || b.name === name
+    );
+    console.log(
+      found
+        ? `   ✅ Backup erstellt: ${name}\n`
+        : `   ✅ Backup-Request gesendet (Liste unbestätigt): ${name}\n`
+    );
+  } catch (err) {
+    console.error(`   ❌ PB-Backup fehlgeschlagen: ${err.message}`);
+    console.error(
+      "   Abbruch — kein Schema-Schreiben ohne Snapshot. Mit SKIP_PB_BACKUP=1 erzwingbar.\n"
+    );
+    process.exit(1);
+  }
+}
+
 async function updateCollection(name, updates) {
   console.log(`   🔄 Aktualisiere Collection "${name}"...`);
   try {
@@ -947,7 +985,7 @@ async function resolveRelationIds(collections) {
 
 function patchRelations(schema, collectionMap) {
   return schema.map((field) => {
-    if (field.type === "relation" && field.options?.collectionId === "") {
+    if (field.type === "relation") {
       // Versuche anhand des Feldnamens die Relation aufzulösen
       const name = field.name;
       let targetCollection = "";
@@ -965,10 +1003,14 @@ function patchRelations(schema, collectionMap) {
       else if (name === "parent_user") targetCollection = "users";
       else if (name === "student") targetCollection = "students";
 
-      if (targetCollection && collectionMap[targetCollection]) {
+      const targetId = targetCollection ? collectionMap[targetCollection] : "";
+      // Nur setzen wenn auflösbar UND abweichend. WICHTIG: bestehendes
+      // Feld-Objekt (inkl. `id`/`system`) via Spread erhalten — sonst
+      // behandelt PocketBase es als neues Feld und verwirft die Spaltendaten.
+      if (targetId && field.options?.collectionId !== targetId) {
         return {
           ...field,
-          options: { ...field.options, collectionId: collectionMap[targetCollection] },
+          options: { ...field.options, collectionId: targetId },
         };
       }
     }
@@ -1004,6 +1046,9 @@ async function main() {
 
   // 1. Authentifizieren
   await authenticate();
+
+  // 1b. Sicherheitsnetz: natives PB-Backup vor jeder Schema-Änderung
+  await createPbBackup();
 
   // 2. Bestehende Collections laden
   let collections = await getExistingCollections();
@@ -1064,15 +1109,21 @@ async function main() {
   console.log("\n--- Relationen aktualisieren ---\n");
 
   for (const colDef of newCollections) {
-    const exists = collectionMap[colDef.name];
-    if (!exists) continue;
+    if (!collectionMap[colDef.name]) continue;
 
-    const patchedSchema = patchRelations(colDef.schema, collectionMap);
+    // WICHTIG: Auf dem LIVE-Schema patchen (Felder haben echte `id`),
+    // NICHT auf dem statischen colDef.schema (Felder ohne `id`).
+    // Statisches Schema per PATCH zu senden lässt PocketBase alle Spalten
+    // als "neu" behandeln → Drop+Recreate → ALLE Feldwerte verloren.
+    const liveCol = collections.find((c) => c.name === colDef.name);
+    const liveSchema = liveCol?.schema;
+    if (!Array.isArray(liveSchema) || liveSchema.length === 0) continue;
+
+    const patchedSchema = patchRelations(liveSchema, collectionMap);
     const needsPatch = patchedSchema.some(
       (f, i) =>
         f.type === "relation" &&
-        f.options?.collectionId &&
-        f.options.collectionId !== colDef.schema[i]?.options?.collectionId
+        f.options?.collectionId !== liveSchema[i]?.options?.collectionId
     );
 
     if (needsPatch) {
