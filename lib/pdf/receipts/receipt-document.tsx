@@ -12,6 +12,7 @@ import {
   Text,
   StyleSheet,
   renderToStream,
+  renderToBuffer,
 } from "@react-pdf/renderer";
 import { formatCurrencyCents, formatReceiptDate } from "@/lib/utils";
 import {
@@ -368,6 +369,17 @@ export function renderReceiptsToStream(
   year: number
 ) {
   return renderToStream(
+    <ReceiptDocument receipts={receipts} mosqueName={mosqueName} year={year} />
+  );
+}
+
+/** Rendert das Bescheinigungs-PDF zu einem Buffer (z.B. für E-Mail-Anhang). */
+export function renderReceiptsToBuffer(
+  receipts: ReceiptPdfData[],
+  mosqueName: string,
+  year: number
+): Promise<Buffer> {
+  return renderToBuffer(
     <ReceiptDocument receipts={receipts} mosqueName={mosqueName} year={year} />
   );
 }

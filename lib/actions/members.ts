@@ -688,25 +688,80 @@ export async function sendDonationReceiptByEmail(
       accentColor = settings.brand_primary_color || undefined;
     } catch { /* kein Branding → Default */ }
 
-    const { renderAnnualDonationReceipt } = await import("@/lib/email/templates");
+    // BMF-konforme Bescheinigung als PDF erzeugen (server-only dynamic imports
+    // halten react-pdf aus dem Client-Bundle).
+    const { loadVereinSettings, loadDonorMeta, loadRawDonationsForUser } =
+      await import("@/lib/actions/receipts");
+    const { buildReceiptPdfData } = await import(
+      "@/lib/pdf/receipts/build-receipt-data"
+    );
+    const { renderReceiptsToBuffer } = await import(
+      "@/lib/pdf/receipts/receipt-document"
+    );
     const { sendEmailDirect } = await import("@/lib/email");
+    const { baseTemplate } = await import("@/lib/email/templates");
 
-    const html = renderAnnualDonationReceipt({
-      mosqueName: d.mosque.name,
-      mosqueAddress: d.mosque.address,
-      mosqueCity: d.mosque.city,
-      donorName: d.donor.full_name,
-      donorMembershipNumber: d.donor.membership_number || undefined,
-      year: d.year,
-      donations: d.donations,
-      totalCents: d.totalCents,
-      accentColor,
+    const { verein } = await loadVereinSettings(mosqueId);
+    const meta = await loadDonorMeta(mosqueId, userId);
+    const rawDonations = await loadRawDonationsForUser(mosqueId, userId, year);
+    if (rawDonations.length === 0) {
+      return { success: false, error: "Keine Spenden für dieses Jahr vorhanden" };
+    }
+
+    const receipt = buildReceiptPdfData({
+      mode: "sammel",
+      verein,
+      donor: {
+        name: meta?.name || d.donor.full_name,
+        anschrift: meta?.anschrift || "",
+        membershipNumber: meta?.membershipNumber || d.donor.membership_number,
+        addressMissing: meta?.addressMissing ?? true,
+      },
+      year,
+      rawDonations,
     });
+
+    const pdfBuffer = await renderReceiptsToBuffer(
+      [receipt],
+      verein.name,
+      year
+    );
+
+    const slug = (d.donor.full_name || "spender")
+      .toLowerCase()
+      .replace(/ä/g, "ae")
+      .replace(/ö/g, "oe")
+      .replace(/ü/g, "ue")
+      .replace(/ß/g, "ss")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 60);
+
+    const greeting = d.donor.full_name
+      ? `Liebe/r ${d.donor.full_name},`
+      : "Guten Tag,";
+    const body = `
+      <p style="margin:0 0 16px;color:#111827;font-size:16px;font-weight:600;">${greeting}</p>
+      <p style="margin:0 0 12px;color:#374151;font-size:14px;line-height:1.6;">
+        anbei erhalten Sie Ihre Zuwendungsbestätigung für das Jahr ${year}
+        von <strong>${d.mosque.name}</strong> als PDF im Anhang dieser E-Mail.
+      </p>
+      <p style="margin:0 0 12px;color:#374151;font-size:14px;line-height:1.6;">
+        Bitte bewahren Sie das Dokument für Ihre steuerlichen Unterlagen auf.
+      </p>
+    `;
+    const html = baseTemplate(body, d.mosque.name, accentColor);
 
     const result = await sendEmailDirect({
       to: d.donor.email,
-      subject: `Spendenbescheinigung ${d.year} — ${d.mosque.name}`,
+      subject: `Spendenbescheinigung ${year} — ${d.mosque.name}`,
       html,
+      attachments: [
+        {
+          filename: `spendenbescheinigung-${year}-${slug}.pdf`,
+          content: pdfBuffer,
+        },
+      ],
     });
 
     if (!result.success) {

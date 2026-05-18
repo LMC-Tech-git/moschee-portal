@@ -37,6 +37,8 @@ export interface SendEmailOptions {
   from?: string;
   /** Reply-To-Adresse (optional) — z.B. E-Mail des Absenders im Kontaktformular */
   replyTo?: string;
+  /** Datei-Anhänge (optional) — z.B. PDF-Spendenbescheinigung */
+  attachments?: { filename: string; content: Buffer }[];
 }
 
 export interface SendEmailResult {
@@ -64,6 +66,9 @@ export async function sendEmailDirect(options: SendEmailOptions): Promise<SendEm
       subject: options.subject,
       html: options.html,
       ...(options.replyTo ? { reply_to: options.replyTo } : {}),
+      ...(options.attachments?.length
+        ? { attachments: options.attachments }
+        : {}),
     });
 
     if (error) {
