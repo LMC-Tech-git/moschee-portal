@@ -124,6 +124,11 @@ export interface Settings {
   recurring_donations_enabled: boolean;
   recurring_min_cents: number;
   recurring_quick_amounts: string; // CSV "500,1000,2000,5000"
+  // Mitgliedsbeitrags-Einzug (Session 27)
+  membership_fees_enabled: boolean;
+  membership_default_fee_cents: number;
+  membership_default_interval: "monthly" | "quarterly" | "yearly";
+  membership_reconcile_cursor: string; // JSON: { "<stripe_account_id>": { "last_invoice_created": <unix> } }
   // SEPA-Lastschrift Opt-In pro Moschee
   sepa_enabled: boolean;
   // Vereinsangaben für Spendenbescheinigungen (BMF-konform)
@@ -365,10 +370,18 @@ export interface RecurringSubscription {
   campaign_id: string;
   amount_cents: number;
   currency: string;
-  interval: "monthly";
+  interval: "monthly" | "quarterly" | "yearly";
   provider: "stripe";
   provider_subscription_id: string;
-  status: "pending" | "active" | "cancelled" | "abandoned";
+  status:
+    | "pending"
+    | "active"
+    | "cancelled"
+    | "canceled"
+    | "abandoned"
+    | "past_due"
+    | "incomplete"
+    | "unpaid";
   started_at: string;
   cancelled_at: string;
   // v2: Lifecycle / Payment Health
@@ -378,6 +391,89 @@ export interface RecurringSubscription {
   last_payment_status: "paid" | "failed" | "pending" | "";
   last_payment_at: string;
   disabled_by_setting: boolean;
+  // Session 27: Mitgliedsbeitrags-Einzug (Discriminator + Stripe-Linkage)
+  subscription_type: "donation" | "membership_fee";
+  stripe_subscription_item_id: string;
+  subscription_generation: number;
+  created: string;
+  updated: string;
+}
+
+// --- Mitgliedsbeitrags-Einzug (Session 27) ---
+export type MembershipInterval = "monthly" | "quarterly" | "yearly";
+
+export interface MembershipFeeConfig {
+  id: string;
+  mosque_id: string;
+  user_id: string;
+  amount_cents: number;
+  interval: MembershipInterval;
+  currency: string;
+  active: boolean;
+  exempt: boolean;
+  exempt_until: string;
+  version: number;
+  effective_from: string;
+  superseded_at: string; // "" = aktuell gültige Version
+  notes: string;
+  created_by: string;
+  created: string;
+  updated: string;
+}
+
+export interface MembershipFee {
+  id: string;
+  mosque_id: string;
+  user_id: string;
+  membership_fee_config_id: string;
+  recurring_subscription_id: string;
+  period_key: string;
+  period_start: string;
+  period_end: string; // EXKLUSIV
+  period_bucket_id: string;
+  amount_cents: number;
+  currency: string;
+  interval: MembershipInterval;
+  status: "open" | "pending" | "paid" | "failed" | "waived" | "void";
+  payment_method: "cash" | "transfer" | "stripe" | "waived" | "";
+  paid_at: string;
+  provider_ref: string;
+  provider_invoice_status: string;
+  source: "manual" | "stripe_webhook" | "migration" | "admin_bulk";
+  waived_reason: string;
+  waived_by: string;
+  waived_at: string;
+  billing_cycle_anchor: string;
+  cycle_index: number;
+  stripe_invoice_created: number;
+  ledger_version: number;
+  notes: string;
+  created_by: string;
+  created: string;
+  updated: string;
+}
+
+export interface StripePriceCache {
+  id: string;
+  cache_key: string;
+  stripe_price_id: string;
+  connect_account_id: string;
+  interval_count: number;
+  livemode: boolean;
+  active: boolean;
+  created: string;
+  updated: string;
+}
+
+export interface MembershipReconcileError {
+  id: string;
+  mosque_id: string;
+  stripe_event_id: string;
+  invoice_id: string;
+  reason: string;
+  payload_excerpt: string;
+  retry_count: number;
+  resolved_at: string;
   created: string;
   updated: string;
 }

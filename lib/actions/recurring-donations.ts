@@ -36,6 +36,9 @@ function mapSub(r: RecordModel): RecurringSubscription {
     last_payment_status: r.last_payment_status || "",
     last_payment_at: r.last_payment_at || "",
     disabled_by_setting: r.disabled_by_setting || false,
+    subscription_type: r.subscription_type || "donation",
+    stripe_subscription_item_id: r.stripe_subscription_item_id || "",
+    subscription_generation: r.subscription_generation || 1,
     created: r.created || "",
     updated: r.updated || "",
   };

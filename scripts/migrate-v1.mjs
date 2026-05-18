@@ -32,6 +32,8 @@ function loadEnv() {
   }
 }
 
+const DRY_RUN = process.argv.includes("--dry-run") || process.env.DRY_RUN === "1";
+
 const env = loadEnv();
 const PB_URL = env.POCKETBASE_URL || env.NEXT_PUBLIC_POCKETBASE_URL;
 const ADMIN_EMAIL = env.PB_ADMIN_EMAIL;
@@ -112,6 +114,10 @@ async function collectionExists(name) {
 
 async function createCollection(schema) {
   const name = schema.name;
+  if (DRY_RUN) {
+    console.log(`   [DRY-RUN] würde Collection "${name}" erstellen (${(schema.schema || []).map((f) => f.name).join(", ")})`);
+    return;
+  }
   console.log(`   📦 Erstelle Collection "${name}"...`);
   try {
     await pbFetch("/api/collections", {
@@ -132,6 +138,10 @@ async function createCollection(schema) {
  * SKIP_PB_BACKUP=1) — kein Schema-Schreiben ohne Snapshot.
  */
 async function createPbBackup() {
+  if (DRY_RUN) {
+    console.log("⚠️  PB-Backup übersprungen (--dry-run)\n");
+    return;
+  }
   if (process.env.SKIP_PB_BACKUP === "1") {
     console.log("⚠️  PB-Backup übersprungen (SKIP_PB_BACKUP=1)\n");
     return;
@@ -179,6 +189,11 @@ async function createPbBackup() {
 }
 
 async function updateCollection(name, updates) {
+  if (DRY_RUN) {
+    const what = updates.indexes ? "Schema+Indizes" : "Schema";
+    console.log(`   [DRY-RUN] würde "${name}" aktualisieren (${what})`);
+    return;
+  }
   console.log(`   🔄 Aktualisiere Collection "${name}"...`);
   try {
     await pbFetch(`/api/collections/${name}`, {
@@ -770,6 +785,155 @@ const STRIPE_EVENTS_COLLECTION = {
   ],
 };
 
+// --- Mitgliedsbeitrags-Einzug (Session 27) ---
+
+// Soll-Konfiguration pro Mitglied (append-only, versioniert).
+const MEMBERSHIP_FEE_CONFIGS_COLLECTION = {
+  name: "membership_fee_configs",
+  type: "base",
+  schema: [
+    { name: "mosque_id", type: "relation", required: true, options: { collectionId: "", maxSelect: 1 } },
+    { name: "user_id", type: "relation", required: true, options: { collectionId: "", maxSelect: 1 } },
+    { name: "amount_cents", type: "number", required: true, options: { min: 100 } },
+    {
+      name: "interval",
+      type: "select",
+      required: true,
+      options: { values: ["monthly", "quarterly", "yearly"], maxSelect: 1 },
+    },
+    { name: "currency", type: "text", options: { default: "EUR" } },
+    { name: "active", type: "bool", options: { default: true } },
+    { name: "exempt", type: "bool", options: { default: false } },
+    { name: "exempt_until", type: "date" },
+    { name: "version", type: "number", required: true, options: { min: 1, default: 1 } },
+    { name: "effective_from", type: "date", required: true },
+    { name: "superseded_at", type: "date" },
+    { name: "notes", type: "text" },
+    { name: "created_by", type: "relation", options: { collectionId: "", maxSelect: 1 } },
+  ],
+  indexes: [
+    "CREATE INDEX idx_mfc_mosque ON membership_fee_configs (mosque_id)",
+    "CREATE INDEX idx_mfc_member ON membership_fee_configs (mosque_id, user_id)",
+    "CREATE UNIQUE INDEX idx_mfc_version ON membership_fee_configs (mosque_id, user_id, version)",
+    // PB speichert leeres date-Feld als "" → partieller Index auf "" (= aktuelle Version).
+    "CREATE UNIQUE INDEX idx_mfc_current ON membership_fee_configs (mosque_id, user_id) WHERE superseded_at = ''",
+  ],
+};
+
+// Ledger: Ist/Forderung pro Periode (immutable Snapshots).
+const MEMBERSHIP_FEES_COLLECTION = {
+  name: "membership_fees",
+  type: "base",
+  schema: [
+    { name: "mosque_id", type: "relation", required: true, options: { collectionId: "", maxSelect: 1 } },
+    { name: "user_id", type: "relation", required: true, options: { collectionId: "", maxSelect: 1 } },
+    { name: "membership_fee_config_id", type: "relation", options: { collectionId: "", maxSelect: 1 } },
+    { name: "recurring_subscription_id", type: "relation", options: { collectionId: "", maxSelect: 1 } },
+    { name: "period_key", type: "text", required: true },
+    { name: "period_start", type: "date", required: true },
+    { name: "period_end", type: "date", required: true },
+    { name: "period_bucket_id", type: "text", required: true },
+    { name: "amount_cents", type: "number", required: true, options: { min: 0 } },
+    { name: "currency", type: "text", options: { default: "EUR" } },
+    {
+      name: "interval",
+      type: "select",
+      options: { values: ["monthly", "quarterly", "yearly"], maxSelect: 1 },
+    },
+    {
+      name: "status",
+      type: "select",
+      required: true,
+      options: { values: ["open", "pending", "paid", "failed", "waived", "void"], maxSelect: 1 },
+    },
+    {
+      name: "payment_method",
+      type: "select",
+      options: { values: ["cash", "transfer", "stripe", "waived"], maxSelect: 1 },
+    },
+    { name: "paid_at", type: "date" },
+    { name: "provider_ref", type: "text" },
+    { name: "provider_invoice_status", type: "text", options: { max: 30 } },
+    {
+      name: "source",
+      type: "select",
+      required: true,
+      options: { values: ["manual", "stripe_webhook", "migration", "admin_bulk"], maxSelect: 1 },
+    },
+    { name: "waived_reason", type: "text" },
+    { name: "waived_by", type: "text" },
+    { name: "waived_at", type: "date" },
+    { name: "billing_cycle_anchor", type: "date" },
+    { name: "cycle_index", type: "number", options: { min: 0 } },
+    { name: "stripe_invoice_created", type: "number" },
+    { name: "ledger_version", type: "number", options: { default: 1 } },
+    { name: "notes", type: "text" },
+    { name: "created_by", type: "text" },
+  ],
+  indexes: [
+    "CREATE INDEX idx_mf_mosque ON membership_fees (mosque_id)",
+    "CREATE UNIQUE INDEX idx_mf_bucket ON membership_fees (period_bucket_id)",
+    "CREATE UNIQUE INDEX idx_mf_provider_ref ON membership_fees (provider_ref) WHERE provider_ref != ''",
+  ],
+};
+
+// Stripe-Price-Reuse-Cache (Prices sind immutable → nie löschen/ändern).
+const STRIPE_PRICE_CACHE_COLLECTION = {
+  name: "stripe_price_cache",
+  type: "base",
+  schema: [
+    { name: "cache_key", type: "text", required: true },
+    { name: "stripe_price_id", type: "text", required: true },
+    { name: "connect_account_id", type: "text" },
+    { name: "interval_count", type: "number" },
+    { name: "livemode", type: "bool", options: { default: false } },
+    { name: "active", type: "bool", options: { default: true } },
+  ],
+  indexes: [
+    "CREATE UNIQUE INDEX idx_spc_key ON stripe_price_cache (cache_key)",
+  ],
+};
+
+// Deadletter für Reconcile/Webhook-Datenfehler (malformed invoice/orphan).
+const MEMBERSHIP_RECONCILE_ERRORS_COLLECTION = {
+  name: "membership_reconcile_errors",
+  type: "base",
+  schema: [
+    { name: "mosque_id", type: "relation", options: { collectionId: "", maxSelect: 1 } },
+    { name: "stripe_event_id", type: "text" },
+    { name: "invoice_id", type: "text" },
+    { name: "reason", type: "text" },
+    { name: "payload_excerpt", type: "text", options: { max: 4000 } },
+    { name: "retry_count", type: "number", options: { min: 0, default: 0 } },
+    { name: "resolved_at", type: "date" },
+  ],
+  indexes: [
+    "CREATE INDEX idx_mre_mosque ON membership_reconcile_errors (mosque_id)",
+  ],
+};
+
+// recurring_subscriptions: neue Felder für Membership-Fee-Wiederverwendung.
+const RECURRING_SUBSCRIPTIONS_MEMBERSHIP_FIELDS = [
+  {
+    name: "subscription_type",
+    type: "select",
+    options: { values: ["donation", "membership_fee"], maxSelect: 1 },
+  },
+  { name: "stripe_subscription_item_id", type: "text" },
+  { name: "subscription_generation", type: "number", options: { min: 1, default: 1 } },
+];
+
+const SETTINGS_MEMBERSHIP_FIELDS = [
+  { name: "membership_fees_enabled", type: "bool", options: { default: false } },
+  { name: "membership_default_fee_cents", type: "number", options: { min: 100, default: 1200 } },
+  {
+    name: "membership_default_interval",
+    type: "select",
+    options: { values: ["monthly", "quarterly", "yearly"], maxSelect: 1 },
+  },
+  { name: "membership_reconcile_cursor", type: "json" },
+];
+
 const USERS_NEW_FIELDS = [
   { name: "first_name", type: "text" },
   { name: "last_name", type: "text" },
@@ -1012,8 +1176,10 @@ function patchRelations(schema, collectionMap) {
         targetCollection = "users";
       else if (name === "student_id") targetCollection = "students";
       else if (name === "campaign_id") targetCollection = "campaigns";
-      else if (name === "subscription_id")
+      else if (name === "subscription_id" || name === "recurring_subscription_id")
         targetCollection = "recurring_subscriptions";
+      else if (name === "membership_fee_config_id")
+        targetCollection = "membership_fee_configs";
       else if (name === "course_id") targetCollection = "courses";
       else if (name === "academic_year_id") targetCollection = "academic_years";
       else if (name === "parent_user") targetCollection = "users";
@@ -1098,6 +1264,10 @@ async function main() {
     PARENT_CHILD_RELATIONS_COLLECTION,
     STRIPE_EVENTS_COLLECTION,
     PUSH_SUBSCRIPTIONS_COLLECTION,
+    MEMBERSHIP_FEE_CONFIGS_COLLECTION,
+    MEMBERSHIP_FEES_COLLECTION,
+    STRIPE_PRICE_CACHE_COLLECTION,
+    MEMBERSHIP_RECONCILE_ERRORS_COLLECTION,
   ];
 
   for (const colDef of newCollections) {
@@ -1825,6 +1995,110 @@ async function main() {
       console.log(`   ✅ recurring_subscriptions: Index ${idxName} hinzugefügt`);
     } else {
       console.log(`   ⏭️  recurring_subscriptions: Index ${idxName} bereits vorhanden`);
+    }
+  }
+
+  // 19b. settings: Mitgliedsbeitrags-Felder
+  if (collectionMap.settings) {
+    const settingsCol = (await getExistingCollections()).find((c) => c.name === "settings");
+    const existingFieldNames = (settingsCol?.schema || []).map((f) => f.name);
+    const fieldsToAdd = SETTINGS_MEMBERSHIP_FIELDS.filter((f) => !existingFieldNames.includes(f.name));
+    if (fieldsToAdd.length > 0) {
+      const newSchema = [...(settingsCol?.schema || []), ...fieldsToAdd];
+      await updateCollection("settings", { schema: newSchema });
+      console.log(`   ✅ settings (membership): ${fieldsToAdd.map((f) => f.name).join(", ")} hinzugefügt`);
+    } else {
+      console.log("   ⏭️  settings: alle Membership-Felder vorhanden");
+    }
+  }
+
+  // 19c. recurring_subscriptions: Membership-Fee-Felder + interval/status-Enum + Single-Active-Index
+  if (collectionMap.recurring_subscriptions) {
+    const subCol = (await getExistingCollections()).find((c) => c.name === "recurring_subscriptions");
+    const existingFieldNames = (subCol?.schema || []).map((f) => f.name);
+    const fieldsToAdd = RECURRING_SUBSCRIPTIONS_MEMBERSHIP_FIELDS.filter(
+      (f) => !existingFieldNames.includes(f.name)
+    );
+    if (fieldsToAdd.length > 0) {
+      const newSchema = [...(subCol?.schema || []), ...fieldsToAdd];
+      await updateCollection("recurring_subscriptions", { schema: newSchema });
+      console.log(`   ✅ recurring_subscriptions (membership): ${fieldsToAdd.map((f) => f.name).join(", ")} hinzugefügt`);
+    } else {
+      console.log("   ⏭️  recurring_subscriptions: Membership-Felder vorhanden");
+    }
+
+    // interval-Enum mergen: quarterly/yearly
+    const subCol2 = (await getExistingCollections()).find((c) => c.name === "recurring_subscriptions");
+    const intervalField = (subCol2?.schema || []).find((f) => f.name === "interval");
+    if (intervalField && intervalField.options?.values) {
+      const required = ["monthly", "quarterly", "yearly"];
+      const missing = required.filter((v) => !intervalField.options.values.includes(v));
+      if (missing.length > 0) {
+        const merged = Array.from(new Set([...intervalField.options.values, ...required]));
+        const updatedSchema = (subCol2.schema || []).map((f) =>
+          f.name === "interval" ? { ...f, options: { ...f.options, values: merged } } : f
+        );
+        await updateCollection("recurring_subscriptions", { schema: updatedSchema });
+        console.log(`   ✅ recurring_subscriptions.interval: ${missing.join(", ")} hinzugefügt`);
+      } else {
+        console.log("   ⏭️  recurring_subscriptions.interval: alle Werte vorhanden");
+      }
+    }
+
+    // status-Enum mergen um Stripe-Zustände (kanonisch "canceled")
+    const subCol3 = (await getExistingCollections()).find((c) => c.name === "recurring_subscriptions");
+    const statusField = (subCol3?.schema || []).find((f) => f.name === "status");
+    if (statusField && statusField.options?.values) {
+      const required = ["pending", "active", "cancelled", "canceled", "past_due", "incomplete", "unpaid"];
+      const missing = required.filter((v) => !statusField.options.values.includes(v));
+      if (missing.length > 0) {
+        const merged = Array.from(new Set([...statusField.options.values, ...required]));
+        const updatedSchema = (subCol3.schema || []).map((f) =>
+          f.name === "status" ? { ...f, options: { ...f.options, values: merged } } : f
+        );
+        await updateCollection("recurring_subscriptions", { schema: updatedSchema });
+        console.log(`   ✅ recurring_subscriptions.status: ${missing.join(", ")} hinzugefügt`);
+      } else {
+        console.log("   ⏭️  recurring_subscriptions.status: alle Werte vorhanden");
+      }
+    }
+
+    // subscription_type Backfill: bestehende Records → "donation"
+    if (!DRY_RUN) {
+      let page = 1;
+      let backfilled = 0;
+      while (true) {
+        const res = await pbFetch(`/api/collections/recurring_subscriptions/records?page=${page}&perPage=200`);
+        for (const r of res.items || []) {
+          if (!r.subscription_type) {
+            await pbFetch(`/api/collections/recurring_subscriptions/records/${r.id}`, {
+              method: "PATCH",
+              body: JSON.stringify({ subscription_type: "donation" }),
+            });
+            backfilled++;
+          }
+        }
+        if (page >= (res.totalPages || 1)) break;
+        page++;
+      }
+      console.log(`   ${backfilled > 0 ? "✅" : "⏭️ "} subscription_type Backfill: ${backfilled} → "donation"`);
+    }
+
+    // Single-Active-Membership-Sub: partieller UNIQUE-Index
+    const idxName = "idx_recsub_one_active_membership";
+    const idxSql =
+      "CREATE UNIQUE INDEX idx_recsub_one_active_membership ON recurring_subscriptions (user_id) " +
+      "WHERE subscription_type = 'membership_fee' AND status IN ('active','pending','past_due','incomplete')";
+    const subColIdx = (await getExistingCollections()).find((c) => c.name === "recurring_subscriptions");
+    const existingIndexes = subColIdx?.indexes || [];
+    if (!existingIndexes.some((i) => i.includes(idxName))) {
+      await updateCollection("recurring_subscriptions", {
+        schema: subColIdx.schema,
+        indexes: [...existingIndexes, idxSql],
+      });
+      console.log(`   ✅ recurring_subscriptions: Index ${idxName} hinzugefügt`);
+    } else {
+      console.log(`   ⏭️  recurring_subscriptions: Index ${idxName} vorhanden`);
     }
   }
 
