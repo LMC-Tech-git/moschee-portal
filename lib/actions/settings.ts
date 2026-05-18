@@ -452,6 +452,97 @@ export async function updateMadrasaFeeSettings(
 }
 
 // =========================================
+// Mitgliedsbeiträge (Session 27)
+// =========================================
+
+export interface MembershipFeeSettings {
+  membership_fees_enabled: boolean;
+  membership_default_fee_cents: number;
+  membership_default_interval: "monthly" | "quarterly" | "yearly";
+}
+
+export async function getMembershipFeeSettings(mosqueId: string): Promise<{
+  success: boolean;
+  data?: MembershipFeeSettings;
+  error?: string;
+}> {
+  try {
+    const pb = await getAdminPB();
+    try {
+      const record = await pb
+        .collection("settings")
+        .getFirstListItem(`mosque_id = "${mosqueId}"`);
+      return {
+        success: true,
+        data: {
+          membership_fees_enabled: record.membership_fees_enabled || false,
+          membership_default_fee_cents: record.membership_default_fee_cents || 1200,
+          membership_default_interval:
+            (record.membership_default_interval as MembershipFeeSettings["membership_default_interval"]) ||
+            "monthly",
+        },
+      };
+    } catch {
+      return {
+        success: true,
+        data: {
+          membership_fees_enabled: false,
+          membership_default_fee_cents: 1200,
+          membership_default_interval: "monthly",
+        },
+      };
+    }
+  } catch (error) {
+    console.error("[settings] getMembershipFeeSettings:", error);
+    return { success: false, error: "Einstellungen konnten nicht geladen werden." };
+  }
+}
+
+export async function updateMembershipFeeSettings(
+  mosqueId: string,
+  userId: string,
+  data: MembershipFeeSettings
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const pb = await getAdminPB();
+
+    let settingsId: string | null = null;
+    try {
+      const record = await pb
+        .collection("settings")
+        .getFirstListItem(`mosque_id = "${mosqueId}"`);
+      settingsId = record.id;
+    } catch {
+      // Noch kein Settings-Record
+    }
+
+    const payload = { mosque_id: mosqueId, ...data };
+
+    if (settingsId) {
+      await pb.collection("settings").update(settingsId, payload);
+    } else {
+      await pb.collection("settings").create(payload);
+    }
+
+    await logAudit({
+      mosqueId,
+      userId,
+      action: "update_membership_fee_settings",
+      entityType: "settings",
+      entityId: settingsId || mosqueId,
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("[settings] updateMembershipFeeSettings:", error);
+    return {
+      success: false,
+      error: "Mitgliedsbeitrags-Einstellungen konnten nicht gespeichert werden.",
+    };
+  }
+}
+
+// =========================================
 // PocketBase SMTP-Einstellungen
 // (für Passwort-Reset und Auth-E-Mails via PocketBase)
 // =========================================
