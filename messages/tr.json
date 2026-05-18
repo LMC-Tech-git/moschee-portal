@@ -1418,7 +1418,8 @@
         "paid_stripe": "Etkinlik kaydı ödendi (Stripe)",
         "paid_cash": "Etkinlik kaydı nakit ödendi",
         "paid_manual": "Ödeme manuel olarak onaylandı",
-        "sepa_failed": "SEPA ödemesi başarısız"
+        "sepa_failed": "SEPA ödemesi başarısız",
+        "switched_to_cash": "Nakit ödemeye geçirildi"
       },
       "campaign": {
         "created": "Kampanya oluşturuldu",
@@ -1527,6 +1528,9 @@
       "update_default_settings": "Varsayılan ayarlar güncellendi",
       "update_madrasa_fee_settings": "Medrese ayarları güncellendi",
       "update_contact_settings": "İletişim formu ayarları güncellendi",
+      "update_recurring_donation_settings": "Düzenli bağış ayarları güncellendi",
+      "push_sent": "Push bildirimi gönderildi",
+      "push_unsubscribe": "Push bildirimi aboneliği iptal edildi",
       "update_verein_settings": "Dernek bilgileri güncellendi",
       "receipt_pdf_generated": "Bağış makbuzu (PDF) oluşturuldu",
       "update_team_settings": "Ekip ayarları güncellendi",
@@ -1539,7 +1543,8 @@
         "unapproved": "Onay geri alındı",
         "activated": "Destekçi etkinleştirildi",
         "deactivated": "Destekçi devre dışı bırakıldı",
-        "marked_paid": "Ödeme onaylandı"
+        "marked_paid": "Ödeme onaylandı",
+        "paid_stripe": "Destek ortağı Stripe ile ödendi"
       },
       "team_member": {
         "created": "Ekip üyesi oluşturuldu",
@@ -1632,7 +1637,11 @@
       "async": "Asenkron",
       "months": "Aylar",
       "start_month_key": "Başlangıç Ayı",
-      "notes": "Notlar"
+      "notes": "Notlar",
+      "scope": "Kapsam",
+      "year": "Yıl",
+      "mode": "Mod",
+      "generated": "Oluşturuldu"
     },
     "value": {
       "relation_type": {

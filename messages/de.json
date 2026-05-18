@@ -1418,7 +1418,8 @@
         "paid_stripe": "Event-Registrierung bezahlt (Stripe)",
         "paid_cash": "Event-Registrierung bar bezahlt",
         "paid_manual": "Zahlung manuell bestätigt",
-        "sepa_failed": "SEPA-Zahlung fehlgeschlagen"
+        "sepa_failed": "SEPA-Zahlung fehlgeschlagen",
+        "switched_to_cash": "Auf Barzahlung umgestellt"
       },
       "campaign": {
         "created": "Kampagne erstellt",
@@ -1527,6 +1528,9 @@
       "update_default_settings": "Standardeinstellungen aktualisiert",
       "update_madrasa_fee_settings": "Madrasa-Einstellungen aktualisiert",
       "update_contact_settings": "Kontaktformular-Einstellungen aktualisiert",
+      "update_recurring_donation_settings": "Dauerauftrag-Einstellungen aktualisiert",
+      "push_sent": "Push-Benachrichtigung gesendet",
+      "push_unsubscribe": "Push-Benachrichtigung abbestellt",
       "update_verein_settings": "Vereinsangaben aktualisiert",
       "receipt_pdf_generated": "Spendenbescheinigung (PDF) generiert",
       "update_team_settings": "Team-Einstellungen aktualisiert",
@@ -1539,7 +1543,8 @@
         "unapproved": "Genehmigung zurückgezogen",
         "activated": "Förderpartner aktiviert",
         "deactivated": "Förderpartner deaktiviert",
-        "marked_paid": "Zahlung bestätigt"
+        "marked_paid": "Zahlung bestätigt",
+        "paid_stripe": "Förderpartner per Stripe bezahlt"
       },
       "team_member": {
         "created": "Team-Mitglied erstellt",
@@ -1632,7 +1637,11 @@
       "async": "Asynchron",
       "months": "Monate",
       "start_month_key": "Startmonat",
-      "notes": "Notizen"
+      "notes": "Notizen",
+      "scope": "Bereich",
+      "year": "Jahr",
+      "mode": "Modus",
+      "generated": "Erstellt"
     },
     "value": {
       "relation_type": {
