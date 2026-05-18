@@ -807,6 +807,14 @@ const SETTINGS_CONTACT_FIELDS = [
   { name: "contact_auto_reply",   type: "bool", options: { default: true } },
 ];
 
+// Settings: Vereinsangaben für BMF-konforme Spendenbescheinigungen
+const SETTINGS_VEREIN_FIELDS = [
+  { name: "verein_anschrift",           type: "text" },
+  { name: "verein_steuernummer",        type: "text" },
+  { name: "freistellungsbescheid_text", type: "text" },
+  { name: "verein_foerderzweck",        type: "text" },
+];
+
 const SPONSORS_NEW_FIELDS = [
   { name: "contact_user_id", type: "relation", options: { collectionId: "", maxSelect: 1 } },
   { name: "contact_email", type: "email", options: {} },
@@ -1312,6 +1320,20 @@ async function main() {
       console.log(`   ✅ settings (contact): ${fieldsToAdd.map((f) => f.name).join(", ")} hinzugefügt`);
     } else {
       console.log("   ⏭️  settings: alle Kontakt-Felder vorhanden");
+    }
+  }
+
+  // 9e2. settings: Vereinsangaben (Spendenbescheinigung) hinzufügen
+  if (collectionMap.settings) {
+    const settingsCol = (await getExistingCollections()).find((c) => c.name === "settings");
+    const existingFieldNames = (settingsCol?.schema || []).map((f) => f.name);
+    const fieldsToAdd = SETTINGS_VEREIN_FIELDS.filter((f) => !existingFieldNames.includes(f.name));
+    if (fieldsToAdd.length > 0) {
+      const newSchema = [...(settingsCol?.schema || []), ...fieldsToAdd];
+      await updateCollection("settings", { schema: newSchema });
+      console.log(`   ✅ settings (verein): ${fieldsToAdd.map((f) => f.name).join(", ")} hinzugefügt`);
+    } else {
+      console.log("   ⏭️  settings: alle Vereins-Felder vorhanden");
     }
   }
 

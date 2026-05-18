@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Settings, Palette, Clock, Sliders, Save, RotateCcw, Upload, X, Check, ChevronDown, ChevronUp, GraduationCap, Mail, CheckCircle, AlertCircle, Send, Handshake, Users, MessageSquare, ExternalLink, Repeat, Wallet } from "lucide-react";
+import { Settings, Palette, Clock, Sliders, Save, RotateCcw, Upload, X, Check, ChevronDown, ChevronUp, GraduationCap, Mail, CheckCircle, AlertCircle, Send, Handshake, Users, MessageSquare, ExternalLink, Repeat, Wallet, FileText } from "lucide-react";
 import { useMosque } from "@/lib/mosque-context";
 import { useAuth } from "@/lib/auth-context";
 import {
@@ -20,6 +20,7 @@ import {
   updateSponsorsSettings,
   updateTeamSettings,
   updateContactSettings,
+  updateVereinSettings,
   getResendStatus,
 } from "@/lib/actions/settings";
 import type { PbSmtpSettings } from "@/lib/actions/settings";
@@ -43,6 +44,7 @@ const TABS = [
   { id: "sponsors", icon: Handshake },
   { id: "team", icon: Users },
   { id: "contact", icon: MessageSquare },
+  { id: "verein", icon: FileText },
   { id: "email", icon: Mail },
 ] as const;
 
@@ -118,6 +120,10 @@ export default function AdminSettingsPage() {
   const [contactEmail, setContactEmail] = useState("");
   const [contactNotifyAdmin, setContactNotifyAdmin] = useState(true);
   const [contactAutoReply, setContactAutoReply] = useState(true);
+  const [vereinAnschrift, setVereinAnschrift] = useState("");
+  const [vereinSteuernummer, setVereinSteuernummer] = useState("");
+  const [freistellungsbescheidText, setFreistellungsbescheidText] = useState("");
+  const [vereinFoerderzweck, setVereinFoerderzweck] = useState("");
 
   const [madrasaFeeSettings, setMadrasaFeeSettings] = useState<{
     madrasa_fees_enabled: boolean;
@@ -154,6 +160,10 @@ export default function AdminSettingsPage() {
         setContactEmail(portalResult.settings.contact_email ?? "");
         setContactNotifyAdmin(portalResult.settings.contact_notify_admin ?? true);
         setContactAutoReply(portalResult.settings.contact_auto_reply ?? true);
+        setVereinAnschrift(portalResult.settings.verein_anschrift ?? "");
+        setVereinSteuernummer(portalResult.settings.verein_steuernummer ?? "");
+        setFreistellungsbescheidText(portalResult.settings.freistellungsbescheid_text ?? "");
+        setVereinFoerderzweck(portalResult.settings.verein_foerderzweck ?? "");
       }
       if (feeResult.success && feeResult.data) {
         setMadrasaFeeSettings(feeResult.data);
@@ -308,6 +318,22 @@ export default function AdminSettingsPage() {
             setContactEmail(email);
             setContactNotifyAdmin(notifyAdmin);
             setContactAutoReply(autoReply);
+          }}
+        />
+      )}
+      {activeTab === "verein" && (
+        <VereinTab
+          mosqueId={mosqueId}
+          userId={user?.id || ""}
+          vereinAnschrift={vereinAnschrift}
+          vereinSteuernummer={vereinSteuernummer}
+          freistellungsbescheidText={freistellungsbescheidText}
+          vereinFoerderzweck={vereinFoerderzweck}
+          onSaved={(a, s, f, z) => {
+            setVereinAnschrift(a);
+            setVereinSteuernummer(s);
+            setFreistellungsbescheidText(f);
+            setVereinFoerderzweck(z);
           }}
         />
       )}
@@ -2253,6 +2279,150 @@ function TeamTab({
 // =========================================
 // Tab: Kontaktformular
 // =========================================
+
+// =========================================
+// Tab: Verein (Spendenbescheinigung)
+// =========================================
+
+function VereinTab({
+  mosqueId,
+  userId,
+  vereinAnschrift,
+  vereinSteuernummer,
+  freistellungsbescheidText,
+  vereinFoerderzweck,
+  onSaved,
+}: {
+  mosqueId: string;
+  userId: string;
+  vereinAnschrift: string;
+  vereinSteuernummer: string;
+  freistellungsbescheidText: string;
+  vereinFoerderzweck: string;
+  onSaved: (
+    anschrift: string,
+    steuernummer: string,
+    freistellung: string,
+    foerderzweck: string
+  ) => void;
+}) {
+  const t = useTranslations("settings");
+  const [anschrift, setAnschrift] = useState(vereinAnschrift);
+  const [steuernummer, setSteuernummer] = useState(vereinSteuernummer);
+  const [freistellung, setFreistellung] = useState(freistellungsbescheidText);
+  const [foerderzweck, setFoerderzweck] = useState(vereinFoerderzweck);
+  const [isSaving, setIsSaving] = useState(false);
+  const [status, setStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
+
+  async function handleSave() {
+    setIsSaving(true);
+    setStatus(null);
+    const result = await updateVereinSettings(mosqueId, userId, {
+      verein_anschrift: anschrift.trim(),
+      verein_steuernummer: steuernummer.trim(),
+      freistellungsbescheid_text: freistellung.trim(),
+      verein_foerderzweck: foerderzweck.trim(),
+    });
+    if (result.success) {
+      onSaved(
+        anschrift.trim(),
+        steuernummer.trim(),
+        freistellung.trim(),
+        foerderzweck.trim()
+      );
+      setStatus({ type: "success", message: t("verein.saved") });
+    } else {
+      setStatus({
+        type: "error",
+        message: result.error || t("verein.saveError"),
+      });
+    }
+    setIsSaving(false);
+  }
+
+  const inputCls =
+    "w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20";
+
+  return (
+    <div className="space-y-6">
+      <StatusMessage status={status} />
+      <SectionCard title={t("verein.title")} description={t("verein.desc")}>
+        <div className="space-y-5">
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-gray-700">
+              {t("verein.anschriftLabel")}
+            </label>
+            <textarea
+              value={anschrift}
+              onChange={(e) => setAnschrift(e.target.value)}
+              rows={4}
+              placeholder={t("verein.anschriftPlaceholder")}
+              className={inputCls}
+            />
+            <p className="mt-1 text-xs text-gray-500">
+              {t("verein.anschriftHint")}
+            </p>
+          </div>
+
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-gray-700">
+              {t("verein.steuernummerLabel")}
+            </label>
+            <input
+              type="text"
+              value={steuernummer}
+              onChange={(e) => setSteuernummer(e.target.value)}
+              placeholder={t("verein.steuernummerPlaceholder")}
+              className={inputCls}
+            />
+          </div>
+
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-gray-700">
+              {t("verein.freistellungLabel")}
+            </label>
+            <textarea
+              value={freistellung}
+              onChange={(e) => setFreistellung(e.target.value)}
+              rows={4}
+              placeholder={t("verein.freistellungPlaceholder")}
+              className={inputCls}
+            />
+            <p className="mt-1 text-xs text-gray-500">
+              {t("verein.freistellungHint")}
+            </p>
+          </div>
+
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-gray-700">
+              {t("verein.foerderzweckLabel")}
+            </label>
+            <textarea
+              value={foerderzweck}
+              onChange={(e) => setFoerderzweck(e.target.value)}
+              rows={3}
+              placeholder={t("verein.foerderzweckPlaceholder")}
+              className={inputCls}
+            />
+            <p className="mt-1 text-xs text-gray-500">
+              {t("verein.foerderzweckHint")}
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={isSaving}
+            className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+          >
+            <Save className="h-4 w-4" />
+            {isSaving ? t("saving") : t("save")}
+          </button>
+        </div>
+      </SectionCard>
+    </div>
+  );
+}
 
 function ContactTab({
   mosqueId,

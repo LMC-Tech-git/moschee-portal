@@ -126,6 +126,11 @@ export interface Settings {
   recurring_quick_amounts: string; // CSV "500,1000,2000,5000"
   // SEPA-Lastschrift Opt-In pro Moschee
   sepa_enabled: boolean;
+  // Vereinsangaben für Spendenbescheinigungen (BMF-konform)
+  verein_anschrift: string;            // Mehrzeilige Anschrift (Fallback: Moschee-Adresse)
+  verein_steuernummer: string;         // Steuernummer des Vereins
+  freistellungsbescheid_text: string;  // Frei konfigurierbarer Freistellungsbescheid-Satz
+  verein_foerderzweck: string;         // Konfigurierbarer steuerbegünstigter Förderzweck
   created: string;
   updated: string;
 }

@@ -68,6 +68,10 @@ export async function resolveMosqueSettings(
     recurring_min_cents: 1000,
     recurring_quick_amounts: "1000,2000,5000,10000",
     sepa_enabled: true,
+    verein_anschrift: "",
+    verein_steuernummer: "",
+    freistellungsbescheid_text: "",
+    verein_foerderzweck: "",
     created: "",
     updated: "",
   };

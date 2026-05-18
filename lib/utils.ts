@@ -57,6 +57,36 @@ export function formatDateTime(dateStr: string): string {
   }).format(new Date(dateStr));
 }
 
+/**
+ * Steuerlich relevantes Datum einer Spende.
+ * `paid_at` ist maßgeblich; `created` nur Fallback für Alt-/Importdaten ohne paid_at.
+ * EINE Quelle für PDF / CSV / Analytics / Jahresaggregation — damit die
+ * Steuerjahr-Zuordnung überall identisch ist.
+ */
+export function getDonationEffectiveDate(record: {
+  paid_at?: string;
+  created?: string;
+}): Date | null {
+  const str = record.paid_at || record.created || "";
+  if (!str) return null;
+  const d = new Date(str);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+/**
+ * Festes deutsches Datumsformat (TT.MM.JJJJ) für Spendenbescheinigungen.
+ * Locale-/Intl-unabhängig: manuell formatiert, damit Server-/Browser-Locale
+ * das PDF nicht verändern kann (Reproduzierbarkeit).
+ */
+export function formatReceiptDate(date: Date | string): string {
+  const d = typeof date === "string" ? new Date(date) : date;
+  if (isNaN(d.getTime())) return "—";
+  const dd = String(d.getDate()).padStart(2, "0");
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const yyyy = d.getFullYear();
+  return `${dd}.${mm}.${yyyy}`;
+}
+
 /** Gibt Montag 00:00 und Sonntag 23:59:59 der aktuellen Kalenderwoche zurück. */
 export function getCurrentWeekRange(): { start: Date; end: Date } {
   const now = new Date();

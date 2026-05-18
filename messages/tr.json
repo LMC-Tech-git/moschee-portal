@@ -953,7 +953,8 @@
     "filterRecurringNo": "Sadece tek seferlik",
     "nav": {
       "donors": "Bağışçı Özeti",
-      "recurring": "Düzenli Bağışlar"
+      "recurring": "Düzenli Bağışlar",
+      "receipts": "Bağış Makbuzları"
     },
     "recurring": {
       "monthly": "Aylık",
@@ -1526,6 +1527,8 @@
       "update_default_settings": "Varsayılan ayarlar güncellendi",
       "update_madrasa_fee_settings": "Medrese ayarları güncellendi",
       "update_contact_settings": "İletişim formu ayarları güncellendi",
+      "update_verein_settings": "Dernek bilgileri güncellendi",
+      "receipt_pdf_generated": "Bağış makbuzu (PDF) oluşturuldu",
       "update_team_settings": "Ekip ayarları güncellendi",
       "update_sponsors_settings": "Destekçi ayarları güncellendi",
       "sponsor": {
@@ -1682,6 +1685,22 @@
       }
     }
   },
+  "receipts": {
+    "title": "Bağış Makbuzları",
+    "subtitle": "Yıllık BMF uyumlu bağış makbuzları oluşturun — tek tek veya toplu PDF olarak.",
+    "backToDonations": "Bağışlara dön",
+    "bulkAll": "Toplu makbuzlar (tümü)",
+    "preview": "Önizleme",
+    "pdf": "PDF",
+    "addressMissing": "Adres eksik",
+    "addressMissingHint": "Vergi açısından eksik — adresi üye yönetiminde tamamlayın.",
+    "missingAddressWarn": "{count} bağışçının adresi yok (PDF vergi açısından eksik):",
+    "donationCount": "{count} bağış",
+    "emptyYear": "{year} için bağış bulunamadı",
+    "loadError": "Bağışçılar yüklenemedi.",
+    "genError": "PDF oluşturulamadı.",
+    "genResult": "{generated} makbuz oluşturuldu, {skipped} atlandı."
+  },
   "settings": {
     "title": "Ayarlar",
     "tab": {
@@ -1694,7 +1713,25 @@
       "sponsors": "Destek Ortakları",
       "team": "Ekip",
       "contact": "İletişim Formu",
+      "verein": "Dernek",
       "email": "E-posta"
+    },
+    "verein": {
+      "title": "Bağış makbuzları için dernek bilgileri",
+      "desc": "Bu bilgiler BMF uyumlu bağış makbuzlarında görünür. Lütfen eksiksiz ve dikkatlice doldurun.",
+      "anschriftLabel": "Derneğin adresi",
+      "anschriftPlaceholder": "Dernek adı e.V.\nSokak No\nPosta kodu Şehir",
+      "anschriftHint": "Çok satırlı. Boş = caminin adresi kullanılır.",
+      "steuernummerLabel": "Derneğin vergi numarası",
+      "steuernummerPlaceholder": "örn. 88/250/01234",
+      "freistellungLabel": "Muafiyet kararı (metin)",
+      "freistellungPlaceholder": "… teşviki nedeniyle … Maliye Dairesi'nin muafiyet kararı, vergi no. …, … tarihli, son değerlendirme dönemi … için § 5 Abs. 1 Nr. 9 KStG uyarınca kurumlar vergisinden muafız.",
+      "freistellungHint": "Maliye dairesi, vergi numarası ve tarih dahil tam cümle — makbuzda birebir görünür.",
+      "foerderzweckLabel": "Vergi avantajlı destek amacı",
+      "foerderzweckPlaceholder": "Bağış yalnızca tüzük kapsamında … desteklenmesi için kullanılır.",
+      "foerderzweckHint": "Toplu makbuzda kullanım amacı olarak belirtilir.",
+      "saved": "Dernek bilgileri kaydedildi.",
+      "saveError": "Dernek bilgileri kaydedilemedi."
     },
     "payouts": {
       "title": "Stripe Ödemeleri (Connect)",

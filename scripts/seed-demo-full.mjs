@@ -1522,6 +1522,13 @@ async function seedSettings() {
     recurring_donations_enabled: true,
     recurring_min_cents: 1000,
     recurring_quick_amounts: "1000,2000,5000,10000",
+    verein_anschrift:
+      "DITIB Moschee Demo e.V.\nMusterstraße 12\n89073 Ulm",
+    verein_steuernummer: "88/250/01234",
+    freistellungsbescheid_text:
+      "Wir sind wegen Förderung religiöser Zwecke nach dem Freistellungsbescheid des Finanzamts Ulm, StNr. 88/250/01234, vom 15.03.2024 für den letzten Veranlagungszeitraum 2023 nach § 5 Abs. 1 Nr. 9 KStG von der Körperschaftsteuer befreit.",
+    verein_foerderzweck:
+      "Die Zuwendung wird ausschließlich zur Förderung religiöser Zwecke (Unterhalt der Moschee, religiöse Bildung) im Sinne der Satzung verwendet.",
   };
 
   if (existing?.items?.length > 0) {

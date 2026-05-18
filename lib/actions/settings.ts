@@ -314,6 +314,10 @@ export async function getPortalSettings(mosqueId: string): Promise<{
         recurring_min_cents: 300,
         recurring_quick_amounts: "500,1000,2000,5000",
         sepa_enabled: true,
+        verein_anschrift: "",
+        verein_steuernummer: "",
+        freistellungsbescheid_text: "",
+        verein_foerderzweck: "",
         created: "",
         updated: "",
       };
@@ -667,6 +671,93 @@ export async function updateContactSettings(
   } catch (error) {
     console.error("[settings] updateContactSettings:", error);
     return { success: false, error: "Kontakt-Einstellungen konnten nicht gespeichert werden." };
+  }
+}
+
+// =========================================
+// Vereinsangaben für Spendenbescheinigungen
+// =========================================
+
+export async function getVereinSettings(mosqueId: string): Promise<{
+  success: boolean;
+  data?: {
+    verein_anschrift: string;
+    verein_steuernummer: string;
+    freistellungsbescheid_text: string;
+    verein_foerderzweck: string;
+  };
+  error?: string;
+}> {
+  try {
+    const pb = await getAdminPB();
+    let record: Record<string, unknown> | null = null;
+    try {
+      record = await pb
+        .collection("settings")
+        .getFirstListItem(`mosque_id = "${mosqueId}"`);
+    } catch {
+      // Kein Settings-Record → Defaults
+    }
+    return {
+      success: true,
+      data: {
+        verein_anschrift: (record?.verein_anschrift as string) || "",
+        verein_steuernummer: (record?.verein_steuernummer as string) || "",
+        freistellungsbescheid_text:
+          (record?.freistellungsbescheid_text as string) || "",
+        verein_foerderzweck: (record?.verein_foerderzweck as string) || "",
+      },
+    };
+  } catch (error) {
+    console.error("[settings] getVereinSettings:", error);
+    return { success: false, error: "Vereinsangaben konnten nicht geladen werden." };
+  }
+}
+
+export async function updateVereinSettings(
+  mosqueId: string,
+  userId: string,
+  data: {
+    verein_anschrift: string;
+    verein_steuernummer: string;
+    freistellungsbescheid_text: string;
+    verein_foerderzweck: string;
+  }
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const pb = await getAdminPB();
+
+    let settingsId: string | null = null;
+    try {
+      const record = await pb
+        .collection("settings")
+        .getFirstListItem(`mosque_id = "${mosqueId}"`);
+      settingsId = record.id;
+    } catch {
+      // Kein Settings-Record
+    }
+
+    const payload = { mosque_id: mosqueId, ...data };
+
+    if (settingsId) {
+      await pb.collection("settings").update(settingsId, payload);
+    } else {
+      await pb.collection("settings").create(payload);
+    }
+
+    await logAudit({
+      mosqueId,
+      userId,
+      action: "update_verein_settings",
+      entityType: "settings",
+      entityId: settingsId || mosqueId,
+      after: data,
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("[settings] updateVereinSettings:", error);
+    return { success: false, error: "Vereinsangaben konnten nicht gespeichert werden." };
   }
 }
 

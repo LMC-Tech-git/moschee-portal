@@ -953,7 +953,8 @@
     "filterRecurringNo": "Nur Einmalig",
     "nav": {
       "donors": "Spender-Übersicht",
-      "recurring": "Daueraufträge"
+      "recurring": "Daueraufträge",
+      "receipts": "Spendenbescheinigungen"
     },
     "recurring": {
       "monthly": "Monatlich",
@@ -1526,6 +1527,8 @@
       "update_default_settings": "Standardeinstellungen aktualisiert",
       "update_madrasa_fee_settings": "Madrasa-Einstellungen aktualisiert",
       "update_contact_settings": "Kontaktformular-Einstellungen aktualisiert",
+      "update_verein_settings": "Vereinsangaben aktualisiert",
+      "receipt_pdf_generated": "Spendenbescheinigung (PDF) generiert",
       "update_team_settings": "Team-Einstellungen aktualisiert",
       "update_sponsors_settings": "Förderpartner-Einstellungen aktualisiert",
       "sponsor": {
@@ -1682,6 +1685,22 @@
       }
     }
   },
+  "receipts": {
+    "title": "Spendenbescheinigungen",
+    "subtitle": "BMF-konforme Zuwendungsbestätigungen pro Jahr erzeugen — einzeln oder als Sammel-PDF.",
+    "backToDonations": "Zurück zu Spenden",
+    "bulkAll": "Sammelbescheinigungen (alle)",
+    "preview": "Vorschau",
+    "pdf": "PDF",
+    "addressMissing": "Adresse fehlt",
+    "addressMissingHint": "Steuerlich unvollständig — Anschrift in der Mitgliederverwaltung ergänzen.",
+    "missingAddressWarn": "{count} Spender ohne Anschrift (PDF steuerlich unvollständig):",
+    "donationCount": "{count} Spenden",
+    "emptyYear": "Keine Spenden für {year} gefunden",
+    "loadError": "Spender konnten nicht geladen werden.",
+    "genError": "PDF konnte nicht erstellt werden.",
+    "genResult": "{generated} Bescheinigung(en) erstellt, {skipped} übersprungen."
+  },
   "settings": {
     "title": "Einstellungen",
     "tab": {
@@ -1694,7 +1713,25 @@
       "sponsors": "Förderpartner",
       "team": "Team",
       "contact": "Kontaktformular",
+      "verein": "Verein",
       "email": "E-Mail"
+    },
+    "verein": {
+      "title": "Vereinsangaben für Spendenbescheinigungen",
+      "desc": "Diese Angaben erscheinen auf den BMF-konformen Zuwendungsbestätigungen. Bitte sorgfältig und vollständig ausfüllen.",
+      "anschriftLabel": "Anschrift des Vereins",
+      "anschriftPlaceholder": "Vereinsname e.V.\nStraße Nr.\nPLZ Ort",
+      "anschriftHint": "Mehrzeilig. Leer = Moschee-Adresse wird verwendet.",
+      "steuernummerLabel": "Steuernummer des Vereins",
+      "steuernummerPlaceholder": "z. B. 88/250/01234",
+      "freistellungLabel": "Freistellungsbescheid (Text)",
+      "freistellungPlaceholder": "Wir sind wegen Förderung … nach dem Freistellungsbescheid des Finanzamts …, StNr. …, vom … für den letzten Veranlagungszeitraum … nach § 5 Abs. 1 Nr. 9 KStG von der Körperschaftsteuer befreit.",
+      "freistellungHint": "Vollständiger Satz inkl. Finanzamt, Steuernummer und Datum — erscheint wörtlich auf der Bescheinigung.",
+      "foerderzweckLabel": "Steuerbegünstigter Förderzweck",
+      "foerderzweckPlaceholder": "Die Zuwendung wird ausschließlich zur Förderung … im Sinne der Satzung verwendet.",
+      "foerderzweckHint": "Wird auf der Sammelbestätigung als Verwendungszweck angegeben.",
+      "saved": "Vereinsangaben gespeichert.",
+      "saveError": "Vereinsangaben konnten nicht gespeichert werden."
     },
     "payouts": {
       "title": "Stripe-Auszahlungen (Connect)",

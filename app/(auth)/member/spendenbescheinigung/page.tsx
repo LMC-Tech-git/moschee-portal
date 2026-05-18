@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Printer, FileText, Mail, CheckCircle } from "lucide-react";
+import { ArrowLeft, Printer, FileText, Mail, CheckCircle, Download } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useMosque } from "@/lib/mosque-context";
 import { getDonationReceiptData, sendDonationReceiptByEmail, type DonationReceiptData } from "@/lib/actions/members";
@@ -24,6 +24,8 @@ export default function SpendenbescheinigungPage() {
   const [isSendingEmail, setIsSendingEmail] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
   const [emailError, setEmailError] = useState("");
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
+  const [pdfError, setPdfError] = useState("");
 
   useEffect(() => {
     if (!user || !mosqueId) return;
@@ -55,6 +57,38 @@ export default function SpendenbescheinigungPage() {
       setEmailError(result.error || "E-Mail konnte nicht gesendet werden");
     }
     setIsSendingEmail(false);
+  }
+
+  async function handleDownloadPdf() {
+    setPdfError("");
+    setIsDownloadingPdf(true);
+    try {
+      const res = await fetch(
+        `/api/receipts?scope=member&year=${selectedYear}&disposition=attachment`
+      );
+      if (!res.ok) {
+        setPdfError(
+          res.status === 404
+            ? "Keine Spenden für dieses Jahr vorhanden"
+            : "PDF konnte nicht erstellt werden"
+        );
+        return;
+      }
+      const blob = await res.blob();
+      const cd = res.headers.get("Content-Disposition") || "";
+      const match = cd.match(/filename="([^"]+)"/);
+      const filename = match?.[1] || `spendenbescheinigung-${selectedYear}.pdf`;
+      const u = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = u;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(u);
+    } catch {
+      setPdfError("PDF konnte nicht erstellt werden");
+    } finally {
+      setIsDownloadingPdf(false);
+    }
   }
 
   if (!user) return null;
@@ -123,19 +157,28 @@ export default function SpendenbescheinigungPage() {
             </Button>
           )}
           <Button
+            onClick={handleDownloadPdf}
+            disabled={!data || data.donations.length === 0 || isDownloadingPdf}
+            variant="outline"
+            className="flex-1 sm:flex-none"
+          >
+            <Download className="mr-2 h-4 w-4" />
+            {isDownloadingPdf ? "Erstelle..." : "Als PDF herunterladen"}
+          </Button>
+          <Button
             onClick={() => window.print()}
             disabled={!data || data.donations.length === 0}
             className="flex-1 sm:flex-none bg-emerald-600 hover:bg-emerald-700"
           >
             <Printer className="mr-2 h-4 w-4" />
-            Drucken / PDF
+            Drucken
           </Button>
         </div>
       </div>
 
-      {emailError && (
+      {(emailError || pdfError) && (
         <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700 print:hidden">
-          {emailError}
+          {emailError || pdfError}
         </div>
       )}
 
