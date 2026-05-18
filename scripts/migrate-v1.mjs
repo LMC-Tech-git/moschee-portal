@@ -136,7 +136,12 @@ async function createPbBackup() {
     console.log("⚠️  PB-Backup übersprungen (SKIP_PB_BACKUP=1)\n");
     return;
   }
-  const ts = new Date().toISOString().replace(/[:.]/g, "-");
+  // PB-Backup-Name muss strikt [a-z0-9_-] sein (kein Großbuchstabe/./:).
+  const d = new Date();
+  const p = (n) => String(n).padStart(2, "0");
+  const ts = `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}-${p(
+    d.getHours()
+  )}${p(d.getMinutes())}${p(d.getSeconds())}`;
   const name = `pre-migrate-${ts}.zip`;
   console.log(`💾 Erstelle PB-Backup "${name}" ...`);
   try {
