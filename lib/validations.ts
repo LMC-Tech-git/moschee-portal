@@ -163,10 +163,13 @@ export type DonationCheckoutInput = z.infer<typeof donationCheckoutSchema>;
 // --- Donation Subscription (Dauerauftrag) ---
 
 export const donationSubscriptionSchema = z.object({
-  amount_cents: z.number().int().min(100, "Mindestbetrag unterschritten"),
+  // purpose="membership_fee": Betrag/Intervall server-seitig aus Config
+  // (Regel 34 — Client darf amount/interval/currency NIE übermitteln).
+  purpose: z.enum(["donation", "membership_fee"]).default("donation"),
+  amount_cents: z.number().int().min(100, "Mindestbetrag unterschritten").optional(),
   campaign_id: z.string().optional().default(""),
   donor_name: z.string().optional().default(""),
-  donor_email: z.string().email("Ungültige Email"),
+  donor_email: z.string().email("Ungültige Email").optional(),
   payment_method_type: z.enum(["card", "sepa_debit"]).default("card"),
   turnstile_token: z.string().optional().default(""),
 });
