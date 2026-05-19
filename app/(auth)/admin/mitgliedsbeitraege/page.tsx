@@ -482,7 +482,11 @@ function ConfigSection({
                       <td className="p-2">
                         <button
                           onClick={() => startEdit(row)}
-                          className="text-xs px-2 py-1 bg-gray-100 rounded"
+                          className={`text-xs px-2 py-1 rounded font-medium ${
+                            row.config
+                              ? "bg-blue-100 text-blue-700 hover:bg-blue-200"
+                              : "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
+                          }`}
                         >
                           {row.config ? tCommon("edit") : t("configure")}
                         </button>
