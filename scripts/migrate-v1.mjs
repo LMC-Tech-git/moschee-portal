@@ -1154,6 +1154,216 @@ const DONATIONS_NEW_FIELDS = [
   { name: "paid_at", type: "date" },
 ];
 
+// --- Finance (Phase 1, Sprint 1) — Event-Layer ---
+//
+// Architektur: zwei immutable Journals (finance_source_events + transactions),
+// strikte event-type-abhängige Idempotenz auf source_event_key.
+// `classification` denormalisiert für DB-Level Aggregation (EÜR/KPIs).
+// `event_hash_sha256` Phase 1 ungenutzt, ist nur Spalten-Slot.
+
+const FINANCE_CATEGORY_VALUES = [
+  "spenden",
+  "mitgliedsbeitraege",
+  "madrasa_gebuehren",
+  "foerderpartner",
+  "veranstaltungen_einnahme",
+  "zuschuesse",
+  "sonstige_einnahmen",
+  "miete",
+  "nebenkosten",
+  "gehaelter_honorare",
+  "instandhaltung",
+  "veranstaltungen_ausgabe",
+  "verwaltung",
+  "zakat_weiterleitung",
+  "sonstige_ausgaben",
+];
+
+// event_type-Enum enthält bereits Phase-2-Werte (income_adjusted, fee_applied),
+// damit spätere Migration keine Schema-Änderung braucht. Phase-1-Code (Zod im
+// Domain-Layer) blockt sie via PHASE1_EVENT_TYPES.
+const FINANCE_EVENT_TYPE_VALUES = [
+  "income_received",
+  "income_refunded",
+  "income_adjusted",
+  "fee_applied",
+  "chargeback",
+];
+
+const FINANCE_SOURCE_EVENTS_COLLECTION = {
+  name: "finance_source_events",
+  type: "base",
+  schema: [
+    { name: "mosque_id", type: "relation", required: true, options: { collectionId: "", maxSelect: 1 } },
+    // Identität
+    { name: "event_uuid", type: "text", required: true },
+    { name: "external_event_id", type: "text" },
+    { name: "source_event_key", type: "text", required: true },
+    // Beziehungen
+    { name: "related_event_id", type: "text" },
+    {
+      name: "relation_type",
+      type: "select",
+      options: { values: ["refund_of", "chargeback_of", "adjustment_of"], maxSelect: 1 },
+    },
+    { name: "original_amount_cents", type: "number", options: { min: 0 } },
+    {
+      name: "ledger_acceptance_context",
+      type: "select",
+      required: true,
+      options: { values: ["pre_lock", "post_lock_system", "post_lock_manual_blocked"], maxSelect: 1 },
+    },
+    // Phase-2-Slot (Phase 1 ungenutzt)
+    { name: "event_hash_sha256", type: "text" },
+    // Klassifikation
+    {
+      name: "event_type",
+      type: "select",
+      required: true,
+      options: { values: FINANCE_EVENT_TYPE_VALUES, maxSelect: 1 },
+    },
+    {
+      name: "classification",
+      type: "select",
+      required: true,
+      options: { values: ["income", "expense"], maxSelect: 1 },
+    },
+    // Quelle
+    { name: "source_collection", type: "text", required: true },
+    { name: "source_type", type: "text", required: true },
+    { name: "source_id", type: "text", required: true },
+    // Betrag
+    { name: "betrag_cents", type: "number", required: true, options: { min: 1 } },
+    {
+      name: "kategorie",
+      type: "select",
+      required: true,
+      options: { values: FINANCE_CATEGORY_VALUES, maxSelect: 1 },
+    },
+    {
+      name: "konto_typ",
+      type: "select",
+      required: true,
+      options: { values: ["bank", "cash", "other"], maxSelect: 1 },
+    },
+    {
+      name: "zahlungskanal",
+      type: "select",
+      options: { values: ["bar", "ueberweisung", "stripe", "paypal", "sonstige"], maxSelect: 1 },
+    },
+    { name: "currency", type: "text", required: true },
+    { name: "occurred_at", type: "date", required: true },
+    // Payload
+    { name: "payload_schema_version", type: "number", required: true, options: { min: 1, default: 1 } },
+    { name: "payload_json", type: "text", required: true },
+    { name: "metadata_json", type: "text" },
+  ],
+  indexes: [
+    "CREATE UNIQUE INDEX idx_fse_key ON finance_source_events (source_event_key)",
+    "CREATE UNIQUE INDEX idx_fse_uuid ON finance_source_events (event_uuid)",
+    "CREATE INDEX idx_fse_mosque_date ON finance_source_events (mosque_id, occurred_at)",
+    "CREATE INDEX idx_fse_mosque_class ON finance_source_events (mosque_id, classification, occurred_at)",
+    "CREATE INDEX idx_fse_src ON finance_source_events (mosque_id, source_collection, source_id, event_type)",
+  ],
+};
+
+const TRANSACTIONS_COLLECTION = {
+  name: "transactions",
+  type: "base",
+  schema: [
+    { name: "mosque_id", type: "relation", required: true, options: { collectionId: "", maxSelect: 1 } },
+    { name: "buchungsdatum", type: "date", required: true },
+    { name: "leistungsdatum", type: "date" },
+    { name: "betrag_cents", type: "number", required: true, options: { min: 1 } },
+    {
+      name: "typ",
+      type: "select",
+      required: true,
+      options: { values: ["einnahme", "ausgabe"], maxSelect: 1 },
+    },
+    {
+      name: "classification",
+      type: "select",
+      required: true,
+      options: { values: ["income", "expense"], maxSelect: 1 },
+    },
+    {
+      name: "kategorie",
+      type: "select",
+      required: true,
+      options: { values: FINANCE_CATEGORY_VALUES, maxSelect: 1 },
+    },
+    { name: "beschreibung", type: "text", required: true, options: { max: 500 } },
+    { name: "beleg_nummer", type: "text", required: true, options: { max: 30 } },
+    { name: "beleg_datei", type: "file", options: { maxSelect: 1, maxSize: 5242880 } },
+    { name: "beleg_datei_sha256", type: "text" },
+    {
+      name: "konto_typ",
+      type: "select",
+      required: true,
+      options: { values: ["bank", "cash", "other"], maxSelect: 1 },
+    },
+    {
+      name: "zahlungskanal",
+      type: "select",
+      options: { values: ["bar", "ueberweisung", "stripe", "paypal", "sonstige"], maxSelect: 1 },
+    },
+    {
+      name: "quelle",
+      type: "select",
+      options: { values: ["manuell", "storno"], maxSelect: 1 },
+    },
+    { name: "referenz_id", type: "text" },
+    { name: "storno_of", type: "relation", options: { collectionId: "", maxSelect: 1 } },
+    { name: "is_storno", type: "bool", options: { default: false } },
+    { name: "interne_notiz", type: "text" },
+    { name: "created_by", type: "relation", options: { collectionId: "", maxSelect: 1 } },
+  ],
+  indexes: [
+    "CREATE UNIQUE INDEX idx_tx_beleg ON transactions (mosque_id, beleg_nummer)",
+    "CREATE INDEX idx_tx_mosque_datum ON transactions (mosque_id, buchungsdatum)",
+    "CREATE INDEX idx_tx_mosque_kat ON transactions (mosque_id, kategorie)",
+    "CREATE INDEX idx_tx_mosque_class ON transactions (mosque_id, classification, buchungsdatum)",
+  ],
+};
+
+const FINANCE_SEQUENCES_COLLECTION = {
+  name: "finance_sequences",
+  type: "base",
+  schema: [
+    { name: "mosque_id", type: "relation", required: true, options: { collectionId: "", maxSelect: 1 } },
+    { name: "year", type: "number", required: true, options: { min: 2000 } },
+    { name: "next_number", type: "number", required: true, options: { min: 1, default: 1 } },
+    // Future-Hook Multi-Writer/CAS — Phase 1 ungenutzt
+    { name: "version", type: "number", options: { min: 0, default: 0 } },
+  ],
+  indexes: [
+    "CREATE UNIQUE INDEX idx_seq ON finance_sequences (mosque_id, year)",
+  ],
+};
+
+// Quell-Sperre + Stripe-Refund-Ref auf donations
+const DONATIONS_REFUND_FIELDS = [
+  { name: "is_financially_locked", type: "bool", options: { default: false } },
+  { name: "financial_locked_at", type: "date" },
+  { name: "refund_amount_cents", type: "number", options: { min: 0 } },
+  { name: "refunded_at", type: "date" },
+  { name: "refund_reason", type: "text" },
+  // Erforderlich, damit Drift-Sweeper den event-type-abhängigen Refund-Key idempotent rekonstruieren kann
+  { name: "refund_provider_ref", type: "text" },
+];
+
+// Quell-Sperre auf student_fees/sponsors
+const STUDENT_FEES_LOCK_FIELDS = [
+  { name: "is_financially_locked", type: "bool", options: { default: false } },
+  { name: "financial_locked_at", type: "date" },
+];
+
+const SPONSORS_LOCK_FIELDS = [
+  { name: "is_financially_locked", type: "bool", options: { default: false } },
+  { name: "financial_locked_at", type: "date" },
+];
+
 // --- Main ---
 
 async function resolveRelationIds(collections) {
@@ -1186,6 +1396,7 @@ function patchRelations(schema, collectionMap) {
       else if (name === "academic_year_id") targetCollection = "academic_years";
       else if (name === "parent_user") targetCollection = "users";
       else if (name === "student") targetCollection = "students";
+      else if (name === "storno_of") targetCollection = "transactions";
 
       const targetId = targetCollection ? collectionMap[targetCollection] : "";
       // Nur setzen wenn auflösbar UND abweichend. WICHTIG: bestehendes
@@ -1270,6 +1481,10 @@ async function main() {
     MEMBERSHIP_FEES_COLLECTION,
     STRIPE_PRICE_CACHE_COLLECTION,
     MEMBERSHIP_RECONCILE_ERRORS_COLLECTION,
+    // Finance Phase 1 (Sprint 1) — Event-Layer
+    FINANCE_SOURCE_EVENTS_COLLECTION,
+    TRANSACTIONS_COLLECTION,
+    FINANCE_SEQUENCES_COLLECTION,
   ];
 
   for (const colDef of newCollections) {
@@ -1432,6 +1647,54 @@ async function main() {
       );
     } else {
       console.log("   ⏭️  donations: alle V1-Felder vorhanden");
+    }
+  }
+
+  // 5b. Finance Phase 1: Quell-Sperre + refund_provider_ref auf donations
+  if (collectionMap.donations) {
+    const donationCol = (await getExistingCollections()).find((c) => c.name === "donations");
+    const existingFieldNames = (donationCol?.schema || []).map((f) => f.name);
+    const fieldsToAdd = DONATIONS_REFUND_FIELDS.filter((f) => !existingFieldNames.includes(f.name));
+    if (fieldsToAdd.length > 0) {
+      const newSchema = [...(donationCol?.schema || []), ...fieldsToAdd];
+      await updateCollection("donations", { schema: newSchema });
+      console.log(
+        `   ✅ donations (finance): ${fieldsToAdd.map((f) => f.name).join(", ")} hinzugefügt`
+      );
+    } else {
+      console.log("   ⏭️  donations: Finance-Felder vorhanden");
+    }
+  }
+
+  // 5c. Finance Phase 1: Quell-Sperre auf student_fees
+  if (collectionMap.student_fees) {
+    const col = (await getExistingCollections()).find((c) => c.name === "student_fees");
+    const existing = (col?.schema || []).map((f) => f.name);
+    const fieldsToAdd = STUDENT_FEES_LOCK_FIELDS.filter((f) => !existing.includes(f.name));
+    if (fieldsToAdd.length > 0) {
+      const newSchema = [...(col?.schema || []), ...fieldsToAdd];
+      await updateCollection("student_fees", { schema: newSchema });
+      console.log(
+        `   ✅ student_fees (finance): ${fieldsToAdd.map((f) => f.name).join(", ")} hinzugefügt`
+      );
+    } else {
+      console.log("   ⏭️  student_fees: Finance-Felder vorhanden");
+    }
+  }
+
+  // 5d. Finance Phase 1: Quell-Sperre auf sponsors
+  if (collectionMap.sponsors) {
+    const col = (await getExistingCollections()).find((c) => c.name === "sponsors");
+    const existing = (col?.schema || []).map((f) => f.name);
+    const fieldsToAdd = SPONSORS_LOCK_FIELDS.filter((f) => !existing.includes(f.name));
+    if (fieldsToAdd.length > 0) {
+      const newSchema = [...(col?.schema || []), ...fieldsToAdd];
+      await updateCollection("sponsors", { schema: newSchema });
+      console.log(
+        `   ✅ sponsors (finance): ${fieldsToAdd.map((f) => f.name).join(", ")} hinzugefügt`
+      );
+    } else {
+      console.log("   ⏭️  sponsors: Finance-Felder vorhanden");
     }
   }
 
