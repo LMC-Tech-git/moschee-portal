@@ -32,7 +32,8 @@
     "confirm": "Onayla",
     "saveDraft": "Taslak kaydet",
     "saveAsDraft": "Taslak olarak kaydet",
-    "updatePublish": "Güncelle & Yayımla"
+    "updatePublish": "Güncelle & Yayımla",
+    "next": "İleri"
   },
   "nav": {
     "home": "Ana Sayfa",
@@ -523,6 +524,10 @@
       "settings": {
         "title": "Ayarlar",
         "desc": "Marka, namaz vakitleri ve diğer yapılandırma."
+      },
+      "membership": {
+        "title": "Üyelik aidatları",
+        "desc": "Üyelik aidatlarını yapılandır, kaydet ve otomatik tahsil et."
       }
     },
     "loading": "Yönetici alanı yükleniyor...",
@@ -1059,7 +1064,8 @@
         "donations": "Bağışlar",
         "events": "Etkinlikler",
         "madrasa": "Medrese",
-        "sponsor": "Destek Ortakları"
+        "sponsor": "Destek Ortakları",
+        "membership": "Üyelik aidatı"
       },
       "editTitle": "Profili Düzenle",
       "firstName": "Ad",
@@ -1367,7 +1373,8 @@
       "settings": "Ayarlar",
       "sponsors": "Destekçiler",
       "team": "Ekip",
-      "push_subscription": "Bildirimler"
+      "push_subscription": "Bildirimler",
+      "membership_fees": "Üyelik aidatları"
     },
     "entity": {
       "post": "Haber",
@@ -1392,7 +1399,10 @@
       "sponsors": "Destekçi",
       "team_members": "Ekip",
       "parent_child_relations": "Veli-Çocuk İlişkisi",
-      "push_subscription": "Bildirim"
+      "push_subscription": "Bildirim",
+      "membership_fees": "Üyelik aidatları",
+      "membership_fee": "Üyelik aidatı",
+      "membership_config": "Aidat yapılandırması"
     },
     "action": {
       "push_subscription": {
@@ -1559,7 +1569,30 @@
       "parent_child": {
         "linked": "Veli eklendi",
         "unlinked": "Veli kaldırıldı"
-      }
+      },
+      "membership_fee": {
+        "bulk_created": "Üyelik aidatları oluşturuldu",
+        "bulk_skipped_auto_subscription": "Otomatik ödeyenler toplu işlemde atlandı",
+        "marked_paid": "Üyelik aidatı elle kaydedildi",
+        "paid_stripe": "Üyelik aidatı ödendi (Stripe)",
+        "pending_stripe": "Üyelik aidatı beklemede (Stripe)",
+        "failed_stripe": "Üyelik aidatı başarısız (Stripe)",
+        "waived": "Üyelik aidatı muaf tutuldu",
+        "voided": "Üyelik aidatı iptal edildi",
+        "reconciled": "Üyelik aidatı mutabakatı yapıldı",
+        "duplicate_settlement": "Mükerrer ödeme tespit edildi",
+        "transition_ignored": "Durum değişikliği yok sayıldı",
+        "manual_stripe_conflict": "Çakışma: elle ödendi + Stripe hatası"
+      },
+      "membership_config": {
+        "updated": "Aidat yapılandırması değiştirildi"
+      },
+      "membership_subscription": {
+        "created": "Otomatik tahsilat kuruldu",
+        "updated": "Otomatik tahsilat güncellendi",
+        "cancelled": "Otomatik tahsilat iptal edildi"
+      },
+      "update_membership_fee_settings": "Üyelik aidatı ayarları güncellendi"
     },
     "field": {
       "title": "Başlık",
@@ -1636,7 +1669,6 @@
       "current_period_end": "Dönem Sonu",
       "async": "Asenkron",
       "months": "Aylar",
-      "start_month_key": "Başlangıç Ayı",
       "notes": "Notlar",
       "scope": "Kapsam",
       "year": "Yıl",
@@ -1723,7 +1755,8 @@
       "team": "Ekip",
       "contact": "İletişim Formu",
       "verein": "Dernek",
-      "email": "E-posta"
+      "email": "E-posta",
+      "membership": "Üyelik aidatları"
     },
     "verein": {
       "title": "Bağış makbuzları için dernek bilgileri",
@@ -1994,8 +2027,21 @@
       "de": "Deutsch 🇩🇪",
       "tr": "Türkçe 🇹🇷"
     },
-    "save": "Kaydet",
-    "reset": "Sıfırla"
+    "reset": "Sıfırla",
+    "membershipFee": {
+      "title": "Üyelik aidatları",
+      "desc": "Stripe ile otomatik üyelik aidatı tahsilatı (kart/SEPA).",
+      "needsStripe": "Üyelik aidatı tahsil etmek için ödeme sağlayıcı olarak Stripe etkin olmalıdır.",
+      "errorMin": "Asgari tutar 1,00 €.",
+      "toggleLabel": "Üyelik aidatlarını etkinleştir",
+      "toggleDesc": "Etkinleştirildiğinde üyeler profilinde aidatını görür ve otomatik tahsilatı başlatabilir.",
+      "amountLabel": "Varsayılan tutar (€)",
+      "amountHint": "Yeni üye yapılandırmaları için varsayılan değer.",
+      "intervalLabel": "Varsayılan aralık",
+      "intervalMonthly": "Aylık",
+      "intervalQuarterly": "Üç aylık",
+      "intervalYearly": "Yıllık"
+    }
   },
   "labels": {
     "post": {
@@ -3188,5 +3234,63 @@
       "optIn": "Üyeleri push ile bilgilendir",
       "sent": "{count} cihaza push bildirimi gönderildi."
     }
+  },
+  "mitgliedsbeitraege": {
+    "title": "Üyelik aidatları",
+    "tabOverview": "Genel bakış",
+    "tabConfig": "Aidat yapılandırması",
+    "intervalMonthly": "Aylık",
+    "intervalQuarterly": "Üç aylık",
+    "intervalYearly": "Yıllık",
+    "bulkCreate": "Aidatları oluştur",
+    "bulkResult": "{created} oluşturuldu, {skipped} atlandı.",
+    "kpi_open": "Açık",
+    "kpi_pending": "Beklemede",
+    "kpi_paid": "Ödendi",
+    "kpi_failed": "Başarısız",
+    "kpi_waived": "Muaf",
+    "kpi_auto": "Otomatik",
+    "colMember": "Üye",
+    "colAmount": "Tutar",
+    "colStatus": "Durum",
+    "colMethod": "Yöntem",
+    "colSource": "Kaynak",
+    "colAuto": "Otomatik",
+    "colActions": "İşlemler",
+    "colInterval": "Aralık",
+    "colActive": "Aktif",
+    "colExempt": "Muaf",
+    "empty": "Kayıt yok.",
+    "status_open": "Açık",
+    "status_pending": "Beklemede",
+    "status_paid": "Ödendi",
+    "status_failed": "Başarısız",
+    "status_waived": "Muaf",
+    "status_void": "İptal edildi",
+    "status_none": "Kayıt yok",
+    "method_cash": "Nakit",
+    "method_transfer": "Havale",
+    "method_stripe": "Çevrimiçi (Stripe)",
+    "method_waived": "Muaf",
+    "autoYes": "Evet",
+    "autoNo": "Hayır",
+    "actionCash": "Nakit ödendi",
+    "actionTransfer": "Havale",
+    "actionWaive": "Muaf tut",
+    "waiveReasonPrompt": "Muafiyet gerekçesi:",
+    "configure": "Yapılandır",
+    "warnActiveSubInactiveCfg": "Üyenin hâlâ aktif otomatik tahsilatı var.",
+    "memberNoConfig": "Şu anda senin için tanımlı bir üyelik aidatı yok.",
+    "memberExempt": "Şu anda aidatlardan muafsın.",
+    "autoActive": "Otomatik tahsilat aktif",
+    "cancelAuto": "Tahsilatı iptal et",
+    "payCard": "Kart",
+    "paySepa": "SEPA otomatik ödeme",
+    "activateAuto": "Otomatik tahsilatı etkinleştir",
+    "memberPeriods": "Aidat dönemleri",
+    "memberFailedHint": "Bir tahsilat başarısız oldu. Lütfen ödeme bilgilerini kontrol et.",
+    "memberTransparency": "Moschee.App üyelik aidatlarından komisyon almaz.",
+    "activateError": "Etkinleştirme başarısız.",
+    "cancelConfirm": "Otomatik tahsilat gerçekten iptal edilsin mi?"
   }
 }

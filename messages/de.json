@@ -32,7 +32,8 @@
     "confirm": "Bestätigen",
     "saveDraft": "Entwurf speichern",
     "saveAsDraft": "Als Entwurf speichern",
-    "updatePublish": "Aktualisieren & Veröffentlichen"
+    "updatePublish": "Aktualisieren & Veröffentlichen",
+    "next": "Weiter"
   },
   "nav": {
     "home": "Startseite",
@@ -523,6 +524,10 @@
       "settings": {
         "title": "Einstellungen",
         "desc": "Branding, Gebetszeiten und weitere Konfiguration."
+      },
+      "membership": {
+        "title": "Mitgliedsbeiträge",
+        "desc": "Mitgliedsbeiträge konfigurieren, erfassen und automatisch einziehen."
       }
     },
     "loading": "Admin-Bereich wird geladen...",
@@ -1059,7 +1064,8 @@
         "donations": "Spenden",
         "events": "Veranstaltungen",
         "madrasa": "Madrasa",
-        "sponsor": "Förderpartner"
+        "sponsor": "Förderpartner",
+        "membership": "Mitgliedsbeitrag"
       },
       "editTitle": "Profil bearbeiten",
       "firstName": "Vorname",
@@ -1367,7 +1373,8 @@
       "settings": "Einstellungen",
       "sponsors": "Förderpartner",
       "team": "Team",
-      "push_subscription": "Benachrichtigungen"
+      "push_subscription": "Benachrichtigungen",
+      "membership_fees": "Mitgliedsbeiträge"
     },
     "entity": {
       "post": "Post",
@@ -1392,7 +1399,10 @@
       "sponsors": "Förderpartner",
       "team_members": "Team",
       "parent_child_relations": "Eltern-Kind-Verknüpfung",
-      "push_subscription": "Benachrichtigung"
+      "push_subscription": "Benachrichtigung",
+      "membership_fees": "Mitgliedsbeiträge",
+      "membership_fee": "Mitgliedsbeitrag",
+      "membership_config": "Beitrags-Konfiguration"
     },
     "action": {
       "push_subscription": {
@@ -1559,7 +1569,30 @@
       "parent_child": {
         "linked": "Elternteil verknüpft",
         "unlinked": "Elternteil entfernt"
-      }
+      },
+      "membership_fee": {
+        "bulk_created": "Mitgliedsbeiträge erstellt",
+        "bulk_skipped_auto_subscription": "Auto-Zahler bei Bulk übersprungen",
+        "marked_paid": "Mitgliedsbeitrag manuell verbucht",
+        "paid_stripe": "Mitgliedsbeitrag bezahlt (Stripe)",
+        "pending_stripe": "Mitgliedsbeitrag ausstehend (Stripe)",
+        "failed_stripe": "Mitgliedsbeitrag fehlgeschlagen (Stripe)",
+        "waived": "Mitgliedsbeitrag erlassen",
+        "voided": "Mitgliedsbeitrag storniert",
+        "reconciled": "Mitgliedsbeitrag abgeglichen",
+        "duplicate_settlement": "Doppelzahlung erkannt",
+        "transition_ignored": "Statuswechsel ignoriert",
+        "manual_stripe_conflict": "Konflikt: manuell bezahlt + Stripe-Fehler"
+      },
+      "membership_config": {
+        "updated": "Beitrags-Konfiguration geändert"
+      },
+      "membership_subscription": {
+        "created": "Auto-Einzug eingerichtet",
+        "updated": "Auto-Einzug aktualisiert",
+        "cancelled": "Auto-Einzug gekündigt"
+      },
+      "update_membership_fee_settings": "Mitgliedsbeitrags-Einstellungen aktualisiert"
     },
     "field": {
       "title": "Titel",
@@ -1636,7 +1669,6 @@
       "current_period_end": "Periode bis",
       "async": "Asynchron",
       "months": "Monate",
-      "start_month_key": "Startmonat",
       "notes": "Notizen",
       "scope": "Bereich",
       "year": "Jahr",
@@ -1723,7 +1755,8 @@
       "team": "Team",
       "contact": "Kontaktformular",
       "verein": "Verein",
-      "email": "E-Mail"
+      "email": "E-Mail",
+      "membership": "Mitgliedsbeiträge"
     },
     "verein": {
       "title": "Vereinsangaben für Spendenbescheinigungen",
@@ -1994,8 +2027,21 @@
       "de": "Deutsch 🇩🇪",
       "tr": "Türkçe 🇹🇷"
     },
-    "save": "Speichern",
-    "reset": "Zurücksetzen"
+    "reset": "Zurücksetzen",
+    "membershipFee": {
+      "title": "Mitgliedsbeiträge",
+      "desc": "Automatischer Mitgliedsbeitrags-Einzug per Stripe (Karte/SEPA).",
+      "needsStripe": "Stripe als Zahlungsanbieter muss aktiv sein, um Mitgliedsbeiträge einzuziehen.",
+      "errorMin": "Mindestbetrag 1,00 €.",
+      "toggleLabel": "Mitgliedsbeiträge aktivieren",
+      "toggleDesc": "Wenn aktiviert, sehen Mitglieder im Profil ihren Beitrag und können den automatischen Einzug starten.",
+      "amountLabel": "Standardbetrag (€)",
+      "amountHint": "Vorgabewert für neue Mitglieds-Konfigurationen.",
+      "intervalLabel": "Standard-Intervall",
+      "intervalMonthly": "Monatlich",
+      "intervalQuarterly": "Quartalsweise",
+      "intervalYearly": "Jährlich"
+    }
   },
   "labels": {
     "post": {
@@ -3188,5 +3234,63 @@
       "optIn": "Mitglieder per Push benachrichtigen",
       "sent": "Push-Benachrichtigung an {count} Geräte gesendet."
     }
+  },
+  "mitgliedsbeitraege": {
+    "title": "Mitgliedsbeiträge",
+    "tabOverview": "Übersicht",
+    "tabConfig": "Beitrags-Konfiguration",
+    "intervalMonthly": "Monatlich",
+    "intervalQuarterly": "Quartalsweise",
+    "intervalYearly": "Jährlich",
+    "bulkCreate": "Beiträge erstellen",
+    "bulkResult": "{created} erstellt, {skipped} übersprungen.",
+    "kpi_open": "Offen",
+    "kpi_pending": "Ausstehend",
+    "kpi_paid": "Bezahlt",
+    "kpi_failed": "Fehlgeschlagen",
+    "kpi_waived": "Erlassen",
+    "kpi_auto": "Automatisch",
+    "colMember": "Mitglied",
+    "colAmount": "Betrag",
+    "colStatus": "Status",
+    "colMethod": "Methode",
+    "colSource": "Quelle",
+    "colAuto": "Automatisch",
+    "colActions": "Aktionen",
+    "colInterval": "Intervall",
+    "colActive": "Aktiv",
+    "colExempt": "Befreit",
+    "empty": "Keine Einträge.",
+    "status_open": "Offen",
+    "status_pending": "Ausstehend",
+    "status_paid": "Bezahlt",
+    "status_failed": "Fehlgeschlagen",
+    "status_waived": "Erlassen",
+    "status_void": "Storniert",
+    "status_none": "Kein Eintrag",
+    "method_cash": "Bar",
+    "method_transfer": "Überweisung",
+    "method_stripe": "Online (Stripe)",
+    "method_waived": "Erlassen",
+    "autoYes": "Ja",
+    "autoNo": "Nein",
+    "actionCash": "Bar bezahlt",
+    "actionTransfer": "Überweisung",
+    "actionWaive": "Erlassen",
+    "waiveReasonPrompt": "Grund für den Erlass:",
+    "configure": "Konfigurieren",
+    "warnActiveSubInactiveCfg": "Mitglied hat noch aktive Auto-Abbuchung.",
+    "memberNoConfig": "Für dich ist aktuell kein Mitgliedsbeitrag konfiguriert.",
+    "memberExempt": "Du bist aktuell von Beiträgen befreit.",
+    "autoActive": "Automatischer Einzug aktiv",
+    "cancelAuto": "Einzug kündigen",
+    "payCard": "Karte",
+    "paySepa": "SEPA-Lastschrift",
+    "activateAuto": "Automatischen Einzug aktivieren",
+    "memberPeriods": "Beitragsperioden",
+    "memberFailedHint": "Eine Abbuchung ist fehlgeschlagen. Bitte prüfe deine Zahlungsdaten.",
+    "memberTransparency": "Moschee.App erhebt keine Provision auf Mitgliedsbeiträge.",
+    "activateError": "Aktivierung fehlgeschlagen.",
+    "cancelConfirm": "Automatischen Einzug wirklich kündigen?"
   }
 }

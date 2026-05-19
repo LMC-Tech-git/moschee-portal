@@ -18,6 +18,7 @@
 import { readFileSync } from "fs";
 import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
+import { createHash } from "crypto";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -1633,6 +1634,173 @@ async function seedParentChildRelations(users, studentIds) {
 
 // ─── 5. Main ─────────────────────────────────────────────────────────────────
 
+// ─── Mitgliedsbeiträge (Session 27) ──────────────────────────────────────────
+
+function firstOfMonthUTC(d) {
+  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1));
+}
+function membershipBucket(userId, scope, periodStart) {
+  const iso = periodStart.toISOString().slice(0, 10);
+  return createHash("sha256")
+    .update(`${MOSQUE_ID}|${userId}|${scope}|${iso}`)
+    .digest("hex");
+}
+
+async function seedMembershipFees(memberIds) {
+  console.log("🏛️  Mitgliedsbeiträge (löschen + neu erstellen)...");
+  await deleteAllForMosque("membership_fees");
+  await deleteAllForMosque("membership_fee_configs");
+  const deletedSub = await deleteAllForMosque(
+    "recurring_subscriptions",
+    `subscription_type = "membership_fee"`
+  );
+  if (deletedSub > 0) console.log(`  🗑️  ${deletedSub} alte Membership-Subs`);
+
+  const effFrom = isoDateTime(daysAgo(150));
+  const futureExempt = isoDateTime(daysAgo(-120));
+  const m = (i) => memberIds[i] || memberIds[0] || "";
+
+  const configs = [
+    { user: m(0), amount: 1500, interval: "monthly", active: true, exempt: false },
+    { user: m(1), amount: 4500, interval: "quarterly", active: true, exempt: false },
+    { user: m(2), amount: 12000, interval: "yearly", active: true, exempt: true, exempt_until: "" },
+    { user: m(3), amount: 1000, interval: "monthly", active: false, exempt: false },
+    { user: m(4), amount: 2000, interval: "monthly", active: true, exempt: true, exempt_until: futureExempt },
+  ];
+  let cfgCount = 0;
+  for (const c of configs) {
+    if (!c.user) continue;
+    await pbCreate("membership_fee_configs", {
+      mosque_id: MOSQUE_ID,
+      user_id: c.user,
+      amount_cents: c.amount,
+      interval: c.interval,
+      currency: "EUR",
+      active: c.active,
+      exempt: c.exempt,
+      exempt_until: c.exempt_until || "",
+      version: 1,
+      effective_from: effFrom,
+      superseded_at: "",
+      notes: "",
+      created_by: "",
+    }).catch(() => {});
+    cfgCount++;
+  }
+
+  // Aktive membership_fee-Subscription für Mitglied 0 (monatlich)
+  let subId = "";
+  if (m(0)) {
+    try {
+      const sub = await pbCreate("recurring_subscriptions", {
+        mosque_id: MOSQUE_ID,
+        donor_type: "member",
+        user_id: m(0),
+        donor_name: "Demo Mitglied 01",
+        donor_email: "demo-member-01@moschee.app",
+        amount_cents: 1500,
+        currency: "EUR",
+        interval: "monthly",
+        status: "active",
+        provider: "stripe",
+        provider_subscription_id: "sub_demo_membership01",
+        provider_ref: "cs_demo_membership01",
+        subscription_type: "membership_fee",
+        stripe_subscription_item_id: "si_demo_membership01",
+        subscription_generation: 1,
+        started_at: isoDateTime(daysAgo(90)),
+        current_period_end: isoDateTime(daysAgo(-5)),
+        last_payment_status: "paid",
+        last_payment_at: isoDateTime(daysAgo(2)),
+        cancel_at_period_end: false,
+      });
+      subId = sub.id;
+    } catch (e) {
+      console.log(`  ⚠️  Membership-Sub: ${e.message}`);
+    }
+  }
+
+  // Ledger: Mitglied 0 — 3 Monatsperioden (paid bar, failed, paid via Stripe-Sub)
+  let feeCount = 0;
+  if (m(0)) {
+    const cfg0 = await pbFetch(
+      `collections/membership_fee_configs/records?filter=${encodeURIComponent(`mosque_id="${MOSQUE_ID}"&&user_id="${m(0)}"`)}&perPage=1`,
+      { throwOnError: false }
+    );
+    const cfgId = cfg0?.items?.[0]?.id || "";
+    const plan = [
+      { back: 2, status: "paid", method: "cash", source: "admin_bulk" },
+      { back: 1, status: "failed", method: "stripe", source: "stripe_webhook" },
+      { back: 0, status: "paid", method: "stripe", source: "stripe_webhook" },
+    ];
+    for (const p of plan) {
+      const ps = firstOfMonthUTC(monthsAgo(p.back));
+      const pe = new Date(Date.UTC(ps.getUTCFullYear(), ps.getUTCMonth() + 1, 1));
+      const useSub = p.source === "stripe_webhook";
+      const scope = useSub && subId ? subId : "manual:monthly";
+      await pbCreate("membership_fees", {
+        mosque_id: MOSQUE_ID,
+        user_id: m(0),
+        membership_fee_config_id: cfgId,
+        recurring_subscription_id: useSub ? subId : "",
+        period_key: monthKey(ps),
+        period_start: ps.toISOString(),
+        period_end: pe.toISOString(),
+        period_bucket_id: membershipBucket(m(0), scope, ps),
+        amount_cents: 1500,
+        currency: "EUR",
+        interval: "monthly",
+        status: p.status,
+        payment_method: p.status === "paid" ? p.method : "",
+        paid_at: p.status === "paid" ? pe.toISOString() : "",
+        provider_ref: useSub ? `in_demo_${monthKey(ps)}` : "",
+        provider_invoice_status: useSub ? (p.status === "paid" ? "paid" : "open") : "",
+        source: p.source,
+        billing_cycle_anchor: ps.toISOString(),
+        cycle_index: 0,
+        ledger_version: 1,
+        created_by: "",
+      }).catch(() => {});
+      feeCount++;
+    }
+  }
+
+  // Ledger: Mitglied 1 — aktuelles Quartal offen (Rückstand)
+  if (m(1)) {
+    const cfg1 = await pbFetch(
+      `collections/membership_fee_configs/records?filter=${encodeURIComponent(`mosque_id="${MOSQUE_ID}"&&user_id="${m(1)}"`)}&perPage=1`,
+      { throwOnError: false }
+    );
+    const now = new Date();
+    const qStartMonth = Math.floor(now.getUTCMonth() / 3) * 3;
+    const ps = new Date(Date.UTC(now.getUTCFullYear(), qStartMonth, 1));
+    const pe = new Date(Date.UTC(now.getUTCFullYear(), qStartMonth + 3, 1));
+    await pbCreate("membership_fees", {
+      mosque_id: MOSQUE_ID,
+      user_id: m(1),
+      membership_fee_config_id: cfg1?.items?.[0]?.id || "",
+      recurring_subscription_id: "",
+      period_key: `${now.getUTCFullYear()}-Q${qStartMonth / 3 + 1}`,
+      period_start: ps.toISOString(),
+      period_end: pe.toISOString(),
+      period_bucket_id: membershipBucket(m(1), "manual:quarterly", ps),
+      amount_cents: 4500,
+      currency: "EUR",
+      interval: "quarterly",
+      status: "open",
+      payment_method: "",
+      source: "admin_bulk",
+      billing_cycle_anchor: ps.toISOString(),
+      cycle_index: 0,
+      ledger_version: 1,
+      created_by: "",
+    }).catch(() => {});
+    feeCount++;
+  }
+
+  console.log(`  ✅ ${cfgCount} Konfigurationen, ${feeCount} Ledger-Einträge, 1 Auto-Sub\n`);
+}
+
 async function main() {
   console.log("🌱 seed-demo-full.mjs gestartet");
   console.log("   PocketBase: " + PB_URL);
@@ -1658,6 +1826,7 @@ async function main() {
   const campaignIds = await seedCampaigns(users.admin);
   await seedDonations(campaignIds, users.memberIds);
   await seedRecurringSubscriptions(users.memberIds);
+  await seedMembershipFees(users.memberIds);
 
   console.log("✅ Demo-Seed abgeschlossen!");
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
