@@ -60,8 +60,9 @@ import { formatCurrencyCents, cn } from "@/lib/utils";
 import { getPerformanceLevel } from "@/lib/constants";
 import type { Donation, EventRegistration } from "@/types";
 import { MyRecurringSubscriptions } from "@/components/member/MyRecurringSubscriptions";
+import { MyMembershipFee } from "@/components/member/MyMembershipFee";
 
-type Tab = "profile" | "children" | "donations" | "events" | "madrasa" | "sponsor";
+type Tab = "profile" | "children" | "donations" | "events" | "madrasa" | "sponsor" | "membership";
 
 function getCurrentMonthKey(): string {
   const now = new Date();
@@ -96,6 +97,7 @@ export default function MemberProfilePage() {
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<Tab>("profile");
   const [feesEnabled, setFeesEnabled] = useState(false);
+  const [membershipEnabled, setMembershipEnabled] = useState(false);
   const [sponsorsEnabled, setSponsorsEnabled] = useState(false);
   const [stripeEnabled, setStripeEnabled] = useState(false);
   const [emailChangedSuccess, setEmailChangedSuccess] = useState(false);
@@ -122,7 +124,7 @@ export default function MemberProfilePage() {
       setEmailChangedError(msgs[err] || t("member.profile.emailChange.errorServer"));
       setActiveTab("profile");
       window.history.replaceState({}, "", "/member/profile");
-    } else if (tabParam && ["profile", "children", "donations", "events", "madrasa", "sponsor"].includes(tabParam)) {
+    } else if (tabParam && ["profile", "children", "donations", "events", "madrasa", "sponsor", "membership"].includes(tabParam)) {
       setActiveTab(tabParam as Tab);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -138,6 +140,9 @@ export default function MemberProfilePage() {
       ]);
       if (feeResult.success && feeResult.data?.madrasa_fees_enabled) {
         setFeesEnabled(true);
+      }
+      if (portalResult.success && portalResult.settings?.membership_fees_enabled) {
+        setMembershipEnabled(true);
       }
       if (portalResult.success && portalResult.settings?.sponsors_enabled) {
         const sponsorResult = await getSponsorsByContact(mosqueId, userId);
@@ -172,6 +177,9 @@ export default function MemberProfilePage() {
     },
     ...(feesEnabled
       ? [{ key: "madrasa" as Tab, label: t("member.profile.tab.madrasa"), icon: <GraduationCap className="h-4 w-4" /> }]
+      : []),
+    ...(membershipEnabled
+      ? [{ key: "membership" as Tab, label: t("member.profile.tab.membership"), icon: <Banknote className="h-4 w-4" /> }]
       : []),
     ...(sponsorsEnabled
       ? [{ key: "sponsor" as Tab, label: t("member.profile.tab.sponsor"), icon: <Handshake className="h-4 w-4" /> }]
@@ -291,6 +299,7 @@ export default function MemberProfilePage() {
       {activeTab === "sponsor" && (
         <SponsorPaymentOverview userId={user.id} mosqueId={mosqueId} stripeEnabled={stripeEnabled} sponsorPaidSuccess={searchParams.get("sponsor_paid") === "true"} />
       )}
+      {activeTab === "membership" && <MyMembershipFee />}
     </div>
   );
 }

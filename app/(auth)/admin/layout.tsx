@@ -43,6 +43,7 @@ const MADRASA_ADMIN_ALLOWED_PREFIXES = [
 const TREASURER_ALLOWED_PREFIXES = [
   "/admin/spenden",
   "/admin/kampagnen",
+  "/admin/mitgliedsbeitraege",
 ];
 const SECRETARY_ALLOWED_PREFIXES = [
   "/admin/mitglieder",
@@ -119,6 +120,12 @@ export default function AdminLayout({
     {
       label: t("quickAccess.donations.title"),
       href: "/admin/spenden",
+      icon: Banknote,
+      roles: ["admin", "super_admin", "treasurer"],
+    },
+    {
+      label: t("quickAccess.membership.title"),
+      href: "/admin/mitgliedsbeitraege",
       icon: Banknote,
       roles: ["admin", "super_admin", "treasurer"],
     },
