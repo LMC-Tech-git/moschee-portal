@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import {
@@ -21,6 +21,8 @@ import {
   Crown,
   Edit3,
   Handshake,
+  Menu,
+  X,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useMosque } from "@/lib/mosque-context";
@@ -70,6 +72,12 @@ export default function AdminLayout({
   const { mosque, mosqueId, teamEnabled, setTeamEnabled, sponsorsEnabled, setSponsorsEnabled } = useMosque();
   const router = useRouter();
   const pathname = usePathname();
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+
+  // Drawer schließen bei Route-Wechsel
+  useEffect(() => {
+    setMobileNavOpen(false);
+  }, [pathname]);
 
   const role = user?.role;
   const canAccess =
@@ -235,8 +243,84 @@ export default function AdminLayout({
     return true;
   });
 
+  // Render-Helfer für die Nav-Liste (Sidebar + Mobile-Drawer teilen dies)
+  function renderNavLinks(onClick?: () => void) {
+    return visibleNav.map((item) => {
+      const isActive =
+        pathname === item.href ||
+        (item.href !== "/admin" && pathname.startsWith(item.href));
+      const Icon = item.icon;
+      return (
+        <Link
+          key={item.href}
+          href={item.href}
+          onClick={onClick}
+          className={cn(
+            "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+            isActive
+              ? "bg-emerald-50 text-emerald-700"
+              : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+          )}
+        >
+          <Icon className="h-4 w-4" />
+          {item.label}
+        </Link>
+      );
+    });
+  }
+
   return (
     <div className="flex min-h-[calc(100vh-73px)]">
+      {/* Mobile Drawer */}
+      {mobileNavOpen && (
+        <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true">
+          <div
+            className="absolute inset-0 bg-black/40"
+            onClick={() => setMobileNavOpen(false)}
+          />
+          <div className="absolute left-0 top-0 h-full w-72 max-w-[85%] overflow-y-auto bg-white shadow-xl">
+            <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
+              <div className="flex items-center gap-2">
+                {isSuperAdmin ? (
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-100">
+                    <Crown className="h-4 w-4 text-purple-600" />
+                  </div>
+                ) : (
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100">
+                    <Shield className="h-4 w-4 text-emerald-600" />
+                  </div>
+                )}
+                <span className="text-sm font-semibold text-gray-800 truncate">
+                  {isSuperAdmin ? t("platformAdmin") : mosque?.name || t("panel")}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setMobileNavOpen(false)}
+                className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100"
+                aria-label={t("nav.closeMenu")}
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <nav className="space-y-1 p-3">{renderNavLinks(() => setMobileNavOpen(false))}</nav>
+            <div className="border-t border-gray-100 px-3 py-4 space-y-2">
+              <div className="px-3">
+                <LanguageSwitcher />
+              </div>
+              <Link
+                href="/"
+                onClick={() => setMobileNavOpen(false)}
+                className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-500 hover:bg-gray-50 hover:text-gray-700"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                {t("backToPortal")}
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Sidebar — nur auf Desktop sichtbar */}
       <aside className="hidden lg:flex w-64 shrink-0 flex-col border-r border-gray-200 bg-white">
         <div className="flex h-full flex-col">
@@ -307,28 +391,7 @@ export default function AdminLayout({
 
           {/* Navigation */}
           <nav className="flex-1 overflow-y-auto space-y-1 px-3 py-4">
-            {visibleNav.map((item) => {
-              const isActive =
-                pathname === item.href ||
-                (item.href !== "/admin" && pathname.startsWith(item.href));
-              const Icon = item.icon;
-
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={cn(
-                    "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                    isActive
-                      ? "bg-emerald-50 text-emerald-700"
-                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                  )}
-                >
-                  <Icon className="h-4 w-4" />
-                  {item.label}
-                </Link>
-              );
-            })}
+            {renderNavLinks()}
           </nav>
 
           {/* Back to Portal + Language Switcher */}
@@ -348,8 +411,22 @@ export default function AdminLayout({
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto bg-gray-50 p-4 sm:p-6 lg:p-8">
-        {children}
+      <main className="flex-1 overflow-y-auto bg-gray-50">
+        {/* Mobile Top-Bar mit Hamburger */}
+        <div className="sticky top-0 z-30 flex items-center gap-2 border-b border-gray-200 bg-white px-4 py-2 lg:hidden">
+          <button
+            type="button"
+            onClick={() => setMobileNavOpen(true)}
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
+            aria-label={t("nav.openMenu")}
+          >
+            <Menu className="h-5 w-5" />
+          </button>
+          <span className="truncate text-sm font-semibold text-gray-800">
+            {isSuperAdmin ? t("platformAdmin") : mosque?.name || t("panel")}
+          </span>
+        </div>
+        <div className="p-4 sm:p-6 lg:p-8">{children}</div>
       </main>
     </div>
   );

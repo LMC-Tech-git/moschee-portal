@@ -539,7 +539,11 @@
     "treasurerBadge": "Kassenwart",
     "secretaryBadge": "Sekretariat",
     "platformOverview": "Plattform-Übersicht",
-    "backToPortal": "Zurück zum Portal"
+    "backToPortal": "Zurück zum Portal",
+    "nav": {
+      "openMenu": "Menü öffnen",
+      "closeMenu": "Menü schließen"
+    }
   },
   "members": {
     "title": "Mitgliederverwaltung",

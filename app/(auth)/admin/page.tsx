@@ -153,6 +153,7 @@ export default function AdminDashboard() {
             href: "/admin/kampagnen",
             icon: Target,
             color: "text-purple-600",
+            desktopOnly: true,
           },
           {
             title: t("admin.quickAccess.donations.title"),
@@ -181,6 +182,7 @@ export default function AdminDashboard() {
             href: "/admin/foerderpartner",
             icon: Handshake,
             color: "text-emerald-600",
+            desktopOnly: true,
           }] : []),
           ...(teamEnabled ? [{
             title: t("admin.quickAccess.team.title"),
@@ -188,6 +190,7 @@ export default function AdminDashboard() {
             href: "/admin/leitung",
             icon: Users,
             color: "text-blue-600",
+            desktopOnly: true,
           }] : []),
           {
             title: t("admin.quickAccess.newsletter.title"),
@@ -195,6 +198,7 @@ export default function AdminDashboard() {
             href: "/admin/newsletter",
             icon: Mail,
             color: "text-violet-600",
+            desktopOnly: true,
           },
           {
             title: t("admin.quickAccess.invites.title"),
@@ -216,14 +220,25 @@ export default function AdminDashboard() {
             href: "/admin/settings",
             icon: Settings,
             color: "text-gray-600",
+            desktopOnly: true,
           },
-        ].map((item) => {
+        ].map((item: {
+          title: string;
+          desc: string;
+          href: string;
+          icon: typeof FileText;
+          color: string;
+          badge?: string;
+          desktopOnly?: boolean;
+        }) => {
           const Icon = item.icon;
           return (
             <Link
               key={item.href}
               href={item.href}
-              className="group overflow-hidden rounded-xl border border-gray-200 bg-white p-5 transition-shadow hover:shadow-md"
+              className={`group overflow-hidden rounded-xl border border-gray-200 bg-white p-5 transition-shadow hover:shadow-md ${
+                item.desktopOnly ? "hidden md:block" : ""
+              }`}
             >
               <div className="mb-3 flex min-w-0 items-center justify-between gap-2">
                 <div className="flex min-w-0 items-center gap-2">

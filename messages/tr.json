@@ -539,7 +539,11 @@
     "treasurerBadge": "Muhasebeci",
     "secretaryBadge": "Sekreterya",
     "platformOverview": "Platform Genel Bakış",
-    "backToPortal": "Portale Dön"
+    "backToPortal": "Portale Dön",
+    "nav": {
+      "openMenu": "Menüyü aç",
+      "closeMenu": "Menüyü kapat"
+    }
   },
   "members": {
     "title": "Üye Yönetimi",
