@@ -931,7 +931,9 @@ const SETTINGS_MEMBERSHIP_FIELDS = [
     type: "select",
     options: { values: ["monthly", "quarterly", "yearly"], maxSelect: 1 },
   },
-  { name: "membership_reconcile_cursor", type: "json" },
+  // PB (< 0.23) verlangt für json-Felder options.maxSize → als text führen
+  // (Code speichert/liest ohnehin JSON-String via JSON.parse/stringify).
+  { name: "membership_reconcile_cursor", type: "text" },
 ];
 
 const USERS_NEW_FIELDS = [
@@ -2084,22 +2086,20 @@ async function main() {
       console.log(`   ${backfilled > 0 ? "✅" : "⏭️ "} subscription_type Backfill: ${backfilled} → "donation"`);
     }
 
-    // Single-Active-Membership-Sub: partieller UNIQUE-Index
-    const idxName = "idx_recsub_one_active_membership";
-    const idxSql =
-      "CREATE UNIQUE INDEX idx_recsub_one_active_membership ON recurring_subscriptions (user_id) " +
-      "WHERE subscription_type = 'membership_fee' AND status IN ('active','pending','past_due','incomplete')";
-    const subColIdx = (await getExistingCollections()).find((c) => c.name === "recurring_subscriptions");
-    const existingIndexes = subColIdx?.indexes || [];
-    if (!existingIndexes.some((i) => i.includes(idxName))) {
-      await updateCollection("recurring_subscriptions", {
-        schema: subColIdx.schema,
-        indexes: [...existingIndexes, idxSql],
-      });
-      console.log(`   ✅ recurring_subscriptions: Index ${idxName} hinzugefügt`);
-    } else {
-      console.log(`   ⏭️  recurring_subscriptions: Index ${idxName} vorhanden`);
-    }
+    // Single-Active-Membership-Sub: KEIN DB-Partial-Index.
+    // PocketBase (< 0.23) Index-Parser akzeptiert keine Multi-Condition-
+    // WHERE-Ausdrücke (weder IN(...) noch AND/OR-Ketten — nur einfache
+    // Einzelvergleiche wie der donations-Index). Daher wird die
+    // "höchstens eine aktive membership_fee-Sub pro User"-Invariante
+    // ausschließlich auf App-Ebene erzwungen:
+    //   - create-subscription Route: Pre-Check → 409
+    //   - recurring_subscriptions.create im catch → 409
+    //   - upsertMembershipConfig: aktive-Sub-Guard
+    // (Plan-Regel "DB-UNIQUE autoritativ" hier nicht umsetzbar — App-Guard
+    //  ist die Wahrheit; abweichend dokumentiert.)
+    console.log(
+      "   ⏭️  recurring_subscriptions: Single-Active-Membership-Index übersprungen (PB-Index-Limit, App-Guard aktiv)"
+    );
   }
 
   // 20a. donations: payment_method_detail hinzufügen (card/sepa_debit Unterscheidung)
