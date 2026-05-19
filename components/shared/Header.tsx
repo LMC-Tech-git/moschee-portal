@@ -25,7 +25,6 @@ import {
   Crown,
   Edit3,
   Handshake,
-  Tag,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useAuth } from "@/lib/auth-context";
@@ -189,17 +188,6 @@ export default function Header() {
               >
                 <Home className="h-4 w-4" aria-hidden="true" />
                 {t("nav.home")}
-              </Link>
-              <Link
-                href="/preise"
-                className={`flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-emerald-50 hover:text-emerald-600 ${
-                  pathname === "/preise"
-                    ? "bg-emerald-50 text-emerald-600"
-                    : "text-gray-700"
-                }`}
-              >
-                <Tag className="h-4 w-4" aria-hidden="true" />
-                {t("nav.pricing")}
               </Link>
               <Link
                 href="/anleitung"
@@ -378,18 +366,6 @@ export default function Header() {
               >
                 <Home className="h-4 w-4" />
                 {t("nav.home")}
-              </Link>
-              <Link
-                href="/preise"
-                className={`flex items-center gap-2 rounded-lg px-4 py-3 text-sm font-medium hover:bg-emerald-50 hover:text-emerald-600 ${
-                  pathname === "/preise"
-                    ? "bg-emerald-50 text-emerald-600"
-                    : "text-gray-700"
-                }`}
-                onClick={closeMobileMenu}
-              >
-                <Tag className="h-4 w-4" />
-                {t("nav.pricing")}
               </Link>
               <Link
                 href="/anleitung"

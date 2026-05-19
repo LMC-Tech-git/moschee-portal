@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import {
   Shield,
@@ -54,6 +55,9 @@ const COMPARE_ROWS = [
 ] as const;
 
 export default async function PreisePage() {
+  // Temporär offline — neue Module/Preisstruktur in Arbeit. Zum Reaktivieren: redirect-Zeile entfernen.
+  redirect("/");
+
   const t = await getTranslations("pricing");
 
   return (
