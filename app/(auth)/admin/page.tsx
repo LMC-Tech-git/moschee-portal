@@ -162,6 +162,13 @@ export default function AdminDashboard() {
             color: "text-rose-600",
           },
           {
+            title: t("admin.quickAccess.membership.title"),
+            desc: t("admin.quickAccess.membership.desc"),
+            href: "/admin/mitgliedsbeitraege",
+            icon: Banknote,
+            color: "text-emerald-600",
+          },
+          {
             title: t("admin.quickAccess.madrasa.title"),
             desc: t("admin.quickAccess.madrasa.desc"),
             href: "/admin/madrasa",
