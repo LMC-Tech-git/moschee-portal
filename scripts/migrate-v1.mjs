@@ -1314,7 +1314,10 @@ const TRANSACTIONS_COLLECTION = {
       options: { values: ["manuell", "storno"], maxSelect: 1 },
     },
     { name: "referenz_id", type: "text" },
-    { name: "storno_of", type: "relation", options: { collectionId: "", maxSelect: 1 } },
+    // text statt relation: Self-Reference geht bei Collection-Create nicht
+    // (PB lehnt ab — Collection existiert noch nicht). Plan §1 OK: storno_of
+    // ist ID-Pointer, keine Cascade-Logik in Phase 1.
+    { name: "storno_of", type: "text" },
     { name: "is_storno", type: "bool", options: { default: false } },
     { name: "interne_notiz", type: "text" },
     { name: "created_by", type: "relation", options: { collectionId: "", maxSelect: 1 } },
@@ -1396,7 +1399,6 @@ function patchRelations(schema, collectionMap) {
       else if (name === "academic_year_id") targetCollection = "academic_years";
       else if (name === "parent_user") targetCollection = "users";
       else if (name === "student") targetCollection = "students";
-      else if (name === "storno_of") targetCollection = "transactions";
 
       const targetId = targetCollection ? collectionMap[targetCollection] : "";
       // Nur setzen wenn auflösbar UND abweichend. WICHTIG: bestehendes
