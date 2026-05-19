@@ -14,6 +14,14 @@ import {
   markFailed,
 } from "@/lib/stripe/idempotency";
 import { finalizeSuccessfulPayment, finalizeFailedPayment } from "@/lib/stripe/finalize";
+import {
+  handleMembershipCheckoutCompleted,
+  handleMembershipInvoiceFinalized,
+  handleMembershipInvoicePaid,
+  handleMembershipInvoiceFailed,
+  handleMembershipInvoiceVoided,
+} from "@/lib/stripe/membership-webhook";
+import { getMembershipFeeSettings } from "@/lib/actions/settings";
 import type { RecordModel } from "pocketbase";
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -421,6 +429,39 @@ export async function POST(request: NextRequest) {
           break;
         }
 
+        if (paymentType === "membership_fee_subscription") {
+          // --- Automatischer Mitgliedsbeitrags-Einzug: Abschluss ---
+          const pbSubId = session.metadata?.pb_subscription_id;
+          if (!pbSubId) {
+            console.warn("[Stripe Webhook] membership: keine pb_subscription_id");
+            break;
+          }
+          const fullSession =
+            typeof session.subscription === "object" && session.subscription
+              ? session
+              : await stripe.checkout.sessions.retrieve(session.id, {
+                  expand: ["subscription"],
+                });
+          const stripeSub = fullSession.subscription as Stripe.Subscription | null;
+          if (!stripeSub) {
+            console.warn(`[Stripe Webhook] membership ${pbSubId}: keine Subscription`);
+            break;
+          }
+          let membershipEnabled = true;
+          if (mosqueId) {
+            const ms = await getMembershipFeeSettings(mosqueId);
+            membershipEnabled = ms.data?.membership_fees_enabled ?? false;
+          }
+          await handleMembershipCheckoutCompleted({
+            pb,
+            stripeSub,
+            pbSubId,
+            mosqueId: mosqueId || "",
+            membershipEnabled,
+          });
+          break;
+        }
+
         if (paymentType === "donation_subscription") {
           // --- Monatlicher Dauerauftrag: Abschluss ---
           const pbSubId = session.metadata?.pb_subscription_id;
@@ -734,6 +775,39 @@ export async function POST(request: NextRequest) {
         break;
       }
 
+      case "invoice.finalized": {
+        const invoice = event.data.object as Stripe.Invoice;
+        const subId = typeof invoice.subscription === "string"
+          ? invoice.subscription
+          : invoice.subscription?.id;
+        if (!subId) break;
+        const pbSub = await findPbSubscription(pb, stripe, subId);
+        if (pbSub?.subscription_type === "membership_fee") {
+          await handleMembershipInvoiceFinalized({ pb, ev: event, invoice, pbSub });
+        }
+        break;
+      }
+
+      case "invoice.voided":
+      case "invoice.marked_uncollectible": {
+        const invoice = event.data.object as Stripe.Invoice;
+        const subId = typeof invoice.subscription === "string"
+          ? invoice.subscription
+          : invoice.subscription?.id;
+        if (!subId) break;
+        const pbSub = await findPbSubscription(pb, stripe, subId);
+        if (pbSub?.subscription_type === "membership_fee") {
+          await handleMembershipInvoiceVoided({
+            pb,
+            ev: event,
+            invoice,
+            pbSub,
+            uncollectible: event.type === "invoice.marked_uncollectible",
+          });
+        }
+        break;
+      }
+
       case "invoice.paid": {
         const invoice = event.data.object as Stripe.Invoice;
         const subId = typeof invoice.subscription === "string"
@@ -744,6 +818,11 @@ export async function POST(request: NextRequest) {
         const pbSub = await findPbSubscription(pb, stripe, subId);
         if (!pbSub) {
           console.warn(`[Stripe Webhook] invoice.paid: PB-Sub für ${subId} nicht auffindbar`);
+          break;
+        }
+
+        if (pbSub.subscription_type === "membership_fee") {
+          await handleMembershipInvoicePaid({ pb, ev: event, invoice, pbSub });
           break;
         }
 
@@ -870,6 +949,11 @@ export async function POST(request: NextRequest) {
           break;
         }
 
+        if (pbSub.subscription_type === "membership_fee") {
+          await handleMembershipInvoiceFailed({ pb, ev: event, invoice, pbSub });
+          break;
+        }
+
         // Idempotenz für failed-Donation: bestehend → finalize, sonst neu mit pending → finalize fail
         let failDonationId: string | null = null;
         try {
@@ -933,14 +1017,29 @@ export async function POST(request: NextRequest) {
         const pbSub = await findPbSubscription(pb, stripe, stripeSub.id);
         if (!pbSub) break;
 
+        // Stripe-Status 1:1 spiegeln (active/past_due/canceled/unpaid/incomplete);
+        // subscription_type NICHT überschreiben.
+        const mirrored = [
+          "active",
+          "past_due",
+          "canceled",
+          "unpaid",
+          "incomplete",
+        ].includes(stripeSub.status)
+          ? { status: stripeSub.status }
+          : {};
         await pb.collection("recurring_subscriptions").update(pbSub.id, {
           cancel_at_period_end: stripeSub.cancel_at_period_end || false,
           current_period_end: new Date(stripeSub.current_period_end * 1000).toISOString(),
+          ...mirrored,
         });
 
         logAudit({
           mosqueId: pbSub.mosque_id,
-          action: "donation_subscription.updated",
+          action:
+            pbSub.subscription_type === "membership_fee"
+              ? "membership_subscription.updated"
+              : "donation_subscription.updated",
           entityType: "recurring_subscription",
           entityId: pbSub.id,
           details: {
@@ -957,13 +1056,16 @@ export async function POST(request: NextRequest) {
         if (!pbSub) break;
 
         await pb.collection("recurring_subscriptions").update(pbSub.id, {
-          status: "cancelled",
+          status: "canceled",
           cancelled_at: new Date().toISOString(),
         });
 
         logAudit({
           mosqueId: pbSub.mosque_id,
-          action: "donation_subscription.cancelled",
+          action:
+            pbSub.subscription_type === "membership_fee"
+              ? "membership_subscription.cancelled"
+              : "donation_subscription.cancelled",
           entityType: "recurring_subscription",
           entityId: pbSub.id,
           details: { reason: "period_end" },
