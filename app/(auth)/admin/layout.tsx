@@ -410,23 +410,19 @@ export default function AdminLayout({
         </div>
       </aside>
 
+      {/* Floating Hamburger (Mobile, immer sichtbar oben rechts) */}
+      <button
+        type="button"
+        onClick={() => setMobileNavOpen(true)}
+        className="fixed right-3 top-3 z-40 flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-700 shadow-md hover:bg-gray-50 lg:hidden"
+        aria-label={t("nav.openMenu")}
+      >
+        <Menu className="h-5 w-5" />
+      </button>
+
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto bg-gray-50">
-        {/* Mobile Top-Bar mit Hamburger */}
-        <div className="sticky top-0 z-30 flex items-center gap-2 border-b border-gray-200 bg-white px-4 py-2 lg:hidden">
-          <button
-            type="button"
-            onClick={() => setMobileNavOpen(true)}
-            className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
-            aria-label={t("nav.openMenu")}
-          >
-            <Menu className="h-5 w-5" />
-          </button>
-          <span className="truncate text-sm font-semibold text-gray-800">
-            {isSuperAdmin ? t("platformAdmin") : mosque?.name || t("panel")}
-          </span>
-        </div>
-        <div className="p-4 sm:p-6 lg:p-8">{children}</div>
+      <main className="flex-1 overflow-y-auto bg-gray-50 p-4 sm:p-6 lg:p-8">
+        {children}
       </main>
     </div>
   );
