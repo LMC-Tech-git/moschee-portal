@@ -248,6 +248,13 @@ const SETTINGS_RECURRING_FIELDS = [
   { name: "recurring_quick_amounts", type: "text", options: { default: "1000,2000,5000,10000" } },
 ];
 
+// Finance V1 (Sprint 3): Hard-Lock-Periode für manuelle Buchungen.
+// Sperrt MANUAL_WRITE mit buchungsdatum ≤ Datum (canWrite, Plan §0). Events
+// bleiben immer schreibbar. (kassenbuch_*-Startbestände = Sprint 4b.)
+const SETTINGS_FINANCE_FIELDS = [
+  { name: "finance_hard_lock_until", type: "date" },
+];
+
 const RECURRING_SUBSCRIPTIONS_NEW_FIELDS = [
   { name: "provider_ref", type: "text" },
   { name: "cancel_at_period_end", type: "bool", options: { default: false } },
@@ -2215,6 +2222,18 @@ async function main() {
       console.log(`   ✅ settings (recurring): ${fieldsToAdd.map((f) => f.name).join(", ")} hinzugefügt`);
     } else {
       console.log("   ⏭️  settings: alle Recurring-Felder vorhanden");
+    }
+
+    // 18b. settings: Finance-Felder (finance_hard_lock_until)
+    const settingsCol2 = (await getExistingCollections()).find((c) => c.name === "settings");
+    const existingFieldNames2 = (settingsCol2?.schema || []).map((f) => f.name);
+    const financeFieldsToAdd = SETTINGS_FINANCE_FIELDS.filter((f) => !existingFieldNames2.includes(f.name));
+    if (financeFieldsToAdd.length > 0) {
+      const newSchema = [...(settingsCol2?.schema || []), ...financeFieldsToAdd];
+      await updateCollection("settings", { schema: newSchema });
+      console.log(`   ✅ settings (finance): ${financeFieldsToAdd.map((f) => f.name).join(", ")} hinzugefügt`);
+    } else {
+      console.log("   ⏭️  settings: alle Finance-Felder vorhanden");
     }
   }
 

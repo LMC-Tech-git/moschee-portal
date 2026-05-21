@@ -1,12 +1,51 @@
 "use server";
 
+import { createHash } from "node:crypto";
 import { emitFinanceEvent } from "@/lib/actions/finance-events";
 import { getFinancePB } from "@/lib/finance-pb";
 import { canWrite } from "@/lib/finance-lock-policy";
 import { safeAudit } from "@/lib/audit";
-import { financeEventPayloadSchema, type FinanceEventPayloadInput } from "@/lib/validations";
+import { checkDemoLimit } from "@/lib/demo";
+import {
+  financeEventPayloadSchema,
+  transactionSchema,
+  stornoSchema,
+  type FinanceEventPayloadInput,
+} from "@/lib/validations";
+import {
+  insertTransactionWithBelegNummer,
+  type BelegFile,
+} from "@/lib/finance-sequence";
 import type { FinanceCategoryId } from "@/lib/constants";
-import type { KontoTyp, Zahlungskanal } from "@/types";
+import type { KontoTyp, Zahlungskanal, Transaction, FinanceClassification } from "@/types";
+
+const BELEG_ALLOWED_MIME = ["application/pdf", "image/jpeg", "image/png"];
+const BELEG_MAX_BYTES = 5 * 1024 * 1024; // 5 MB
+
+/** Jahr aus ISO-Datum (`YYYY-...`) — Belegnummer-Counter ist jahresgebunden. */
+function yearOf(dateISO: string): number {
+  const y = Number(String(dateISO).slice(0, 4));
+  if (!Number.isFinite(y) || y < 2000) {
+    throw new Error(`createManualTransaction: ungültiges Jahr aus "${dateISO}"`);
+  }
+  return y;
+}
+
+/**
+ * Liest `settings.finance_hard_lock_until` für die Moschee (Lese-Helper für
+ * MANUAL_WRITE-Lock). settings ist in der Finance-Whitelist. Fehlt der Record
+ * oder das Feld → null (kein Lock).
+ */
+async function getFinanceLockSettings(mosqueId: string): Promise<string | null> {
+  const fp = await getFinancePB(mosqueId);
+  try {
+    const row = await fp.collection("settings").getFirstListItem(fp.tenantFilter());
+    const v = (row as { finance_hard_lock_until?: string }).finance_hard_lock_until;
+    return v && v.length > 0 ? v : null;
+  } catch {
+    return null;
+  }
+}
 
 /**
  * Finance Domain Service — einziger Orchestrator (Plan §13.1, Schritt 4).
@@ -226,7 +265,247 @@ export async function refundIncome(_input: unknown): Promise<never> {
   throw new Error("refundIncome: NOT_YET_IMPLEMENTED_SPRINT_5");
 }
 
-/** Sprint-3-Stub. */
-export async function createManualTransaction(_input: unknown): Promise<never> {
-  throw new Error("createManualTransaction: NOT_YET_IMPLEMENTED_SPRINT_3");
+// ===========================================================================
+// Sprint 3 — Manuelle Buchungen (transactions) + Storno
+// ===========================================================================
+
+export type CreateManualTransactionInput = {
+  mosqueId: string;
+  userId?: string;
+  buchungsdatum: string; // ISO date
+  leistungsdatum?: string;
+  betragCents: number;
+  typ: "einnahme" | "ausgabe";
+  kategorie: FinanceCategoryId | string;
+  beschreibung: string;
+  kontoTyp: KontoTyp;
+  zahlungskanal?: Zahlungskanal;
+  interneNotiz?: string;
+  /** Optionaler Beleg (PDF/JPEG/PNG, ≤5 MB). SHA-256 wird serverseitig berechnet. */
+  belegFile?: File;
+};
+
+export type ManualTransactionResult = { id: string; beleg_nummer: string };
+
+/**
+ * createManualTransaction — Sprint 3 scharf.
+ *
+ * Pipeline (Plan §4.1 Schritt 5):
+ *  1. transactionSchema validieren (snake_case-Input aus camelCase gebaut)
+ *  2. Permission Phase-1 = admin (Sprint 6 verfeinert; strukturell present)
+ *  3. Hard-Lock: canWrite(buchungsdatum, …, "MANUAL_WRITE") false → throw
+ *  4. classification denormalisiert aus typ
+ *  5. Demo-Limit-Check
+ *  6. Beleg validieren (MIME/Size/SHA-256) falls vorhanden
+ *  7. insertTransactionWithBelegNummer (UNIQUE-Retry-Belegnummer)
+ *  8. safeAudit transaction.create
+ */
+export async function createManualTransaction(
+  input: CreateManualTransactionInput
+): Promise<ManualTransactionResult> {
+  // 1. Zod (Server baut snake_case-Input)
+  const parsed = transactionSchema.safeParse({
+    buchungsdatum: input.buchungsdatum,
+    leistungsdatum: input.leistungsdatum ?? "",
+    betrag_cents: input.betragCents,
+    typ: input.typ,
+    kategorie: input.kategorie,
+    beschreibung: input.beschreibung,
+    konto_typ: input.kontoTyp,
+    zahlungskanal: input.zahlungskanal,
+    interne_notiz: input.interneNotiz,
+  });
+  if (!parsed.success) {
+    const issues = parsed.error.issues.map((i) => `${i.path.join(".")}:${i.message}`).join("; ");
+    throw new Error(`createManualTransaction: Validierung fehlgeschlagen — ${issues}`);
+  }
+  const data = parsed.data;
+
+  // 2. Permission Phase-1 = admin (Sprint 6 verfeinert). Strukturell present —
+  //    der Aufrufer (Server-Action/Route) hat bereits Admin-Auth erzwungen.
+
+  // 3. Hard-Lock (MANUAL_WRITE greift wirklich — anders als bei Events)
+  const hardLockUntil = await getFinanceLockSettings(input.mosqueId);
+  if (!canWrite(data.buchungsdatum, hardLockUntil, "MANUAL_WRITE")) {
+    throw new Error("finance_period_locked");
+  }
+
+  // 4. classification denormalisiert persistieren
+  const classification: FinanceClassification = data.typ === "einnahme" ? "income" : "expense";
+
+  // 5. Demo-Limit
+  const demo = await checkDemoLimit(input.mosqueId, "transactions");
+  if (!demo.allowed) {
+    throw new Error(demo.error || "demo_limit_reached");
+  }
+
+  // 6. Beleg validieren (falls vorhanden)
+  let belegFile: BelegFile | undefined;
+  let belegSha256 = "";
+  if (input.belegFile) {
+    const f = input.belegFile;
+    if (!BELEG_ALLOWED_MIME.includes(f.type)) {
+      throw new Error("beleg_invalid_type");
+    }
+    if (f.size > BELEG_MAX_BYTES) {
+      throw new Error("beleg_too_large");
+    }
+    const buf = Buffer.from(await f.arrayBuffer());
+    belegSha256 = createHash("sha256").update(buf).digest("hex");
+    belegFile = { blob: new Blob([buf], { type: f.type }), filename: f.name };
+  }
+
+  // 7. baseRecord + UNIQUE-Retry-Insert
+  const fp = await getFinancePB(input.mosqueId);
+  const baseRecord: Record<string, unknown> = {
+    mosque_id: input.mosqueId,
+    buchungsdatum: data.buchungsdatum,
+    leistungsdatum: data.leistungsdatum || "",
+    betrag_cents: data.betrag_cents,
+    typ: data.typ,
+    classification,
+    kategorie: data.kategorie,
+    beschreibung: data.beschreibung,
+    beleg_datei_sha256: belegSha256,
+    konto_typ: data.konto_typ,
+    zahlungskanal: data.zahlungskanal ?? "",
+    quelle: "manuell",
+    referenz_id: "",
+    storno_of: "",
+    is_storno: false,
+    interne_notiz: data.interne_notiz ?? "",
+    created_by: input.userId ?? "",
+  };
+
+  const created = await insertTransactionWithBelegNummer<Transaction>(
+    fp,
+    input.mosqueId,
+    yearOf(data.buchungsdatum),
+    baseRecord,
+    belegFile
+  );
+
+  // 8. Audit (non-blocking)
+  await safeAudit({
+    mosqueId: input.mosqueId,
+    userId: input.userId,
+    action: "transaction.create",
+    entityType: "transaction",
+    entityId: created.id,
+    context: {
+      kategorie: data.kategorie,
+      betrag_cents: data.betrag_cents,
+      typ: data.typ,
+      beleg_nummer: created.beleg_nummer,
+    },
+  });
+
+  return { id: created.id, beleg_nummer: created.beleg_nummer };
+}
+
+export type StornoTransactionInput = {
+  mosqueId: string;
+  userId?: string;
+  transactionId: string;
+  grund?: string;
+};
+
+/**
+ * stornoTransaction — Sprint 3 scharf.
+ *
+ * Erzeugt eine Gegenbuchung (eigene neue Belegnummer) mit invertiertem
+ * typ/classification bei gleicher kategorie/betrag → nettet emergent in der
+ * Original-Kategorie. Original bleibt unverändert (immutable). Kein Hard-Delete.
+ */
+export async function stornoTransaction(
+  input: StornoTransactionInput
+): Promise<ManualTransactionResult> {
+  // 1. Zod
+  const parsed = stornoSchema.safeParse({
+    transaction_id: input.transactionId,
+    grund: input.grund,
+  });
+  if (!parsed.success) {
+    const issues = parsed.error.issues.map((i) => `${i.path.join(".")}:${i.message}`).join("; ");
+    throw new Error(`stornoTransaction: Validierung fehlgeschlagen — ${issues}`);
+  }
+  const { grund } = parsed.data;
+
+  const fp = await getFinancePB(input.mosqueId);
+
+  // 2. Original laden + Tenant-Check
+  const original = (await fp.collection("transactions").getOne(input.transactionId)) as Transaction;
+  if (original.mosque_id !== input.mosqueId) {
+    throw new Error("transaction_not_found");
+  }
+
+  // 3. Kein Storno eines Stornos (Phase 1)
+  if (original.is_storno === true) {
+    throw new Error("cannot_storno_a_storno");
+  }
+
+  // 4. Bereits storniert?
+  const existing = await fp.collection("transactions").getList(1, 1, {
+    filter: fp.tenantFilter(`storno_of = "${original.id}"`),
+    fields: "id",
+  });
+  if (existing.totalItems > 0) {
+    throw new Error("already_storniert");
+  }
+
+  // 5. Hard-Lock für das Storno-Datum (heute)
+  const heute = new Date().toISOString().slice(0, 10);
+  const hardLockUntil = await getFinanceLockSettings(input.mosqueId);
+  if (!canWrite(heute, hardLockUntil, "MANUAL_WRITE")) {
+    throw new Error("finance_period_locked");
+  }
+
+  // 6. Gegenbuchung: typ + classification invertiert, gleiche kategorie/betrag
+  const invTyp: "einnahme" | "ausgabe" = original.typ === "einnahme" ? "ausgabe" : "einnahme";
+  const invClass: FinanceClassification = original.classification === "income" ? "expense" : "income";
+  const beschreibung = `Storno: ${original.beschreibung}`.slice(0, 500);
+
+  const baseRecord: Record<string, unknown> = {
+    mosque_id: input.mosqueId,
+    buchungsdatum: heute,
+    leistungsdatum: "",
+    betrag_cents: original.betrag_cents,
+    typ: invTyp,
+    classification: invClass,
+    kategorie: original.kategorie,
+    beschreibung,
+    beleg_datei_sha256: "",
+    konto_typ: original.konto_typ,
+    zahlungskanal: original.zahlungskanal || "",
+    quelle: "storno",
+    referenz_id: original.id,
+    storno_of: original.id,
+    is_storno: true,
+    interne_notiz: grund ? grund.slice(0, 500) : "",
+    created_by: input.userId ?? "",
+  };
+
+  const created = await insertTransactionWithBelegNummer<Transaction>(
+    fp,
+    input.mosqueId,
+    yearOf(heute),
+    baseRecord
+  );
+
+  // 7. Audit
+  await safeAudit({
+    mosqueId: input.mosqueId,
+    userId: input.userId,
+    action: "transaction.storno",
+    entityType: "transaction",
+    entityId: created.id,
+    context: {
+      storno_of: original.id,
+      grund: grund ?? "",
+      betrag_cents: original.betrag_cents,
+      beleg_nummer: created.beleg_nummer,
+    },
+  });
+
+  return { id: created.id, beleg_nummer: created.beleg_nummer };
 }

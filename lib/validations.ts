@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { MOSQUE_INQUIRY_TYPES, PLATFORM_INQUIRY_TYPES } from "@/lib/contact/inquiryTypes";
+import { FINANCE_CATEGORY_VALUES } from "@/lib/constants";
 
 // =========================================
 // Zod Validierungsschemas - Moschee-Portal V1
@@ -381,4 +382,41 @@ export const financeEventPayloadSchema = z
   .strict();
 
 export type FinanceEventPayloadInput = z.infer<typeof financeEventPayloadSchema>;
+
+// =========================================
+// Finance V1 — Manuelle Buchungen (Sprint 3)
+// =========================================
+
+/**
+ * Manuelle Buchung (`transactions`). Server baut den snake_case-Input aus den
+ * camelCase-Parametern von `createManualTransaction` und validiert hier.
+ *
+ * `kategorie` aus `FINANCE_CATEGORY_VALUES` (constants) — kein Hardcode-Drift.
+ * `betrag_cents` immer positiv (Vorzeichen kommt aus `classification`/Storno).
+ */
+export const transactionSchema = z.object({
+  buchungsdatum: z.string().min(1, "Buchungsdatum erforderlich"),
+  leistungsdatum: z.string().optional().default(""),
+  betrag_cents: z.number().int("Betrag muss ganzzahlig sein").min(1, "Betrag muss > 0 sein"),
+  typ: z.enum(["einnahme", "ausgabe"]),
+  kategorie: z.enum(FINANCE_CATEGORY_VALUES),
+  beschreibung: z.string().min(3, "Mindestens 3 Zeichen").max(500, "Maximal 500 Zeichen"),
+  konto_typ: z.enum(["bank", "cash", "other"]),
+  zahlungskanal: z.enum(["bar", "ueberweisung", "stripe", "paypal", "sonstige"]).optional(),
+  interne_notiz: z.string().max(500, "Maximal 500 Zeichen").optional(),
+});
+export type TransactionInput = z.infer<typeof transactionSchema>;
+
+/** Storno einer manuellen Buchung — Gegenbuchung mit eigener Belegnummer. */
+export const stornoSchema = z.object({
+  transaction_id: z.string().min(1, "Buchungs-ID erforderlich"),
+  grund: z.string().max(500, "Maximal 500 Zeichen").optional(),
+});
+export type StornoInput = z.infer<typeof stornoSchema>;
+
+/** Einziges erlaubtes Update auf einer (immutablen) Buchung. */
+export const transactionNoteSchema = z.object({
+  interne_notiz: z.string().max(500, "Maximal 500 Zeichen"),
+});
+export type TransactionNoteInput = z.infer<typeof transactionNoteSchema>;
 

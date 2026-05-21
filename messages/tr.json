@@ -1419,6 +1419,11 @@
         "lock_recovered": "Finansal kilit yenilendi",
         "emit_failed": "Finans olayı yayımı başarısız"
       },
+      "transaction": {
+        "create": "Kayıt oluşturuldu",
+        "storno": "Kayıt iptal edildi",
+        "note_updated": "Kayıt notu güncellendi"
+      },
       "push_subscription": {
         "push_subscribe": "Push aboneliği",
         "push_unsubscribe": "Push aboneliği iptal",
@@ -3247,6 +3252,18 @@
     "send": {
       "optIn": "Üyeleri push ile bilgilendir",
       "sent": "{count} cihaza push bildirimi gönderildi."
+    }
+  },
+  "finanzen": {
+    "error": {
+      "finance_period_locked": "Bu kayıt dönemi kilitli. Düzeltme yalnızca iptal veya karşı kayıt ile yapılabilir.",
+      "transaction_immutable": "Kayıtlar değiştirilemez. Yalnızca dahili not düzenlenebilir; düzeltmeler iptal ile yapılır.",
+      "beleg_invalid_type": "Geçersiz belge formatı. İzin verilenler: PDF, JPEG ve PNG.",
+      "beleg_too_large": "Belge çok büyük (en fazla 5 MB).",
+      "cannot_storno_a_storno": "Bir iptal kaydı yeniden iptal edilemez.",
+      "already_storniert": "Bu kayıt zaten iptal edilmiş.",
+      "transaction_not_found": "Kayıt bulunamadı.",
+      "beleg_nummer_collision_exhausted": "Belge numarası atanamadı. Lütfen tekrar deneyin."
     }
   },
   "mitgliedsbeitraege": {

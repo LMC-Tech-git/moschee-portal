@@ -1390,6 +1390,73 @@ async function seedDonations(campaignIds, memberIds) {
   console.log(`  → ${totalDonations} Spenden gesamt\n`);
 }
 
+async function seedFinanceTransactions(adminId) {
+  console.log("📒 Manuelle Buchungen (löschen + neu erstellen)...");
+  const delTx = await deleteAllForMosque("transactions");
+  if (delTx > 0) console.log(`  🗑️  ${delTx} alte Buchungen gelöscht`);
+  const delSeq = await deleteAllForMosque("finance_sequences");
+  if (delSeq > 0) console.log(`  🗑️  ${delSeq} alte Belegnummer-Counter gelöscht`);
+
+  // Gemischt: Einnahmen/Ausgaben, Bar/Bank, gestreute Kategorien + Daten.
+  const TX_DATA = [
+    { typ: "einnahme", kategorie: "spenden",                betrag_cents: 15000, konto_typ: "cash", zahlungskanal: "bar",          beschreibung: "Barspende Freitagsgebet",          daysBack: 95 },
+    { typ: "einnahme", kategorie: "mitgliedsbeitraege",     betrag_cents: 24000, konto_typ: "bank", zahlungskanal: "ueberweisung", beschreibung: "Mitgliedsbeiträge Sammelüberweisung", daysBack: 80 },
+    { typ: "einnahme", kategorie: "zuschuesse",             betrag_cents: 50000, konto_typ: "bank", zahlungskanal: "ueberweisung", beschreibung: "Kommunaler Zuschuss Jugendarbeit",   daysBack: 70 },
+    { typ: "einnahme", kategorie: "veranstaltungen_einnahme", betrag_cents: 8000, konto_typ: "cash", zahlungskanal: "bar",         beschreibung: "Kuchenverkauf Sommerfest",         daysBack: 40 },
+    { typ: "ausgabe",  kategorie: "miete",                  betrag_cents: 120000, konto_typ: "bank", zahlungskanal: "ueberweisung", beschreibung: "Miete Gebetsraum (Monat)",         daysBack: 60 },
+    { typ: "ausgabe",  kategorie: "nebenkosten",            betrag_cents: 32000, konto_typ: "bank", zahlungskanal: "ueberweisung", beschreibung: "Strom & Heizung",                  daysBack: 55 },
+    { typ: "ausgabe",  kategorie: "gehaelter_honorare",     betrag_cents: 60000, konto_typ: "bank", zahlungskanal: "ueberweisung", beschreibung: "Honorar Imam (Monat)",             daysBack: 50 },
+    { typ: "ausgabe",  kategorie: "instandhaltung",         betrag_cents: 18500, konto_typ: "cash", zahlungskanal: "bar",          beschreibung: "Reparatur Waschraum",              daysBack: 35 },
+    { typ: "ausgabe",  kategorie: "verwaltung",             betrag_cents: 4500,  konto_typ: "cash", zahlungskanal: "bar",          beschreibung: "Büromaterial",                     daysBack: 20 },
+    { typ: "ausgabe",  kategorie: "sonstige_ausgaben",      betrag_cents: 9000,  konto_typ: "bank", zahlungskanal: "ueberweisung", beschreibung: "Versicherung (anteilig)",          daysBack: 10 },
+  ];
+
+  // Belegnummer-Counter pro Jahr (JJJJ-NNNN), Sortierung nach Datum (alt→neu).
+  const sorted = [...TX_DATA].sort((a, b) => b.daysBack - a.daysBack);
+  const yearCounters = {};
+  let created = 0;
+  for (const t of sorted) {
+    const buchungsdatum = isoDate(daysAgo(t.daysBack));
+    const year = Number(buchungsdatum.slice(0, 4));
+    const n = (yearCounters[year] || 0) + 1;
+    yearCounters[year] = n;
+    const beleg_nummer = `${year}-${String(n).padStart(4, "0")}`;
+    await pbCreate("transactions", {
+      mosque_id: MOSQUE_ID,
+      buchungsdatum,
+      leistungsdatum: "",
+      betrag_cents: t.betrag_cents,
+      typ: t.typ,
+      classification: t.typ === "einnahme" ? "income" : "expense",
+      kategorie: t.kategorie,
+      beschreibung: t.beschreibung,
+      beleg_nummer,
+      beleg_datei_sha256: "",
+      konto_typ: t.konto_typ,
+      zahlungskanal: t.zahlungskanal,
+      quelle: "manuell",
+      referenz_id: "",
+      storno_of: "",
+      is_storno: false,
+      interne_notiz: "",
+      created_by: adminId || "",
+    });
+    created++;
+  }
+
+  // finance_sequences-Hint pro Jahr initialisieren (next freie Nummer).
+  for (const [year, used] of Object.entries(yearCounters)) {
+    await pbCreate("finance_sequences", {
+      mosque_id: MOSQUE_ID,
+      year: Number(year),
+      next_number: used + 1,
+      version: 0,
+    });
+  }
+
+  console.log(`  ✅ ${created} Buchungen + ${Object.keys(yearCounters).length} Jahres-Counter erstellt\n`);
+}
+
 async function seedRecurringSubscriptions(memberIds) {
   console.log("🔁 Wiederkehrende Spenden (löschen + neu erstellen)...");
   const deleted = await deleteAllForMosque("recurring_subscriptions");
@@ -1825,6 +1892,7 @@ async function main() {
   await seedEventRegistrations(events, users.memberIds);
   const campaignIds = await seedCampaigns(users.admin);
   await seedDonations(campaignIds, users.memberIds);
+  await seedFinanceTransactions(users.admin);
   await seedRecurringSubscriptions(users.memberIds);
   await seedMembershipFees(users.memberIds);
 
@@ -1848,6 +1916,7 @@ async function main() {
   console.log("   📝  14 Beiträge (inkl. 2 türkische, saisonal: Eid al-Adha, Kirmes, Hajj)");
   console.log("   📅  18 Veranstaltungen + Teilnahmen (inkl. Sommer-Kirmes ohne Anmeldung)");
   console.log("   💰  3 Kampagnen + ~32 Spenden");
+  console.log("   📒  10 manuelle Buchungen (Einnahmen/Ausgaben, Bar/Bank)");
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 }
 

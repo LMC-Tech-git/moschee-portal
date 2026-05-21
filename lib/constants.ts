@@ -601,6 +601,16 @@ export const FINANCE_EXPENSE_CATEGORY_IDS: FinanceCategoryId[] = [
 ];
 
 /**
+ * Alle 15 Kategorie-IDs als Tuple — einzige Quelle für das `z.enum(...)` in
+ * `transactionSchema` (kein Hardcode-Drift). Muss mit der `FINANCE_CATEGORY_VALUES`-
+ * Liste in `scripts/migrate-v1.mjs` (PB-select-Optionen) identisch bleiben.
+ */
+export const FINANCE_CATEGORY_VALUES = Object.values(FINANCE_CATEGORIES) as [
+  FinanceCategoryId,
+  ...FinanceCategoryId[],
+];
+
+/**
  * Donation-Quellkategorie → EÜR-Kategorie-ID (gepinnt R4).
  *
  * Phase 1 bewusst flach: alle Spenden-Subtypen (zakat/sadaqa/schuldenabbau/

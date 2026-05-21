@@ -1419,6 +1419,11 @@
         "lock_recovered": "Finanz-Sperre nachgezogen",
         "emit_failed": "Finanz-Event-Emission fehlgeschlagen"
       },
+      "transaction": {
+        "create": "Buchung erfasst",
+        "storno": "Buchung storniert",
+        "note_updated": "Buchungsnotiz geändert"
+      },
       "push_subscription": {
         "push_subscribe": "Push abonniert",
         "push_unsubscribe": "Push abgemeldet",
@@ -3247,6 +3252,18 @@
     "send": {
       "optIn": "Mitglieder per Push benachrichtigen",
       "sent": "Push-Benachrichtigung an {count} Geräte gesendet."
+    }
+  },
+  "finanzen": {
+    "error": {
+      "finance_period_locked": "Diese Buchungsperiode ist gesperrt. Korrektur nur über eine Storno- oder Gegenbuchung.",
+      "transaction_immutable": "Buchungen sind unveränderlich. Nur die interne Notiz kann geändert werden; Korrekturen über Storno.",
+      "beleg_invalid_type": "Ungültiges Beleg-Format. Erlaubt sind PDF, JPEG und PNG.",
+      "beleg_too_large": "Beleg ist zu groß (maximal 5 MB).",
+      "cannot_storno_a_storno": "Eine Storno-Buchung kann nicht erneut storniert werden.",
+      "already_storniert": "Diese Buchung wurde bereits storniert.",
+      "transaction_not_found": "Buchung nicht gefunden.",
+      "beleg_nummer_collision_exhausted": "Belegnummer konnte nicht vergeben werden. Bitte erneut versuchen."
     }
   },
   "mitgliedsbeitraege": {

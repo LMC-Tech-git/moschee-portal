@@ -26,6 +26,7 @@ import type {
   LedgerAtom,
   FinanceClassification,
   Zahlungskanal,
+  Transaction,
 } from "@/types";
 
 export function toSignedAmount(
@@ -91,13 +92,73 @@ export function assertEventIntegrity(event: FinanceSourceEvent): void {
 }
 
 /**
- * Normalisiert ein `finance_source_events`-Record zu `LedgerAtom`.
- * Sprint 2: nur Event-Signatur. Sprint 3 fügt Transaction-Overload hinzu.
- *
- * Wirft (via `assertEventIntegrity`) bei Invarianz-Bruch — schützt gegen
- * inkonsistente LedgerAtoms aus Backfill/Direkt-Integration.
+ * Wirft `FinanceTransactionIntegrityError` bei Verletzung. Sonst no-op.
+ * Sprint-3-Pendant zu `assertEventIntegrity` für manuelle Buchungen.
  */
-export function toLedgerAtom(event: FinanceSourceEvent): LedgerAtom {
+export class FinanceTransactionIntegrityError extends Error {
+  constructor(
+    message: string,
+    public tx: Pick<Transaction, "id" | "beleg_nummer" | "typ" | "classification">
+  ) {
+    super(message);
+    this.name = "FinanceTransactionIntegrityError";
+  }
+}
+
+/**
+ * Invariante für manuelle Buchungen:
+ *  - betrag_cents > 0 (Vorzeichen kommt aus classification)
+ *  - typ=einnahme ⇒ classification=income
+ *  - typ=ausgabe  ⇒ classification=expense
+ *
+ * Gilt auch für Storno-Gegenbuchungen: ein Storno einer Einnahme ist eine
+ * Ausgabe (typ=ausgabe, classification=expense) → konsistent, kein Sondercode.
+ */
+export function assertTransactionIntegrity(tx: Transaction): void {
+  if (!Number.isFinite(tx.betrag_cents) || tx.betrag_cents <= 0) {
+    throw new FinanceTransactionIntegrityError(
+      `betrag_cents must be > 0 (got ${tx.betrag_cents})`,
+      tx
+    );
+  }
+  if (tx.typ === "einnahme" && tx.classification !== "income") {
+    throw new FinanceTransactionIntegrityError(
+      `typ=einnahme requires classification=income (got ${tx.classification})`,
+      tx
+    );
+  }
+  if (tx.typ === "ausgabe" && tx.classification !== "expense") {
+    throw new FinanceTransactionIntegrityError(
+      `typ=ausgabe requires classification=expense (got ${tx.classification})`,
+      tx
+    );
+  }
+}
+
+/**
+ * Normalisiert `finance_source_events` ODER `transactions` zu `LedgerAtom`.
+ *
+ * Type-Guard: nur `Transaction` hat `buchungsdatum`. Beide Pfade lesen das
+ * persistierte `classification` (leiten es NIE neu ab) und berechnen
+ * `signed_amount_cents` über `toSignedAmount`.
+ *
+ * Storno-Netting ist **emergent**: die Storno-Row hat invertiertes
+ * `classification` bei gleicher `kategorie` → die Summe der signed_amounts in
+ * der Original-Kategorie nettet automatisch, kein Phantom-Eintrag.
+ *
+ * Wirft (via `assertEventIntegrity`/`assertTransactionIntegrity`) bei
+ * Invarianz-Bruch — schützt gegen inkonsistente LedgerAtoms.
+ */
+export function toLedgerAtom(event: FinanceSourceEvent): LedgerAtom;
+export function toLedgerAtom(tx: Transaction): LedgerAtom;
+export function toLedgerAtom(input: FinanceSourceEvent | Transaction): LedgerAtom {
+  if ("buchungsdatum" in input) {
+    return transactionToLedgerAtom(input);
+  }
+  return eventToLedgerAtom(input);
+}
+
+function eventToLedgerAtom(event: FinanceSourceEvent): LedgerAtom {
   assertEventIntegrity(event);
 
   // zahlungskanal kann in alter DB leer sein → defaulten auf "sonstige" damit
@@ -125,6 +186,29 @@ export function toLedgerAtom(event: FinanceSourceEvent): LedgerAtom {
     },
     beleg_nummer: "",
     readonly: true,
+  };
+}
+
+function transactionToLedgerAtom(tx: Transaction): LedgerAtom {
+  assertTransactionIntegrity(tx);
+
+  const zk: Zahlungskanal =
+    tx.zahlungskanal && tx.zahlungskanal.length > 0 ? tx.zahlungskanal : "sonstige";
+
+  return {
+    id: tx.id,
+    mosque_id: tx.mosque_id,
+    datum: tx.buchungsdatum,
+    betrag_cents: tx.betrag_cents,
+    signed_amount_cents: toSignedAmount(tx.classification, tx.betrag_cents),
+    kategorie: tx.kategorie,
+    konto_typ: tx.konto_typ,
+    zahlungskanal: zk,
+    classification: tx.classification,
+    source_system: "manual_transaction",
+    source_origin: undefined,
+    beleg_nummer: tx.beleg_nummer,
+    readonly: false,
   };
 }
 

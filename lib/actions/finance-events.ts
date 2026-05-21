@@ -2,6 +2,7 @@
 
 import { createHash, randomUUID } from "node:crypto";
 import { getFinancePB } from "@/lib/finance-pb";
+import { isUniqueViolation } from "@/lib/finance-pb-errors";
 
 /**
  * Finance Event Emission — Sprint 1.
@@ -151,27 +152,6 @@ function assertEventIntegrity(input: EmitInput, classification: "income" | "expe
   if (input.betragCents < 1) {
     throw new Error("assertEventIntegrity: betrag_cents min 1");
   }
-}
-
-/**
- * Erkennt eine PocketBase-Unique-Constraint-Verletzung an Marker im Response-Text.
- * PB-SDK wirft strukturierte Fehler; wir prüfen defensiv mehrere Signale.
- */
-function isUniqueViolation(err: unknown): boolean {
-  if (!err || typeof err !== "object") return false;
-  const e = err as { status?: number; message?: string; data?: { data?: Record<string, unknown> } };
-  if (e.status !== 400) return false;
-  const msg = (e.message || "").toLowerCase();
-  if (msg.includes("unique") || msg.includes("duplicate")) return true;
-  // PB-Validation-Fehler: data.data.<field>.code === "validation_not_unique"
-  const fieldErrors = e.data?.data;
-  if (fieldErrors && typeof fieldErrors === "object") {
-    for (const v of Object.values(fieldErrors)) {
-      const code = (v as { code?: string })?.code;
-      if (code === "validation_not_unique") return true;
-    }
-  }
-  return false;
 }
 
 export async function emitFinanceEvent(input: EmitInput): Promise<EmitResult> {

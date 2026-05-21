@@ -20,11 +20,14 @@ import {
   toLedgerAtom,
   assertEventIntegrity,
   FinanceEventIntegrityError,
+  assertTransactionIntegrity,
+  FinanceTransactionIntegrityError,
   toClassification,
 } from "@/lib/finance-to-ledger-atom";
 import { mapDonationToEUR, FINANCE_CATEGORIES } from "@/lib/constants";
+import { formatBelegNummer } from "@/lib/finance-sequence";
 import { assertDonationEditAllowed, DonationLockedError } from "@/lib/donations-finance-helpers";
-import type { FinanceSourceEvent } from "@/types";
+import type { FinanceSourceEvent, Transaction } from "@/types";
 
 let failures = 0;
 function ok(cond: boolean, label: string) {
@@ -191,6 +194,85 @@ ok(
     }
   })(),
   "locked + interne_notiz → erlaubt"
+);
+
+function baseTx(over: Partial<Transaction> = {}): Transaction {
+  return {
+    id: "t1",
+    mosque_id: "m1",
+    buchungsdatum: "2026-05-20",
+    leistungsdatum: "",
+    betrag_cents: 5000,
+    typ: "einnahme",
+    classification: "income",
+    kategorie: "spenden",
+    beschreibung: "Test",
+    beleg_nummer: "2026-0001",
+    beleg_datei: "",
+    beleg_datei_sha256: "",
+    konto_typ: "cash",
+    zahlungskanal: "bar",
+    quelle: "manuell",
+    referenz_id: "",
+    storno_of: "",
+    is_storno: false,
+    interne_notiz: "",
+    created_by: "",
+    created: "2026-05-20",
+    updated: "2026-05-20",
+    ...over,
+  };
+}
+
+console.log("\nformatBelegNummer (Sprint 3):");
+ok(formatBelegNummer(2026, 1) === "2026-0001", "1 → 2026-0001");
+ok(formatBelegNummer(2026, 12345) === "2026-12345", ">9999 wächst");
+
+console.log("\ntoLedgerAtom(Transaction) (M9):");
+const txAtom = toLedgerAtom(baseTx());
+ok(txAtom.signed_amount_cents === 5000, "einnahme signed = +5000");
+ok(txAtom.source_system === "manual_transaction", "source_system=manual_transaction");
+ok(txAtom.readonly === false, "readonly=false");
+ok(txAtom.beleg_nummer === "2026-0001", "beleg_nummer durchgereicht");
+ok(txAtom.source_origin === undefined, "source_origin undefined");
+ok(txAtom.datum === "2026-05-20", "datum=buchungsdatum");
+const txExpenseAtom = toLedgerAtom(baseTx({ typ: "ausgabe", classification: "expense" }));
+ok(txExpenseAtom.signed_amount_cents === -5000, "ausgabe signed = -5000");
+const txEmptyKanal = toLedgerAtom(baseTx({ zahlungskanal: "" }));
+ok(txEmptyKanal.zahlungskanal === "sonstige", "leerer zahlungskanal → 'sonstige'");
+
+console.log("\nStorno-Atom signed negativ (Netting):");
+const stornoAtom = toLedgerAtom(
+  baseTx({ typ: "ausgabe", classification: "expense", is_storno: true, storno_of: "t1", beleg_nummer: "2026-0002" })
+);
+ok(stornoAtom.signed_amount_cents === -5000, "Storno einer +5000-Einnahme → -5000 (Σ=0)");
+
+console.log("\nassertTransactionIntegrity:");
+throws(
+  () => assertTransactionIntegrity(baseTx({ betrag_cents: 0 })),
+  "betrag_cents=0 → throw",
+  FinanceTransactionIntegrityError
+);
+throws(
+  () => assertTransactionIntegrity(baseTx({ typ: "einnahme", classification: "expense" })),
+  "einnahme + classification=expense → throw",
+  FinanceTransactionIntegrityError
+);
+throws(
+  () => assertTransactionIntegrity(baseTx({ typ: "ausgabe", classification: "income" })),
+  "ausgabe + classification=income → throw",
+  FinanceTransactionIntegrityError
+);
+ok(
+  (() => {
+    try {
+      assertTransactionIntegrity(baseTx({ typ: "ausgabe", classification: "expense" }));
+      return true;
+    } catch {
+      return false;
+    }
+  })(),
+  "valide Ausgabe → kein Throw"
 );
 
 console.log("");
