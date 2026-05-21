@@ -1396,6 +1396,13 @@ async function seedFinanceTransactions(adminId) {
   if (delTx > 0) console.log(`  🗑️  ${delTx} alte Buchungen gelöscht`);
   const delSeq = await deleteAllForMosque("finance_sequences");
   if (delSeq > 0) console.log(`  🗑️  ${delSeq} alte Belegnummer-Counter gelöscht`);
+  // finance_source_events der Demo mitlöschen: Spenden werden bei jedem Reseed neu
+  // angelegt (neue IDs), alte Events würden sonst verwaisen (Recon-Drift). Nach dem
+  // Seed `backfill-finance-events.mjs` laufen lassen → emittiert Events für die
+  // frischen paid-Spenden + sperrt sie. (Append-only-Prinzip gilt produktiv; der
+  // Demo-Reset ist bewusst destruktiv.)
+  const delEv = await deleteAllForMosque("finance_source_events");
+  if (delEv > 0) console.log(`  🗑️  ${delEv} alte Finanz-Events gelöscht (Reseed-Hygiene)`);
 
   // Gemischt: Einnahmen/Ausgaben, Bar/Bank, gestreute Kategorien + Daten.
   const TX_DATA = [
