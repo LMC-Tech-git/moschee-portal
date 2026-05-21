@@ -14,8 +14,8 @@ interface AttendanceStatsProps {
 }
 
 function getRateColors(rate: number): { badge: string; bar: string; text: string } {
-  if (rate >= 75) return { badge: "bg-emerald-100 text-emerald-700", bar: "bg-emerald-500", text: "text-emerald-600" };
-  if (rate >= 50) return { badge: "bg-amber-100 text-amber-700", bar: "bg-amber-500", text: "text-amber-600" };
+  if (rate >= 80) return { badge: "bg-emerald-100 text-emerald-700", bar: "bg-emerald-500", text: "text-emerald-600" };
+  if (rate >= 60) return { badge: "bg-amber-100 text-amber-700", bar: "bg-amber-500", text: "text-amber-600" };
   return { badge: "bg-red-100 text-red-700", bar: "bg-red-500", text: "text-red-600" };
 }
 
@@ -86,7 +86,7 @@ export default function AttendanceStats({ stats, isLoading }: AttendanceStatsPro
           <div className="divide-y">
             {stats.studentStats.map((s) => {
               const colors = getRateColors(s.rate);
-              const isAuffaellig = s.total > 0 && s.rate < 50;
+              const isAuffaellig = s.total > 0 && s.rate < 60;
               return (
                 <div
                   key={s.student_id}

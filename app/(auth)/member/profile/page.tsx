@@ -463,14 +463,14 @@ function ProfileEditForm({ user }: { user: NonNullable<ReturnType<typeof useAuth
 // --- Kinder-Tab Helpers ---
 
 function getAttendanceColor(rate: number) {
-  if (rate >= 90) return "bg-emerald-500";
-  if (rate >= 70) return "bg-amber-400";
+  if (rate >= 80) return "bg-emerald-500";
+  if (rate >= 60) return "bg-amber-400";
   return "bg-red-400";
 }
 
 function getAttendanceTextColor(rate: number) {
-  if (rate >= 90) return "text-emerald-700";
-  if (rate >= 70) return "text-amber-700";
+  if (rate >= 80) return "text-emerald-700";
+  if (rate >= 60) return "text-amber-700";
   return "text-red-600";
 }
 
@@ -557,8 +557,8 @@ function ChildrenTab({
   };
 
   function rateColor(rate: number) {
-    if (rate >= 75) return "bg-emerald-100 text-emerald-700";
-    if (rate >= 50) return "bg-amber-100 text-amber-700";
+    if (rate >= 80) return "bg-emerald-100 text-emerald-700";
+    if (rate >= 60) return "bg-amber-100 text-amber-700";
     return "bg-red-100 text-red-700";
   }
 
