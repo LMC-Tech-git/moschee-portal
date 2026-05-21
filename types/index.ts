@@ -759,3 +759,116 @@ export interface StudentFeeWithStudent extends StudentFee {
   student_name: string;
   student: Student;
 }
+
+// =========================================
+// Finance V1 — Event-Layer + Ledger-Projection
+// (Plan §1 + §13)
+// =========================================
+
+export type Zahlungskanal = "bar" | "ueberweisung" | "stripe" | "paypal" | "sonstige";
+export type KontoTyp = "bank" | "cash" | "other";
+export type FinanceClassification = "income" | "expense";
+
+// Phase 1 erlaubte event_type-Werte (Zod-enforced); income_adjusted/fee_applied = Phase 2
+export type Phase1EventType = "income_received" | "income_refunded" | "chargeback";
+
+export type LedgerAcceptanceContext =
+  | "pre_lock"            // vor jeglichem Hard-Lock
+  | "post_lock_system"    // System-Event (Webhook/Backfill) trotz Lock
+  | "post_lock_manual_blocked"; // Manual-Action war geblockt, System emittierte trotzdem
+
+export type FinanceRelationType = "refund_of" | "chargeback_of" | "adjustment_of";
+
+// payload_json v1 (Zod .strict() — keine zeitkritischen Felder, kein currency/amount-Echo)
+export interface FinanceEventPayloadV1 {
+  source_status: string;          // z.B. "paid", "refunded"
+  category: string | null;        // Quell-Kategorie (donation.category etc.), NICHT EÜR-ID
+  provider: string;               // "stripe" | "sepa" | "manual" | "paypal_link" | …
+  payment_method: string | null;  // donation.payment_method_detail o.ä.
+}
+
+// finance_source_events Row
+export interface FinanceSourceEvent {
+  id: string;
+  mosque_id: string;
+  event_uuid: string;
+  external_event_id: string;
+  source_event_key: string;
+  related_event_id: string;
+  relation_type: FinanceRelationType | "";
+  original_amount_cents: number | null;
+  ledger_acceptance_context: LedgerAcceptanceContext;
+  event_hash_sha256: string;      // Phase 1 leer
+  event_type: Phase1EventType | "income_adjusted" | "fee_applied"; // DB-Enum komplett, Engine nur Phase1
+  classification: FinanceClassification; // denormalisiert, einmal beim Write
+  source_collection: "donations" | "student_fees" | "sponsors";
+  source_type: "donation" | "fee" | "sponsor";
+  source_id: string;
+  betrag_cents: number;
+  kategorie: string;              // FINANCE_CATEGORIES-ID
+  konto_typ: KontoTyp;
+  zahlungskanal: Zahlungskanal;
+  currency: string;               // "EUR" Phase 1
+  occurred_at: string;            // ISO date
+  payload_schema_version: number; // 1 Phase 1
+  payload_json: string;           // JSON-encoded FinanceEventPayloadV1
+  metadata_json: string;          // unstrikt, nur Debug/Integration
+  created: string;
+}
+
+// transactions Row (manuell, Sprint 3)
+export interface Transaction {
+  id: string;
+  mosque_id: string;
+  buchungsdatum: string;
+  leistungsdatum: string;
+  betrag_cents: number;
+  typ: "einnahme" | "ausgabe";
+  classification: FinanceClassification;
+  kategorie: string;
+  beschreibung: string;
+  beleg_nummer: string;
+  beleg_datei: string;
+  beleg_datei_sha256: string;
+  konto_typ: KontoTyp;
+  zahlungskanal: Zahlungskanal | "";
+  quelle: "manuell" | "storno";
+  referenz_id: string;
+  storno_of: string;
+  is_storno: boolean;
+  interne_notiz: string;
+  created_by: string;
+  created: string;
+  updated: string;
+}
+
+// finance_sequences Row (Hint-Counter, Phase 1; UNIQUE ist Garantie)
+export interface FinanceSequence {
+  id: string;
+  mosque_id: string;
+  year: number;
+  next_number: number;
+  version: number;
+}
+
+// LedgerAtom — gemeinsame Anzeige/Reporting-Struktur (Plan §13)
+// PURITY: KEINE optionalen Felder außer source_origin.
+export interface LedgerAtom {
+  id: string;
+  mosque_id: string;
+  datum: string;                  // occurred_at | buchungsdatum
+  betrag_cents: number;           // immer positiv
+  signed_amount_cents: number;    // classification===income? +betrag : -betrag
+  kategorie: string;
+  konto_typ: KontoTyp;
+  zahlungskanal: Zahlungskanal;   // immer Enum (kein "")
+  classification: FinanceClassification;
+  source_system: "external_event" | "manual_transaction";
+  source_origin?: {
+    source_collection: string;
+    source_id: string;
+    event_uuid: string;
+  };
+  beleg_nummer: string;           // "" bei events
+  readonly: boolean;              // event=true, manual=false
+}

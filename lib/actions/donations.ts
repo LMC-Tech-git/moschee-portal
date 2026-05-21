@@ -1,9 +1,96 @@
 "use server";
 
 import { getAdminPB } from "@/lib/pocketbase-admin";
-import { logAudit } from "@/lib/audit";
+import { logAudit, safeAudit } from "@/lib/audit";
+import { createIncome } from "@/lib/actions/finance-domain";
+import { mapDonationToEUR } from "@/lib/constants";
+import {
+  assertDonationEditAllowed,
+  donationToKontoChannel,
+} from "@/lib/donations-finance-helpers";
 import type { Donation } from "@/types";
 import type { RecordModel } from "pocketbase";
+
+/**
+ * Sprint 2 — markDonationPaidAndEmit (Plan §13.1-5, F2).
+ *
+ * Zentraler Helper für ALLE Stellen wo `donations.status` auf `paid` gesetzt
+ * wird (manueller mark-paid, Stripe-Webhook). Setzt status=paid, ruft dann
+ * createIncome (Domain-Service). Bei createIncome-Fehler: KEIN Rollback der
+ * Status-Änderung (Append-only; Drift-Sweeper holt fehlendes Event nach).
+ *
+ * Aufrufer geben `ctx:{webhook:true}` bei Stripe-Webhook, sonst ohne ctx.
+ */
+export async function markDonationPaidAndEmit(
+  donationId: string,
+  paidAt: string,
+  options: {
+    mosqueIdHint?: string;
+    externalEventId?: string;
+    ctx?: { backfill?: boolean; webhook?: boolean };
+  } = {}
+): Promise<{ eventUuid: string | null; duplicated: boolean; lockSet: boolean }> {
+  const pb = await getAdminPB();
+  const before = await pb.collection("donations").getOne(donationId);
+  const mosqueId = options.mosqueIdHint || String(before.mosque_id || "");
+  if (!mosqueId) throw new Error("markDonationPaidAndEmit: mosque_id fehlt");
+
+  // Idempotent: wenn schon paid, nicht doppelt updaten
+  if (before.status !== "paid") {
+    await pb.collection("donations").update(donationId, {
+      status: "paid",
+      paid_at: paidAt,
+    });
+  }
+
+  const betragCents =
+    Number(before.amount_cents) ||
+    Math.round(Number(before.amount || 0) * 100) ||
+    0;
+  if (betragCents < 1) {
+    throw new Error(`markDonationPaidAndEmit: donation ${donationId} has betrag_cents < 1`);
+  }
+
+  const { kontoTyp, zahlungskanal } = donationToKontoChannel(before);
+
+  try {
+    return await createIncome({
+      mosqueId,
+      sourceCollection: "donations",
+      sourceType: "donation",
+      sourceId: donationId,
+      externalEventId: options.externalEventId,
+      betragCents,
+      kategorie: mapDonationToEUR(String(before.category || "")),
+      kontoTyp,
+      zahlungskanal,
+      occurredAt: paidAt,
+      payload: {
+        source_status: "paid",
+        category: before.category || null,
+        provider: String(before.provider || "manual"),
+        payment_method: before.payment_method_detail
+          ? String(before.payment_method_detail)
+          : null,
+      },
+      ctx: options.ctx,
+    });
+  } catch (e) {
+    // Append-only: donations bleibt paid; Sweeper fängt nach.
+    await safeAudit({
+      mosqueId,
+      action: "finance.emit_failed",
+      entityType: "donation",
+      entityId: donationId,
+      context: {
+        error: String((e as Error)?.message || e),
+        backfill: options.ctx?.backfill,
+        webhook: options.ctx?.webhook,
+      },
+    });
+    throw e;
+  }
+}
 
 // --- Helpers ---
 
@@ -246,7 +333,23 @@ export async function updateDonationStatus(
       updateData.paid_at = new Date().toISOString();
     }
 
+    // F4: Lock-Allowlist-Guard. Status-Wechsel ist finanzwirksam → blockiert
+    // sobald is_financially_locked=true. Ausnahme: paid → refunded läuft via
+    // Refund-Pfad (Sprint 5), nicht via diese Funktion.
+    assertDonationEditAllowed(record, updateData);
+
     await pb.collection("donations").update(donationId, updateData);
+
+    // Sprint 2 (F2): Wenn auf "paid" gewechselt → income_received-Event emittieren.
+    // Bei Fehler: status bleibt paid (Sweeper holt nach).
+    if (newStatus === "paid") {
+      const paidAt = (updateData.paid_at as string) || record.paid_at || new Date().toISOString();
+      try {
+        await markDonationPaidAndEmit(donationId, paidAt, { mosqueIdHint: mosqueId });
+      } catch (e) {
+        console.error("[Donations] mark-paid emit fehlgeschlagen (Sweeper holt nach):", e);
+      }
+    }
 
     await logAudit({
       mosqueId,
@@ -319,6 +422,18 @@ export async function createManualDonation(
         campaign_id: data.campaign_id || null,
       },
     });
+
+    // Sprint 2 (F2): Manuelle Spende ist direkt paid → income_received-Event emittieren.
+    // Fehler hier nicht zurückrollen (Append-only; Sweeper holt nach).
+    try {
+      await markDonationPaidAndEmit(
+        record.id,
+        record.paid_at || data.paid_at || new Date().toISOString(),
+        { mosqueIdHint: mosqueId }
+      );
+    } catch (e) {
+      console.error("[Donations] manual-create emit fehlgeschlagen (Sweeper holt nach):", e);
+    }
 
     return { success: true, data: mapRecord(record) };
   } catch (error) {

@@ -547,3 +547,78 @@ export const RELATION_TYPES = {
   OTHER: 'other',
 } as const;
 export type RelationType = typeof RELATION_TYPES[keyof typeof RELATION_TYPES];
+
+// =========================================
+// Finance V1 — Kategorie-IDs + Mapping (Plan §3, R4 gepinnt)
+// =========================================
+
+/**
+ * Stabile EÜR-Kategorie-IDs (Phase 1). NIEMALS umbenennen — IDs sind in der DB
+ * persistiert (transactions.kategorie, finance_source_events.kategorie).
+ * Dynamische, mandantenspezifische Kategorien + SKR03/04-Mapping = Phase 2.
+ */
+export const FINANCE_CATEGORIES = {
+  // Einnahmen
+  SPENDEN: "spenden",
+  MITGLIEDSBEITRAEGE: "mitgliedsbeitraege",
+  MADRASA_GEBUEHREN: "madrasa_gebuehren",
+  FOERDERPARTNER: "foerderpartner",
+  VERANSTALTUNGEN_EINNAHME: "veranstaltungen_einnahme",
+  ZUSCHUESSE: "zuschuesse",
+  SONSTIGE_EINNAHMEN: "sonstige_einnahmen",
+  // Ausgaben
+  MIETE: "miete",
+  NEBENKOSTEN: "nebenkosten",
+  GEHAELTER_HONORARE: "gehaelter_honorare",
+  INSTANDHALTUNG: "instandhaltung",
+  VERANSTALTUNGEN_AUSGABE: "veranstaltungen_ausgabe",
+  VERWALTUNG: "verwaltung",
+  ZAKAT_WEITERLEITUNG: "zakat_weiterleitung",
+  SONSTIGE_AUSGABEN: "sonstige_ausgaben",
+} as const;
+
+export type FinanceCategoryId = typeof FINANCE_CATEGORIES[keyof typeof FINANCE_CATEGORIES];
+
+export const FINANCE_INCOME_CATEGORY_IDS: FinanceCategoryId[] = [
+  FINANCE_CATEGORIES.SPENDEN,
+  FINANCE_CATEGORIES.MITGLIEDSBEITRAEGE,
+  FINANCE_CATEGORIES.MADRASA_GEBUEHREN,
+  FINANCE_CATEGORIES.FOERDERPARTNER,
+  FINANCE_CATEGORIES.VERANSTALTUNGEN_EINNAHME,
+  FINANCE_CATEGORIES.ZUSCHUESSE,
+  FINANCE_CATEGORIES.SONSTIGE_EINNAHMEN,
+];
+
+export const FINANCE_EXPENSE_CATEGORY_IDS: FinanceCategoryId[] = [
+  FINANCE_CATEGORIES.MIETE,
+  FINANCE_CATEGORIES.NEBENKOSTEN,
+  FINANCE_CATEGORIES.GEHAELTER_HONORARE,
+  FINANCE_CATEGORIES.INSTANDHALTUNG,
+  FINANCE_CATEGORIES.VERANSTALTUNGEN_AUSGABE,
+  FINANCE_CATEGORIES.VERWALTUNG,
+  FINANCE_CATEGORIES.ZAKAT_WEITERLEITUNG,
+  FINANCE_CATEGORIES.SONSTIGE_AUSGABEN,
+];
+
+/**
+ * Donation-Quellkategorie → EÜR-Kategorie-ID (gepinnt R4).
+ *
+ * Phase 1 bewusst flach: alle Spenden-Subtypen (zakat/sadaqa/schuldenabbau/
+ * moschee_bau/projekte) landen in SPENDEN. Phase 2 kann feinere Eingangs-IDs
+ * einführen (z.B. spenden_zakat). `ZAKAT_WEITERLEITUNG` ist die Ausgabe-Kategorie
+ * (Weiterleitung an Empfänger), NICHT der Eingang.
+ *
+ * null/leer/unbekannt → SONSTIGE_EINNAHMEN.
+ */
+const DONATION_CATEGORY_MAP: Record<string, FinanceCategoryId> = {
+  zakat: FINANCE_CATEGORIES.SPENDEN,
+  sadaqa: FINANCE_CATEGORIES.SPENDEN,
+  schuldenabbau: FINANCE_CATEGORIES.SPENDEN,
+  moschee_bau: FINANCE_CATEGORIES.SPENDEN,
+  projekte: FINANCE_CATEGORIES.SPENDEN,
+};
+
+export function mapDonationToEUR(category: string | null | undefined): FinanceCategoryId {
+  if (!category) return FINANCE_CATEGORIES.SONSTIGE_EINNAHMEN;
+  return DONATION_CATEGORY_MAP[category] ?? FINANCE_CATEGORIES.SONSTIGE_EINNAHMEN;
+}

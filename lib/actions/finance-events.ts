@@ -222,10 +222,3 @@ export async function emitFinanceEvent(input: EmitInput): Promise<EmitResult> {
     throw err;
   }
 }
-
-// Re-exports nur fürs Test-Skript / Backfill (kein UI-Bedarf)
-export const __finance_events_internal = {
-  buildSourceEventKey,
-  toClassification,
-  PHASE1_EVENT_TYPES,
-};

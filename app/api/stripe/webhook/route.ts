@@ -22,6 +22,7 @@ import {
   handleMembershipInvoiceVoided,
 } from "@/lib/stripe/membership-webhook";
 import { getMembershipFeeSettings } from "@/lib/actions/settings";
+import { markDonationPaidAndEmit } from "@/lib/actions/donations";
 import type { RecordModel } from "pocketbase";
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -504,13 +505,26 @@ export async function POST(request: NextRequest) {
         }
 
         if (session.payment_status === "paid") {
+          const paidAt = new Date().toISOString();
           await pb.collection("donations").update(donationId, {
             status: "paid",
-            paid_at: new Date().toISOString(),
+            paid_at: paidAt,
           });
           console.log(`[Stripe Webhook] Donation ${donationId} als bezahlt markiert`);
 
+          // Sprint 2 (F2): income_received-Event emittieren via Domain-Service.
+          // Idempotent; bei Fehler kein Rollback (Sweeper fängt nach).
           if (mosqueId) {
+            try {
+              await markDonationPaidAndEmit(donationId, paidAt, {
+                mosqueIdHint: mosqueId,
+                externalEventId: session.id || undefined,
+                ctx: { webhook: true },
+              });
+            } catch (e) {
+              console.error("[Stripe Webhook] mark-paid emit fehlgeschlagen (Sweeper holt nach):", e);
+            }
+
             logAudit({
               mosqueId,
               action: "donation.paid",

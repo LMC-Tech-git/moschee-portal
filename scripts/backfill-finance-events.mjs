@@ -58,7 +58,12 @@ const env = loadEnv();
 const PB_URL = env.POCKETBASE_URL || env.NEXT_PUBLIC_POCKETBASE_URL;
 const ADMIN_EMAIL = env.PB_ADMIN_EMAIL;
 const ADMIN_PASSWORD = env.PB_ADMIN_PASSWORD;
-const SCOPE_MOSQUE = process.argv[2] || "";
+
+// CLI: erstes positionales Arg = mosque_id (rückwärtskompatibel Sprint 1)
+// Optional `--dry-run` (Sprint 2, F6/R2).
+const cliArgs = process.argv.slice(2);
+const DRY_RUN = cliArgs.includes("--dry-run");
+const SCOPE_MOSQUE = cliArgs.find((a) => !a.startsWith("--")) || "";
 
 if (!PB_URL || !ADMIN_EMAIL || !ADMIN_PASSWORD) {
   console.error("Fehler: POCKETBASE_URL/PB_ADMIN_EMAIL/PB_ADMIN_PASSWORD fehlt in .env.local");
@@ -140,6 +145,21 @@ function isUniqueViolation(err) {
 
 // --- Donation → income_received-Backfill ---
 
+// Donation-Quellkategorie → EÜR-Kategorie-ID (Spiegel zu lib/constants.ts
+// `mapDonationToEUR`, R4 gepinnt). Alle 5 Spenden-Subtypen → SPENDEN; null →
+// SONSTIGE_EINNAHMEN.
+function mapDonationCategoryToEUR(cat) {
+  if (!cat) return "sonstige_einnahmen";
+  const m = {
+    zakat: "spenden",
+    sadaqa: "spenden",
+    schuldenabbau: "spenden",
+    moschee_bau: "spenden",
+    projekte: "spenden",
+  };
+  return m[cat] || "sonstige_einnahmen";
+}
+
 function buildReceivedRecord(donation, mosqueId) {
   const betrag =
     donation.amount_cents ||
@@ -161,7 +181,7 @@ function buildReceivedRecord(donation, mosqueId) {
     source_type: "donation",
     source_id: donation.id,
     betrag_cents: betrag,
-    kategorie: "spenden",
+    kategorie: mapDonationCategoryToEUR(donation.category),
     konto_typ:
       donation.provider === "manual" && /bar/i.test(donation.payment_method_detail || "")
         ? "cash"
@@ -183,19 +203,20 @@ function buildReceivedRecord(donation, mosqueId) {
       donation.created ||
       new Date().toISOString(),
     payload_schema_version: 1,
+    // R3-konform: KEIN amount_cents/currency/paid_at-Echo. Top-level Felder
+    // sind die kanonische Wahrheit.
     payload_json: JSON.stringify({
       source_status: donation.status,
-      amount_cents: betrag,
-      category: donation.category || "spenden",
-      provider: donation.provider || "",
-      payment_method: donation.payment_method_detail || "",
-      currency: donation.currency || "EUR",
+      category: donation.category || null,
+      provider: donation.provider || "manual",
+      payment_method: donation.payment_method_detail || null,
     }),
     metadata_json: "",
   };
 }
 
 async function tryEmit(record) {
+  if (DRY_RUN) return "dryrun";
   try {
     await pbFetch("/api/collections/finance_source_events/records", {
       method: "POST",
@@ -208,6 +229,23 @@ async function tryEmit(record) {
   }
 }
 
+// R2 (Plan §13.1-8): Backfill sperrt historische paid-Records. F6: Fallback
+// auf now() bei paid_at=null. Idempotent (mehrfaches Setzen unschädlich).
+async function lockSourceIfNeeded(collection, record) {
+  if (record.is_financially_locked) return { changed: false, fallback: false };
+  const lockAt = record.paid_at || new Date().toISOString();
+  const fallback = !record.paid_at;
+  if (DRY_RUN) return { changed: true, fallback };
+  await pbFetch(`/api/collections/${collection}/records/${record.id}`, {
+    method: "PATCH",
+    body: JSON.stringify({
+      is_financially_locked: true,
+      financial_locked_at: lockAt,
+    }),
+  });
+  return { changed: true, fallback };
+}
+
 async function listMosques() {
   if (SCOPE_MOSQUE) return [{ id: SCOPE_MOSQUE }];
   const r = await pbFetch("/api/collections/mosques/records?perPage=500&fields=id");
@@ -218,10 +256,14 @@ async function sweepReceivedForMosque(mosqueId) {
   // donations.status="paid" ohne zugehöriges income_received
   // Phase-1-Strategie: pro Donation prüfen "existiert Event mit source_event_key?".
   // Bei großen Mengen Phase-2-Optimierung (LEFT-JOIN-ähnlich via PB-Filter).
+  // R2 (Sprint 2): Backfill sperrt zusätzlich historische paid-Records.
+  // Lock-Drift-Branch: paid + Event existiert + !locked → Lock setzen.
   let page = 1;
   let scanned = 0;
   let emitted = 0;
   let already = 0;
+  let locked = 0;
+  let lockedFallback = 0;
   const perPage = 200;
   while (true) {
     const enc = encodeURIComponent(`mosque_id = "${mosqueId}" && status = "paid"`);
@@ -234,12 +276,23 @@ async function sweepReceivedForMosque(mosqueId) {
       if (!record) continue;
       const result = await tryEmit(record);
       if (result === "emitted") emitted++;
-      else already++;
+      else if (result === "duplicated") already++;
+      // Lock setzen — sowohl bei neu-emittiert (R2) als auch bei bereits
+      // existierendem Event mit !locked (Lock-Drift-Branch).
+      try {
+        const lockRes = await lockSourceIfNeeded("donations", d);
+        if (lockRes.changed) {
+          locked++;
+          if (lockRes.fallback) lockedFallback++;
+        }
+      } catch (e) {
+        console.warn(`   ⚠️  lock-set fehlgeschlagen für donation ${d.id}: ${e?.message || e}`);
+      }
     }
     if (!list || page >= (list.totalPages || 1)) break;
     page++;
   }
-  return { scanned, emitted, already };
+  return { scanned, emitted, already, locked, lockedFallback };
 }
 
 async function sweepRefundForMosque(mosqueId) {
@@ -266,19 +319,35 @@ async function sweepRefundForMosque(mosqueId) {
 }
 
 async function main() {
-  console.log("=== Finance Drift-Sweeper (Sprint 1) ===");
+  console.log("=== Finance Drift-Sweeper (Sprint 2) ===");
   console.log(`PB:    ${PB_URL}`);
-  console.log(`Scope: ${SCOPE_MOSQUE || "alle Moscheen"}\n`);
+  console.log(`Scope: ${SCOPE_MOSQUE || "alle Moscheen"}`);
+  if (DRY_RUN) console.log("Mode:  --dry-run (kein Schreiben)");
+  console.log("");
   await authenticate();
   const mosques = await listMosques();
   let totalEmitted = 0;
+  let totalLocked = 0;
+  let totalLockedFallback = 0;
   for (const m of mosques) {
     console.log(`→ ${m.id}`);
     const recv = await sweepReceivedForMosque(m.id);
-    console.log(`   received:  scanned=${recv.scanned} emitted=${recv.emitted} duplicated=${recv.already}`);
+    console.log(
+      `   received:  scanned=${recv.scanned} emitted=${recv.emitted} duplicated=${recv.already} ` +
+      `locked=${recv.locked}${recv.lockedFallback ? ` (paid_at=null Fallback: ${recv.lockedFallback})` : ""}`
+    );
     const ref = await sweepRefundForMosque(m.id);
     console.log(`   refund:    detected=${ref.detected_refunded_sources} emitted=${ref.emitted} (${ref.note})`);
     totalEmitted += recv.emitted + ref.emitted;
+    totalLocked += recv.locked;
+    totalLockedFallback += recv.lockedFallback;
+  }
+  if (totalLocked > 0) {
+    console.log(
+      `\nBACKFILL_LOCKS_HISTORICAL: locked ${totalLocked} records ` +
+      `(${totalLockedFallback} with paid_at=null → using now()); ` +
+      `corrections via compensating transaction (Sprint 3) or refund (Sprint 5). Plan §11.`
+    );
   }
   if (totalEmitted > 0) {
     console.log(`\n⚠️  Drift behoben: ${totalEmitted} Event(s) nach-emittiert`);

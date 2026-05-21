@@ -1378,7 +1378,9 @@
       "sponsors": "Destekçiler",
       "team": "Ekip",
       "push_subscription": "Bildirimler",
-      "membership_fees": "Üyelik aidatları"
+      "membership_fees": "Üyelik aidatları",
+      "finance_event": "Finans olayları",
+      "transaction": "Kayıtlar"
     },
     "entity": {
       "post": "Haber",
@@ -1406,9 +1408,17 @@
       "push_subscription": "Bildirim",
       "membership_fees": "Üyelik aidatları",
       "membership_fee": "Üyelik aidatı",
-      "membership_config": "Aidat yapılandırması"
+      "membership_config": "Aidat yapılandırması",
+      "finance_event": "Finans olayı",
+      "transaction": "Kayıt"
     },
     "action": {
+      "finance": {
+        "event_emitted": "Finans olayı kaydedildi",
+        "lock_failed": "Finansal kilit başarısız",
+        "lock_recovered": "Finansal kilit yenilendi",
+        "emit_failed": "Finans olayı yayımı başarısız"
+      },
       "push_subscription": {
         "push_subscribe": "Push aboneliği",
         "push_unsubscribe": "Push aboneliği iptal",

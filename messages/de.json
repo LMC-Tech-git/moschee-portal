@@ -1378,7 +1378,9 @@
       "sponsors": "Förderpartner",
       "team": "Team",
       "push_subscription": "Benachrichtigungen",
-      "membership_fees": "Mitgliedsbeiträge"
+      "membership_fees": "Mitgliedsbeiträge",
+      "finance_event": "Finanz-Events",
+      "transaction": "Buchungen"
     },
     "entity": {
       "post": "Post",
@@ -1406,9 +1408,17 @@
       "push_subscription": "Benachrichtigung",
       "membership_fees": "Mitgliedsbeiträge",
       "membership_fee": "Mitgliedsbeitrag",
-      "membership_config": "Beitrags-Konfiguration"
+      "membership_config": "Beitrags-Konfiguration",
+      "finance_event": "Finanz-Event",
+      "transaction": "Buchung"
     },
     "action": {
+      "finance": {
+        "event_emitted": "Finanz-Event erfasst",
+        "lock_failed": "Finanz-Sperre fehlgeschlagen",
+        "lock_recovered": "Finanz-Sperre nachgezogen",
+        "emit_failed": "Finanz-Event-Emission fehlgeschlagen"
+      },
       "push_subscription": {
         "push_subscribe": "Push abonniert",
         "push_unsubscribe": "Push abgemeldet",

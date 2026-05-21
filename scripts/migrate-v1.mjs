@@ -1966,13 +1966,15 @@ async function main() {
     }
   }
 
-  // 10. audit_logs: before_json + after_json + neue Indexes
+  // 10. audit_logs: before_json + after_json + context_json (F5) + neue Indexes
   if (collectionMap.audit_logs) {
     const auditCol = (await getExistingCollections()).find((c) => c.name === "audit_logs");
     const existingFieldNames = (auditCol?.schema || []).map((f) => f.name);
     const auditNewFields = [
       { name: "before_json", type: "json", options: { maxSize: 2000000 } },
       { name: "after_json", type: "json", options: { maxSize: 2000000 } },
+      // F5: strukturierter Kontext für Finance-Audits (duplicated, backfill, retry_count, ...)
+      { name: "context_json", type: "json", options: { maxSize: 500000 } },
     ];
     const fieldsToAdd = auditNewFields.filter((f) => !existingFieldNames.includes(f.name));
     if (fieldsToAdd.length > 0) {
@@ -1980,7 +1982,7 @@ async function main() {
       await updateCollection("audit_logs", { schema: newSchema });
       console.log(`   ✅ audit_logs: ${fieldsToAdd.map((f) => f.name).join(", ")} hinzugefügt`);
     } else {
-      console.log("   ⏭️  audit_logs: before_json/after_json bereits vorhanden");
+      console.log("   ⏭️  audit_logs: before_json/after_json/context_json bereits vorhanden");
     }
   }
 

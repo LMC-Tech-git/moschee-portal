@@ -3,6 +3,7 @@ import { logAudit } from "@/lib/audit";
 import { sendEmailDirect } from "@/lib/email";
 import { renderDonationReceipt, renderSepaFailureEmail } from "@/lib/email/templates";
 import { notifyAdmins } from "@/lib/email/notify-admin";
+import { markDonationPaidAndEmit } from "@/lib/actions/donations";
 import type { RecordModel } from "pocketbase";
 
 type PB = Awaited<ReturnType<typeof getAdminPB>>;
@@ -55,9 +56,10 @@ export async function finalizeSuccessfulPayment(args: {
 
   if (donation.status === "paid") return;
 
+  const paidAt = new Date().toISOString();
   await pb.collection("donations").update(args.donationId, {
     status: "paid",
-    paid_at: new Date().toISOString(),
+    paid_at: paidAt,
   });
 
   logAudit({
@@ -71,6 +73,19 @@ export async function finalizeSuccessfulPayment(args: {
       amount_cents: donation.amount_cents,
     },
   });
+
+  // Sprint 2 (F2): income_received-Event emittieren.
+  // Helper macht idempotenten status-Check intern; bei Fehler kein Rollback
+  // (Append-only, Drift-Sweeper holt nach).
+  try {
+    await markDonationPaidAndEmit(args.donationId, paidAt, {
+      mosqueIdHint: args.mosqueId,
+      externalEventId: donation.provider_ref || undefined,
+      ctx: { webhook: true },
+    });
+  } catch (e) {
+    console.error("[finalize] mark-paid emit fehlgeschlagen (Sweeper holt nach):", e);
+  }
 
   // Email + Admin-Notif (best-effort, blockiert Webhook nicht bei Fehler)
   try {

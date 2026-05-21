@@ -357,3 +357,28 @@ export type AttendanceInput = z.infer<typeof attendanceSchema>;
 /** Valides E-Mail-Format oder leer (optionales Feld). */
 export const inviteEmailSchema = z.string().email().or(z.literal(""));
 
+// =========================================
+// Finance V1 — Event-Payload Schema (Plan §13, R3 strict)
+// =========================================
+
+/**
+ * finance_source_events.payload_json (Schema v1, frozen).
+ *
+ * `.strict()` — hard-rejects unknown keys. Verhindert dass `amount_cents`,
+ * `currency`, `paid_at`/`refunded_at` oder PII-Felder versehentlich in den
+ * payload-Snapshot rutschen. Top-level Felder (occurred_at, betrag_cents,
+ * currency) sind die kanonische Wahrheit, nie dupliziert.
+ *
+ * Feldänderung erfordert `payload_schema_version`-Bump + Migration.
+ */
+export const financeEventPayloadSchema = z
+  .object({
+    source_status: z.string().min(1),
+    category: z.string().nullable(),
+    provider: z.string().min(1),
+    payment_method: z.string().nullable(),
+  })
+  .strict();
+
+export type FinanceEventPayloadInput = z.infer<typeof financeEventPayloadSchema>;
+
