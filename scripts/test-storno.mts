@@ -138,6 +138,8 @@ async function main() {
   ok(sTx.betrag_cents === 7000, "gleicher Betrag");
   ok(sTx.kategorie === "spenden", "gleiche Kategorie (Netting in Original-Topf)");
   ok(sTx.interne_notiz === "Testkorrektur", "grund → interne_notiz");
+  // V-A: offene Periode → Storno bucht ins Original-Datum (2026-04-01), nicht heute
+  ok(String(sTx.buchungsdatum).slice(0, 10) === "2026-04-01", "V-A: Storno bucht in Original-Periode (same period)");
 
   // Original unverändert
   const origAfter = await getTx(orig.id);

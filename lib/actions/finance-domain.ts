@@ -453,11 +453,23 @@ export async function stornoTransaction(
     throw new Error("already_storniert");
   }
 
-  // 5. Hard-Lock für das Storno-Datum (heute)
+  // 5. Storno-Datum (V-A): Gegenbuchung bucht in die Original-Periode, wenn diese
+  //    nicht hard-locked ist — sonst läge das Storno im laufenden Jahr und Per-Jahr-
+  //    EÜR/Jahresbericht/Kassenbericht des Original-Jahres wären überzeichnet.
+  //    Ist die Original-Periode gesperrt: heute buchen (nur wenn heute offen).
   const heute = new Date().toISOString().slice(0, 10);
   const hardLockUntil = await getFinanceLockSettings(input.mosqueId);
-  if (!canWrite(heute, hardLockUntil, "MANUAL_WRITE")) {
-    throw new Error("finance_period_locked");
+  let stornoDatum: string;
+  let samePeriod: boolean;
+  if (canWrite(original.buchungsdatum, hardLockUntil, "MANUAL_WRITE")) {
+    stornoDatum = original.buchungsdatum;
+    samePeriod = true;
+  } else {
+    stornoDatum = heute;
+    samePeriod = false;
+    if (!canWrite(heute, hardLockUntil, "MANUAL_WRITE")) {
+      throw new Error("finance_period_locked");
+    }
   }
 
   // 6. Gegenbuchung: typ + classification invertiert, gleiche kategorie/betrag
@@ -467,7 +479,7 @@ export async function stornoTransaction(
 
   const baseRecord: Record<string, unknown> = {
     mosque_id: input.mosqueId,
-    buchungsdatum: heute,
+    buchungsdatum: stornoDatum,
     leistungsdatum: "",
     betrag_cents: original.betrag_cents,
     typ: invTyp,
@@ -488,7 +500,7 @@ export async function stornoTransaction(
   const created = await insertTransactionWithBelegNummer<Transaction>(
     fp,
     input.mosqueId,
-    yearOf(heute),
+    yearOf(stornoDatum),
     baseRecord
   );
 
@@ -504,6 +516,8 @@ export async function stornoTransaction(
       grund: grund ?? "",
       betrag_cents: original.betrag_cents,
       beleg_nummer: created.beleg_nummer,
+      storno_buchungsdatum: stornoDatum,
+      same_period: samePeriod,
     },
   });
 

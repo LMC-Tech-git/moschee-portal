@@ -32,6 +32,8 @@ interface MosqueContextType {
   setTeamVisibility: (val: string) => void;
   sponsorsEnabled: boolean;
   setSponsorsEnabled: (val: boolean) => void;
+  financeEnabled: boolean;
+  setFinanceEnabled: (val: boolean) => void;
 }
 
 const MosqueContext = createContext<MosqueContextType | null>(null);
@@ -67,6 +69,7 @@ export function MosqueProvider({ children, initialMosque }: MosqueProviderProps)
   const [teamEnabled, setTeamEnabled] = useState(false);
   const [teamVisibility, setTeamVisibility] = useState("public");
   const [sponsorsEnabled, setSponsorsEnabled] = useState(false);
+  const [financeEnabled, setFinanceEnabled] = useState(false);
 
   // Verhindert, dass loadMosque() den Mosque überschreibt der vom MosqueInitializer gesetzt wurde
   const externallySetRef = useRef(false);
@@ -117,6 +120,7 @@ export function MosqueProvider({ children, initialMosque }: MosqueProviderProps)
               if (!cancelled) {
                 setTeamEnabled(flags.team_enabled);
                 setSponsorsEnabled(flags.sponsors_enabled);
+                setFinanceEnabled(flags.finance_enabled);
               }
             }
           } else {
@@ -131,6 +135,7 @@ export function MosqueProvider({ children, initialMosque }: MosqueProviderProps)
             if (!cancelled) {
               setTeamEnabled(flags.team_enabled);
               setSponsorsEnabled(flags.sponsors_enabled);
+              setFinanceEnabled(flags.finance_enabled);
             }
           }
         } else {
@@ -176,7 +181,7 @@ export function MosqueProvider({ children, initialMosque }: MosqueProviderProps)
   }, [initialMosque, authLoading, isAuthenticated, user?.mosque_id, user?.role, overrideMosqueId, refreshKey, pathname]);
 
   return (
-    <MosqueContext.Provider value={{ mosque, mosqueId: mosque?.id || user?.mosque_id || "", isLoading, setMosqueOverride, overrideMosqueId, refreshMosque, setMosqueData, teamEnabled, setTeamEnabled, teamVisibility, setTeamVisibility, sponsorsEnabled, setSponsorsEnabled }}>
+    <MosqueContext.Provider value={{ mosque, mosqueId: mosque?.id || user?.mosque_id || "", isLoading, setMosqueOverride, overrideMosqueId, refreshMosque, setMosqueData, teamEnabled, setTeamEnabled, teamVisibility, setTeamVisibility, sponsorsEnabled, setSponsorsEnabled, financeEnabled, setFinanceEnabled }}>
       {children}
     </MosqueContext.Provider>
   );

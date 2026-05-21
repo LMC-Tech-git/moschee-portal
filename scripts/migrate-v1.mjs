@@ -250,9 +250,14 @@ const SETTINGS_RECURRING_FIELDS = [
 
 // Finance V1 (Sprint 3): Hard-Lock-Periode für manuelle Buchungen.
 // Sperrt MANUAL_WRITE mit buchungsdatum ≤ Datum (canWrite, Plan §0). Events
-// bleiben immer schreibbar. (kassenbuch_*-Startbestände = Sprint 4b.)
+// bleiben immer schreibbar.
 const SETTINGS_FINANCE_FIELDS = [
   { name: "finance_hard_lock_until", type: "date" },
+  // Sprint 4: Admin-Modul-Gate (≠ public_finance_enabled) + Kassenbuch-Anfangsbestände
+  { name: "finance_enabled", type: "bool", options: { default: false } },
+  { name: "kassenbuch_start_year", type: "number", options: { min: 2000 } },
+  { name: "kassenbuch_bar_start_cents", type: "number", options: { default: 0 } },
+  { name: "kassenbuch_bank_start_cents", type: "number", options: { default: 0 } },
 ];
 
 const RECURRING_SUBSCRIPTIONS_NEW_FIELDS = [

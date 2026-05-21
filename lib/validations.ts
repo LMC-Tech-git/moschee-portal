@@ -384,6 +384,25 @@ export const financeEventPayloadSchema = z
 export type FinanceEventPayloadInput = z.infer<typeof financeEventPayloadSchema>;
 
 // =========================================
+// Finance V1 — Modul-Einstellungen (Sprint 4)
+// =========================================
+
+/**
+ * settings-Felder des Finanzmoduls. `finance_enabled` = Admin-Modul-Gate
+ * (NICHT `public_finance_enabled`). Anfangsbestände in Cent.
+ * `finance_hard_lock_until` optional ("" = kein Lock).
+ */
+export const financeSettingsSchema = z.object({
+  finance_enabled: z.boolean(),
+  kassenbuch_start_year: z.number().int().min(2000).max(2100),
+  kassenbuch_bar_start_cents: z.number().int().min(0),
+  kassenbuch_bank_start_cents: z.number().int().min(0),
+  finance_hard_lock_until: z.string().optional().default(""),
+});
+
+export type FinanceSettingsInput = z.infer<typeof financeSettingsSchema>;
+
+// =========================================
 // Finance V1 — Manuelle Buchungen (Sprint 3)
 // =========================================
 

@@ -528,6 +528,10 @@
       "membership": {
         "title": "Üyelik aidatları",
         "desc": "Üyelik aidatlarını yapılandır, kaydet ve otomatik tahsil et."
+      },
+      "finanzen": {
+        "title": "Finans",
+        "desc": "Kasa defteri, gelir-gider, raporlar ve kasa raporu."
       }
     },
     "loading": "Yönetici alanı yükleniyor...",
@@ -1556,6 +1560,7 @@
       "update_prayer_settings": "Namaz vakti ayarları güncellendi",
       "update_default_settings": "Varsayılan ayarlar güncellendi",
       "update_madrasa_fee_settings": "Medrese ayarları güncellendi",
+      "update_finance_settings": "Finans ayarları güncellendi",
       "update_contact_settings": "İletişim formu ayarları güncellendi",
       "update_recurring_donation_settings": "Düzenli bağış ayarları güncellendi",
       "push_sent": "Push bildirimi gönderildi",
@@ -3255,6 +3260,121 @@
     }
   },
   "finanzen": {
+    "title": "Finans",
+    "loading": "Yükleniyor …",
+    "jahr": "Yıl",
+    "disabledHint": "Finans modülü etkin değil. „Ayarlar“ sekmesinden etkinleştirin.",
+    "tab": {
+      "kassenbuch": "Kasa defteri",
+      "eur": "Gelir-Gider",
+      "berichte": "Raporlar",
+      "kassenbericht": "Kasa raporu",
+      "einstellungen": "Ayarlar"
+    },
+    "kpi": {
+      "einnahmen": "Gelirler",
+      "ausgaben": "Giderler",
+      "saldo": "Bakiye",
+      "kassenstandBar": "Kasa (Nakit) {year}",
+      "kassenstandBank": "Banka {year}"
+    },
+    "col": {
+      "datum": "Tarih",
+      "beleg": "Belge No.",
+      "kategorie": "Kategori",
+      "konto": "Hesap",
+      "quelle": "Kaynak",
+      "betrag": "Tutar",
+      "aktion": "İşlem"
+    },
+    "typ": {
+      "einnahme": "Gelir",
+      "ausgabe": "Gider"
+    },
+    "konto": {
+      "cash": "Nakit",
+      "bank": "Banka",
+      "other": "Diğer"
+    },
+    "kanal": {
+      "bar": "Nakit",
+      "ueberweisung": "Havale",
+      "stripe": "Stripe",
+      "paypal": "PayPal",
+      "sonstige": "Diğer"
+    },
+    "source": {
+      "manual": "Manuel",
+      "event": "Sistem"
+    },
+    "filter": {
+      "alleKonten": "Tüm hesaplar",
+      "alleTypen": "Tüm türler"
+    },
+    "action": {
+      "erfassen": "Kayıt ekle",
+      "storno": "İptal et",
+      "stornoConfirm": "Bu kayıt iptal edilsin mi? Bir karşı kayıt oluşturulur; orijinal korunur."
+    },
+    "ledger": {
+      "empty": "Bu yıl için kayıt yok.",
+      "truncated": "Bu yıl {cap} kayıttan fazla — yalnızca bir bölümü gösteriliyor. Raporlar/KPI tüm kayıtları dikkate alır."
+    },
+    "kategorie": {
+      "spenden": "Bağışlar",
+      "mitgliedsbeitraege": "Üyelik aidatları",
+      "madrasa_gebuehren": "Medrese ücretleri",
+      "foerderpartner": "Destek ortakları",
+      "veranstaltungen_einnahme": "Etkinlikler (gelir)",
+      "zuschuesse": "Hibe/destekler",
+      "sonstige_einnahmen": "Diğer gelirler",
+      "miete": "Kira",
+      "nebenkosten": "Yan giderler",
+      "gehaelter_honorare": "Maaş & ücretler",
+      "instandhaltung": "Bakım/onarım",
+      "veranstaltungen_ausgabe": "Etkinlikler (gider)",
+      "verwaltung": "Yönetim",
+      "zakat_weiterleitung": "Zekât aktarımı",
+      "sonstige_ausgaben": "Diğer giderler"
+    },
+    "dialog": {
+      "title": "Kayıt ekle",
+      "buchungsdatum": "Kayıt tarihi",
+      "betrag": "Tutar (€)",
+      "zahlungskanal": "Ödeme kanalı",
+      "beschreibung": "Açıklama",
+      "beleg": "Belge (isteğe bağlı)",
+      "belegHint": "PDF, JPEG veya PNG, en fazla 5 MB.",
+      "abbrechen": "İptal",
+      "speichern": "Kaydet"
+    },
+    "eur": {
+      "einnahmen": "Gelirler",
+      "ausgaben": "Giderler",
+      "summe": "Toplam",
+      "ueberschuss": "Fazla / Açık"
+    },
+    "kasse": {
+      "konto": "Hesap",
+      "anfang": "Açılış bakiyesi",
+      "einnahmen": "Gelirler",
+      "ausgaben": "Giderler",
+      "ende": "Kapanış bakiyesi",
+      "bankInklOther": "Banka (diğer hesaplar dahil)",
+      "gesamt": "Toplam"
+    },
+    "settings": {
+      "enabled": "Finans modülünü etkinleştir",
+      "enabledHint": "Yöneticiler için kasa defteri, gelir-gider ve raporları açar.",
+      "startYear": "Muhasebe başlangıç yılı",
+      "barStart": "Açılış bakiyesi nakit (€)",
+      "bankStart": "Açılış bakiyesi banka (€)",
+      "hardLock": "Kayıt kilidi (tarihe kadar)",
+      "hardLockHint": "Bu tarihe kadar (dahil) tarihli manuel kayıtlar reddedilir.",
+      "save": "Kaydet",
+      "saving": "Kaydediliyor …",
+      "saved": "Ayarlar kaydedildi."
+    },
     "error": {
       "finance_period_locked": "Bu kayıt dönemi kilitli. Düzeltme yalnızca iptal veya karşı kayıt ile yapılabilir.",
       "transaction_immutable": "Kayıtlar değiştirilemez. Yalnızca dahili not düzenlenebilir; düzeltmeler iptal ile yapılır.",
@@ -3263,7 +3383,11 @@
       "cannot_storno_a_storno": "Bir iptal kaydı yeniden iptal edilemez.",
       "already_storniert": "Bu kayıt zaten iptal edilmiş.",
       "transaction_not_found": "Kayıt bulunamadı.",
-      "beleg_nummer_collision_exhausted": "Belge numarası atanamadı. Lütfen tekrar deneyin."
+      "beleg_nummer_collision_exhausted": "Belge numarası atanamadı. Lütfen tekrar deneyin.",
+      "forbidden": "Bu işlem için yetkiniz yok.",
+      "betrag_invalid": "Lütfen 0'dan büyük geçerli bir tutar girin.",
+      "beschreibung_short": "Açıklama en az 3 karakter olmalı.",
+      "generic": "İşlem başarısız. Lütfen tekrar deneyin."
     }
   },
   "mitgliedsbeitraege": {

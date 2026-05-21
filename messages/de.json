@@ -528,6 +528,10 @@
       "membership": {
         "title": "Mitgliedsbeiträge",
         "desc": "Mitgliedsbeiträge konfigurieren, erfassen und automatisch einziehen."
+      },
+      "finanzen": {
+        "title": "Finanzen",
+        "desc": "Kassenbuch, EÜR, Berichte und Kassenbericht."
       }
     },
     "loading": "Admin-Bereich wird geladen...",
@@ -1556,6 +1560,7 @@
       "update_prayer_settings": "Gebetszeiten aktualisiert",
       "update_default_settings": "Standardeinstellungen aktualisiert",
       "update_madrasa_fee_settings": "Madrasa-Einstellungen aktualisiert",
+      "update_finance_settings": "Finanz-Einstellungen aktualisiert",
       "update_contact_settings": "Kontaktformular-Einstellungen aktualisiert",
       "update_recurring_donation_settings": "Dauerauftrag-Einstellungen aktualisiert",
       "push_sent": "Push-Benachrichtigung gesendet",
@@ -3255,6 +3260,121 @@
     }
   },
   "finanzen": {
+    "title": "Finanzen",
+    "loading": "Lädt …",
+    "jahr": "Jahr",
+    "disabledHint": "Das Finanzmodul ist nicht aktiviert. Aktivieren Sie es im Tab „Einstellungen“.",
+    "tab": {
+      "kassenbuch": "Kassenbuch",
+      "eur": "EÜR",
+      "berichte": "Berichte",
+      "kassenbericht": "Kassenbericht",
+      "einstellungen": "Einstellungen"
+    },
+    "kpi": {
+      "einnahmen": "Einnahmen",
+      "ausgaben": "Ausgaben",
+      "saldo": "Saldo",
+      "kassenstandBar": "Kasse (Bar) {year}",
+      "kassenstandBank": "Bank {year}"
+    },
+    "col": {
+      "datum": "Datum",
+      "beleg": "Beleg-Nr.",
+      "kategorie": "Kategorie",
+      "konto": "Konto",
+      "quelle": "Quelle",
+      "betrag": "Betrag",
+      "aktion": "Aktion"
+    },
+    "typ": {
+      "einnahme": "Einnahme",
+      "ausgabe": "Ausgabe"
+    },
+    "konto": {
+      "cash": "Bar",
+      "bank": "Bank",
+      "other": "Sonstige"
+    },
+    "kanal": {
+      "bar": "Bar",
+      "ueberweisung": "Überweisung",
+      "stripe": "Stripe",
+      "paypal": "PayPal",
+      "sonstige": "Sonstige"
+    },
+    "source": {
+      "manual": "Manuell",
+      "event": "System"
+    },
+    "filter": {
+      "alleKonten": "Alle Konten",
+      "alleTypen": "Alle Typen"
+    },
+    "action": {
+      "erfassen": "Buchung erfassen",
+      "storno": "Stornieren",
+      "stornoConfirm": "Diese Buchung wirklich stornieren? Es wird eine Gegenbuchung erstellt; das Original bleibt erhalten."
+    },
+    "ledger": {
+      "empty": "Keine Buchungen in diesem Jahr.",
+      "truncated": "Mehr als {cap} Buchungen in diesem Jahr — es wird nur ein Ausschnitt angezeigt. Berichte/KPIs berücksichtigen alle Buchungen."
+    },
+    "kategorie": {
+      "spenden": "Spenden",
+      "mitgliedsbeitraege": "Mitgliedsbeiträge",
+      "madrasa_gebuehren": "Madrasa-Gebühren",
+      "foerderpartner": "Förderpartner",
+      "veranstaltungen_einnahme": "Veranstaltungen (Einnahme)",
+      "zuschuesse": "Zuschüsse",
+      "sonstige_einnahmen": "Sonstige Einnahmen",
+      "miete": "Miete",
+      "nebenkosten": "Nebenkosten",
+      "gehaelter_honorare": "Gehälter & Honorare",
+      "instandhaltung": "Instandhaltung",
+      "veranstaltungen_ausgabe": "Veranstaltungen (Ausgabe)",
+      "verwaltung": "Verwaltung",
+      "zakat_weiterleitung": "Zakat-Weiterleitung",
+      "sonstige_ausgaben": "Sonstige Ausgaben"
+    },
+    "dialog": {
+      "title": "Buchung erfassen",
+      "buchungsdatum": "Buchungsdatum",
+      "betrag": "Betrag (€)",
+      "zahlungskanal": "Zahlungskanal",
+      "beschreibung": "Beschreibung",
+      "beleg": "Beleg (optional)",
+      "belegHint": "PDF, JPEG oder PNG, max. 5 MB.",
+      "abbrechen": "Abbrechen",
+      "speichern": "Speichern"
+    },
+    "eur": {
+      "einnahmen": "Einnahmen",
+      "ausgaben": "Ausgaben",
+      "summe": "Summe",
+      "ueberschuss": "Überschuss / Fehlbetrag"
+    },
+    "kasse": {
+      "konto": "Konto",
+      "anfang": "Anfangsbestand",
+      "einnahmen": "Einnahmen",
+      "ausgaben": "Ausgaben",
+      "ende": "Endbestand",
+      "bankInklOther": "Bank (inkl. sonstige Konten)",
+      "gesamt": "Gesamt"
+    },
+    "settings": {
+      "enabled": "Finanzmodul aktivieren",
+      "enabledHint": "Schaltet Kassenbuch, EÜR und Berichte für Admins frei.",
+      "startYear": "Startjahr Buchführung",
+      "barStart": "Anfangsbestand Bar (€)",
+      "bankStart": "Anfangsbestand Bank (€)",
+      "hardLock": "Buchungssperre bis",
+      "hardLockHint": "Manuelle Buchungen mit Datum bis einschließlich dieses Tags werden abgelehnt.",
+      "save": "Speichern",
+      "saving": "Speichert …",
+      "saved": "Einstellungen gespeichert."
+    },
     "error": {
       "finance_period_locked": "Diese Buchungsperiode ist gesperrt. Korrektur nur über eine Storno- oder Gegenbuchung.",
       "transaction_immutable": "Buchungen sind unveränderlich. Nur die interne Notiz kann geändert werden; Korrekturen über Storno.",
@@ -3263,7 +3383,11 @@
       "cannot_storno_a_storno": "Eine Storno-Buchung kann nicht erneut storniert werden.",
       "already_storniert": "Diese Buchung wurde bereits storniert.",
       "transaction_not_found": "Buchung nicht gefunden.",
-      "beleg_nummer_collision_exhausted": "Belegnummer konnte nicht vergeben werden. Bitte erneut versuchen."
+      "beleg_nummer_collision_exhausted": "Belegnummer konnte nicht vergeben werden. Bitte erneut versuchen.",
+      "forbidden": "Keine Berechtigung für diese Aktion.",
+      "betrag_invalid": "Bitte einen gültigen Betrag größer 0 eingeben.",
+      "beschreibung_short": "Beschreibung muss mindestens 3 Zeichen lang sein.",
+      "generic": "Vorgang fehlgeschlagen. Bitte erneut versuchen."
     }
   },
   "mitgliedsbeitraege": {

@@ -2,6 +2,8 @@
 
 import { getAdminPB } from "@/lib/pocketbase-admin";
 import { logAudit } from "@/lib/audit";
+import { financeSettingsSchema, type FinanceSettingsInput } from "@/lib/validations";
+import { assertFinanceAccess } from "@/lib/finance-permissions";
 import type { Mosque, Settings } from "@/types";
 
 // =========================================
@@ -16,21 +18,23 @@ export async function getFeatureFlags(mosqueId: string): Promise<{
   team_enabled: boolean;
   sponsors_enabled: boolean;
   contact_enabled: boolean;
+  finance_enabled: boolean;
 }> {
   try {
     const pb = await getAdminPB();
     const record = await pb
       .collection("settings")
       .getFirstListItem(`mosque_id = "${mosqueId}"`, {
-        fields: "team_enabled,sponsors_enabled,contact_enabled",
+        fields: "team_enabled,sponsors_enabled,contact_enabled,finance_enabled",
       });
     return {
       team_enabled: record.team_enabled ?? false,
       sponsors_enabled: record.sponsors_enabled ?? false,
       contact_enabled: record.contact_enabled ?? false,
+      finance_enabled: record.finance_enabled ?? false,
     };
   } catch {
-    return { team_enabled: false, sponsors_enabled: false, contact_enabled: false };
+    return { team_enabled: false, sponsors_enabled: false, contact_enabled: false, finance_enabled: false };
   }
 }
 
@@ -317,6 +321,11 @@ export async function getPortalSettings(mosqueId: string): Promise<{
         membership_default_fee_cents: 1200,
         membership_default_interval: "monthly",
         membership_reconcile_cursor: "",
+        finance_hard_lock_until: "",
+        finance_enabled: false,
+        kassenbuch_start_year: new Date().getFullYear(),
+        kassenbuch_bar_start_cents: 0,
+        kassenbuch_bank_start_cents: 0,
         sepa_enabled: true,
         verein_anschrift: "",
         verein_steuernummer: "",
@@ -448,6 +457,104 @@ export async function updateMadrasaFeeSettings(
   } catch (error) {
     console.error("[settings] updateMadrasaFeeSettings:", error);
     return { success: false, error: "Madrasa-Gebühren-Einstellungen konnten nicht gespeichert werden." };
+  }
+}
+
+// =========================================
+// Finanzmodul (Sprint 4)
+// =========================================
+
+export async function getFinanceSettings(mosqueId: string): Promise<{
+  success: boolean;
+  data?: FinanceSettingsInput;
+  error?: string;
+}> {
+  try {
+    const pb = await getAdminPB();
+    try {
+      const record = await pb
+        .collection("settings")
+        .getFirstListItem(`mosque_id = "${mosqueId}"`, {
+          fields:
+            "finance_enabled,kassenbuch_start_year,kassenbuch_bar_start_cents,kassenbuch_bank_start_cents,finance_hard_lock_until",
+        });
+      return {
+        success: true,
+        data: {
+          finance_enabled: record.finance_enabled ?? false,
+          kassenbuch_start_year: record.kassenbuch_start_year || new Date().getFullYear(),
+          kassenbuch_bar_start_cents: record.kassenbuch_bar_start_cents || 0,
+          kassenbuch_bank_start_cents: record.kassenbuch_bank_start_cents || 0,
+          finance_hard_lock_until: record.finance_hard_lock_until || "",
+        },
+      };
+    } catch {
+      return {
+        success: true,
+        data: {
+          finance_enabled: false,
+          kassenbuch_start_year: new Date().getFullYear(),
+          kassenbuch_bar_start_cents: 0,
+          kassenbuch_bank_start_cents: 0,
+          finance_hard_lock_until: "",
+        },
+      };
+    }
+  } catch (error) {
+    console.error("[settings] getFinanceSettings:", error);
+    return { success: false, error: "Einstellungen konnten nicht geladen werden." };
+  }
+}
+
+export async function updateFinanceSettings(
+  mosqueId: string,
+  data: FinanceSettingsInput
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    // Q4-Guard: Rolle + mosque-match serverseitig
+    const { userId } = await assertFinanceAccess(mosqueId);
+
+    const parsed = financeSettingsSchema.safeParse(data);
+    if (!parsed.success) {
+      const issues = parsed.error.issues.map((i) => `${i.path.join(".")}:${i.message}`).join("; ");
+      return { success: false, error: `Ungültige Eingabe: ${issues}` };
+    }
+
+    const pb = await getAdminPB();
+    let settingsId: string | null = null;
+    try {
+      const record = await pb
+        .collection("settings")
+        .getFirstListItem(`mosque_id = "${mosqueId}"`);
+      settingsId = record.id;
+    } catch {
+      // Kein Settings-Record
+    }
+
+    const payload = { mosque_id: mosqueId, ...parsed.data };
+
+    if (settingsId) {
+      await pb.collection("settings").update(settingsId, payload);
+    } else {
+      await pb.collection("settings").create(payload);
+    }
+
+    await logAudit({
+      mosqueId,
+      userId,
+      action: "update_finance_settings",
+      entityType: "settings",
+      entityId: settingsId || mosqueId,
+      after: { ...parsed.data },
+    });
+
+    return { success: true };
+  } catch (error) {
+    if (error instanceof Error && error.message === "forbidden") {
+      return { success: false, error: "Keine Berechtigung." };
+    }
+    console.error("[settings] updateFinanceSettings:", error);
+    return { success: false, error: "Finanz-Einstellungen konnten nicht gespeichert werden." };
   }
 }
 

@@ -129,6 +129,12 @@ export interface Settings {
   membership_default_fee_cents: number;
   membership_default_interval: "monthly" | "quarterly" | "yearly";
   membership_reconcile_cursor: string; // JSON: { "<stripe_account_id>": { "last_invoice_created": <unix> } }
+  // Finanzmodul (Sprint 3/4)
+  finance_hard_lock_until: string;       // ISO date — MANUAL_WRITE ≤ Datum gesperrt
+  finance_enabled: boolean;              // Admin-Modul-Gate (≠ public_finance_enabled)
+  kassenbuch_start_year: number;         // Initialjahr der Buchführung
+  kassenbuch_bar_start_cents: number;    // Anfangsbestand Bar im Startjahr
+  kassenbuch_bank_start_cents: number;   // Anfangsbestand Bank im Startjahr
   // SEPA-Lastschrift Opt-In pro Moschee
   sepa_enabled: boolean;
   // Vereinsangaben für Spendenbescheinigungen (BMF-konform)
@@ -871,4 +877,51 @@ export interface LedgerAtom {
   };
   beleg_nummer: string;           // "" bei events
   readonly: boolean;              // event=true, manual=false
+}
+
+// --- Finance Reports (Sprint 4) ---
+
+// Paginierte Ledger-Sicht (gemergte Atoms). truncated=true → UI-Hard-Limit erreicht.
+export interface LedgerPage {
+  atoms: LedgerAtom[];
+  total: number;
+  hasMore: boolean;
+  truncated: boolean;
+}
+
+export interface FinanceKPIs {
+  einnahmen_cents: number;
+  ausgaben_cents: number;
+  saldo_cents: number;
+  kassenstand_bar_cents: number;
+  kassenstand_bank_cents: number;
+}
+
+// Bestandsblock je Konto (Kassenbericht). anfang + einnahmen − ausgaben = ende.
+export interface KontoBlock {
+  anfang_cents: number;
+  einnahmen_cents: number;
+  ausgaben_cents: number;
+  ende_cents: number;
+}
+
+export interface EURReport {
+  einnahmen: { kategorie: string; cents: number }[];
+  ausgaben: { kategorie: string; cents: number }[];
+  einnahmen_total_cents: number;
+  ausgaben_total_cents: number;
+  ueberschuss_cents: number;
+}
+
+export interface JahresberichtReport {
+  kpis: FinanceKPIs;
+  monate: { month: string; einnahmen_cents: number; ausgaben_cents: number }[];
+  eur: EURReport;
+}
+
+export interface KassenberichtReport {
+  year: number;
+  bar: KontoBlock;
+  bank: KontoBlock;
+  gesamt: KontoBlock;
 }

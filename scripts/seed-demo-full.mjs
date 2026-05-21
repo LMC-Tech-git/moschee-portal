@@ -1409,6 +1409,10 @@ async function seedFinanceTransactions(adminId) {
     { typ: "ausgabe",  kategorie: "instandhaltung",         betrag_cents: 18500, konto_typ: "cash", zahlungskanal: "bar",          beschreibung: "Reparatur Waschraum",              daysBack: 35 },
     { typ: "ausgabe",  kategorie: "verwaltung",             betrag_cents: 4500,  konto_typ: "cash", zahlungskanal: "bar",          beschreibung: "Büromaterial",                     daysBack: 20 },
     { typ: "ausgabe",  kategorie: "sonstige_ausgaben",      betrag_cents: 9000,  konto_typ: "bank", zahlungskanal: "ueberweisung", beschreibung: "Versicherung (anteilig)",          daysBack: 10 },
+    // Vorjahr-Buchungen → Mehrjahr-Kassenbericht-Carryover in der Demo sichtbar
+    { typ: "einnahme", kategorie: "spenden",                betrag_cents: 30000, konto_typ: "bank", zahlungskanal: "ueberweisung", beschreibung: "Vorjahr: Großspende",              daysBack: 470 },
+    { typ: "einnahme", kategorie: "mitgliedsbeitraege",     betrag_cents: 12000, konto_typ: "cash", zahlungskanal: "bar",          beschreibung: "Vorjahr: Barbeiträge",             daysBack: 440 },
+    { typ: "ausgabe",  kategorie: "miete",                  betrag_cents: 120000, konto_typ: "bank", zahlungskanal: "ueberweisung", beschreibung: "Vorjahr: Miete Dezember",          daysBack: 410 },
   ];
 
   // Belegnummer-Counter pro Jahr (JJJJ-NNNN), Sortierung nach Datum (alt→neu).
@@ -1590,6 +1594,11 @@ async function seedSettings() {
     recurring_donations_enabled: true,
     recurring_min_cents: 1000,
     recurring_quick_amounts: "1000,2000,5000,10000",
+    // Finanzmodul (Sprint 4): aktiviert + Kassenbuch-Startwerte (Vorjahr)
+    finance_enabled: true,
+    kassenbuch_start_year: new Date().getFullYear() - 1,
+    kassenbuch_bar_start_cents: 50000,
+    kassenbuch_bank_start_cents: 250000,
     verein_anschrift:
       "DITIB Moschee Demo e.V.\nMusterstraße 12\n89073 Ulm",
     verein_steuernummer: "88/250/01234",

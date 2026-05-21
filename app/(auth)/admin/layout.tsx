@@ -21,6 +21,7 @@ import {
   Crown,
   Edit3,
   Handshake,
+  Wallet,
   Menu,
   X,
 } from "lucide-react";
@@ -46,6 +47,7 @@ const TREASURER_ALLOWED_PREFIXES = [
   "/admin/spenden",
   "/admin/kampagnen",
   "/admin/mitgliedsbeitraege",
+  "/admin/finanzen",
 ];
 const SECRETARY_ALLOWED_PREFIXES = [
   "/admin/mitglieder",
@@ -69,7 +71,7 @@ export default function AdminLayout({
 }) {
   const t = useTranslations("admin");
   const { user, isAuthenticated, isLoading } = useAuth();
-  const { mosque, mosqueId, teamEnabled, setTeamEnabled, sponsorsEnabled, setSponsorsEnabled } = useMosque();
+  const { mosque, mosqueId, teamEnabled, setTeamEnabled, sponsorsEnabled, setSponsorsEnabled, financeEnabled, setFinanceEnabled } = useMosque();
   const router = useRouter();
   const pathname = usePathname();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
@@ -138,6 +140,13 @@ export default function AdminLayout({
       roles: ["admin", "super_admin", "treasurer"],
     },
     {
+      label: t("quickAccess.finanzen.title"),
+      href: "/admin/finanzen",
+      icon: Wallet,
+      roles: ["admin", "super_admin", "treasurer"],
+      feature: "finance" as const,
+    },
+    {
       label: t("quickAccess.madrasa.title"),
       href: "/admin/madrasa",
       icon: BookOpen,
@@ -197,6 +206,7 @@ export default function AdminLayout({
       if (result.success && result.settings) {
         setTeamEnabled(result.settings.team_enabled ?? false);
         setSponsorsEnabled(result.settings.sponsors_enabled ?? false);
+        setFinanceEnabled(result.settings.finance_enabled ?? false);
       }
     });
   }, [mosqueId]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -240,6 +250,7 @@ export default function AdminLayout({
     if (!(item.roles as string[]).includes(role ?? "")) return false;
     if ("feature" in item && item.feature === "team" && !teamEnabled) return false;
     if ("feature" in item && item.feature === "sponsors" && !sponsorsEnabled) return false;
+    if ("feature" in item && item.feature === "finance" && !financeEnabled) return false;
     return true;
   });
 
