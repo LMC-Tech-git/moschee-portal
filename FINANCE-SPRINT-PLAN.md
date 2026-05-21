@@ -119,9 +119,9 @@ erste UI kommt Sprint 4a.
 |--------|--------|--------|
 | **1** | Storage-Layer (Collections, emitFinanceEvent, Idempotenz, Sweeper-Grundgerüst) | ✅ fertig |
 | **2** | Projection (LedgerAtom) + createIncome (Donation→Event), beide paid-Pfade, Lock-Recovery | ✅ fertig |
-| **3** | **createManualTransaction + Storno + Belegnummer-Sequencer + toLedgerAtom(Transaction)** | ➡️ nächstes |
-| **4a** | Ledger-Merge (Events + manuelle) + read-only Tabelle/Card-UI + EÜR + Jahresbericht | offen |
-| **4b** | Kassenbericht mit Jahres-Carryover (Endbestand N−1 = Anfang N), Mehrjahr-Fixture-Test | offen |
+| **3** | createManualTransaction + Storno + Belegnummer-Sequencer + toLedgerAtom(Transaction) | ✅ fertig (`dee7cd2`) |
+| **4a** | **Ledger-Merge (Events + manuelle) + read-only Tabelle/Card-UI + EÜR + Jahresbericht** | ➡️ nächstes |
+| **4b** | **Kassenbericht mit Jahres-Carryover (Endbestand N−1 = Anfang N), Mehrjahr-Fixture-Test** | ➡️ nächstes |
 | **5** | refundIncome + Stripe-Refund-Webhook + student_fees/sponsors-Hooks; Refund-Sweeper/Recon scharf | offen |
 | **6** | XLSX-Steuerberater-Export → KI-Kategorisierung → Permissions → Demo-Seed → Datenschutz | offen |
 
@@ -233,13 +233,161 @@ Plan trennt sauber.)
 3. **Beleg-Datei in PB**: File-Upload via FormData gegen PB; SHA-256 serverseitig vor Upload. Immutable nach Create (kein Replace-Pfad bauen).
 4. **`"use server"`-Falle**: Sequence-Helper + Validations nicht versehentlich aus server-Datei als Konstante exportieren.
 
+> **Sprint 3 IST-STAND (umgesetzt, Commit `dee7cd2`):** wie geplant + leicht erweitert.
+> Neu: `lib/finance-pb-errors.ts` (`isUniqueViolation`/`isUniqueViolationOnField`, aus
+> finance-events.ts extrahiert DRY), `lib/finance-sequence.ts` (`formatBelegNummer`,
+> `getNextBelegHint`, `bumpBelegHint`, `insertTransactionWithBelegNummer` mit UNIQUE-Retry
+> max 6 + FormData-pro-Versuch-neu), `lib/actions/finance.ts` (`updateTransactionNote`
+> note-only, `getManualTransactions`). Geändert: `finance-domain.ts`
+> (`createManualTransaction`+`stornoTransaction` scharf, `getFinanceLockSettings`),
+> `finance-to-ledger-atom.ts` (Overload + `assertTransactionIntegrity`), `validations.ts`
+> (3 Schemas), `constants.ts` (`FINANCE_CATEGORY_VALUES` Single-Source für Zod-Enum),
+> `demo.ts` (`DEMO_LIMITS.transactions=100`), `migrate-v1.mjs` (`settings.finance_hard_lock_until`),
+> `seed-demo-full.mjs` (10 Demo-Buchungen). Tests: test-manual-transaction/storno/sequence.mts.
+> Storno-Netting **emergent** (invertiertes classification + gleiche kategorie). Keine UI.
+
+---
+
+## 4b. ➡️ Sprint 4 — Detailplan: Ledger-Merge + UI + EÜR + Kassenbericht
+
+**Ziel:** Erste **sichtbare** Finanz-UI. Admin sieht Kassenbuch (Events + manuelle
+Buchungen gemerged, read-only), erfasst manuelle Buchungen + Storno über UI, sieht
+EÜR + Jahresbericht + Kassenbericht. Aufgeteilt in **4a** (Merge + UI + EÜR +
+Jahresbericht) und **4b** (Kassenbericht mit Bestandsfortschreibung).
+
+### ⚠️ Vorbedingung — Settings-Lücke schließen (Migration)
+Kassenbericht braucht Anfangsbestände. Aktuell existiert in `settings` nur
+`finance_hard_lock_until` + `public_finance_enabled`. **Fehlen** (in `migrate-v1.mjs`
+idempotent ergänzen, Block bei „18b. settings: Finance-Felder"):
+- `finance_enabled` bool (default false) — Modul-Toggle (admin-seitig; `public_finance_enabled` ist separat fürs öffentliche Portal)
+- `kassenbuch_start_year` number — Initialjahr der Buchführung
+- `kassenbuch_bar_start_cents` number (default 0) — Anfangsbestand Bar im Startjahr
+- `kassenbuch_bank_start_cents` number (default 0) — Anfangsbestand Bank im Startjahr
+
+### 4a — Build-Reihenfolge
+
+**1. `lib/actions/finance.ts` — Read/Report-Layer (3 sauber getrennte Funktionen)**
+- **`getLedgerAtoms(mosqueId, {year, konto?, typ?, kategorie?, page?, perPage?})`** →
+  paginierte `LedgerAtom[]` + `{total, hasMore}`:
+  - Lädt **jahrweise vollständig** beide Streams: `finance_source_events`
+    (occurred_at-Jahr) + `transactions` (buchungsdatum-Jahr), Tenant-scoped via getFinancePB.
+  - Mappt je via `toLedgerAtom` (Overload existiert), **additive Union, KEIN Override**.
+  - Sort: Standard-Journal `datum ASC, beleg_nummer ASC, id ASC`.
+  - **In-Memory-Pagination** (Plan: kein Materialized-Layer Phase 1). **UI-Hard-Limit
+    ~10.000 Zeilen/Jahr** → bei Überschreitung Warn-Flag im Return (UI zeigt Banner).
+  - Filter `konto`/`typ`/`kategorie` post-merge in JS.
+- **`getFinanceKPIs(mosqueId, year)`** → `{einnahmen_cents, ausgaben_cents, saldo_cents,
+  kassenstand_bar_cents, kassenstand_bank_cents}`:
+  - **NICHT** über getLedgerAtoms (10k-Limit). Eigene gefilterte Fetches +
+    JS-Summen (PB <0.23 hat **kein** GROUP BY in REST → fetch-by-classification über
+    Index `idx_*_mosque_class`, dann `forEach`-Summe — Map-Iteration `forEach`!).
+  - Kassenstand Bar/Bank = Anfangsbestand (Settings) + Σ signed bis Jahresende je `konto_typ`.
+- **`getEUR(mosqueId, year)`** → `{einnahmen: {kategorie, cents}[], ausgaben:
+  {kategorie, cents}[], ueberschuss_cents}`:
+  - Gruppierung **ausschließlich über persistiertes `classification` + `kategorie`**
+    (nie event_type/typ). Σ signed je Kategorie. Überschuss = ΣEinnahmen − ΣAusgaben.
+  - Storno nettet automatisch (invertiertes classification, gleiche kategorie).
+- **`getJahresbericht(mosqueId, year)`** → KPIs + Monatsverlauf (12 Buckets, je
+  einnahmen/ausgaben) + Kategorie-Aufstellung (= getEUR). Für recharts-Chart.
+
+**2. `lib/actions/settings.ts` — `getFinanceSettings` / `updateFinanceSettings`**
+- Pattern wie `getMadrasaFeeSettings`/`updateMadrasaFeeSettings`.
+- get: `{finance_enabled, kassenbuch_start_year, kassenbuch_bar_start_cents,
+  kassenbuch_bank_start_cents, finance_hard_lock_until}`.
+- update: Zod `financeSettingsSchema` (neu in validations.ts). Audit `settings.finance_updated`.
+
+**3. UI `app/(auth)/admin/finanzen/page.tsx`** (`"use client"`, Pattern wie
+`admin/spenden/page.tsx`):
+- Button-Tabs: **Kassenbuch | EÜR | Berichte | Einstellungen** (Kassenbericht-Tab kommt 4b).
+- **Kassenbuch-Tab:** Jahr-Picker + Konto-/Typ-Filter; KPI-Tiles via
+  `components/shared/KPITile.tsx` (Einnahmen/Ausgaben/Saldo/Kassenstand Bar/Bank);
+  **Desktop: Tabelle, Mobile: Card-Liste** (grid-cols-1, kein overflow-x, Plan-Pflicht);
+  Event-Zeilen mit Quelle-Badge + „read-only", manuelle Zeilen mit Storno-Button;
+  **„Buchung erfassen"-Dialog** (Shadcn `dialog`) → ruft `createManualTransaction`
+  (existiert Sprint 3); Beleg-Upload (FormData); pro manueller Zeile „Stornieren"
+  → `stornoTransaction`. Bei `finance_period_locked`/`transaction_immutable` Fehler-Toast.
+- **EÜR-Tab:** Jahr-Select, Tabelle Einnahmen/Ausgaben je Kategorie + Überschuss-Summe.
+- **Berichte-Tab:** Jahresbericht — KPIs + Monats-Chart (recharts, schon im Projekt) + Kategorie-Tabelle.
+- **Einstellungen-Tab:** finance_enabled Toggle, kassenbuch_start_year, Anfangsbestände
+  Bar/Bank (€→cents), finance_hard_lock_until (date). → updateFinanceSettings.
+- Gating: ganze Seite nur wenn `finance_enabled` (sonst Hinweis „in Einstellungen aktivieren").
+
+**4. Nav `app/(auth)/admin/layout.tsx`**
+- Eintrag `{label: t("quickAccess.finanzen.title"), href: "/admin/finanzen", icon: Wallet}`
+  (lucide `Wallet` importieren). Gated `finance_enabled` (über getFeatureFlags o.ä.).
+
+**5. Komponenten `components/finance/`**
+- `LedgerTable.tsx` (Desktop) + `LedgerCardList.tsx` (Mobile) — gemeinsame `LedgerAtom[]`-Props.
+- `BuchungErfassenDialog.tsx` — Form (Datum, Typ, Betrag €, Kategorie-Select aus
+  FINANCE_CATEGORIES, Konto, Zahlungskanal, Beschreibung, Beleg-Upload).
+- `EurTable.tsx`, `JahresberichtChart.tsx`, `FinanceSettingsForm.tsx`, `KassenstandTiles.tsx`.
+
+**6. i18n `messages/de.json` + `tr.json`** — kompletter `finanzen.*`-Namespace
+(Tabs, Spalten, KPI-Labels, Dialog-Felder, Kategorie-Labels `finanzen.kategorie.<id>`,
+Einstellungen, Fehler bereits aus Sprint 3 vorhanden) + `quickAccess.finanzen.title`.
+Audit `settings.finance_updated` Label.
+
+### 4b — Kassenbericht (eigener DoD, fehleranfälligstes Stück)
+
+**`getKassenbericht(mosqueId, year)`** → `{bar: {anfang, einnahmen, ausgaben, ende},
+bank: {…}, gesamt: {…}}`:
+- **Carryover-Regel:** `Anfangsbestand Jahr N = Endbestand Jahr N−1`, **iterativ ab
+  `kassenbuch_start_year`** (dort Settings-Startwerte `kassenbuch_bar/bank_start_cents`).
+- Pro Jahr je `konto_typ` (bar/bank): Σ signed_amount aller LedgerAtoms des Jahres.
+  `Endbestand = Anfangsbestand + Σ`. Iteration start_year → angefragtes Jahr.
+- `konto_typ: "other"` → in „bank" o. separater Topf (Entscheidung: zu „bank" mergen, dokumentieren).
+- Performance: pro Jahr gefilterte Σ-Query (nicht alle Atome laden).
+
+**UI:** Kassenbericht-Tab — Tabelle Anfangsbestand/Einnahmen/Ausgaben/Endbestand je
+Bar/Bank/Gesamt, Jahr-Select.
+
+**Test (Pflicht, Mehrjahr-Fixture):** `scripts/test-kassenbericht.mts` — Demo: 3 Jahre
+Buchungen inkl. **ein Jahr ohne Buchungen** (Lücke). Verifiziert: Anfang N = Ende N−1
+über alle 3 Jahre korrekt; Bar/Bank getrennt; Startjahr nutzt Settings-Werte. Cleanup.
+
+### 4 — Test-Skripte (Demo-Guard + finally-Cleanup, echte Module via tsx)
+- `scripts/test-ledger-merge.mts` — Event + manuelle Buchung im selben Jahr →
+  getLedgerAtoms liefert beide, korrekt sortiert, source_system-Tags richtig,
+  additive Union (kein Override bei gleichem Datum).
+- `scripts/test-eur.mts` — bekannte Buchungen → Σ je Kategorie + Überschuss exakt;
+  Storno nettet in Original-Kategorie (kein Phantom).
+- `scripts/test-kassenbericht.mts` — siehe 4b.
+- `test-finance-unit.mts` erweitern: getEUR-Aggregations-Helper falls extrahiert.
+
+### 4 — Definition of Done (messbar)
+- [ ] Migration: 4 settings-Felder ergänzt (dry-run + real), idempotent
+- [ ] getLedgerAtoms: Event + manuelle gemerged, sortiert, paginiert, source_system korrekt
+- [ ] getFinanceKPIs: Einnahmen/Ausgaben/Saldo + Kassenstand Bar/Bank stimmen
+- [ ] getEUR: Σ je Kategorie über `classification`, Überschuss korrekt, Storno nettet
+- [ ] getJahresbericht: 12 Monatsbuckets + Kategorien
+- [ ] getKassenbericht: Anfang N = Ende N−1 über 3-Jahr-Fixture (inkl. Leerjahr)
+- [ ] UI: Kassenbuch-Tabelle (Desktop) + Card-Liste (Mobile, kein overflow-x)
+- [ ] UI: Buchung-erfassen-Dialog ruft createManualTransaction; Storno-Button ruft stornoTransaction
+- [ ] UI: EÜR-Tab + Jahresbericht-Chart + Einstellungen-Tab funktionieren
+- [ ] Nav-Eintrag „Finanzen" gated auf finance_enabled
+- [ ] i18n finanzen.* DE+TR vollständig
+- [ ] Recon weiterhin Δ=0; Build grün (60+/X)
+- [ ] EÜR/KPI-Aggregation NIE über event_type/typ (nur classification) — grep-Gate
+
+### 4 — Risiken
+1. **PB hat kein GROUP BY** → Aggregation = fetch-filtered + JS-Σ. Bei vielen Zeilen
+   teuer; Phase-1-Limit ~10k/Jahr akzeptiert. KPI/EÜR fetchen nur nötige Felder.
+2. **Carryover-Bug (4b)** = häufigste Fehlerquelle → Mehrjahr-Fixture-Test PFLICHT,
+   inkl. Leerjahr + Startjahr-Settings.
+3. **konto_typ "other"** Behandlung explizit dokumentieren (→ bank).
+4. **Mobile-Tabelle** — Card-Liste nicht vergessen (Plan-Pflicht, kein overflow-x).
+5. **finance_enabled vs public_finance_enabled** nicht verwechseln (zwei Felder).
+6. **createManualTransaction/storno** sind Sprint-3-Server-Actions — UI nur verdrahten,
+   nicht neu bauen.
+
 ---
 
 ## 5. Wie neue Session starten
 
 1. Dieses Dokument + Originalplan (`.claude/plans/...ancient-sky.md`) als Kontext geben.
 2. Tests laufen lassen zur Verifikation des Ist-Stands (siehe unten).
-3. Sprint 3 gemäß §4 umsetzen, Reihenfolge einhalten.
+3. **Sprint 4 gemäß §4b umsetzen** (Sprint 1–3 fertig); Reihenfolge einhalten,
+   zuerst Settings-Migration-Lücke schließen.
 4. Nach Fertigstellung: `git add` (betroffene Dateien) → commit → push.
 
 ### Verifikations-Befehle (Ist-Stand prüfen)
