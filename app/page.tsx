@@ -10,6 +10,8 @@ import {
   Users,
   BookOpen,
   Bell,
+  Wallet,
+  Banknote,
   ArrowRight,
   CheckCircle2,
   LogIn,
@@ -73,6 +75,20 @@ export default function HomePage() {
       description: tFeature("madrasa.desc"),
       iconBg: "bg-teal-50",
       iconColor: "text-teal-600",
+    },
+    {
+      icon: Wallet,
+      title: tFeature("finance.title"),
+      description: tFeature("finance.desc"),
+      iconBg: "bg-emerald-50",
+      iconColor: "text-emerald-700",
+    },
+    {
+      icon: Banknote,
+      title: tFeature("membership.title"),
+      description: tFeature("membership.desc"),
+      iconBg: "bg-yellow-50",
+      iconColor: "text-yellow-700",
     },
   ];
 

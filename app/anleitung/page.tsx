@@ -20,13 +20,15 @@ import {
   Languages,
   Mail,
   UserCheck,
+  Wallet,
+  Banknote,
   ArrowRight,
   ExternalLink,
 } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { FEATURES } from "@/lib/docs/features";
 import { QUICKSTART } from "@/lib/docs/quickstart";
-import { MADRASA_GUIDES, ADMIN_TOUR, MEMBER_TOUR } from "@/lib/docs/guide";
+import { MADRASA_GUIDES, ADMIN_TOUR, MEMBER_TOUR, FINANCE_GUIDE, MEMBERSHIP_GUIDE } from "@/lib/docs/guide";
 import type { PhaseGuide } from "@/lib/docs/guide";
 import { FAQ_ITEMS } from "@/lib/docs/faq";
 import { MadrasaGuide } from "@/components/anleitung/MadrasaGuide";
@@ -46,6 +48,8 @@ const ICON_MAP = {
   languages: Languages,
   mail: Mail,
   "user-check": UserCheck,
+  wallet: Wallet,
+  banknote: Banknote,
 } as const;
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -98,6 +102,8 @@ export default async function AnleitungPage() {
   const translatedPhases = resolvePhases(MADRASA_GUIDES);
   const adminPhases = resolvePhases(ADMIN_TOUR);
   const memberPhases = resolvePhases(MEMBER_TOUR);
+  const financePhases = resolvePhases(FINANCE_GUIDE);
+  const membershipPhases = resolvePhases(MEMBERSHIP_GUIDE);
 
   // Resolve FAQ
   const faqItems = FAQ_ITEMS.map((item) => ({
@@ -261,6 +267,32 @@ export default async function AnleitungPage() {
             {t("memberTourSubtitle")}
           </p>
           <MadrasaGuide phases={memberPhases} />
+        </div>
+      </section>
+
+      {/* Finance Guide */}
+      <section id="finance-guide" className="bg-gray-50 py-16">
+        <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+          <h2 className="mb-2 text-center text-2xl font-extrabold text-gray-900">
+            {t("financeGuideTitle")}
+          </h2>
+          <p className="mb-10 text-center text-sm text-gray-500">
+            {t("financeGuideSubtitle")}
+          </p>
+          <MadrasaGuide phases={financePhases} />
+        </div>
+      </section>
+
+      {/* Membership Guide */}
+      <section id="membership-guide" className="py-16">
+        <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+          <h2 className="mb-2 text-center text-2xl font-extrabold text-gray-900">
+            {t("membershipGuideTitle")}
+          </h2>
+          <p className="mb-10 text-center text-sm text-gray-500">
+            {t("membershipGuideSubtitle")}
+          </p>
+          <MadrasaGuide phases={membershipPhases} />
         </div>
       </section>
 

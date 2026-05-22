@@ -12,7 +12,9 @@ export type FeatureDoc = {
     | "repeat"
     | "languages"
     | "mail"
-    | "user-check";
+    | "user-check"
+    | "wallet"
+    | "banknote";
   titleKey: string;
   descKey: string;
   color: { bg: string; text: string };
@@ -106,5 +108,19 @@ export const FEATURES: FeatureDoc[] = [
     color: { bg: "bg-lime-50", text: "text-lime-700" },
     titleKey: "features.multilingual.title",
     descKey: "features.multilingual.desc",
+  },
+  {
+    key: "finance",
+    iconKey: "wallet",
+    color: { bg: "bg-emerald-50", text: "text-emerald-700" },
+    titleKey: "features.finance.title",
+    descKey: "features.finance.desc",
+  },
+  {
+    key: "membership",
+    iconKey: "banknote",
+    color: { bg: "bg-yellow-50", text: "text-yellow-700" },
+    titleKey: "features.membership.title",
+    descKey: "features.membership.desc",
   },
 ];

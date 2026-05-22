@@ -62,6 +62,7 @@
 | **Madrasa: Anwesenheit + Statistiken + Leistungsbewertung** (1–5 Skala je Session, Trend-Detection, Eltern sehen Schnitt) | `app/(auth)/admin/madrasa/[id]/attendance/`, `components/madrasa/PerformanceStats.tsx` |
 | **Madrasa: Gebühren (Bar/Überweisung/Erlassen)** | `app/(auth)/admin/madrasa/gebuehren/` |
 | **Finanzen (Kassenbuch, EÜR, Berichte, Kassenbericht, Einstellungen)** — gated auf `finance_enabled`, Rolle admin/super_admin/treasurer; Event+manuelle Buchungen gemerged read-only, Buchung erfassen + Storno, Mobile Card-Liste | `app/(auth)/admin/finanzen/`, `components/finance/` |
+| **Mitgliedsbeiträge** — Perioden-Picker (monatlich/vierteljährlich/jährlich), Bulk-Erstellen, KPI-Tiles (offen/ausstehend/bezahlt/fehlgeschlagen/erlassen/Dauerauftrag), Bar/Überweisung/Erlassen, Einzelkonfiguration pro Mitglied (Betrag/Intervall/Befreiung), Stripe-Dauerauftrags-Erkennung | `app/(auth)/admin/mitgliedsbeitraege/`, `lib/actions/membership-fees.ts` |
 | **Förderpartner (CRUD, Stripe, Kontakt, Laufzeit, Erinnerungs-Indikator)** | `app/(auth)/admin/foerderpartner/` |
 | **Leitung/Team verwalten** — Admin-Pendant zur öffentlichen Team-Seite, CRUD für Vorstand/Imam/Sekretariat-Einträge mit Foto, Rolle, Bio, Sortierung | `app/(auth)/admin/leitung/` |
 | **Demo-Reset Button** (Super-Admin) | `app/(auth)/admin/platform/` |
@@ -122,6 +123,33 @@ Kassenbericht-Carryover (Anfang N = Ende N−1) via geteiltem Helper
 `computeKontoBalancesUpToYearEnd` → KPI-Kassenstand == Kassenbericht-Endbestand;
 `konto_typ "other"` → bank; UI-Hard-Limit ~10.000 Atoms/Jahr (truncated-Banner).
 **Hinweis:** Direkter PB-Edit auf Spenden umgeht die Emit-Pipeline → Drift-Sweeper nötig.
+
+### Mitgliedsbeiträge-Modul
+
+Verwaltung monatlicher, vierteljährlicher oder jährlicher Mitgliedsbeiträge inkl.
+individuellem Konfiguration pro Mitglied, Stripe-Dauerauftrags-Integration und
+vollständiger Zahlungserfassung (Bar, Überweisung, Online, Erlassen).
+
+| Baustein | Datei(en) |
+|---|---|
+| **Admin-Seite** (Perioden-Picker, Bulk-Erstellen, KPI-Tiles, Übersichtstabelle, Einzelkonfiguration) | `app/(auth)/admin/mitgliedsbeitraege/page.tsx` |
+| **Server Actions** (`getMembershipFeeOverview`, `getMembershipConfigs`, `createPeriodFees`, `markMembershipFeePaid`, `markMembershipFeeWaived`, `upsertMembershipConfig`) | `lib/actions/membership-fees.ts` |
+| **Settings** (`getMembershipFeeSettings` — `membership_fees_enabled`, `membership_default_fee_cents`, `membership_default_interval`) | `lib/actions/settings.ts` |
+| **Stripe-Integration** — Mitglieder mit aktivem Dauerauftrag werden automatisch erkannt (hasActiveSub), Stripe-Zahlung aus Member-Profil heraus | `lib/actions/membership-fees.ts`, `app/(auth)/member/profile/` |
+
+**Collections:** `membership_fees` (mosque_id, user_id, period_key, amount_cents, status, payment_method, source, notes), `membership_fee_configs` (pro Mitglied: amount_cents, interval, active, exempt)
+
+**Perioden-Format:** `YYYY-MM` (monatlich), `YYYY-QN` (vierteljährlich), `YYYY` (jährlich)
+
+**Status-Enum:** open / pending / paid / failed / waived
+
+**Intervalle:** monthly / quarterly / yearly (konfigurierbarer Default + Überschreibung pro Mitglied)
+
+**Besonderheiten:**
+- Bulk-Erstellen überspríngt Mitglieder mit bestehendem Eintrag (idempotent)
+- Exempt-Flag: Mitglied von Beitragspflicht befreien ohne Zeile zu erstellen
+- Active-Flag pro Config: Mitglied vorübergehend deaktivieren (kein neuer Beitrag bei Bulk)
+- Stripe-Dauerauftrag-Badge: automatische Erkennung, kein manuelles Bestätigen nötig
 
 ### E-Mail-Infrastruktur
 | Komponente | Beschreibung |
@@ -191,7 +219,7 @@ Kassenbericht-Carryover (Anfang N = Ende N−1) via geteiltem Helper
 | `email.ts` | Gebühren-Erinnerungsmails |
 | `invites.ts` | Einladungen CRUD + Token-Validierung + **E-Mail-Versand** |
 | `dashboard.ts` | Dashboard KPI-Aggregation |
-| `settings.ts` | Einstellungen (Branding, Gebetszeiten, Defaults, Madrasa, Kontaktformular, **Finanzen** inkl. `getFeatureFlags.finance_enabled`) |
+| `settings.ts` | Einstellungen (Branding, Gebetszeiten, Defaults, Madrasa, Kontaktformular, **Finanzen** inkl. `getFeatureFlags.finance_enabled`, **Mitgliedsbeiträge** `getMembershipFeeSettings`/`updateMembershipFeeSettings`) |
 | `finance-events.ts` | Finanz-Event-Emission (einziger Schreibpfad, UNIQUE-Idempotenz) |
 | `finance-domain.ts` | Domain-Orchestrator: `createIncome`, `createManualTransaction`, `stornoTransaction` (`refundIncome` = Sprint 5) |
 | `finance.ts` | Report-Layer: `getLedgerAtoms`/`getFinanceKPIs`/`getEUR`/`getJahresbericht`/`getKassenbericht`/`updateTransactionNote` + UI-Wrapper mit Rollen-Guard |
@@ -206,10 +234,11 @@ Kassenbericht-Carryover (Anfang N = Ende N−1) via geteiltem Helper
 | `team.ts` | Team/Leitung CRUD — Vorstandsmitglieder, Imam, Sekretariat mit Foto/Bio/Sortierung/Gruppe für Leitungs-Seite |
 | `mosques.ts` | Moschee CRUD — Branding, Stripe-Config, Kontaktdaten, public_enabled-Flag (genutzt von Super-Admin + Settings) |
 | `parent-child.ts` | Eltern-Kind-Verknüpfung (Junction-Table) — flexible n:m-Beziehung zwischen Users (Eltern) und Students (Kinder) inkl. Beziehungstyp (Vater/Mutter/Vormund) |
+| `membership-fees.ts` | Mitgliedsbeiträge: `getMembershipFeeOverview`, `getMembershipConfigs`, `createPeriodFees`, `markMembershipFeePaid`, `markMembershipFeeWaived`, `upsertMembershipConfig` |
 
 ---
 
-## 🗃️ PocketBase Collections (28)
+## 🗃️ PocketBase Collections (30)
 
 | Collection | Beschreibung |
 |---|---|
@@ -241,6 +270,8 @@ Kassenbericht-Carryover (Anfang N = Ende N−1) via geteiltem Helper
 | `finance_source_events` | Append-only Event-Log (Finanz-Wahrheit) — `source_event_key` UNIQUE (event-type-abhängige Formel), `event_type`, `classification` (denormalisiert), `betrag_cents`, `kategorie`, `konto_typ`, `occurred_at`, `payload_json` (Zod-strict), Refund-Felder (Sprint 5) |
 | `transactions` | Manuelle Buchungen (immutable) — `buchungsdatum`, `betrag_cents`, `typ`, `classification`, `kategorie`, `beleg_nummer` UNIQUE `(mosque_id, beleg_nummer)`, `beleg_datei`+`beleg_datei_sha256`, `konto_typ`, `quelle` (manuell/storno), `storno_of`, `is_storno`, `interne_notiz` (einzige editierbare Spalte) |
 | `finance_sequences` | Belegnummer-Hint-Counter pro `(mosque_id, year)` UNIQUE (`next_number`; harte Garantie = UNIQUE auf transactions, kein atomares Inkrement) |
+| `membership_fees` | Beitragszeilen (mosque_id, user_id, period_key, amount_cents, status open/pending/paid/failed/waived, payment_method cash/transfer/stripe/waived, source, notes) — UNIQUE `(mosque_id, user_id, period_key)` |
+| `membership_fee_configs` | Per-Mitglied-Konfiguration (mosque_id, user_id, amount_cents, interval monthly/quarterly/yearly, active, exempt) — UNIQUE `(mosque_id, user_id)` |
 
 ---
 

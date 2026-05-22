@@ -52,6 +52,42 @@ const PHASE_COLORS: Record<string, { border: string; bg: string; text: string; b
     text: "text-rose-700",
     badge: "bg-rose-100 text-rose-700",
   },
+  "finance-setup": {
+    border: "border-emerald-200",
+    bg: "bg-emerald-50",
+    text: "text-emerald-700",
+    badge: "bg-emerald-100 text-emerald-700",
+  },
+  "finance-kassenbuch": {
+    border: "border-teal-200",
+    bg: "bg-teal-50",
+    text: "text-teal-700",
+    badge: "bg-teal-100 text-teal-700",
+  },
+  "finance-reports": {
+    border: "border-cyan-200",
+    bg: "bg-cyan-50",
+    text: "text-cyan-700",
+    badge: "bg-cyan-100 text-cyan-700",
+  },
+  "membership-setup": {
+    border: "border-yellow-200",
+    bg: "bg-yellow-50",
+    text: "text-yellow-700",
+    badge: "bg-yellow-100 text-yellow-700",
+  },
+  "membership-manage": {
+    border: "border-orange-200",
+    bg: "bg-orange-50",
+    text: "text-orange-700",
+    badge: "bg-orange-100 text-orange-700",
+  },
+  "membership-stripe": {
+    border: "border-violet-200",
+    bg: "bg-violet-50",
+    text: "text-violet-700",
+    badge: "bg-violet-100 text-violet-700",
+  },
 };
 
 const PHASE_LABELS: Record<string, string> = {
@@ -60,6 +96,12 @@ const PHASE_LABELS: Record<string, string> = {
   parents: "3",
   admin: "★",
   member: "♥",
+  "finance-setup": "1",
+  "finance-kassenbuch": "2",
+  "finance-reports": "3",
+  "membership-setup": "1",
+  "membership-manage": "2",
+  "membership-stripe": "3",
 };
 
 export function MadrasaGuide({ phases }: MadrasaGuideProps) {

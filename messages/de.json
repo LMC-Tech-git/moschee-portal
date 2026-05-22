@@ -208,6 +208,14 @@
     "madrasa": {
       "title": "Madrasa",
       "desc": "Kurse, Schüler, Anwesenheit und Gebühren — alles an einem Ort verwalten."
+    },
+    "finance": {
+      "title": "Finanzbuchhaltung",
+      "desc": "Kassenbuch, EÜR und Jahresbericht — revisionssicher. Spenden fließen automatisch ein, manuelle Buchungen per Klick."
+    },
+    "membership": {
+      "title": "Mitgliedsbeiträge",
+      "desc": "Monatliche, vierteljährliche oder jährliche Beiträge verwalten — mit Bar-, Überweisungs- und Online-Zahlung per Stripe."
     }
   },
   "demo": {
@@ -2934,6 +2942,14 @@
       "multilingual": {
         "title": "Deutsch & Türkisch",
         "desc": "Komplett zweisprachig. Mitglieder und Besucher wählen ihre Sprache selbst — Portal, E-Mails und Eltern-Ansicht."
+      },
+      "finance": {
+        "title": "Finanzbuchhaltung",
+        "desc": "Zwei Buchungsquellen (Spenden + manuell) werden zu einem Kassenbuch gemergt. EÜR, Jahresbericht und Kassenbericht auf Knopfdruck. Revisionssicher, append-only, Storno statt Löschen."
+      },
+      "membership": {
+        "title": "Mitgliedsbeiträge",
+        "desc": "Beitragsperioden automatisch anlegen, individuelle Beträge und Intervalle pro Mitglied konfigurieren, Zahlungen per Bar, Überweisung oder Stripe erfassen. Befreiungen und Dauerauftrag-Erkennung inklusive."
       }
     },
     "quickstartTitle": "In 5 Minuten starten",
@@ -3057,6 +3073,100 @@
         "step3": {
           "title": "Online bezahlen",
           "desc": "Bei offenen Gebühren auf 'Online bezahlen' klicken. Auch Vorauszahlung für mehrere Monate (1/3/6/12) möglich."
+        }
+      }
+    },
+    "financeGuideTitle": "Finanzbuchhaltung — Schritt für Schritt",
+    "financeGuideSubtitle": "Kassenbuch einrichten, Buchungen erfassen und Berichte abrufen.",
+    "financeGuide": {
+      "setup": {
+        "title": "Einrichten",
+        "step1": {
+          "title": "Modul aktivieren",
+          "desc": "Admin → Einstellungen → Finanzen → „Finanzbuchhaltung aktivieren" einschalten. Startjahr (ab wann Buchungen erfasst werden) und optionale Anfangsbestände für Bar- und Bankkonto eingeben."
+        },
+        "step2": {
+          "title": "Belegnummern & Perioden",
+          "desc": "Belegnummern werden automatisch im Format JJJJ-NNNN vergeben. Das Startjahr bestimmt, ab welchem Jahr Daten im Kassenbuch erscheinen. Vorjahresbuchungen sind für den Carryover-Endbestand wichtig."
+        }
+      },
+      "kassenbuch": {
+        "title": "Kassenbuch",
+        "step1": {
+          "title": "Kassenbuch öffnen",
+          "desc": "Admin → Finanzen → Tab „Kassenbuch". Jahr und (optional) Konto (Bank/Bar) oder Typ (Einnahme/Ausgabe) filtern. KPI-Kacheln zeigen Einnahmen, Ausgaben, Saldo und Kassenstände."
+        },
+        "step2": {
+          "title": "Manuelle Buchung erfassen",
+          "desc": "„Buchung erfassen" klicken: Buchungsdatum, Typ (Einnahme/Ausgabe), Betrag in Euro, Kategorie (z. B. Spenden, Betrieb, Miete), Konto (Bank oder Bar), kurze Beschreibung. Optional: Beleg als PDF oder Bild hochladen (max. 5 MB)."
+        },
+        "step3": {
+          "title": "Spenden-Buchungen",
+          "desc": "Bezahlte Spenden fließen automatisch als Einnahme-Zeilen ein (Quelle: „extern", schreibgeschützt). Manuelle Buchungen sind am Beleg-Präfix JJJJ-NNNN erkennbar."
+        },
+        "step4": {
+          "title": "Storno",
+          "desc": "Fehlerhafte Buchungen können über die Storno-Schaltfläche in der Zeile korrigiert werden. Eine kompensierende Gegenbuchung wird automatisch angelegt — das Original bleibt erhalten (revisionssicher, kein Löschen)."
+        }
+      },
+      "reports": {
+        "title": "Berichte & Auswertungen",
+        "step1": {
+          "title": "EÜR (Einnahmen-Überschuss-Rechnung)",
+          "desc": "Tab „EÜR": alle 15 Kategorien mit Einnahmen, Ausgaben und Überschuss für das gewählte Jahr. Stornos verrechnen sich automatisch in der richtigen Kategorie."
+        },
+        "step2": {
+          "title": "Jahresbericht",
+          "desc": "Tab „Berichte": Monatsdiagramm mit Einnahmen und Ausgaben nebeneinander, darunter eine Kategorieübersicht für das gesamte Jahr."
+        },
+        "step3": {
+          "title": "Kassenbericht",
+          "desc": "Tab „Kassenbericht": Anfangsbestand, Einnahmen, Ausgaben und Endbestand je Konto (Bar/Bank/Gesamt). Anfangsbestand wird automatisch als Endbestand des Vorjahres berechnet."
+        }
+      }
+    },
+    "membershipGuideTitle": "Mitgliedsbeiträge — Schritt für Schritt",
+    "membershipGuideSubtitle": "Beiträge einrichten, Perioden verwalten und Zahlungen erfassen.",
+    "membershipGuide": {
+      "setup": {
+        "title": "Einrichten",
+        "step1": {
+          "title": "Modul aktivieren",
+          "desc": "Admin → Einstellungen → Mitgliedsbeiträge → „Mitgliedsbeiträge aktivieren" einschalten. Standardbetrag (z. B. 12,00 €) und Standard-Zahlungsintervall (monatlich, vierteljährlich oder jährlich) festlegen."
+        },
+        "step2": {
+          "title": "Individuelle Konfiguration pro Mitglied",
+          "desc": "Tab „Einzel-Config": Für jedes Mitglied kann ein abweichender Betrag, ein anderes Intervall oder eine vollständige Befreiung (Exempt) eingetragen werden. Mitglieder mit aktivem Stripe-Dauerauftrag zeigen ein Sperr-Symbol — Betrag und Intervall können dort nicht manuell geändert werden."
+        }
+      },
+      "manage": {
+        "title": "Beiträge verwalten",
+        "step1": {
+          "title": "Periode wählen",
+          "desc": "Admin → Mitgliedsbeiträge: Intervall (monatlich, vierteljährlich, jährlich) wählen und mit den Pfeil-Schaltflächen durch die Perioden navigieren. Beispiel: „Mai 2026" oder „Q2 2026" oder „2026"."
+        },
+        "step2": {
+          "title": "Beiträge erstellen",
+          "desc": "„Beiträge erstellen" klicken: Für alle aktiven Mitglieder ohne vorhandenen Eintrag in dieser Periode werden Beitragszeilen angelegt. Bestehende Einträge werden übersprungen (idempotent)."
+        },
+        "step3": {
+          "title": "Zahlung erfassen",
+          "desc": "Pro Mitglied: „Bar" oder „Überweisung" klicken, um eine Zahlung zu bestätigen. „Erlassen" für Mitglieder, die von der Zahlung befreit werden (z. B. sozialer Nachlass). Rot markierte Zeilen haben offene oder fehlgeschlagene Beiträge."
+        },
+        "step4": {
+          "title": "Status-Übersicht",
+          "desc": "KPI-Kacheln oben zeigen die Anzahl offener, ausstehender, bezahlter, fehlgeschlagener, erlassener und automatisch abbuchender Beiträge auf einen Blick."
+        }
+      },
+      "stripe": {
+        "title": "Online-Zahlung & Daueraufträge",
+        "step1": {
+          "title": "Stripe-Daueraufträge",
+          "desc": "Mitglieder mit aktivem Stripe-Dauerauftrag werden automatisch erkannt und mit einem grünen „Auto"-Label markiert. Ihr Beitrag wird direkt per Stripe eingezogen — kein manuelles Bestätigen nötig."
+        },
+        "step2": {
+          "title": "Online-Zahlung für Mitglieder",
+          "desc": "Mitglieder sehen ihre offenen Beiträge im Profil-Tab „Mitgliedsbeiträge" und können direkt online per Karte oder SEPA bezahlen, sofern Stripe für die Moschee aktiviert ist."
         }
       }
     },
