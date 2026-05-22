@@ -395,11 +395,35 @@ export async function getKassenbericht(
 // Domain-Funktionen bleiben guard-frei für Test-/Seed-/System-Aufrufe.
 // ===========================================================================
 
+/**
+ * Server Action wrapper: nimmt FormData entgegen (Next.js serialisiert File
+ * nur über FormData, nicht als Plain-Object-Property).
+ */
 export async function createManualTransactionAction(
-  input: Omit<CreateManualTransactionInput, "userId">
+  formData: FormData
 ): Promise<ManualTransactionResult> {
-  const { userId } = await assertFinanceAccess(input.mosqueId);
-  return createManualTransaction({ ...input, userId });
+  const mosqueId = formData.get("mosqueId") as string;
+  const { userId } = await assertFinanceAccess(mosqueId);
+
+  const betragCents = parseInt(formData.get("betragCents") as string, 10);
+  const belegEntry = formData.get("belegFile");
+  const belegFile =
+    belegEntry instanceof File && belegEntry.size > 0 ? belegEntry : undefined;
+
+  return createManualTransaction({
+    mosqueId,
+    userId,
+    buchungsdatum: formData.get("buchungsdatum") as string,
+    betragCents,
+    typ: formData.get("typ") as "einnahme" | "ausgabe",
+    kategorie: formData.get("kategorie") as string,
+    beschreibung: formData.get("beschreibung") as string,
+    kontoTyp: formData.get("kontoTyp") as import("@/types").KontoTyp,
+    zahlungskanal:
+      (formData.get("zahlungskanal") as import("@/types").Zahlungskanal) ||
+      undefined,
+    belegFile,
+  });
 }
 
 export async function stornoTransactionAction(

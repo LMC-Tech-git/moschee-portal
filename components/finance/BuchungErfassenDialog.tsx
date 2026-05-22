@@ -73,17 +73,19 @@ export function BuchungErfassenDialog({
     }
     setSubmitting(true);
     try {
-      await createManualTransactionAction({
-        mosqueId,
-        buchungsdatum,
-        betragCents,
-        typ,
-        kategorie,
-        beschreibung: beschreibung.trim(),
-        kontoTyp,
-        zahlungskanal,
-        belegFile: belegFile ?? undefined,
-      });
+      const formData = new FormData();
+      formData.append("mosqueId", mosqueId);
+      formData.append("buchungsdatum", buchungsdatum);
+      formData.append("betragCents", String(betragCents));
+      formData.append("typ", typ);
+      formData.append("kategorie", kategorie);
+      formData.append("beschreibung", beschreibung.trim());
+      formData.append("kontoTyp", kontoTyp);
+      formData.append("zahlungskanal", zahlungskanal);
+      if (belegFile) {
+        formData.append("belegFile", belegFile);
+      }
+      await createManualTransactionAction(formData);
       // Reset
       setBetrag("");
       setBeschreibung("");
