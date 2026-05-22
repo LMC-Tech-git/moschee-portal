@@ -3083,7 +3083,7 @@
         "title": "Kurulum",
         "step1": {
           "title": "Modülü etkinleştirin",
-          "desc": "Yönetici → Ayarlar → Finans → „Muhasebeyi etkinleştir" seçeneğini açın. Başlangıç yılını (kayıt tutmaya başlanacak yıl) ve isteğe bağlı olarak kasa ve banka için başlangıç bakiyelerini girin."
+          "desc": "Yönetici → Ayarlar → Finans → 'Muhasebeyi etkinleştir' seçeneğini açın. Başlangıç yılını (kayıt tutmaya başlanacak yıl) ve isteğe bağlı olarak kasa ve banka için başlangıç bakiyelerini girin."
         },
         "step2": {
           "title": "Belge numaraları & dönemler",
@@ -3094,15 +3094,15 @@
         "title": "Kasa Defteri",
         "step1": {
           "title": "Kasa defterini açın",
-          "desc": "Yönetici → Finans → „Kasa Defteri" sekmesi. Yıl ve isteğe bağlı olarak hesap (banka/nakit) veya tür (gelir/gider) filtreleyin. KPI kartları gelir, gider, bakiye ve kasa durumlarını gösterir."
+          "desc": "Yönetici → Finans → 'Kasa Defteri' sekmesi. Yıl ve isteğe bağlı olarak hesap (banka/nakit) veya tür (gelir/gider) filtreleyin. KPI kartları gelir, gider, bakiye ve kasa durumlarını gösterir."
         },
         "step2": {
           "title": "Manuel kayıt girin",
-          "desc": "„Kayıt ekle" butonuna tıklayın: tarih, tür (gelir/gider), tutar, kategori (örn. bağış, işletme, kira), hesap (banka veya nakit), kısa açıklama. İsteğe bağlı: PDF veya görsel olarak belge ekleyin (maks. 5 MB)."
+          "desc": "'Kayıt ekle' butonuna tıklayın: tarih, tür (gelir/gider), tutar, kategori (örn. bağış, işletme, kira), hesap (banka veya nakit), kısa açıklama. İsteğe bağlı: PDF veya görsel olarak belge ekleyin (maks. 5 MB)."
         },
         "step3": {
           "title": "Bağış kayıtları",
-          "desc": "Ödenen bağışlar otomatik olarak gelir satırı olarak işlenir (kaynak: „harici", salt okunur). Manuel kayıtlar YYYY-NNNN belge önekiyle tanınır."
+          "desc": "Ödenen bağışlar otomatik olarak gelir satırı olarak işlenir (kaynak: 'harici', salt okunur). Manuel kayıtlar YYYY-NNNN belge önekiyle tanınır."
         },
         "step4": {
           "title": "Storno",
@@ -3113,15 +3113,15 @@
         "title": "Raporlar & Analizler",
         "step1": {
           "title": "Gelir-Gider Tablosu",
-          "desc": "„Gelir-Gider" sekmesi: seçilen yıl için 15 kategoriyle gelir, gider ve fazla. Stornolar doğru kategoride otomatik mahsup edilir."
+          "desc": "'Gelir-Gider' sekmesi: seçilen yıl için 15 kategoriyle gelir, gider ve fazla. Stornolar doğru kategoride otomatik mahsup edilir."
         },
         "step2": {
           "title": "Yıllık Rapor",
-          "desc": "„Raporlar" sekmesi: ay bazında yan yana gelir ve gider grafiği, altında yıl geneli kategori özeti."
+          "desc": "'Raporlar' sekmesi: ay bazında yan yana gelir ve gider grafiği, altında yıl geneli kategori özeti."
         },
         "step3": {
           "title": "Kasa Raporu",
-          "desc": "„Kasa Raporu" sekmesi: hesap bazında (nakit/banka/toplam) açılış bakiyesi, gelirler, giderler ve kapanış bakiyesi. Açılış bakiyesi önceki yılın kapanış bakiyesinden otomatik hesaplanır."
+          "desc": "'Kasa Raporu' sekmesi: hesap bazında (nakit/banka/toplam) açılış bakiyesi, gelirler, giderler ve kapanış bakiyesi. Açılış bakiyesi önceki yılın kapanış bakiyesinden otomatik hesaplanır."
         }
       }
     },
@@ -3132,26 +3132,26 @@
         "title": "Kurulum",
         "step1": {
           "title": "Modülü etkinleştirin",
-          "desc": "Yönetici → Ayarlar → Üyelik Aidatları → „Üyelik aidatlarını etkinleştir" seçeneğini açın. Varsayılan tutarı (örn. 12,00 €) ve ödeme aralığını (aylık, üç aylık veya yıllık) belirleyin."
+          "desc": "Yönetici → Ayarlar → Üyelik Aidatları → 'Üyelik aidatlarını etkinleştir' seçeneğini açın. Varsayılan tutarı (örn. 12,00 €) ve ödeme aralığını (aylık, üç aylık veya yıllık) belirleyin."
         },
         "step2": {
           "title": "Üye bazında bireysel yapılandırma",
-          "desc": "„Bireysel Yapılandırma" sekmesi: her üye için farklı tutar, aralık veya tam muafiyet (Exempt) girilebilir. Aktif Stripe aboneliği olan üyeler kilit simgesiyle gösterilir — tutar ve aralık manuel olarak değiştirilemez."
+          "desc": "'Bireysel Yapılandırma' sekmesi: her üye için farklı tutar, aralık veya tam muafiyet (Exempt) girilebilir. Aktif Stripe aboneliği olan üyeler kilit simgesiyle gösterilir — tutar ve aralık manuel olarak değiştirilemez."
         }
       },
       "manage": {
         "title": "Aidatları yönetin",
         "step1": {
           "title": "Dönemi seçin",
-          "desc": "Yönetici → Üyelik Aidatları: aralık (aylık, üç aylık, yıllık) seçin ve ok butonlarıyla dönemler arasında gezinin. Örnek: „Mayıs 2026", „Q2 2026" veya „2026"."
+          "desc": "Yönetici → Üyelik Aidatları: aralık (aylık, üç aylık, yıllık) seçin ve ok butonlarıyla dönemler arasında gezinin. Örnek: 'Mayıs 2026', 'Q2 2026' veya '2026'."
         },
         "step2": {
           "title": "Aidatları oluşturun",
-          "desc": "„Aidatları oluştur" butonuna tıklayın: bu dönemde kaydı olmayan tüm aktif üyeler için aidat satırları oluşturulur. Mevcut kayıtlar atlanır (idempotent)."
+          "desc": "'Aidatları oluştur' butonuna tıklayın: bu dönemde kaydı olmayan tüm aktif üyeler için aidat satırları oluşturulur. Mevcut kayıtlar atlanır (idempotent)."
         },
         "step3": {
           "title": "Ödemeyi kaydedin",
-          "desc": "Her üye için: ödemeyi onaylamak üzere „Nakit" veya „Havale"ye tıklayın. Sosyal indirim uygulanan üyeler için „Muaf tut"a tıklayın. Kırmızı satırlar açık veya başarısız aidatları gösterir."
+          "desc": "Her üye için: ödemeyi onaylamak üzere 'Nakit' veya 'Havale'ye tıklayın. Sosyal indirim uygulanan üyeler için 'Muaf tut'a tıklayın. Kırmızı satırlar açık veya başarısız aidatları gösterir."
         },
         "step4": {
           "title": "Durum özeti",
@@ -3162,11 +3162,11 @@
         "title": "Online Ödeme & Abonelikler",
         "step1": {
           "title": "Stripe abonelikleri",
-          "desc": "Aktif Stripe aboneliği olan üyeler otomatik olarak tanınır ve yeşil „Otomatik" etiketiyle işaretlenir. Aidatları doğrudan Stripe üzerinden tahsil edilir — manuel onay gerekmez."
+          "desc": "Aktif Stripe aboneliği olan üyeler otomatik olarak tanınır ve yeşil 'Otomatik' etiketiyle işaretlenir. Aidatları doğrudan Stripe üzerinden tahsil edilir — manuel onay gerekmez."
         },
         "step2": {
           "title": "Üyeler için online ödeme",
-          "desc": "Üyeler, profil sekmesinde „Üyelik Aidatları" kısmında açık aidatlarını görür ve Stripe etkinse kart veya SEPA ile çevrimiçi ödeme yapabilir."
+          "desc": "Üyeler, profil sekmesinde 'Üyelik Aidatları' kısmında açık aidatlarını görür ve Stripe etkinse kart veya SEPA ile çevrimiçi ödeme yapabilir."
         }
       }
     },
