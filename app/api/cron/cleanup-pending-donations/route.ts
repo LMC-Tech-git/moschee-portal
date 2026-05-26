@@ -7,12 +7,21 @@ import type { Mosque } from "@/types";
 export const dynamic = "force-dynamic";
 
 /**
- * Cron: Cleanup für pending Donations älter als 14 Tage.
- * Macht NICHT blind failed — fragt Stripe vorher ab, ob Zahlung doch durchging
- * (verpasstes Webhook). Verhindert Inkonsistenz "Stripe sagt paid, wir failed".
+ * Cron: Cleanup für pending Donations.
  *
- * Aufruf täglich 5 Uhr:
- *   0 5 * * * curl -H "Authorization: Bearer $CRON_SECRET" https://moschee.app/api/cron/cleanup-pending-donations
+ * Zwei Modi:
+ *  - default (full sweep): Cutoff 14 Tage, alle provider_ref-Typen. Täglich.
+ *  - ?mode=quick: Cutoff 25h, nur `cs_...` Checkout-Sessions. Stündlich/2-stündlich.
+ *    Zweck: Abgelaufene Stripe-Checkout-Sessions schnell finalisieren (Stripe-Default-Expiry 24h),
+ *    damit User nicht tagelang "pending" sehen. Findet auch verpasste paid-Webhooks früher.
+ *
+ * Macht NICHT blind failed — fragt Stripe vorher ab, ob Zahlung doch durchging.
+ *
+ * Aufruf:
+ *   # Quick (alle 2h): cron `0 STAR/2 * * *` (STAR = literal "*")
+ *   curl -H "Authorization: Bearer $CRON_SECRET" "https://moschee.app/api/cron/cleanup-pending-donations?mode=quick"
+ *   # Full (täglich 5 Uhr): cron `0 5 * * *`
+ *   curl -H "Authorization: Bearer $CRON_SECRET" https://moschee.app/api/cron/cleanup-pending-donations
  */
 export async function GET(request: NextRequest) {
   const cronSecret = process.env.CRON_SECRET;
@@ -23,10 +32,13 @@ export async function GET(request: NextRequest) {
     }
   }
 
+  const mode = request.nextUrl.searchParams.get("mode") === "quick" ? "quick" : "full";
+
   try {
     const pb = await getAdminPB();
     const stripe = getStripe();
-    const cutoff = new Date(Date.now() - 14 * 86400000).toISOString();
+    const cutoffMs = mode === "quick" ? 25 * 3600_000 : 14 * 86400_000;
+    const cutoff = new Date(Date.now() - cutoffMs).toISOString();
 
     const stale = await pb.collection("donations").getFullList({
       filter: `status = "pending" && created < "${cutoff}"`,
@@ -38,6 +50,12 @@ export async function GET(request: NextRequest) {
     const errors: { donation_id: string; error: string }[] = [];
 
     for (const d of stale) {
+      // Quick-Mode: nur Checkout-Sessions verarbeiten (Rest dem 14d-Sweep überlassen)
+      if (mode === "quick" && (!d.provider_ref || !d.provider_ref.startsWith("cs_"))) {
+        skipped++;
+        continue;
+      }
+
       if (!d.provider_ref) {
         await finalizeFailedPayment({
           donationId: d.id,
@@ -144,6 +162,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       ok: true,
+      mode,
       total: stale.length,
       finalizedPaid,
       finalizedFailed,
