@@ -1348,7 +1348,9 @@ export async function updateTVSettings(
   const parsed = tvSettingsSchema.safeParse(data);
   if (!parsed.success) {
     const first = parsed.error.issues[0];
-    return { success: false, error: first?.message || "Ungültige TV-Einstellungen" };
+    const path = first?.path?.join(".") || "";
+    const msg = first?.message || "Ungültige TV-Einstellungen";
+    return { success: false, error: path ? `${path}: ${msg}` : msg };
   }
   const v = parsed.data;
 
