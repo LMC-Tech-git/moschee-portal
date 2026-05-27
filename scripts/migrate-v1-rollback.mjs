@@ -38,11 +38,11 @@ const DRY_RUN = process.argv.includes("--dry-run") || process.env.DRY_RUN === "1
 
 const env = loadEnv();
 const PB_URL = env.POCKETBASE_URL || env.NEXT_PUBLIC_POCKETBASE_URL;
-const ADMIN_EMAIL = env.PB_ADMIN_EMAIL;
-const ADMIN_PASSWORD = env.PB_ADMIN_PASSWORD;
+const ADMIN_EMAIL = env.PB_ADMIN_EMAIL || env.POCKETBASE_ADMIN_EMAIL;
+const ADMIN_PASSWORD = env.PB_ADMIN_PASSWORD || env.POCKETBASE_ADMIN_PASSWORD;
 
 if (!PB_URL || !ADMIN_EMAIL || !ADMIN_PASSWORD) {
-  console.error("Fehler: POCKETBASE_URL, PB_ADMIN_EMAIL und PB_ADMIN_PASSWORD müssen in .env.local gesetzt sein.");
+  console.error("Fehler: (NEXT_PUBLIC_)POCKETBASE_URL + (POCKETBASE|PB)_ADMIN_EMAIL + (POCKETBASE|PB)_ADMIN_PASSWORD müssen in .env.local gesetzt sein.");
   process.exit(1);
 }
 
