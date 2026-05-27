@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
+import { headers } from "next/headers";
 import { Toaster } from "sonner";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
@@ -92,32 +93,42 @@ export default async function RootLayout({
   const locale = await getLocale();
   const messages = await getMessages();
 
+  // TV-Route: minimaler Shell — kein Header/DemoBanner/Footer/SW-Registration.
+  // Header injiziert vom Middleware via x-tv-route bei Subdomain-Rewrite und Direkt-Aufruf.
+  const isTvRoute = (await headers()).get("x-tv-route") === "1";
+
   return (
     <html lang={locale}>
       <head>
         <meta name="mobile-web-app-capable" content="yes" />
       </head>
       <body className={inter.className}>
-        <a
-          href="#main-content"
-          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-md focus:bg-white focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-emerald-700 focus:shadow-lg focus:ring-2 focus:ring-emerald-500"
-        >
-          Zum Inhalt springen
-        </a>
+        {!isTvRoute && (
+          <a
+            href="#main-content"
+            className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-md focus:bg-white focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-emerald-700 focus:shadow-lg focus:ring-2 focus:ring-emerald-500"
+          >
+            Zum Inhalt springen
+          </a>
+        )}
         <NextIntlClientProvider locale={locale} messages={messages}>
           <AuthProvider>
             <MosqueProvider>
-              <div className="flex min-h-screen flex-col">
-                <Header />
-                <DemoBanner />
-                <main id="main-content" className="flex-1">{children}</main>
-                <ContextualFooter />
-              </div>
-              <Toaster position="top-right" richColors />
+              {isTvRoute ? (
+                <main id="main-content">{children}</main>
+              ) : (
+                <div className="flex min-h-screen flex-col">
+                  <Header />
+                  <DemoBanner />
+                  <main id="main-content" className="flex-1">{children}</main>
+                  <ContextualFooter />
+                </div>
+              )}
+              {!isTvRoute && <Toaster position="top-right" richColors />}
             </MosqueProvider>
           </AuthProvider>
         </NextIntlClientProvider>
-        <ServiceWorkerRegistration />
+        {!isTvRoute && <ServiceWorkerRegistration />}
       </body>
     </html>
   );

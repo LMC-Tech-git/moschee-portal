@@ -265,6 +265,7 @@ export function TVClient({
 
   // Suppress unused warnings for currently-untracked vars (reserved for future iqama feature)
   void currentPrayerStartedAtMs;
+  void currentPrayerName;
 
   return (
     <TVLocaleProvider value={localeCtx}>
@@ -287,7 +288,8 @@ export function TVClient({
             mosqueLogoUrl={mosqueLogoUrl}
             showArabicPrayerNames={showArabicPrayerNames}
             clientOffsetMs={clientOffsetMs}
-            currentPrayer={currentPrayerName}
+            mosqueTimezone={timeContext.mosqueTimezone}
+            currentDateYmd={timeContext.currentDateInMosqueTz}
           />
 
           <main className="tv-stage">

@@ -5,7 +5,7 @@
 import type { PrayerTimes } from "@/lib/prayer";
 import type { TVPrayerName } from "@/types";
 
-const PRAYER_ORDER: TVPrayerName[] = ["fajr", "sunrise", "dhuhr", "asr", "maghrib", "isha"];
+const PRAYER_ORDER: TVPrayerName[] = ["fajr", "sabah", "sunrise", "dhuhr", "asr", "maghrib", "isha"];
 
 /**
  * Konvertiert eine Wall-Clock-Zeit in einer IANA-Zeitzone in einen UTC-Millisekunden-Wert.
@@ -111,6 +111,7 @@ export function computeActivePrayer(
 
 export const ARABIC_PRAYER_NAMES: Record<TVPrayerName, string> = {
   fajr: "الفجر",
+  sabah: "الصبح",
   sunrise: "الشروق",
   dhuhr: "الظهر",
   asr: "العصر",

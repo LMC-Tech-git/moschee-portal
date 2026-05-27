@@ -200,7 +200,7 @@ export type TVTimeContext = {
   currentDateInMosqueTz: string; // YYYY-MM-DD in mosqueTimezone
 };
 
-export type TVPrayerName = "fajr" | "sunrise" | "dhuhr" | "asr" | "maghrib" | "isha";
+export type TVPrayerName = "fajr" | "sabah" | "sunrise" | "dhuhr" | "asr" | "maghrib" | "isha";
 
 export type TVPrayerSlideData = {
   times: { name: TVPrayerName; time: string; isNext: boolean }[];
@@ -234,7 +234,7 @@ export type TVSlide =
   | { type: "prayer"; data: TVPrayerSlideData }
   | { type: "events"; data: TVEventItem[] }
   | { type: "posts"; data: TVPostItem[] }
-  | { type: "campaigns"; data: TVCampaignItem }
+  | { type: "campaigns"; data: TVCampaignItem[] }
   | { type: "qr_donate"; data: { url: string; svg: string } }
   | { type: "announcement"; data: { textPrimary: string; textSecondary: string } }
   | { type: "active_prayer"; data: { prayer: TVPrayerName; arabicName: string; startedAtMs: number } };

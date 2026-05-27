@@ -71,7 +71,7 @@ export async function buildTVSlides(input: BuildSlidesInput): Promise<BuildSlide
     currentPrayerStartedAtMs = active.currentPrayerStartedAtMs;
     currentPrayerName = active.currentPrayer;
 
-    const PRAYER_NAMES = ["fajr", "sunrise", "dhuhr", "asr", "maghrib", "isha"] as const;
+    const PRAYER_NAMES = ["fajr", "sabah", "sunrise", "dhuhr", "asr", "maghrib", "isha"] as const;
     prayerData = {
       times: PRAYER_NAMES.map((name) => ({
         name,
@@ -148,16 +148,15 @@ export async function buildTVSlides(input: BuildSlidesInput): Promise<BuildSlide
 
     if (key === "campaigns") {
       if (campaigns && campaigns.length > 0) {
-        const c = campaigns[0];
-        slides.push({
-          type: "campaigns",
-          data: {
+        const items = campaigns
+          .slice(0, tv.tv_module_counts.campaigns ?? 1)
+          .map((c) => ({
             id: c.id,
             title: c.title,
             goalCents: c.goal_amount_cents,
             raisedCents: c.raised_cents,
-          },
-        });
+          }));
+        slides.push({ type: "campaigns", data: items });
       }
       continue;
     }

@@ -21,6 +21,7 @@ import { getTranslations } from "next-intl/server";
 const PB_URL = process.env.NEXT_PUBLIC_POCKETBASE_URL || "";
 import { getPrayerTimesForDate, buildPrayerConfig } from "@/lib/prayer";
 import type { PrayerTimes } from "@/lib/prayer";
+import { getNextPrayerKey, isPrayerPast } from "@/lib/prayer/highlight";
 import {
   getPublicPostsByMosque,
   getMemberPostsByMosque,
@@ -111,20 +112,12 @@ export default async function MosqueDashboard({
     { key: "maghrib" as const, label: t("maghrib")    },
     { key: "isha" as const,    label: t("isha")       },
   ] as { key: keyof PrayerTimes; label: string }[];
-  const prayerMins = (t: string) => {
-    const [h, m] = t.split(":").map(Number);
-    return h * 60 + m;
-  };
+  // Shared helper — siehe lib/prayer/highlight.ts. Identische Logik im TV-PrayerHeader.
   const nowDate = new Date();
-  const nowMins = nowDate.getHours() * 60 + nowDate.getMinutes();
-  let nextPrayerKey: string | null = null;
-  if (prayerTimes) {
-    for (const { key } of PRAYER_LIST) {
-      const time = prayerTimes[key];
-      if (typeof time !== "string") continue;
-      if (prayerMins(time) > nowMins) { nextPrayerKey = key; break; }
-    }
-  }
+  const mosqueTz = mosque.timezone || "Europe/Berlin";
+  const nextPrayerKey: string | null = prayerTimes
+    ? getNextPrayerKey(prayerTimes, nowDate, mosqueTz)
+    : null;
 
   return (
     <>
@@ -193,7 +186,7 @@ export default async function MosqueDashboard({
                 const time = prayerTimes[key];
                 if (typeof time !== "string") return null;
                 const isNext = key === nextPrayerKey;
-                const isPast = !isNext && prayerMins(time) < nowMins;
+                const isPast = !isNext && isPrayerPast(time, nowDate, mosqueTz);
                 return (
                   <div
                     key={key}

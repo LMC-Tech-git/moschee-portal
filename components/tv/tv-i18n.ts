@@ -10,6 +10,7 @@ type Bundle = {
   upcomingEvents: string;
   latestPost: string;
   currentCampaign: string;
+  currentCampaigns: string;
   donateCta: string;
   welcome: string;
   noEvents: string;
@@ -27,6 +28,7 @@ export const TV_STRINGS: Record<TVLocale, Bundle> = {
     upcomingEvents: "Bevorstehende Veranstaltungen",
     latestPost: "Aktueller Beitrag",
     currentCampaign: "Aktuelle Kampagne",
+    currentCampaigns: "Aktuelle Kampagnen",
     donateCta: "Zum Spenden scannen",
     welcome: "Herzlich willkommen",
     noEvents: "Keine bevorstehenden Veranstaltungen",
@@ -34,7 +36,7 @@ export const TV_STRINGS: Record<TVLocale, Bundle> = {
     raised: "Gesammelt",
     goal: "Ziel",
     remaining: "Verbleibend",
-    prayers: { fajr: "Fajr", sunrise: "Sonnenaufgang", dhuhr: "Dhuhr", asr: "Asr", maghrib: "Maghrib", isha: "Isha" },
+    prayers: { fajr: "Fajr", sabah: "Sabah", sunrise: "Sonnenaufgang", dhuhr: "Dhuhr", asr: "Asr", maghrib: "Maghrib", isha: "Isha" },
   },
   tr: {
     nextPrayer: "Sıradaki namaz",
@@ -42,6 +44,7 @@ export const TV_STRINGS: Record<TVLocale, Bundle> = {
     upcomingEvents: "Yaklaşan etkinlikler",
     latestPost: "Son duyuru",
     currentCampaign: "Güncel kampanya",
+    currentCampaigns: "Güncel kampanyalar",
     donateCta: "Bağış için tarayın",
     welcome: "Hoş geldiniz",
     noEvents: "Yaklaşan etkinlik yok",
@@ -49,7 +52,7 @@ export const TV_STRINGS: Record<TVLocale, Bundle> = {
     raised: "Toplanan",
     goal: "Hedef",
     remaining: "Kalan süre",
-    prayers: { fajr: "Sabah", sunrise: "Güneş", dhuhr: "Öğle", asr: "İkindi", maghrib: "Akşam", isha: "Yatsı" },
+    prayers: { fajr: "İmsak", sabah: "Sabah", sunrise: "Güneş", dhuhr: "Öğle", asr: "İkindi", maghrib: "Akşam", isha: "Yatsı" },
   },
   ar: {
     nextPrayer: "الصلاة القادمة",
@@ -57,6 +60,7 @@ export const TV_STRINGS: Record<TVLocale, Bundle> = {
     upcomingEvents: "الفعاليات القادمة",
     latestPost: "آخر إعلان",
     currentCampaign: "الحملة الحالية",
+    currentCampaigns: "الحملات الحالية",
     donateCta: "امسح للتبرع",
     welcome: "أهلاً وسهلاً",
     noEvents: "لا توجد فعاليات قادمة",
@@ -64,7 +68,7 @@ export const TV_STRINGS: Record<TVLocale, Bundle> = {
     raised: "تم جمعه",
     goal: "الهدف",
     remaining: "المتبقي",
-    prayers: { fajr: "الفجر", sunrise: "الشروق", dhuhr: "الظهر", asr: "العصر", maghrib: "المغرب", isha: "العشاء" },
+    prayers: { fajr: "الفجر", sabah: "الصبح", sunrise: "الشروق", dhuhr: "الظهر", asr: "العصر", maghrib: "المغرب", isha: "العشاء" },
   },
   en: {
     nextPrayer: "Next prayer",
@@ -72,6 +76,7 @@ export const TV_STRINGS: Record<TVLocale, Bundle> = {
     upcomingEvents: "Upcoming events",
     latestPost: "Latest post",
     currentCampaign: "Current campaign",
+    currentCampaigns: "Current campaigns",
     donateCta: "Scan to donate",
     welcome: "Welcome",
     noEvents: "No upcoming events",
@@ -79,7 +84,7 @@ export const TV_STRINGS: Record<TVLocale, Bundle> = {
     raised: "Raised",
     goal: "Goal",
     remaining: "Remaining",
-    prayers: { fajr: "Fajr", sunrise: "Sunrise", dhuhr: "Dhuhr", asr: "Asr", maghrib: "Maghrib", isha: "Isha" },
+    prayers: { fajr: "Fajr", sabah: "Sabah", sunrise: "Sunrise", dhuhr: "Dhuhr", asr: "Asr", maghrib: "Maghrib", isha: "Isha" },
   },
 };
 
