@@ -71,7 +71,11 @@ export async function middleware(request: NextRequest) {
     if (needsRewrite) {
       const url = request.nextUrl.clone();
       url.pathname = `/${slug}${pathname === "/" ? "" : pathname}`;
-      return applyLocale(NextResponse.rewrite(url), request);
+      const isTvRoute = pathname === "/tv" || pathname.startsWith("/tv/");
+      const requestHeaders = new Headers(request.headers);
+      if (isTvRoute) requestHeaders.set("x-tv-route", "1");
+      const response = NextResponse.rewrite(url, { request: { headers: requestHeaders } });
+      return applyLocale(response, request);
     }
   }
 
@@ -101,6 +105,16 @@ export async function middleware(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = strippedPath;
     return NextResponse.redirect(url);
+  }
+
+  // ── TV-Route-Marker ─────────────────────────────────────────────────────
+  // /{slug}/tv (Direkt-Aufruf ohne Subdomain) bekommt ebenfalls den Header,
+  // damit das Parent-Layout PWA-Prompts ausblendet.
+  const tvDirectMatch = pathname.match(/^\/[^/]+\/tv(\/.*)?$/);
+  if (tvDirectMatch) {
+    const requestHeaders = new Headers(request.headers);
+    requestHeaders.set("x-tv-route", "1");
+    return applyLocale(NextResponse.next({ request: { headers: requestHeaders } }), request);
   }
 
   // ── Locale-Detection ohne Redirect ──────────────────────────────────────

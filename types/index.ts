@@ -142,9 +142,102 @@ export interface Settings {
   verein_steuernummer: string;         // Steuernummer des Vereins
   freistellungsbescheid_text: string;  // Frei konfigurierbarer Freistellungsbescheid-Satz
   verein_foerderzweck: string;         // Konfigurierbarer steuerbegünstigter Förderzweck
+  // TV-Anzeige (Public-Bildschirm-Modus)
+  tv_enabled: boolean;
+  tv_modules: string;                  // JSON: TVModules
+  tv_slide_order: string;              // JSON: TVModuleKey[]
+  tv_module_counts: string;            // JSON: TVModuleCounts
+  tv_rotation_seconds: number;
+  tv_locale_mode: TVLocaleMode;
+  tv_locale_primary: TVLocale;
+  tv_locale_secondary: TVLocale | "none";
+  tv_locale_rotate_seconds: number;
+  tv_bg_color: string;                 // HEX oder leer (fällt auf Brand-Farbe zurück)
+  tv_text_color: string;
+  tv_accent_color: string;
+  tv_announcement_text: string;
+  tv_announcement_text_secondary: string;
+  tv_show_hijri: boolean;
+  tv_show_arabic_prayer_names: boolean;
+  tv_highlight_active_prayer: boolean;
+  tv_highlight_duration_seconds: number;
   created: string;
   updated: string;
 }
+
+// --- TV-Anzeige Hilfstypen ---
+export const TV_MODULE_KEYS = [
+  "prayer",
+  "events",
+  "posts",
+  "campaigns",
+  "qr_donate",
+  "announcement",
+] as const;
+export type TVModuleKey = (typeof TV_MODULE_KEYS)[number];
+export type TVModules = Record<TVModuleKey, boolean>;
+export type TVModuleCounts = Partial<Record<TVModuleKey, number>>;
+
+export type TVLocale = "de" | "tr" | "ar" | "en";
+export type TVLocaleMode = "single" | "rotate" | "bilingual";
+
+export type TVLocaleConfig = {
+  mode: TVLocaleMode;
+  primary: TVLocale;
+  secondary: TVLocale | "none";
+  rotateSeconds: number;
+};
+
+export type TVColors = {
+  bg: string;
+  text: string;
+  accent: string;
+};
+
+export type TVTimeContext = {
+  mosqueTimezone: string;
+  serverTimestampMs: number;
+  currentDateInMosqueTz: string; // YYYY-MM-DD in mosqueTimezone
+};
+
+export type TVPrayerName = "fajr" | "sunrise" | "dhuhr" | "asr" | "maghrib" | "isha";
+
+export type TVPrayerSlideData = {
+  times: { name: TVPrayerName; time: string; isNext: boolean }[];
+  nextPrayer: TVPrayerName | null;
+  nextPrayerAtMs: number | null;
+  hijriDate: string | null;
+};
+
+export type TVEventItem = {
+  id: string;
+  title: string;
+  startAtIso: string;
+  location: string;
+};
+
+export type TVPostItem = {
+  id: string;
+  title: string;
+  excerpt: string;
+  imageUrl: string | null;
+};
+
+export type TVCampaignItem = {
+  id: string;
+  title: string;
+  goalCents: number;
+  raisedCents: number;
+};
+
+export type TVSlide =
+  | { type: "prayer"; data: TVPrayerSlideData }
+  | { type: "events"; data: TVEventItem[] }
+  | { type: "posts"; data: TVPostItem[] }
+  | { type: "campaigns"; data: TVCampaignItem }
+  | { type: "qr_donate"; data: { url: string; svg: string } }
+  | { type: "announcement"; data: { textPrimary: string; textSecondary: string } }
+  | { type: "active_prayer"; data: { prayer: TVPrayerName; arabicName: string; startedAtMs: number } };
 
 // --- 2b. Förderpartner (Sponsors) ---
 export type SponsorCategory =

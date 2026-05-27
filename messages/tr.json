@@ -1571,6 +1571,7 @@
       "update_finance_settings": "Finans ayarları güncellendi",
       "update_contact_settings": "İletişim formu ayarları güncellendi",
       "update_recurring_donation_settings": "Düzenli bağış ayarları güncellendi",
+      "update_tv_settings": "TV Ekranı güncellendi",
       "push_sent": "Push bildirimi gönderildi",
       "push_unsubscribe": "Push bildirimi aboneliği iptal edildi",
       "update_verein_settings": "Dernek bilgileri güncellendi",
@@ -1788,7 +1789,8 @@
       "contact": "İletişim Formu",
       "verein": "Dernek",
       "email": "E-posta",
-      "membership": "Üyelik aidatları"
+      "membership": "Üyelik aidatları",
+      "tv": "TV Ekranı"
     },
     "verein": {
       "title": "Bağış makbuzları için dernek bilgileri",
@@ -3557,5 +3559,79 @@
     "memberTransparency": "Moschee.App üyelik aidatlarından komisyon almaz.",
     "activateError": "Etkinleştirme başarısız.",
     "cancelConfirm": "Otomatik tahsilat gerçekten iptal edilsin mi?"
+  },
+  "tv": {
+    "settings": {
+      "title": "TV Ekranı",
+      "subtitle": "Giriş holü için açık ekran modu",
+      "enabled": "TV Ekranını etkinleştir",
+      "enabledHint": "Etkinse, /tv altında herkese açık erişilebilir.",
+      "publicLink": "Genel bağlantı",
+      "copyLink": "Bağlantıyı kopyala",
+      "linkCopied": "Bağlantı kopyalandı",
+      "openPreview": "Önizlemeyi aç",
+      "save": "Ayarları kaydet",
+      "savedSuccess": "TV ayarları kaydedildi.",
+      "savedWithWarnings": "Uyarılarla kaydedildi:",
+      "languageSection": "Dil ve görüntü",
+      "localeMode": "Dil modu",
+      "localeModeSingle": "Tek dil",
+      "localeModeRotate": "Sırayla değişen",
+      "localeModeBilingual": "İki dilli (aynı anda)",
+      "localePrimary": "Birincil dil",
+      "localeSecondary": "İkincil dil",
+      "localeRotateSeconds": "Dil başına saniye",
+      "showArabicPrayerNames": "Arapça namaz isimlerini göster",
+      "showHijri": "Hicri tarihi göster",
+      "modulesSection": "Modüller ve sıralama",
+      "modulesHint": "Modülleri etkinleştir ve istediğin sıraya sürükle.",
+      "moduleCount": "Adet",
+      "rotationSection": "Geçiş",
+      "rotationSeconds": "Slayt geçiş süresi (saniye)",
+      "highlightActivePrayer": "Namaz vaktinde tam ekran göster",
+      "highlightDurationSeconds": "Namaz vakti gösterim süresi (saniye)",
+      "adhanIqamaHint": "Gösterim ezan vaktinde başlar. İkamet farkı sonraki sürümde gelecek.",
+      "colorsSection": "Renkler",
+      "colorsHint": "Marka rengini kullanmak için boş bırak.",
+      "useBrandColor": "Marka rengi",
+      "bgColor": "Arka plan",
+      "textColor": "Metin",
+      "accentColor": "Vurgu",
+      "contrastOk": "Kontrast {ratio}:1 — WCAG-AA uygun",
+      "contrastWarn": "Kontrast {ratio}:1 — WCAG-AA (4.5:1) altında",
+      "announcementSection": "Serbest duyuru metni",
+      "announcementPrimary": "Birincil dil metni",
+      "announcementSecondary": "İkincil dil metni",
+      "charsLeft": "{n} karakter kaldı"
+    },
+    "modules": {
+      "prayer": "Namaz vakitleri",
+      "events": "Etkinlikler",
+      "posts": "Duyurular",
+      "campaigns": "Kampanyalar",
+      "qr_donate": "QR bağış",
+      "announcement": "Serbest metin"
+    },
+    "slides": {
+      "nextPrayer": "Sıradaki namaz",
+      "timeUntil": "kalan süre",
+      "donateCta": "Bağış için tarayın",
+      "donateUrl": "Bağış bağlantısı",
+      "noEvents": "Yaklaşan etkinlik yok",
+      "welcome": "Hoş geldiniz",
+      "prayerTimeNow": "Namaz vakti",
+      "raisedOfGoal": "{raised} / {goal}",
+      "upcomingEvents": "Yaklaşan etkinlikler",
+      "latestPost": "Son duyuru",
+      "currentCampaign": "Güncel kampanya"
+    },
+    "prayers": {
+      "fajr": "Sabah",
+      "sunrise": "Güneş",
+      "dhuhr": "Öğle",
+      "asr": "İkindi",
+      "maghrib": "Akşam",
+      "isha": "Yatsı"
+    }
   }
 }

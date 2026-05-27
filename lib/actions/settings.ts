@@ -1,10 +1,19 @@
 "use server";
 
+import { revalidateTag } from "next/cache";
 import { getAdminPB } from "@/lib/pocketbase-admin";
 import { logAudit } from "@/lib/audit";
-import { financeSettingsSchema, type FinanceSettingsInput } from "@/lib/validations";
+import {
+  financeSettingsSchema,
+  tvSettingsSchema,
+  type FinanceSettingsInput,
+  type TVSettingsInput,
+} from "@/lib/validations";
 import { assertFinanceAccess } from "@/lib/finance-permissions";
-import type { Mosque, Settings } from "@/types";
+import { validateTVColors } from "@/lib/color-contrast";
+import { getBrandColor } from "@/lib/constants";
+import type { Mosque, Settings, TVColors, TVModules, TVModuleCounts, TVModuleKey } from "@/types";
+import { TV_MODULE_KEYS } from "@/types";
 
 // =========================================
 // Feature Flags (für MosqueContext auf Auth-Routen)
@@ -331,6 +340,25 @@ export async function getPortalSettings(mosqueId: string): Promise<{
         verein_steuernummer: "",
         freistellungsbescheid_text: "",
         verein_foerderzweck: "",
+        // TV defaults
+        tv_enabled: false,
+        tv_modules: JSON.stringify({ prayer: true, events: true, posts: true, campaigns: false, qr_donate: false, announcement: false }),
+        tv_slide_order: JSON.stringify(["prayer", "events", "posts", "announcement", "campaigns", "qr_donate"]),
+        tv_module_counts: JSON.stringify({ events: 3, posts: 1, campaigns: 1 }),
+        tv_rotation_seconds: 15,
+        tv_locale_mode: "single",
+        tv_locale_primary: "de",
+        tv_locale_secondary: "none",
+        tv_locale_rotate_seconds: 8,
+        tv_bg_color: "",
+        tv_text_color: "",
+        tv_accent_color: "",
+        tv_announcement_text: "",
+        tv_announcement_text_secondary: "",
+        tv_show_hijri: true,
+        tv_show_arabic_prayer_names: true,
+        tv_highlight_active_prayer: true,
+        tv_highlight_duration_seconds: 300,
         created: "",
         updated: "",
       };
@@ -1144,4 +1172,261 @@ export async function updateRecurringDonationSettings(
     return { success: false, error: "Dauerauftrag-Einstellungen konnten nicht gespeichert werden." };
   }
 }
+
+// =========================================
+// TV-Anzeige (Public-Bildschirm-Modus)
+// =========================================
+
+export type TVSettingsResolved = {
+  tv_enabled: boolean;
+  tv_modules: TVModules;
+  tv_slide_order: TVModuleKey[];
+  tv_module_counts: TVModuleCounts;
+  tv_rotation_seconds: number;
+  tv_locale_mode: "single" | "rotate" | "bilingual";
+  tv_locale_primary: "de" | "tr" | "ar" | "en";
+  tv_locale_secondary: "de" | "tr" | "ar" | "en" | "none";
+  tv_locale_rotate_seconds: number;
+  tv_bg_color: string;
+  tv_text_color: string;
+  tv_accent_color: string;
+  tv_announcement_text: string;
+  tv_announcement_text_secondary: string;
+  tv_show_hijri: boolean;
+  tv_show_arabic_prayer_names: boolean;
+  tv_highlight_active_prayer: boolean;
+  tv_highlight_duration_seconds: number;
+};
+
+const DEFAULT_TV_MODULES: TVModules = {
+  prayer: true,
+  events: true,
+  posts: true,
+  campaigns: false,
+  qr_donate: false,
+  announcement: false,
+};
+
+const DEFAULT_TV_SLIDE_ORDER: TVModuleKey[] = [
+  "prayer",
+  "events",
+  "posts",
+  "announcement",
+  "campaigns",
+  "qr_donate",
+];
+
+const DEFAULT_TV_MODULE_COUNTS: TVModuleCounts = {
+  events: 3,
+  posts: 1,
+  campaigns: 1,
+};
+
+function parseTVJson<T>(raw: unknown, fallback: T): T {
+  if (raw == null) return fallback;
+  if (typeof raw === "object") return raw as T;
+  if (typeof raw === "string") {
+    if (!raw.trim()) return fallback;
+    try {
+      return JSON.parse(raw) as T;
+    } catch {
+      return fallback;
+    }
+  }
+  return fallback;
+}
+
+function normalizeTVModules(raw: unknown): TVModules {
+  const parsed = parseTVJson<Partial<TVModules>>(raw, {});
+  const result: TVModules = { ...DEFAULT_TV_MODULES };
+  for (const key of TV_MODULE_KEYS) {
+    if (typeof parsed[key] === "boolean") result[key] = parsed[key] as boolean;
+  }
+  return result;
+}
+
+function normalizeTVSlideOrder(raw: unknown): TVModuleKey[] {
+  const parsed = parseTVJson<TVModuleKey[]>(raw, []);
+  if (!Array.isArray(parsed) || parsed.length === 0) return DEFAULT_TV_SLIDE_ORDER;
+  const known = new Set<TVModuleKey>(TV_MODULE_KEYS);
+  const filtered = parsed.filter((k): k is TVModuleKey => known.has(k as TVModuleKey));
+  // Fehlende Module hinten anhängen — damit nach Schema-Erweiterungen nichts verloren geht
+  for (const k of DEFAULT_TV_SLIDE_ORDER) {
+    if (!filtered.includes(k)) filtered.push(k);
+  }
+  return filtered.slice(0, 6);
+}
+
+function normalizeTVModuleCounts(raw: unknown): TVModuleCounts {
+  const parsed = parseTVJson<TVModuleCounts>(raw, {});
+  const result: TVModuleCounts = { ...DEFAULT_TV_MODULE_COUNTS };
+  for (const key of TV_MODULE_KEYS) {
+    const n = parsed[key];
+    if (typeof n === "number" && Number.isInteger(n) && n >= 1 && n <= 10) result[key] = n;
+  }
+  return result;
+}
+
+export async function getTVSettings(mosqueId: string): Promise<TVSettingsResolved> {
+  const defaults: TVSettingsResolved = {
+    tv_enabled: false,
+    tv_modules: { ...DEFAULT_TV_MODULES },
+    tv_slide_order: [...DEFAULT_TV_SLIDE_ORDER],
+    tv_module_counts: { ...DEFAULT_TV_MODULE_COUNTS },
+    tv_rotation_seconds: 15,
+    tv_locale_mode: "single",
+    tv_locale_primary: "de",
+    tv_locale_secondary: "tr",
+    tv_locale_rotate_seconds: 8,
+    tv_bg_color: "",
+    tv_text_color: "",
+    tv_accent_color: "",
+    tv_announcement_text: "",
+    tv_announcement_text_secondary: "",
+    tv_show_hijri: true,
+    tv_show_arabic_prayer_names: true,
+    tv_highlight_active_prayer: true,
+    tv_highlight_duration_seconds: 300,
+  };
+
+  try {
+    const pb = await getAdminPB();
+    const record = await pb
+      .collection("settings")
+      .getFirstListItem(`mosque_id = "${mosqueId.replace(/"/g, "")}"`);
+    const r = record as unknown as Settings & {
+      tv_enabled?: boolean;
+      tv_modules?: unknown;
+      tv_slide_order?: unknown;
+      tv_module_counts?: unknown;
+      tv_rotation_seconds?: number;
+      tv_locale_mode?: string;
+      tv_locale_primary?: string;
+      tv_locale_secondary?: string;
+      tv_locale_rotate_seconds?: number;
+      tv_bg_color?: string;
+      tv_text_color?: string;
+      tv_accent_color?: string;
+      tv_announcement_text?: string;
+      tv_announcement_text_secondary?: string;
+      tv_show_hijri?: boolean;
+      tv_show_arabic_prayer_names?: boolean;
+      tv_highlight_active_prayer?: boolean;
+      tv_highlight_duration_seconds?: number;
+    };
+    return {
+      tv_enabled: r.tv_enabled ?? defaults.tv_enabled,
+      tv_modules: normalizeTVModules(r.tv_modules),
+      tv_slide_order: normalizeTVSlideOrder(r.tv_slide_order),
+      tv_module_counts: normalizeTVModuleCounts(r.tv_module_counts),
+      tv_rotation_seconds: r.tv_rotation_seconds ?? defaults.tv_rotation_seconds,
+      tv_locale_mode: (r.tv_locale_mode as TVSettingsResolved["tv_locale_mode"]) || defaults.tv_locale_mode,
+      tv_locale_primary: (r.tv_locale_primary as TVSettingsResolved["tv_locale_primary"]) || defaults.tv_locale_primary,
+      tv_locale_secondary: (r.tv_locale_secondary as TVSettingsResolved["tv_locale_secondary"]) || defaults.tv_locale_secondary,
+      tv_locale_rotate_seconds: r.tv_locale_rotate_seconds ?? defaults.tv_locale_rotate_seconds,
+      tv_bg_color: r.tv_bg_color ?? "",
+      tv_text_color: r.tv_text_color ?? "",
+      tv_accent_color: r.tv_accent_color ?? "",
+      tv_announcement_text: r.tv_announcement_text ?? "",
+      tv_announcement_text_secondary: r.tv_announcement_text_secondary ?? "",
+      tv_show_hijri: r.tv_show_hijri ?? defaults.tv_show_hijri,
+      tv_show_arabic_prayer_names: r.tv_show_arabic_prayer_names ?? defaults.tv_show_arabic_prayer_names,
+      tv_highlight_active_prayer: r.tv_highlight_active_prayer ?? defaults.tv_highlight_active_prayer,
+      tv_highlight_duration_seconds: r.tv_highlight_duration_seconds ?? defaults.tv_highlight_duration_seconds,
+    };
+  } catch {
+    return defaults;
+  }
+}
+
+
+export async function updateTVSettings(
+  mosqueId: string,
+  userId: string,
+  data: TVSettingsInput
+): Promise<{ success: boolean; error?: string; warnings?: string[] }> {
+  const parsed = tvSettingsSchema.safeParse(data);
+  if (!parsed.success) {
+    const first = parsed.error.issues[0];
+    return { success: false, error: first?.message || "Ungültige TV-Einstellungen" };
+  }
+  const v = parsed.data;
+
+  try {
+    const pb = await getAdminPB();
+
+    let settingsId: string | null = null;
+    try {
+      const record = await pb
+        .collection("settings")
+        .getFirstListItem(`mosque_id = "${mosqueId.replace(/"/g, "")}"`);
+      settingsId = record.id;
+    } catch {
+      // Noch kein Settings-Record
+    }
+
+    // Mosque für Brand-Farben holen (für Contrast-Validierung der resolved-Defaults)
+    const mosqueRecord = await pb.collection("mosques").getOne(mosqueId, {
+      fields: "brand_theme,brand_primary_color",
+    });
+    const mosque = mosqueRecord as unknown as Mosque;
+
+    // Bei mode='single' Sekundärsprache server-seitig normalisieren
+    const secondary = v.tv_locale_mode === "single" ? v.tv_locale_secondary : v.tv_locale_secondary;
+
+    const resolvedColors: TVColors = {
+      bg: "#0a0a0a",
+      text: "#fafafa",
+      accent: getBrandColor(mosque.brand_theme, mosque.brand_primary_color),
+    };
+    const contrast = validateTVColors(v.tv_bg_color, v.tv_text_color, v.tv_accent_color, resolvedColors);
+
+    const payload = {
+      mosque_id: mosqueId,
+      tv_enabled: v.tv_enabled,
+      tv_modules: JSON.stringify(v.tv_modules),
+      tv_slide_order: JSON.stringify(v.tv_slide_order),
+      tv_module_counts: JSON.stringify(v.tv_module_counts),
+      tv_rotation_seconds: v.tv_rotation_seconds,
+      tv_locale_mode: v.tv_locale_mode,
+      tv_locale_primary: v.tv_locale_primary,
+      tv_locale_secondary: secondary,
+      tv_locale_rotate_seconds: v.tv_locale_rotate_seconds,
+      tv_bg_color: v.tv_bg_color,
+      tv_text_color: v.tv_text_color,
+      tv_accent_color: v.tv_accent_color,
+      tv_announcement_text: v.tv_announcement_text,
+      tv_announcement_text_secondary: v.tv_announcement_text_secondary,
+      tv_show_hijri: v.tv_show_hijri,
+      tv_show_arabic_prayer_names: v.tv_show_arabic_prayer_names,
+      tv_highlight_active_prayer: v.tv_highlight_active_prayer,
+      tv_highlight_duration_seconds: v.tv_highlight_duration_seconds,
+    };
+
+    if (settingsId) {
+      await pb.collection("settings").update(settingsId, payload);
+    } else {
+      await pb.collection("settings").create(payload);
+    }
+
+    await logAudit({
+      mosqueId,
+      userId,
+      action: "update_tv_settings",
+      entityType: "settings",
+      entityId: settingsId || mosqueId,
+    });
+
+    revalidateTag(`mosque:${mosqueId}:tv`);
+
+    if (!contrast.ok) {
+      return { success: true, warnings: contrast.warnings };
+    }
+    return { success: true };
+  } catch (error) {
+    console.error("[settings] updateTVSettings:", error);
+    return { success: false, error: "TV-Einstellungen konnten nicht gespeichert werden." };
+  }
+}
+
 

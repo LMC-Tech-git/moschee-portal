@@ -1047,6 +1047,28 @@ const SETTINGS_VEREIN_FIELDS = [
   { name: "verein_foerderzweck",        type: "text" },
 ];
 
+// Settings: TV-Anzeige (Public-Bildschirm-Modus pro Moschee)
+const SETTINGS_TV_FIELDS = [
+  { name: "tv_enabled",                     type: "bool",   options: { default: false } },
+  { name: "tv_modules",                     type: "json",   options: { maxSize: 4000 } },
+  { name: "tv_slide_order",                 type: "json",   options: { maxSize: 4000 } },
+  { name: "tv_module_counts",               type: "json",   options: { maxSize: 4000 } },
+  { name: "tv_rotation_seconds",            type: "number", options: { min: 5,  max: 120, default: 15 } },
+  { name: "tv_locale_mode",                 type: "select", options: { values: ["single", "rotate", "bilingual"], maxSelect: 1 } },
+  { name: "tv_locale_primary",              type: "select", options: { values: ["de", "tr", "ar", "en"], maxSelect: 1 } },
+  { name: "tv_locale_secondary",            type: "select", options: { values: ["de", "tr", "ar", "en", "none"], maxSelect: 1 } },
+  { name: "tv_locale_rotate_seconds",       type: "number", options: { min: 3,  max: 30,  default: 8 } },
+  { name: "tv_bg_color",                    type: "text",   options: { max: 7 } },
+  { name: "tv_text_color",                  type: "text",   options: { max: 7 } },
+  { name: "tv_accent_color",                type: "text",   options: { max: 7 } },
+  { name: "tv_announcement_text",           type: "text",   options: { max: 500 } },
+  { name: "tv_announcement_text_secondary", type: "text",   options: { max: 500 } },
+  { name: "tv_show_hijri",                  type: "bool",   options: { default: true } },
+  { name: "tv_show_arabic_prayer_names",    type: "bool",   options: { default: true } },
+  { name: "tv_highlight_active_prayer",     type: "bool",   options: { default: true } },
+  { name: "tv_highlight_duration_seconds",  type: "number", options: { min: 60, max: 900, default: 300 } },
+];
+
 const SPONSORS_NEW_FIELDS = [
   { name: "contact_user_id", type: "relation", options: { collectionId: "", maxSelect: 1 } },
   { name: "contact_email", type: "email", options: {} },
@@ -2543,6 +2565,20 @@ async function main() {
       page++;
     }
     console.log(`   ${updated > 0 ? "✅" : "⏭️ "} ${updated} Settings-Records auf sepa_enabled=true${skipped > 0 ? ` (${skipped} verwaiste übersprungen)` : ""}`);
+  }
+
+  // 9g. settings: TV-Anzeige-Felder hinzufügen
+  if (collectionMap.settings) {
+    const settingsCol = (await getExistingCollections()).find((c) => c.name === "settings");
+    const existingFieldNames = (settingsCol?.schema || []).map((f) => f.name);
+    const fieldsToAdd = SETTINGS_TV_FIELDS.filter((f) => !existingFieldNames.includes(f.name));
+    if (fieldsToAdd.length > 0) {
+      const newSchema = [...(settingsCol?.schema || []), ...fieldsToAdd];
+      await updateCollection("settings", { schema: newSchema });
+      console.log(`   ✅ settings (tv): ${fieldsToAdd.map((f) => f.name).join(", ")} hinzugefügt`);
+    } else {
+      console.log("   ⏭️  settings: alle TV-Felder vorhanden");
+    }
   }
 
   console.log("\n=== ✅ Migration abgeschlossen ===\n");

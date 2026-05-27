@@ -88,6 +88,27 @@ export default async function SlugLayout({
   );
   const accentColor = mosque.brand_accent_color || "#d97706";
 
+  // TV-Route: minimal wrapper, keine PWA-Prompts, kein FocusRefresher (eigene Refresh-Logik)
+  const isTvRoute = (await headers()).get("x-tv-route") === "1";
+
+  if (isTvRoute) {
+    return (
+      <div
+        data-mosque-id={mosque.id}
+        data-mosque-slug={mosque.slug}
+        data-tv-route="1"
+        style={
+          {
+            "--brand-primary": primaryColor,
+            "--brand-accent": accentColor,
+          } as React.CSSProperties
+        }
+      >
+        {children}
+      </div>
+    );
+  }
+
   return (
     <div
       data-mosque-id={mosque.id}

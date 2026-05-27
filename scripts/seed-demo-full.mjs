@@ -1613,6 +1613,32 @@ async function seedSettings() {
       "Wir sind wegen Förderung religiöser Zwecke nach dem Freistellungsbescheid des Finanzamts Ulm, StNr. 88/250/01234, vom 15.03.2024 für den letzten Veranlagungszeitraum 2023 nach § 5 Abs. 1 Nr. 9 KStG von der Körperschaftsteuer befreit.",
     verein_foerderzweck:
       "Die Zuwendung wird ausschließlich zur Förderung religiöser Zwecke (Unterhalt der Moschee, religiöse Bildung) im Sinne der Satzung verwendet.",
+    // TV-Anzeige
+    tv_enabled: true,
+    tv_modules: JSON.stringify({
+      prayer: true,
+      events: true,
+      posts: true,
+      campaigns: true,
+      qr_donate: true,
+      announcement: true,
+    }),
+    tv_slide_order: JSON.stringify(["prayer", "events", "posts", "announcement", "campaigns", "qr_donate"]),
+    tv_module_counts: JSON.stringify({ events: 3, posts: 1, campaigns: 1 }),
+    tv_rotation_seconds: 15,
+    tv_locale_mode: "rotate",
+    tv_locale_primary: "de",
+    tv_locale_secondary: "tr",
+    tv_locale_rotate_seconds: 8,
+    tv_bg_color: "",
+    tv_text_color: "",
+    tv_accent_color: "",
+    tv_announcement_text: "Willkommen in der Demo-Moschee 🌙",
+    tv_announcement_text_secondary: "Demo Camimize hoş geldiniz 🌙",
+    tv_show_hijri: true,
+    tv_show_arabic_prayer_names: true,
+    tv_highlight_active_prayer: true,
+    tv_highlight_duration_seconds: 300,
   };
 
   if (existing?.items?.length > 0) {

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Settings, Palette, Clock, Sliders, Save, RotateCcw, Upload, X, Check, ChevronDown, ChevronUp, GraduationCap, Mail, CheckCircle, AlertCircle, Send, Handshake, Users, MessageSquare, ExternalLink, Repeat, Wallet, FileText, Banknote } from "lucide-react";
+import { Settings, Palette, Clock, Sliders, Save, RotateCcw, Upload, X, Check, ChevronDown, ChevronUp, GraduationCap, Mail, CheckCircle, AlertCircle, Send, Handshake, Users, MessageSquare, ExternalLink, Repeat, Wallet, FileText, Banknote, Tv } from "lucide-react";
 import { useMosque } from "@/lib/mosque-context";
 import { useAuth } from "@/lib/auth-context";
 import {
@@ -34,6 +34,7 @@ import { DEFAULT_TUNE } from "@/lib/prayer";
 import type { Mosque, Settings as SettingsType } from "@/types";
 import { useTranslations } from "next-intl";
 import StripeConnectTab from "@/components/admin/StripeConnectTab";
+import TVSettingsTab from "@/components/settings/TVSettingsTab";
 
 const PB_URL = process.env.NEXT_PUBLIC_POCKETBASE_URL || "";
 
@@ -49,6 +50,7 @@ const TABS = [
   { id: "team", icon: Users },
   { id: "contact", icon: MessageSquare },
   { id: "verein", icon: FileText },
+  { id: "tv", icon: Tv },
   { id: "email", icon: Mail },
 ] as const;
 
@@ -358,6 +360,13 @@ export default function AdminSettingsPage() {
             setFreistellungsbescheidText(f);
             setVereinFoerderzweck(z);
           }}
+        />
+      )}
+      {activeTab === "tv" && (
+        <TVSettingsTab
+          mosqueId={mosqueId}
+          userId={user?.id || ""}
+          mosqueSlug={mosque.slug}
         />
       )}
       {activeTab === "email" && user?.role === "super_admin" && (

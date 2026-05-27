@@ -439,3 +439,55 @@ export const transactionNoteSchema = z.object({
 });
 export type TransactionNoteInput = z.infer<typeof transactionNoteSchema>;
 
+// =========================================
+// TV-Anzeige (Public-Bildschirm-Modus)
+// =========================================
+const tvHexColor = z.union([
+  z.string().regex(/^#[0-9a-fA-F]{6}$/, { message: "Ungültige Farbe (Format: #RRGGBB)" }),
+  z.literal(""),
+]);
+const tvLocale = z.enum(["de", "tr", "ar", "en"]);
+const tvModuleKey = z.enum(["prayer", "events", "posts", "campaigns", "qr_donate", "announcement"]);
+
+export const tvSettingsSchema = z
+  .object({
+    tv_enabled: z.boolean(),
+    tv_modules: z.object({
+      prayer: z.boolean(),
+      events: z.boolean(),
+      posts: z.boolean(),
+      campaigns: z.boolean(),
+      qr_donate: z.boolean(),
+      announcement: z.boolean(),
+    }),
+    tv_slide_order: z.array(tvModuleKey).min(1).max(6),
+    tv_module_counts: z.record(tvModuleKey, z.number().int().min(1).max(10)),
+    tv_rotation_seconds: z.number().int().min(5).max(120),
+    tv_locale_mode: z.enum(["single", "rotate", "bilingual"]),
+    tv_locale_primary: tvLocale,
+    tv_locale_secondary: z.union([tvLocale, z.literal("none")]),
+    tv_locale_rotate_seconds: z.number().int().min(3).max(30),
+    tv_bg_color: tvHexColor,
+    tv_text_color: tvHexColor,
+    tv_accent_color: tvHexColor,
+    tv_announcement_text: z.string().max(500),
+    tv_announcement_text_secondary: z.string().max(500),
+    tv_show_hijri: z.boolean(),
+    tv_show_arabic_prayer_names: z.boolean(),
+    tv_highlight_active_prayer: z.boolean(),
+    tv_highlight_duration_seconds: z.number().int().min(60).max(900),
+  })
+  .refine(
+    (d) => d.tv_locale_mode === "single" || d.tv_locale_secondary !== "none",
+    { message: "Zweitsprache erforderlich bei wechselndem/zweisprachigem Modus", path: ["tv_locale_secondary"] }
+  )
+  .refine(
+    (d) =>
+      d.tv_locale_mode === "single" ||
+      d.tv_locale_secondary === "none" ||
+      d.tv_locale_primary !== d.tv_locale_secondary,
+    { message: "Haupt- und Zweitsprache müssen unterschiedlich sein", path: ["tv_locale_secondary"] }
+  );
+
+export type TVSettingsInput = z.infer<typeof tvSettingsSchema>;
+

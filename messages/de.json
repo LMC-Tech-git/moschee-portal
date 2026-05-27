@@ -1571,6 +1571,7 @@
       "update_finance_settings": "Finanz-Einstellungen aktualisiert",
       "update_contact_settings": "Kontaktformular-Einstellungen aktualisiert",
       "update_recurring_donation_settings": "Dauerauftrag-Einstellungen aktualisiert",
+      "update_tv_settings": "TV-Anzeige aktualisiert",
       "push_sent": "Push-Benachrichtigung gesendet",
       "push_unsubscribe": "Push-Benachrichtigung abbestellt",
       "update_verein_settings": "Vereinsangaben aktualisiert",
@@ -1788,7 +1789,8 @@
       "contact": "Kontaktformular",
       "verein": "Verein",
       "email": "E-Mail",
-      "membership": "Mitgliedsbeiträge"
+      "membership": "Mitgliedsbeiträge",
+      "tv": "TV-Anzeige"
     },
     "verein": {
       "title": "Vereinsangaben für Spendenbescheinigungen",
@@ -3557,5 +3559,79 @@
     "memberTransparency": "Moschee.App erhebt keine Provision auf Mitgliedsbeiträge.",
     "activateError": "Aktivierung fehlgeschlagen.",
     "cancelConfirm": "Automatischen Einzug wirklich kündigen?"
+  },
+  "tv": {
+    "settings": {
+      "title": "TV-Anzeige",
+      "subtitle": "Öffentlicher Bildschirm-Modus für die Eingangshalle",
+      "enabled": "TV-Anzeige aktivieren",
+      "enabledHint": "Wenn aktiv, ist die Seite unter /tv öffentlich erreichbar.",
+      "publicLink": "Öffentlicher Link",
+      "copyLink": "Link kopieren",
+      "linkCopied": "Link kopiert",
+      "openPreview": "Vorschau öffnen",
+      "save": "Einstellungen speichern",
+      "savedSuccess": "TV-Einstellungen gespeichert.",
+      "savedWithWarnings": "Gespeichert mit Hinweisen:",
+      "languageSection": "Sprache & Anzeige",
+      "localeMode": "Sprach-Modus",
+      "localeModeSingle": "Einzelsprache",
+      "localeModeRotate": "Wechselnd",
+      "localeModeBilingual": "Zweisprachig (gleichzeitig)",
+      "localePrimary": "Hauptsprache",
+      "localeSecondary": "Zweitsprache",
+      "localeRotateSeconds": "Sekunden pro Sprache",
+      "showArabicPrayerNames": "Arabische Gebetsnamen anzeigen",
+      "showHijri": "Hijri-Datum anzeigen",
+      "modulesSection": "Module & Reihenfolge",
+      "modulesHint": "Aktiviere Module und ziehe sie in die gewünschte Reihenfolge.",
+      "moduleCount": "Anzahl",
+      "rotationSection": "Rotation",
+      "rotationSeconds": "Folien-Wechselzeit (Sekunden)",
+      "highlightActivePrayer": "Bei Gebetszeit Vollbild zeigen",
+      "highlightDurationSeconds": "Dauer der Gebetszeit-Anzeige (Sekunden)",
+      "adhanIqamaHint": "Die Anzeige startet bei Adhan (Gebetszeit). Iqama-Versatz folgt in einer späteren Version.",
+      "colorsSection": "Farben",
+      "colorsHint": "Leer lassen, um die Marken-Farbe zu verwenden.",
+      "useBrandColor": "Marken-Farbe",
+      "bgColor": "Hintergrund",
+      "textColor": "Text",
+      "accentColor": "Akzent",
+      "contrastOk": "Kontrast {ratio}:1 — WCAG-AA erfüllt",
+      "contrastWarn": "Kontrast {ratio}:1 — unter WCAG-AA (4.5:1)",
+      "announcementSection": "Freitext-Ankündigung",
+      "announcementPrimary": "Text Hauptsprache",
+      "announcementSecondary": "Text Zweitsprache",
+      "charsLeft": "{n} Zeichen übrig"
+    },
+    "modules": {
+      "prayer": "Gebetszeiten",
+      "events": "Veranstaltungen",
+      "posts": "Beiträge",
+      "campaigns": "Kampagnen",
+      "qr_donate": "QR-Spende",
+      "announcement": "Freitext-Ankündigung"
+    },
+    "slides": {
+      "nextPrayer": "Nächstes Gebet",
+      "timeUntil": "verbleibend",
+      "donateCta": "Zum Spenden scannen",
+      "donateUrl": "Spenden-Link",
+      "noEvents": "Keine bevorstehenden Veranstaltungen",
+      "welcome": "Herzlich willkommen",
+      "prayerTimeNow": "Zeit zum Gebet",
+      "raisedOfGoal": "{raised} von {goal}",
+      "upcomingEvents": "Bevorstehende Veranstaltungen",
+      "latestPost": "Aktueller Beitrag",
+      "currentCampaign": "Aktuelle Kampagne"
+    },
+    "prayers": {
+      "fajr": "Fajr",
+      "sunrise": "Sonnenaufgang",
+      "dhuhr": "Dhuhr",
+      "asr": "Asr",
+      "maghrib": "Maghrib",
+      "isha": "Isha"
+    }
   }
 }
