@@ -1319,11 +1319,11 @@ export async function getTVSettings(mosqueId: string): Promise<TVSettingsResolve
       tv_modules: normalizeTVModules(r.tv_modules),
       tv_slide_order: normalizeTVSlideOrder(r.tv_slide_order),
       tv_module_counts: normalizeTVModuleCounts(r.tv_module_counts),
-      tv_rotation_seconds: r.tv_rotation_seconds ?? defaults.tv_rotation_seconds,
+      tv_rotation_seconds: r.tv_rotation_seconds && r.tv_rotation_seconds >= 5 ? r.tv_rotation_seconds : defaults.tv_rotation_seconds,
       tv_locale_mode: (r.tv_locale_mode as TVSettingsResolved["tv_locale_mode"]) || defaults.tv_locale_mode,
       tv_locale_primary: (r.tv_locale_primary as TVSettingsResolved["tv_locale_primary"]) || defaults.tv_locale_primary,
       tv_locale_secondary: (r.tv_locale_secondary as TVSettingsResolved["tv_locale_secondary"]) || defaults.tv_locale_secondary,
-      tv_locale_rotate_seconds: r.tv_locale_rotate_seconds ?? defaults.tv_locale_rotate_seconds,
+      tv_locale_rotate_seconds: r.tv_locale_rotate_seconds && r.tv_locale_rotate_seconds >= 3 ? r.tv_locale_rotate_seconds : defaults.tv_locale_rotate_seconds,
       tv_bg_color: r.tv_bg_color ?? "",
       tv_text_color: r.tv_text_color ?? "",
       tv_accent_color: r.tv_accent_color ?? "",
@@ -1332,7 +1332,7 @@ export async function getTVSettings(mosqueId: string): Promise<TVSettingsResolve
       tv_show_hijri: r.tv_show_hijri ?? defaults.tv_show_hijri,
       tv_show_arabic_prayer_names: r.tv_show_arabic_prayer_names ?? defaults.tv_show_arabic_prayer_names,
       tv_highlight_active_prayer: r.tv_highlight_active_prayer ?? defaults.tv_highlight_active_prayer,
-      tv_highlight_duration_seconds: r.tv_highlight_duration_seconds ?? defaults.tv_highlight_duration_seconds,
+      tv_highlight_duration_seconds: r.tv_highlight_duration_seconds && r.tv_highlight_duration_seconds >= 60 ? r.tv_highlight_duration_seconds : defaults.tv_highlight_duration_seconds,
     };
   } catch {
     return defaults;
