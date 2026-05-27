@@ -1,0 +1,367 @@
+/* ─────────────────────────────────────────────────────────────────────
+   TV-Anzeige — Design Tokens & Animations
+   Dark-first, emerald accent, viewport-scaled, burn-in resistant.
+   ───────────────────────────────────────────────────────────────────── */
+
+.tv-root {
+  /* — Surfaces — */
+  --bg:           #0a0f0d;
+  --bg-elev:      #0f1714;
+  --bg-glass:     rgba(15, 23, 20, 0.55);
+
+  /* — Text — */
+  --text:         #e8efe9;
+  --text-dim:     #7a8580;
+  --text-faint:   #3d4845;
+
+  /* — Accent (mosque brand) — */
+  --accent-glow:  color-mix(in srgb, var(--accent, #10b981) 30%, transparent);
+  --accent-soft:  color-mix(in srgb, var(--accent, #10b981) 14%, transparent);
+  --accent-hair:  color-mix(in srgb, var(--accent, #10b981) 40%, transparent);
+
+  /* — Hairlines — */
+  --hairline:     rgba(232, 239, 233, 0.07);
+  --hairline-x:   rgba(232, 239, 233, 0.12);
+
+  /* — Fonts (next/font variables set in TVLayout) — */
+  --font-mono:    var(--font-jetbrains, ui-monospace, "SF Mono", Menlo, monospace);
+  --font-display: var(--font-grotesk,   system-ui, -apple-system, sans-serif);
+  --font-arabic:  var(--font-naskh,     "Noto Naskh Arabic", serif);
+  --font-body:    var(--font-grotesk,   system-ui, -apple-system, sans-serif);
+
+  /* — Type scale (viewport-driven, TV-readable) — */
+  --t-micro:  clamp(0.875rem, 1.4vh,  1.25rem);
+  --t-small:  clamp(1rem,     2vh,    1.75rem);
+  --t-base:   clamp(1.25rem,  2.5vh,  2.25rem);
+  --t-lg:     clamp(2rem,     4vh,    3.5rem);
+  --t-xl:     clamp(3rem,     6vh,    5rem);
+  --t-2xl:    clamp(4rem,     9vh,    7rem);
+  --t-hero:   clamp(6rem,     14vh,   11rem);
+
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  cursor: none;
+}
+
+/* — Animated mesh BG (subtle ambient depth) — */
+.tv-bg-mesh {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 65% 55% at 18% 22%, var(--accent-soft) 0%, transparent 55%),
+    radial-gradient(ellipse 55% 65% at 82% 78%, var(--accent-soft) 0%, transparent 55%);
+  background-size: 200% 200%, 200% 200%;
+  animation: tv-mesh-drift 180s ease-in-out infinite alternate;
+}
+
+@keyframes tv-mesh-drift {
+  0%   { background-position: 0% 0%,   100% 100%; }
+  100% { background-position: 12% 8%,  88% 92%; }
+}
+
+/* — Container drift (burn-in defense, very slow) — */
+.tv-content {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  animation: tv-burn-drift 240s linear infinite;
+}
+
+@keyframes tv-burn-drift {
+  0%   { transform: translate( 2px,  1px); }
+  25%  { transform: translate(-1px,  2px); }
+  50%  { transform: translate(-2px, -1px); }
+  75%  { transform: translate( 1px, -2px); }
+  100% { transform: translate( 2px,  1px); }
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   Prayer Header (persistent, 14vh)
+   ───────────────────────────────────────────────────────────────────── */
+
+.tv-header {
+  flex: 0 0 auto;
+  height: 14vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-glass);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  border-bottom: 1px solid var(--hairline);
+  position: relative;
+}
+
+.tv-header::after {
+  /* soft fade into slide-area */
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -4vh;
+  height: 4vh;
+  background: linear-gradient(to bottom, rgba(10, 15, 13, 0.6), transparent);
+  pointer-events: none;
+}
+
+.tv-header-top {
+  flex: 0 0 4vh;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 3vw;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.tv-brand {
+  display: flex;
+  align-items: center;
+  gap: 1.2vw;
+}
+.tv-brand-logo {
+  height: 3vh;
+  width: auto;
+  opacity: 0.85;
+}
+.tv-brand-name {
+  font-family: var(--font-display);
+  font-size: var(--t-small);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--text);
+}
+
+.tv-hijri {
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-dim);
+  letter-spacing: 0.04em;
+}
+
+.tv-countdown {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.8vw;
+  padding: 0.6vh 1.4vw;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-hair);
+  font-family: var(--font-mono);
+  font-size: var(--t-small);
+  font-variant-numeric: tabular-nums;
+  color: var(--accent, #10b981);
+}
+.tv-countdown-dot {
+  width: 0.9vh;
+  height: 0.9vh;
+  border-radius: 999px;
+  background: var(--accent, #10b981);
+  box-shadow: 0 0 12px var(--accent, #10b981);
+  animation: tv-pulse 2s ease-in-out infinite;
+}
+
+@keyframes tv-pulse {
+  0%, 100% { opacity: 0.55; transform: scale(1); }
+  50%      { opacity: 1;    transform: scale(1.35); }
+}
+
+/* — Prayer grid — */
+.tv-prayer-grid {
+  flex: 1 1 auto;
+  display: grid;
+  grid-auto-columns: 1fr;
+  grid-auto-flow: column;
+  gap: 1px;
+  background: var(--hairline);
+}
+
+.tv-prayer-cell {
+  display: grid;
+  grid-template-rows: auto auto auto;
+  align-content: center;
+  justify-items: center;
+  gap: 0.3vh;
+  padding: 1vh 1vw;
+  background: var(--bg);
+  transition: background 600ms ease, box-shadow 600ms ease;
+  position: relative;
+}
+
+.tv-prayer-cell.is-current {
+  background: var(--accent-soft);
+  box-shadow: inset 0 -3px 0 var(--accent, #10b981),
+              inset 0 60px 80px -40px var(--accent-glow);
+}
+
+.tv-prayer-cell.is-current .tv-prayer-time {
+  color: var(--accent, #10b981);
+  text-shadow: 0 0 24px var(--accent-glow);
+}
+
+.tv-prayer-arabic {
+  font-family: var(--font-arabic);
+  font-size: var(--t-small);
+  font-weight: 500;
+  color: var(--text-dim);
+  direction: rtl;
+  line-height: 1;
+  opacity: 0.85;
+}
+
+.tv-prayer-name {
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-dim);
+}
+
+.tv-prayer-time {
+  font-family: var(--font-mono);
+  font-size: clamp(1.5rem, 4.5vh, 3.5rem);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  line-height: 1;
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   Slide Area (~86vh)
+   ───────────────────────────────────────────────────────────────────── */
+
+.tv-stage {
+  flex: 1 1 auto;
+  position: relative;
+  overflow: hidden;
+}
+
+.tv-slide {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6vh 6vw;
+  transition: opacity 500ms cubic-bezier(0.22, 1, 0.36, 1),
+              transform 500ms cubic-bezier(0.22, 1, 0.36, 1),
+              filter 500ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.tv-slide.is-out {
+  opacity: 0;
+  transform: scale(0.97);
+  filter: blur(6px);
+}
+
+/* — Footer corner: TV-URL — */
+.tv-footer-url {
+  position: absolute;
+  bottom: 1.5vh;
+  right: 2vw;
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  color: var(--text-faint);
+  letter-spacing: 0.04em;
+  opacity: 0.4;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   Slide-specific helpers
+   ───────────────────────────────────────────────────────────────────── */
+
+.tv-card {
+  background: var(--bg-elev);
+  border-radius: 2.5vh;
+  border-top: 1px solid var(--hairline-x);
+  border-bottom: 3px solid var(--accent, #10b981);
+  box-shadow:
+    0 4vh 12vh -2vh rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  overflow: hidden;
+}
+
+.tv-eyebrow {
+  font-family: var(--font-mono);
+  font-size: var(--t-small);
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--accent, #10b981);
+  font-weight: 600;
+}
+
+.tv-headline {
+  font-family: var(--font-display);
+  font-size: var(--t-2xl);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+
+.tv-stat {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+/* — Image ken-burns (subtle slow zoom) — */
+.tv-kenburns {
+  animation: tv-kenburns 22s ease-in-out infinite alternate;
+}
+@keyframes tv-kenburns {
+  0%   { transform: scale(1)    translate(0%, 0%); }
+  100% { transform: scale(1.06) translate(-1.2%, -1%); }
+}
+
+/* — Active prayer slide-pulse — */
+.tv-active-pulse {
+  animation: tv-prayer-pulse 3.5s ease-in-out infinite;
+}
+@keyframes tv-prayer-pulse {
+  0%, 100% { text-shadow: 0 0 40px var(--accent-glow); }
+  50%      { text-shadow: 0 0 100px var(--accent, #10b981); }
+}
+
+/* — QR Card (centered, glowing) — */
+.tv-qr-card {
+  background: #ffffff;
+  padding: 3vh;
+  border-radius: 3vh;
+  box-shadow:
+    0 0 0 1px var(--accent-hair),
+    0 0 80px var(--accent-glow),
+    0 4vh 10vh -2vh rgba(0, 0, 0, 0.5);
+  aspect-ratio: 1;
+  width: min(55vh, 55vw);
+  display: grid;
+  place-items: center;
+}
+
+.tv-qr-card > svg,
+.tv-qr-card > div {
+  width: 100%;
+  height: 100%;
+}
+
+/* — Reduce motion — */
+@media (prefers-reduced-motion: reduce) {
+  .tv-content,
+  .tv-bg-mesh,
+  .tv-kenburns,
+  .tv-active-pulse,
+  .tv-countdown-dot {
+    animation: none !important;
+  }
+}

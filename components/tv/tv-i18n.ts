@@ -14,6 +14,9 @@ type Bundle = {
   welcome: string;
   noEvents: string;
   raisedOfGoal: string;
+  raised: string;
+  goal: string;
+  remaining: string;
   prayers: Record<TVPrayerName, string>;
 };
 
@@ -28,6 +31,9 @@ export const TV_STRINGS: Record<TVLocale, Bundle> = {
     welcome: "Herzlich willkommen",
     noEvents: "Keine bevorstehenden Veranstaltungen",
     raisedOfGoal: "{raised} von {goal}",
+    raised: "Gesammelt",
+    goal: "Ziel",
+    remaining: "Verbleibend",
     prayers: { fajr: "Fajr", sunrise: "Sonnenaufgang", dhuhr: "Dhuhr", asr: "Asr", maghrib: "Maghrib", isha: "Isha" },
   },
   tr: {
@@ -40,6 +46,9 @@ export const TV_STRINGS: Record<TVLocale, Bundle> = {
     welcome: "Hoş geldiniz",
     noEvents: "Yaklaşan etkinlik yok",
     raisedOfGoal: "{raised} / {goal}",
+    raised: "Toplanan",
+    goal: "Hedef",
+    remaining: "Kalan süre",
     prayers: { fajr: "Sabah", sunrise: "Güneş", dhuhr: "Öğle", asr: "İkindi", maghrib: "Akşam", isha: "Yatsı" },
   },
   ar: {
@@ -52,6 +61,9 @@ export const TV_STRINGS: Record<TVLocale, Bundle> = {
     welcome: "أهلاً وسهلاً",
     noEvents: "لا توجد فعاليات قادمة",
     raisedOfGoal: "{raised} من {goal}",
+    raised: "تم جمعه",
+    goal: "الهدف",
+    remaining: "المتبقي",
     prayers: { fajr: "الفجر", sunrise: "الشروق", dhuhr: "الظهر", asr: "العصر", maghrib: "المغرب", isha: "العشاء" },
   },
   en: {
@@ -64,6 +76,9 @@ export const TV_STRINGS: Record<TVLocale, Bundle> = {
     welcome: "Welcome",
     noEvents: "No upcoming events",
     raisedOfGoal: "{raised} of {goal}",
+    raised: "Raised",
+    goal: "Goal",
+    remaining: "Remaining",
     prayers: { fajr: "Fajr", sunrise: "Sunrise", dhuhr: "Dhuhr", asr: "Asr", maghrib: "Maghrib", isha: "Isha" },
   },
 };

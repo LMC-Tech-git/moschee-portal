@@ -5,30 +5,51 @@ import { useTVLocale } from "../LocaleAwareText";
 
 export function AnnouncementSlide({
   data,
-  colors,
+  colors: _colors,
 }: {
   data: { textPrimary: string; textSecondary: string };
   colors: TVColors;
 }) {
   const { mode, currentLocale, primary, secondary } = useTVLocale();
   const showBoth = mode === "bilingual" && secondary !== "none";
-  const textForLocale = currentLocale === primary ? data.textPrimary : data.textSecondary || data.textPrimary;
+  const textForLocale =
+    currentLocale === primary ? data.textPrimary : data.textSecondary || data.textPrimary;
 
   if (showBoth) {
     return (
-      <div className="flex h-full w-full flex-col items-center justify-center gap-[5vh] px-[6vw] py-[4vh] text-center">
+      <div
+        style={{
+          display: "grid",
+          placeItems: "center",
+          gap: "5vh",
+          width: "100%",
+          maxWidth: "85vw",
+          textAlign: "center",
+        }}
+      >
         <div
-          className="font-bold leading-tight"
-          style={{ color: colors.text, fontSize: "clamp(2rem, 7vw, 9rem)" }}
+          className="tv-headline"
           dir={primary === "ar" ? "rtl" : "ltr"}
+          style={{ fontSize: "var(--t-2xl)" }}
         >
           {data.textPrimary}
         </div>
+        <div
+          style={{
+            width: "20vw",
+            height: "2px",
+            background: "var(--accent-hair)",
+          }}
+        />
         {data.textSecondary && (
           <div
-            className="font-medium leading-tight opacity-85"
-            style={{ color: colors.text, fontSize: "clamp(1.5rem, 5vw, 7rem)" }}
+            className="tv-headline"
             dir={secondary === "ar" ? "rtl" : "ltr"}
+            style={{
+              fontSize: "var(--t-xl)",
+              color: "var(--text-dim)",
+              fontWeight: 500,
+            }}
           >
             {data.textSecondary}
           </div>
@@ -38,11 +59,18 @@ export function AnnouncementSlide({
   }
 
   return (
-    <div className="flex h-full w-full items-center justify-center px-[6vw] py-[4vh] text-center">
+    <div
+      style={{
+        display: "grid",
+        placeItems: "center",
+        width: "100%",
+        maxWidth: "85vw",
+      }}
+    >
       <div
-        className="font-bold leading-tight"
-        style={{ color: colors.text, fontSize: "clamp(2.5rem, 9vw, 12rem)" }}
+        className="tv-headline"
         dir={currentLocale === "ar" ? "rtl" : "ltr"}
+        style={{ fontSize: "var(--t-hero)", textAlign: "center" }}
       >
         {textForLocale}
       </div>

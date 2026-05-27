@@ -52,7 +52,7 @@ export default async function TVPage({
   const proto = hdrs.get("x-forwarded-proto") || (host.includes("localhost") ? "http" : "https");
   const baseUrl = `${proto}://${host}`;
 
-  const { slides, nextPrayerAtMs, currentPrayerStartedAtMs } = await buildTVSlides({
+  const { slides, prayerData, nextPrayerAtMs, currentPrayerStartedAtMs, currentPrayerName } = await buildTVSlides({
     mosque,
     settings,
     tv,
@@ -81,6 +81,7 @@ export default async function TVPage({
   return (
     <TVClient
       slides={slides}
+      prayerData={prayerData}
       rotationMs={tv.tv_rotation_seconds * 1000}
       colors={colors}
       localeConfig={localeConfig}
@@ -97,6 +98,7 @@ export default async function TVPage({
       timeContext={timeContext}
       nextPrayerAtMs={nextPrayerAtMs}
       currentPrayerStartedAtMs={currentPrayerStartedAtMs}
+      currentPrayerName={currentPrayerName}
       highlightActivePrayer={tv.tv_highlight_active_prayer}
       highlightDurationMs={tv.tv_highlight_duration_seconds * 1000}
     />

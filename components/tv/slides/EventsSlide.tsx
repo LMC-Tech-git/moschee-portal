@@ -6,7 +6,7 @@ import { tvT, formatTvDate } from "../tv-i18n";
 
 export function EventsSlide({
   data,
-  colors,
+  colors: _colors,
   mosqueTimezone,
 }: {
   data: TVEventItem[];
@@ -18,37 +18,84 @@ export function EventsSlide({
   const tSec = mode === "bilingual" && secondary !== "none" ? tvT(secondary) : null;
 
   return (
-    <div className="flex h-full w-full flex-col gap-[3vh] px-[6vw] py-[4vh]">
-      <h2 className="text-[5vh] font-bold" style={{ color: colors.accent }}>
-        {mode === "bilingual" && tSec ? (
-          <>
-            {t.upcomingEvents}
-            <span className="mx-4 opacity-50">·</span>
-            {tSec.upcomingEvents}
-          </>
-        ) : (
-          t.upcomingEvents
-        )}
-      </h2>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: "4vh",
+        width: "100%",
+        maxWidth: "90vw",
+      }}
+    >
+      <div className="tv-eyebrow">
+        {mode === "bilingual" && tSec
+          ? `${t.upcomingEvents} · ${tSec.upcomingEvents}`
+          : t.upcomingEvents}
+      </div>
 
-      <ul className="flex flex-col gap-[3vh]">
+      <ul style={{ display: "flex", flexDirection: "column", gap: "2.5vh", listStyle: "none", padding: 0, margin: 0 }}>
         {data.length === 0 && (
-          <li className="text-[3vh] opacity-60" style={{ color: colors.text }}>
+          <li style={{ fontSize: "var(--t-base)", color: "var(--text-dim)" }}>
             {t.noEvents}
           </li>
         )}
         {data.map((e) => (
           <li
             key={e.id}
-            className="flex flex-col gap-[1vh] rounded-2xl border px-[2vw] py-[2vh]"
-            style={{ borderColor: colors.text + "33", color: colors.text }}
+            style={{
+              display: "grid",
+              gridTemplateColumns: "auto 1fr",
+              gap: "3vw",
+              alignItems: "center",
+              padding: "3vh 3vw",
+              borderRadius: "2vh",
+              background: "var(--bg-elev)",
+              borderLeft: "4px solid var(--accent)",
+              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.04)",
+            }}
           >
-            <div className="text-[4vh] font-semibold">{e.title}</div>
-            <div className="flex items-center gap-[2vw] text-[2.5vh] opacity-80">
-              <span style={{ color: colors.accent }}>
-                {formatTvDate(e.startAtIso, currentLocale, mosqueTimezone)}
-              </span>
-              {e.location && <span>· {e.location}</span>}
+            {/* Date chip — Mono, accent-tinted */}
+            <div
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: "var(--t-lg)",
+                color: "var(--accent)",
+                fontWeight: 700,
+                fontVariantNumeric: "tabular-nums",
+                letterSpacing: "0.02em",
+                minWidth: "12vw",
+                textAlign: "left",
+              }}
+            >
+              {formatTvDate(e.startAtIso, currentLocale, mosqueTimezone)}
+            </div>
+
+            {/* Title + location */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.5vh" }}>
+              <div
+                style={{
+                  fontFamily: "var(--font-display)",
+                  fontSize: "var(--t-lg)",
+                  fontWeight: 700,
+                  color: "var(--text)",
+                  lineHeight: 1.1,
+                  letterSpacing: "-0.01em",
+                }}
+              >
+                {e.title}
+              </div>
+              {e.location && (
+                <div
+                  style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "var(--t-small)",
+                    color: "var(--text-dim)",
+                    letterSpacing: "0.02em",
+                  }}
+                >
+                  {e.location}
+                </div>
+              )}
             </div>
           </li>
         ))}

@@ -46,23 +46,30 @@ export type BuildSlidesResult = {
   prayerData: TVPrayerSlideData | null;
   nextPrayerAtMs: number | null;
   currentPrayerStartedAtMs: number | null;
+  currentPrayerName: string | null;
 };
 
 export async function buildTVSlides(input: BuildSlidesInput): Promise<BuildSlidesResult> {
   const { mosque, settings, tv, currentDateYmd, nowMs, baseUrl } = input;
 
   // Prayer-Times laden (auch wenn Modul aus — für active-prayer-Override)
+  // WICHTIG: Datum aus currentDateYmd in Moschee-TZ konstruieren (mittag UTC = sicher gleicher Tag)
+  // damit Provider auf UTC-Servern um Mitternacht nicht den Vortag lädt.
   const config = buildPrayerConfig(mosque, settings);
-  const times = await getPrayerTimesForDate(mosque.id, new Date(nowMs), config);
+  const [ymdY, ymdM, ymdD] = currentDateYmd.split("-").map(Number);
+  const dateForProvider = new Date(Date.UTC(ymdY, ymdM - 1, ymdD, 12, 0, 0));
+  const times = await getPrayerTimesForDate(mosque.id, dateForProvider, config);
 
   let prayerData: TVPrayerSlideData | null = null;
   let nextPrayerAtMs: number | null = null;
   let currentPrayerStartedAtMs: number | null = null;
+  let currentPrayerName: string | null = null;
 
   if (times) {
     const active = computeActivePrayer(times, mosque.timezone || "Europe/Berlin", currentDateYmd, nowMs);
     nextPrayerAtMs = active.nextPrayerAtMs;
     currentPrayerStartedAtMs = active.currentPrayerStartedAtMs;
+    currentPrayerName = active.currentPrayer;
 
     const PRAYER_NAMES = ["fajr", "sunrise", "dhuhr", "asr", "maghrib", "isha"] as const;
     prayerData = {
@@ -181,7 +188,7 @@ export async function buildTVSlides(input: BuildSlidesInput): Promise<BuildSlide
     slides.push({ type: "prayer", data: prayerData });
   }
 
-  return { slides, prayerData, nextPrayerAtMs, currentPrayerStartedAtMs };
+  return { slides, prayerData, nextPrayerAtMs, currentPrayerStartedAtMs, currentPrayerName };
 }
 
 export type { TVModuleKey };

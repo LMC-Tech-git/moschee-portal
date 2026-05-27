@@ -6,7 +6,7 @@ import { tvT } from "../tv-i18n";
 
 export function QRDonateSlide({
   data,
-  colors,
+  colors: _colors,
 }: {
   data: { url: string; svg: string };
   colors: TVColors;
@@ -16,35 +16,64 @@ export function QRDonateSlide({
   const tSec = mode === "bilingual" && secondary !== "none" ? tvT(secondary) : null;
 
   return (
-    <div className="flex h-full w-full flex-col items-center justify-center gap-[3vh] px-[4vw] py-[4vh]">
-      <h2 className="text-center text-[5vh] font-bold" style={{ color: colors.accent }}>
-        {mode === "bilingual" && tSec ? (
-          <>
-            {t.donateCta}
-            <br />
-            <span className="text-[4vh] opacity-80">{tSec.donateCta}</span>
-          </>
-        ) : (
-          t.donateCta
+    <div
+      style={{
+        display: "grid",
+        placeItems: "center",
+        gap: "4vh",
+        width: "100%",
+        height: "100%",
+      }}
+    >
+      <div style={{ textAlign: "center" }}>
+        <h2
+          className="tv-headline"
+          style={{ fontSize: "clamp(2.5rem, 6vh, 5rem)" }}
+        >
+          {t.donateCta}
+        </h2>
+        {mode === "bilingual" && tSec && (
+          <p
+            className="tv-eyebrow"
+            style={{ marginTop: "1vh", opacity: 0.75 }}
+          >
+            {tSec.donateCta}
+          </p>
         )}
-      </h2>
+      </div>
 
       {data.svg ? (
         <div
-          className="rounded-2xl bg-white p-[2vh]"
-          style={{ width: "50vh", height: "50vh" }}
+          className="tv-qr-card"
           dangerouslySetInnerHTML={{ __html: data.svg }}
         />
       ) : (
-        <div
-          className="flex items-center justify-center rounded-2xl bg-white p-[4vh] text-center text-[3vh] font-mono text-black"
-          style={{ width: "50vh", height: "50vh" }}
-        >
-          {data.url}
+        <div className="tv-qr-card">
+          <div
+            style={{
+              display: "grid",
+              placeItems: "center",
+              textAlign: "center",
+              fontFamily: "var(--font-mono)",
+              fontSize: "clamp(1rem, 2vh, 1.5rem)",
+              color: "#0a0a0a",
+              padding: "2vh",
+              wordBreak: "break-all",
+            }}
+          >
+            {data.url}
+          </div>
         </div>
       )}
 
-      <div className="text-[2.5vh] opacity-80" style={{ color: colors.text }}>
+      <div
+        style={{
+          fontFamily: "var(--font-mono)",
+          fontSize: "var(--t-small)",
+          color: "var(--text-dim)",
+          letterSpacing: "0.04em",
+        }}
+      >
         {data.url}
       </div>
     </div>

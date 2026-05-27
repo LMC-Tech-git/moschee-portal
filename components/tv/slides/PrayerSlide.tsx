@@ -6,7 +6,7 @@ import { useTVLocale } from "../LocaleAwareText";
 import { tvT } from "../tv-i18n";
 import { ARABIC_PRAYER_NAMES } from "@/app/[slug]/tv/active-prayer";
 
-function formatCountdown(ms: number, locale: string): string {
+function formatCountdown(ms: number): string {
   if (ms <= 0) return "00:00:00";
   const total = Math.floor(ms / 1000);
   const h = Math.floor(total / 3600);
@@ -15,9 +15,14 @@ function formatCountdown(ms: number, locale: string): string {
   return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 }
 
+/**
+ * Prayer-Focus-Slide:
+ * Da PrayerHeader bereits alle Zeiten kompakt oben zeigt, fokussiert dieser
+ * Slide auf das nächste Gebet: Arabisch riesig + lokalisierter Name + Countdown.
+ */
 export function PrayerSlide({
   data,
-  colors,
+  colors: _colors,
   showArabicPrayerNames,
   clientOffsetMs,
 }: {
@@ -26,7 +31,7 @@ export function PrayerSlide({
   showArabicPrayerNames: boolean;
   clientOffsetMs: number;
 }) {
-  const { mode, currentLocale, primary, secondary } = useTVLocale();
+  const { mode, currentLocale, secondary } = useTVLocale();
   const t = tvT(currentLocale);
   const tSec = mode === "bilingual" && secondary !== "none" ? tvT(secondary) : null;
   const [nowMs, setNowMs] = useState(() => Date.now() + clientOffsetMs);
@@ -37,70 +42,86 @@ export function PrayerSlide({
   }, [clientOffsetMs]);
 
   const remainingMs = data.nextPrayerAtMs ? data.nextPrayerAtMs - nowMs : 0;
+  const nextName = data.nextPrayer;
+
+  if (!nextName) return null;
 
   return (
-    <div className="flex h-full w-full flex-col items-center justify-center gap-[2vh] px-[4vw] py-[2vh]">
-      {data.hijriDate && (
-        <div className="text-[2vh] opacity-60" style={{ color: colors.text }}>
-          {data.hijriDate}
+    <div
+      style={{
+        display: "grid",
+        placeItems: "center",
+        gap: "5vh",
+        textAlign: "center",
+        width: "100%",
+      }}
+    >
+      <div className="tv-eyebrow">
+        {mode === "bilingual" && tSec ? `${t.nextPrayer} · ${tSec.nextPrayer}` : t.nextPrayer}
+      </div>
+
+      {/* Arabic giant */}
+      {showArabicPrayerNames && (
+        <div
+          dir="rtl"
+          style={{
+            fontFamily: "var(--font-arabic)",
+            fontSize: "var(--t-hero)",
+            fontWeight: 700,
+            color: "var(--accent)",
+            lineHeight: 1,
+            textShadow: "0 0 60px var(--accent-glow)",
+          }}
+        >
+          {ARABIC_PRAYER_NAMES[nextName]}
         </div>
       )}
 
-      <div className="grid w-full max-w-[90vw] grid-cols-6 gap-[1.5vw]">
-        {data.times.map((p) => {
-          const labelDe = tvT("de").prayers[p.name];
-          const labelTr = tvT("tr").prayers[p.name];
-          const labelPrimary = t.prayers[p.name];
-          const labelSecondary = tSec?.prayers[p.name] || "";
-          return (
-            <div
-              key={p.name}
-              className="flex flex-col items-center rounded-2xl px-[1vw] py-[2vh] transition-all"
-              style={{
-                backgroundColor: p.isNext ? colors.accent : "transparent",
-                color: p.isNext ? colors.bg : colors.text,
-                border: `2px solid ${p.isNext ? colors.accent : colors.text + "33"}`,
-              }}
-            >
-              {showArabicPrayerNames && (
-                <div className="text-[2.5vh] opacity-80" dir="rtl">
-                  {ARABIC_PRAYER_NAMES[p.name]}
-                </div>
-              )}
-              <div className="text-[2.5vh] font-medium opacity-90">
-                {mode === "bilingual" && tSec ? (
-                  <>
-                    {labelPrimary}
-                    <span className="mx-2 opacity-50">·</span>
-                    {labelSecondary}
-                  </>
-                ) : (
-                  labelPrimary
-                )}
-              </div>
-              <div className="mt-[1vh] text-[5vh] font-bold tabular-nums">{p.time || "--:--"}</div>
-            </div>
-          );
-        })}
+      {/* Localized name */}
+      <div
+        style={{
+          fontFamily: "var(--font-display)",
+          fontSize: "var(--t-xl)",
+          fontWeight: 700,
+          color: "var(--text)",
+          letterSpacing: "-0.02em",
+        }}
+      >
+        {mode === "bilingual" && tSec ? (
+          <>
+            {t.prayers[nextName]}
+            <span style={{ margin: "0 1.5vw", color: "var(--accent-hair)" }}>·</span>
+            {tSec.prayers[nextName]}
+          </>
+        ) : (
+          t.prayers[nextName]
+        )}
       </div>
 
-      {data.nextPrayer && remainingMs > 0 && (
-        <div className="mt-[3vh] flex flex-col items-center gap-[1vh]">
-          <div className="text-[3vh] opacity-80" style={{ color: colors.text }}>
-            {mode === "bilingual" && tSec ? (
-              <>
-                {t.nextPrayer}: {t.prayers[data.nextPrayer]}
-                <span className="mx-3 opacity-50">·</span>
-                {tSec.nextPrayer}: {tSec.prayers[data.nextPrayer]}
-              </>
-            ) : (
-              <>
-                {t.nextPrayer}: {t.prayers[data.nextPrayer]}
-              </>
-            )}
+      {/* Countdown */}
+      {remainingMs > 0 && (
+        <div style={{ display: "grid", placeItems: "center", gap: "1vh", marginTop: "2vh" }}>
+          <div
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: "var(--t-small)",
+              color: "var(--text-dim)",
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+            }}
+          >
+            {mode === "bilingual" && tSec ? `${t.remaining} · ${tSec.remaining}` : t.remaining}
           </div>
-          <div className="text-[8vh] font-bold tabular-nums" style={{ color: colors.accent }}>
-            {formatCountdown(remainingMs, currentLocale)}
+          <div
+            className="tv-stat"
+            style={{
+              fontSize: "var(--t-hero)",
+              color: "var(--accent)",
+              textShadow: "0 0 50px var(--accent-glow)",
+              lineHeight: 1,
+            }}
+          >
+            {formatCountdown(remainingMs)}
           </div>
         </div>
       )}

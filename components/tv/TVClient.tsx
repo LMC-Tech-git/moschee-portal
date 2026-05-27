@@ -2,8 +2,9 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import type { TVColors, TVLocale, TVLocaleConfig, TVSlide, TVTimeContext } from "@/types";
+import type { TVColors, TVLocale, TVLocaleConfig, TVPrayerSlideData, TVSlide, TVTimeContext } from "@/types";
 import { TVLocaleProvider } from "./LocaleAwareText";
+import { PrayerHeader } from "./PrayerHeader";
 import { PrayerSlide } from "./slides/PrayerSlide";
 import { EventsSlide } from "./slides/EventsSlide";
 import { PostsSlide } from "./slides/PostsSlide";
@@ -16,6 +17,7 @@ import { msUntilNextMidnight } from "@/app/[slug]/tv/midnight-rollover";
 
 export function TVClient({
   slides,
+  prayerData,
   rotationMs,
   colors,
   localeConfig,
@@ -27,11 +29,13 @@ export function TVClient({
   pbRealtimeUrl,
   timeContext,
   nextPrayerAtMs,
-  currentPrayerStartedAtMs: _currentPrayerStartedAtMs,
+  currentPrayerStartedAtMs,
+  currentPrayerName,
   highlightActivePrayer,
   highlightDurationMs,
 }: {
   slides: TVSlide[];
+  prayerData: TVPrayerSlideData | null;
   rotationMs: number;
   colors: TVColors;
   localeConfig: TVLocaleConfig;
@@ -44,6 +48,7 @@ export function TVClient({
   timeContext: TVTimeContext;
   nextPrayerAtMs: number | null;
   currentPrayerStartedAtMs: number | null;
+  currentPrayerName: string | null;
   highlightActivePrayer: boolean;
   highlightDurationMs: number;
 }) {
@@ -62,7 +67,7 @@ export function TVClient({
   // Effective now = client + offset
   const effectiveNow = useCallback(() => Date.now() + clientOffsetMs, [clientOffsetMs]);
 
-  // Periodischer Server-Sync alle 30 min gegen langfristige Browser-Uhr-Drift
+  // Periodischer Server-Sync alle 30 min
   useEffect(() => {
     let cancelled = false;
     const sync = async () => {
@@ -99,7 +104,7 @@ export function TVClient({
     };
   }, [router, timeContext.mosqueTimezone]);
 
-  // Visibility-API: Refresh wenn lange unsichtbar
+  // Visibility-API
   useEffect(() => {
     let hiddenAt: number | null = null;
     const onVis = () => {
@@ -117,7 +122,7 @@ export function TVClient({
 
   // Slide-Rotation
   useEffect(() => {
-    if (activePrayerOverride) return; // pausieren während Override
+    if (activePrayerOverride) return;
     if (slides.length <= 1) return;
     const i = setInterval(() => {
       if (document.hidden) return;
@@ -126,7 +131,7 @@ export function TVClient({
       transitionTimeout.current = setTimeout(() => {
         setSlideIndex((idx) => (idx + 1) % slides.length);
         setTransitioning(false);
-      }, 300);
+      }, 500);
     }, rotationMs);
     return () => clearInterval(i);
   }, [rotationMs, slides.length, activePrayerOverride]);
@@ -140,7 +145,7 @@ export function TVClient({
     const ms = localeConfig.rotateSeconds * 1000;
     const i = setInterval(() => {
       if (document.hidden) return;
-      if (transitioning) return; // Sync-Lock während Slide-Transition
+      if (transitioning) return;
       setCurrentLocale((cur) =>
         cur === localeConfig.primary
           ? (localeConfig.secondary as TVLocale)
@@ -152,10 +157,9 @@ export function TVClient({
 
   // Active-Prayer-Override Trigger
   const nextPrayerName = useMemo(() => {
-    const prayerSlide = slides.find((s) => s.type === "prayer");
-    if (prayerSlide && prayerSlide.type === "prayer") return prayerSlide.data.nextPrayer;
+    if (prayerData?.nextPrayer) return prayerData.nextPrayer;
     return null;
-  }, [slides]);
+  }, [prayerData]);
 
   useEffect(() => {
     if (!highlightActivePrayer || !nextPrayerAtMs || !nextPrayerName) return;
@@ -180,7 +184,7 @@ export function TVClient({
     return () => clearInterval(i);
   }, [highlightActivePrayer, nextPrayerAtMs, highlightDurationMs, nextPrayerName, effectiveNow, activePrayerOverride, router]);
 
-  // Realtime: PocketBase-Subscriptions auf settings/events/posts/campaigns
+  // Realtime PocketBase-Subscriptions
   useEffect(() => {
     if (!pbRealtimeUrl || !mosqueId) return;
     let cancelled = false;
@@ -217,11 +221,10 @@ export function TVClient({
         }
         cleanup = () => unsubs.forEach((u) => u());
       } catch {
-        // pocketbase nicht verfügbar / disconnect
+        // pocketbase nicht verfügbar
       }
     })();
 
-    // Fallback-Polling alle 10 min
     const poll = setInterval(() => router.refresh(), 10 * 60 * 1000);
 
     return () => {
@@ -231,7 +234,7 @@ export function TVClient({
     };
   }, [pbRealtimeUrl, mosqueId, router]);
 
-  // Service-Worker auf TV-Route deaktivieren (kein veralteter Content)
+  // Service-Worker unregister auf TV-Route
   useEffect(() => {
     if (typeof navigator === "undefined" || !("serviceWorker" in navigator)) return;
     navigator.serviceWorker.getRegistrations().then((regs) => {
@@ -260,71 +263,40 @@ export function TVClient({
 
   const dir = localeCtx.currentLocale === "ar" ? "rtl" : "ltr";
 
+  // Suppress unused warnings for currently-untracked vars (reserved for future iqama feature)
+  void currentPrayerStartedAtMs;
+
   return (
     <TVLocaleProvider value={localeCtx}>
       <div
+        className="tv-root"
         onClick={requestFullscreen}
         dir={dir}
         style={{
-          position: "fixed",
-          inset: 0,
-          zIndex: 9999,
-          backgroundColor: colors.bg,
-          color: colors.text,
-          overflow: "hidden",
-          cursor: "none",
-          paddingTop: "2vh",
-          paddingBottom: "2vh",
-          paddingLeft: "2vw",
-          paddingRight: "2vw",
+          ["--accent" as string]: colors.accent,
+          ["--bg" as string]: colors.bg,
+          ["--text" as string]: colors.text,
         }}
       >
-        {/* Header: Logo + Moschee-Name (immer sichtbar) */}
-        <div
-          style={{
-            position: "absolute",
-            top: "2vh",
-            left: "2vw",
-            display: "flex",
-            alignItems: "center",
-            gap: "1.5vw",
-            opacity: 0.85,
-          }}
-        >
-          {mosqueLogoUrl && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={mosqueLogoUrl} alt="" style={{ height: "5vh", width: "auto" }} />
-          )}
-          <span style={{ fontSize: "2.5vh", fontWeight: 600, color: colors.text }}>{mosqueName}</span>
-        </div>
+        <div className="tv-bg-mesh" aria-hidden />
 
-        {/* Slug-Footer */}
-        <div
-          style={{
-            position: "absolute",
-            bottom: "2vh",
-            right: "2vw",
-            fontSize: "1.8vh",
-            opacity: 0.4,
-            color: colors.text,
-          }}
-        >
-          {mosqueSlug}.moschee.app/tv
-        </div>
+        <div className="tv-content">
+          <PrayerHeader
+            prayerData={prayerData}
+            mosqueName={mosqueName}
+            mosqueLogoUrl={mosqueLogoUrl}
+            showArabicPrayerNames={showArabicPrayerNames}
+            clientOffsetMs={clientOffsetMs}
+            currentPrayer={currentPrayerName}
+          />
 
-        {/* Slide-Inhalt mit Crossfade */}
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            transition: "opacity 300ms ease",
-            opacity: transitioning ? 0 : 1,
-          }}
-        >
-          {slideToRender && renderSlide(slideToRender, colors, showArabicPrayerNames, clientOffsetMs, timeContext.mosqueTimezone)}
+          <main className="tv-stage">
+            <div className={`tv-slide${transitioning ? " is-out" : ""}`}>
+              {slideToRender && renderSlide(slideToRender, colors, showArabicPrayerNames, clientOffsetMs, timeContext.mosqueTimezone)}
+            </div>
+
+            <div className="tv-footer-url">{mosqueSlug}.moschee.app/tv</div>
+          </main>
         </div>
       </div>
     </TVLocaleProvider>

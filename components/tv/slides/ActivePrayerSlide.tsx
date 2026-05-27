@@ -5,7 +5,7 @@ import { tvT } from "../tv-i18n";
 
 export function ActivePrayerSlide({
   data,
-  colors,
+  colors: _colors,
 }: {
   data: { prayer: TVPrayerName; arabicName: string };
   colors: TVColors;
@@ -14,20 +14,57 @@ export function ActivePrayerSlide({
   const tTr = tvT("tr");
 
   return (
-    <div className="flex h-full w-full flex-col items-center justify-center gap-[5vh] px-[6vw] py-[4vh] text-center">
-      <div className="font-bold opacity-90" dir="rtl" style={{ color: colors.text, fontSize: "clamp(4rem, 14vw, 18rem)" }}>
+    <div
+      style={{
+        display: "grid",
+        placeItems: "center",
+        gap: "6vh",
+        textAlign: "center",
+        width: "100%",
+      }}
+    >
+      {/* Big arabic, pulsing glow */}
+      <div
+        className="tv-active-pulse"
+        dir="rtl"
+        style={{
+          fontFamily: "var(--font-arabic)",
+          fontSize: "var(--t-hero)",
+          fontWeight: 700,
+          color: "var(--accent)",
+          lineHeight: 1,
+        }}
+      >
         {data.arabicName}
       </div>
 
-      <div className="text-[6vh] font-bold" style={{ color: colors.accent }}>
+      {/* DE · TR */}
+      <div
+        style={{
+          fontFamily: "var(--font-display)",
+          fontSize: "var(--t-2xl)",
+          fontWeight: 700,
+          color: "var(--text)",
+          letterSpacing: "-0.02em",
+        }}
+      >
         {tDe.prayers[data.prayer]}
-        <span className="mx-4 opacity-50">·</span>
+        <span style={{ margin: "0 2vw", color: "var(--accent)", opacity: 0.5 }}>·</span>
         {tTr.prayers[data.prayer]}
       </div>
 
-      <div className="text-[4vh] opacity-80" style={{ color: colors.text }}>
+      {/* "Zeit zum Gebet" */}
+      <div
+        style={{
+          fontFamily: "var(--font-mono)",
+          fontSize: "var(--t-lg)",
+          color: "var(--text-dim)",
+          letterSpacing: "0.06em",
+          textTransform: "uppercase",
+        }}
+      >
         {tDe.prayerTimeNow}
-        <span className="mx-4 opacity-50">·</span>
+        <span style={{ margin: "0 2vw", color: "var(--accent-hair)" }}>·</span>
         {tTr.prayerTimeNow}
       </div>
     </div>
