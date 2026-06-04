@@ -1429,7 +1429,12 @@
         "event_emitted": "Finanz-Event erfasst",
         "lock_failed": "Finanz-Sperre fehlgeschlagen",
         "lock_recovered": "Finanz-Sperre nachgezogen",
-        "emit_failed": "Finanz-Event-Emission fehlgeschlagen"
+        "emit_failed": "Finanz-Event-Emission fehlgeschlagen",
+        "lock_drift_detected": "Lock-Drift erkannt"
+      },
+      "source": {
+        "refund": "Spende erstattet",
+        "chargeback": "Rückbuchung (Dispute)"
       },
       "transaction": {
         "create": "Buchung erfasst",
@@ -3418,6 +3423,15 @@
     "source": {
       "manual": "Manuell",
       "event": "System"
+    },
+    "badge": {
+      "refund": "Erstattung",
+      "chargeback": "Rückbuchung",
+      "parent": "Original-Beleg"
+    },
+    "error": {
+      "refund_parent_not_found": "Original-Buchung nicht gefunden",
+      "refund_exceeds_original": "Erstattung übersteigt Originalbetrag"
     },
     "filter": {
       "alleKonten": "Alle Konten",

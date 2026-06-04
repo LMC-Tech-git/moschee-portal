@@ -24,6 +24,11 @@ export function LedgerCardList({
       {atoms.map((a) => {
         const isIncome = a.classification === "income";
         const manual = a.source_system === "manual_transaction";
+        const isRefund = a.source_system === "external_event"
+          && a.classification === "expense"
+          && !!a.source_origin?.related_event_id;
+        const isChargeback = isRefund && a.source_origin?.relation_type === "chargeback_of";
+        const parentRef = a.source_origin?.related_event_id?.slice(0, 8);
         return (
           <div
             key={`${a.source_system}-${a.id}`}
@@ -46,7 +51,7 @@ export function LedgerCardList({
                 {formatCurrencyCents(Math.abs(a.signed_amount_cents))}
               </p>
             </div>
-            <div className="mt-3 flex items-center justify-between">
+            <div className="mt-3 flex flex-wrap items-center gap-2">
               {manual ? (
                 <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
                   {t("source.manual")}
@@ -57,11 +62,27 @@ export function LedgerCardList({
                   {t("source.event")}
                 </span>
               )}
+              {isChargeback && (
+                <span
+                  title={parentRef ? `${t("badge.parent")}: ${parentRef}…` : undefined}
+                  className="inline-flex items-center rounded-full bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-700"
+                >
+                  {t("badge.chargeback")}
+                </span>
+              )}
+              {!isChargeback && isRefund && (
+                <span
+                  title={parentRef ? `${t("badge.parent")}: ${parentRef}…` : undefined}
+                  className="inline-flex items-center rounded-full bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-700"
+                >
+                  {t("badge.refund")}
+                </span>
+              )}
               {manual && onStorno && (
                 <button
                   type="button"
                   onClick={() => onStorno(a.id)}
-                  className="inline-flex items-center gap-1 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50"
+                  className="ml-auto inline-flex min-h-[32px] items-center gap-1 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50"
                 >
                   <Undo2 className="h-3.5 w-3.5" />
                   {t("action.storno")}

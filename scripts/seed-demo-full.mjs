@@ -18,7 +18,7 @@
 import { readFileSync } from "fs";
 import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
-import { createHash } from "crypto";
+import { createHash, randomUUID } from "crypto";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -1468,6 +1468,121 @@ async function seedFinanceTransactions(adminId) {
   console.log(`  ✅ ${created} Buchungen + ${Object.keys(yearCounters).length} Jahres-Counter erstellt\n`);
 }
 
+/**
+ * Sprint-5-Demo-Daten: Refund/Chargeback-Events + fees/sponsors Finance-Events.
+ * Idempotent via UNIQUE source_event_key.
+ */
+async function seedSprint5Finance() {
+  console.log("💳 Sprint-5 Finance-Demos (Refund/Chargeback + fee/sponsor Events)...");
+
+  function sha256(s) {
+    return createHash("sha256").update(s).digest("hex");
+  }
+  function refundKey(mosqueId, sourceCollection, sourceId, eventType, externalEventId, betragCents, occurredAt) {
+    if (externalEventId) return sha256(`${mosqueId}|${sourceCollection}|${sourceId}|${eventType}|${externalEventId}`);
+    const day = String(occurredAt).slice(0, 10);
+    return sha256(`${mosqueId}|${sourceCollection}|${sourceId}|${eventType}|${betragCents}|${day}`);
+  }
+  function receivedKey(mosqueId, sourceCollection, sourceId) {
+    return sha256(`${mosqueId}|${sourceCollection}|${sourceId}|income_received`);
+  }
+
+  async function emitEvent(record) {
+    try {
+      await pbFetch("collections/finance_source_events/records", {
+        method: "POST",
+        body: JSON.stringify(record),
+      });
+      return "emitted";
+    } catch (e) {
+      if (e?.message?.toLowerCase().includes("unique") || e?.message?.includes("validation_not_unique")) return "dup";
+      throw e;
+    }
+  }
+
+  // ── 1. Donation A: Vollerstattung (income_refunded) ─────────────────────
+  const donA = await pbFetch(`collections/donations/records?filter=${encodeURIComponent(`mosque_id="${MOSQUE_ID}" && provider_ref="demo_ref_s5_refund"`)}&perPage=1`, { throwOnError: false });
+  let donAId = donA?.items?.[0]?.id;
+  if (!donAId) {
+    const r = await pbFetch("collections/donations/records", {
+      method: "POST",
+      body: JSON.stringify({
+        mosque_id: MOSQUE_ID,
+        amount: 50, amount_cents: 5000, status: "refunded",
+        paid_at: isoDateTime(daysAgo(20)), refunded_at: isoDateTime(daysAgo(10)),
+        refund_amount_cents: 5000, provider: "stripe", provider_ref: "demo_ref_s5_refund",
+        currency: "EUR", is_recurring: false, donor_type: "guest",
+        donor_name: "Demo Spender (Erstattet)", donor_email: "demo-refund@example.com",
+        is_financially_locked: true, financial_locked_at: isoDateTime(daysAgo(20)),
+      }),
+    });
+    donAId = r.id;
+  }
+  // income_received für donA
+  const incAKey = receivedKey(MOSQUE_ID, "donations", donAId);
+  let incAUuid = (await pbFetch(`collections/finance_source_events/records?filter=${encodeURIComponent(`source_event_key="${incAKey}"`)}&perPage=1`, { throwOnError: false }))?.items?.[0]?.event_uuid;
+  if (!incAUuid) {
+    incAUuid = randomUUID();
+    await emitEvent({ mosque_id: MOSQUE_ID, event_uuid: incAUuid, external_event_id: "demo_ref_s5_refund", source_event_key: incAKey, related_event_id: "", relation_type: "", original_amount_cents: null, ledger_acceptance_context: "post_lock_system", event_type: "income_received", classification: "income", source_collection: "donations", source_type: "donation", source_id: donAId, betrag_cents: 5000, kategorie: "spenden", konto_typ: "bank", zahlungskanal: "stripe", currency: "EUR", occurred_at: isoDateTime(daysAgo(20)), payload_schema_version: 1, payload_json: JSON.stringify({ source_status: "paid", category: null, provider: "stripe", payment_method: null }), metadata_json: "" });
+  }
+  // income_refunded für donA
+  const refAKey = refundKey(MOSQUE_ID, "donations", donAId, "income_refunded", "re_demo_s5_full", 5000, isoDateTime(daysAgo(10)));
+  await emitEvent({ mosque_id: MOSQUE_ID, event_uuid: randomUUID(), external_event_id: "re_demo_s5_full", source_event_key: refAKey, related_event_id: incAUuid || "", relation_type: "refund_of", original_amount_cents: 5000, ledger_acceptance_context: "post_lock_system", event_type: "income_refunded", classification: "expense", source_collection: "donations", source_type: "donation", source_id: donAId, betrag_cents: 5000, kategorie: "spenden", konto_typ: "bank", zahlungskanal: "stripe", currency: "EUR", occurred_at: isoDateTime(daysAgo(10)), payload_schema_version: 1, payload_json: JSON.stringify({ source_status: "refunded", category: null, provider: "stripe", payment_method: null, reason: null }), metadata_json: "" });
+
+  // ── 2. Donation B: Chargeback ────────────────────────────────────────────
+  const donB = await pbFetch(`collections/donations/records?filter=${encodeURIComponent(`mosque_id="${MOSQUE_ID}" && provider_ref="demo_ref_s5_dispute"`)}&perPage=1`, { throwOnError: false });
+  let donBId = donB?.items?.[0]?.id;
+  if (!donBId) {
+    const r = await pbFetch("collections/donations/records", {
+      method: "POST",
+      body: JSON.stringify({
+        mosque_id: MOSQUE_ID,
+        amount: 25, amount_cents: 2500, status: "disputed",
+        paid_at: isoDateTime(daysAgo(15)), refunded_at: isoDateTime(daysAgo(5)),
+        refund_amount_cents: 2500, provider: "stripe", provider_ref: "demo_ref_s5_dispute",
+        currency: "EUR", is_recurring: false, donor_type: "guest",
+        donor_name: "Demo Spender (Dispute)", donor_email: "demo-dispute@example.com",
+        is_financially_locked: true, financial_locked_at: isoDateTime(daysAgo(15)),
+      }),
+    });
+    donBId = r.id;
+  }
+  const incBKey = receivedKey(MOSQUE_ID, "donations", donBId);
+  let incBUuid = (await pbFetch(`collections/finance_source_events/records?filter=${encodeURIComponent(`source_event_key="${incBKey}"`)}&perPage=1`, { throwOnError: false }))?.items?.[0]?.event_uuid;
+  if (!incBUuid) {
+    incBUuid = randomUUID();
+    await emitEvent({ mosque_id: MOSQUE_ID, event_uuid: incBUuid, external_event_id: "demo_ref_s5_dispute", source_event_key: incBKey, related_event_id: "", relation_type: "", original_amount_cents: null, ledger_acceptance_context: "post_lock_system", event_type: "income_received", classification: "income", source_collection: "donations", source_type: "donation", source_id: donBId, betrag_cents: 2500, kategorie: "spenden", konto_typ: "bank", zahlungskanal: "stripe", currency: "EUR", occurred_at: isoDateTime(daysAgo(15)), payload_schema_version: 1, payload_json: JSON.stringify({ source_status: "paid", category: null, provider: "stripe", payment_method: null }), metadata_json: "" });
+  }
+  const cbKey = refundKey(MOSQUE_ID, "donations", donBId, "chargeback", "dp_demo_s5", 2500, isoDateTime(daysAgo(5)));
+  await emitEvent({ mosque_id: MOSQUE_ID, event_uuid: randomUUID(), external_event_id: "dp_demo_s5", source_event_key: cbKey, related_event_id: incBUuid || "", relation_type: "chargeback_of", original_amount_cents: 2500, ledger_acceptance_context: "post_lock_system", event_type: "chargeback", classification: "expense", source_collection: "donations", source_type: "donation", source_id: donBId, betrag_cents: 2500, kategorie: "spenden", konto_typ: "bank", zahlungskanal: "stripe", currency: "EUR", occurred_at: isoDateTime(daysAgo(5)), payload_schema_version: 1, payload_json: JSON.stringify({ source_status: "chargeback", category: null, provider: "stripe", payment_method: null, reason: "fraudulent" }), metadata_json: "" });
+
+  // ── 3. Fee (Bar) → income_received (student_fees) ────────────────────────
+  // Nutze erste gefundene bezahlte Gebühr der Demo-Moschee
+  const fees = await pbFetch(`collections/student_fees/records?filter=${encodeURIComponent(`mosque_id="${MOSQUE_ID}" && status="paid"`)}&perPage=1`, { throwOnError: false });
+  const fee1 = fees?.items?.[0];
+  if (fee1) {
+    const feeEvtKey = receivedKey(MOSQUE_ID, "student_fees", fee1.id);
+    const r = await emitEvent({ mosque_id: MOSQUE_ID, event_uuid: randomUUID(), external_event_id: "", source_event_key: feeEvtKey, related_event_id: "", relation_type: "", original_amount_cents: null, ledger_acceptance_context: "post_lock_system", event_type: "income_received", classification: "income", source_collection: "student_fees", source_type: "fee", source_id: fee1.id, betrag_cents: fee1.amount_cents || 1000, kategorie: "madrasa_gebuehren", konto_typ: fee1.payment_method === "cash" ? "cash" : "bank", zahlungskanal: fee1.payment_method === "cash" ? "bar" : fee1.payment_method === "transfer" ? "ueberweisung" : "stripe", currency: "EUR", occurred_at: fee1.paid_at || isoDateTime(daysAgo(5)), payload_schema_version: 1, payload_json: JSON.stringify({ source_status: "paid", category: "madrasa_gebuehren", provider: fee1.payment_method === "stripe" ? "stripe" : "manual", payment_method: fee1.payment_method || null }), metadata_json: "" });
+    if (r !== "dup") console.log("  ✅ student_fee income_received Event erstellt");
+    else console.log("  ℹ️  student_fee Event bereits vorhanden (idempotent)");
+  }
+
+  // ── 4. Sponsor (Überweisung) → income_received (sponsors) ───────────────
+  const sponsors = await pbFetch(`collections/sponsors/records?filter=${encodeURIComponent(`mosque_id="${MOSQUE_ID}" && payment_status="paid"`)}&perPage=1`, { throwOnError: false });
+  const sp1 = sponsors?.items?.[0];
+  if (sp1) {
+    const spEvtKey = receivedKey(MOSQUE_ID, "sponsors", sp1.id);
+    const amountCents = (sp1.amount_cents || 0) * (sp1.months_paid || 1);
+    if (amountCents > 0) {
+      const r = await emitEvent({ mosque_id: MOSQUE_ID, event_uuid: randomUUID(), external_event_id: "", source_event_key: spEvtKey, related_event_id: "", relation_type: "", original_amount_cents: null, ledger_acceptance_context: "post_lock_system", event_type: "income_received", classification: "income", source_collection: "sponsors", source_type: "sponsor", source_id: sp1.id, betrag_cents: amountCents, kategorie: "foerderpartner", konto_typ: sp1.payment_method === "cash" ? "cash" : "bank", zahlungskanal: sp1.payment_method === "transfer" ? "ueberweisung" : sp1.payment_method === "stripe" ? "stripe" : sp1.payment_method === "cash" ? "bar" : "sonstige", currency: "EUR", occurred_at: sp1.paid_at || isoDateTime(daysAgo(10)), payload_schema_version: 1, payload_json: JSON.stringify({ source_status: "paid", category: "foerderpartner", provider: sp1.payment_method === "stripe" ? "stripe" : "manual", payment_method: sp1.payment_method || null }), metadata_json: "" });
+      if (r !== "dup") console.log("  ✅ sponsor income_received Event erstellt");
+      else console.log("  ℹ️  sponsor Event bereits vorhanden (idempotent)");
+    }
+  }
+
+  console.log("  ✅ Sprint-5 Finance-Demos fertig\n");
+}
+
 async function seedRecurringSubscriptions(memberIds) {
   console.log("🔁 Wiederkehrende Spenden (löschen + neu erstellen)...");
   const deleted = await deleteAllForMosque("recurring_subscriptions");
@@ -1935,6 +2050,7 @@ async function main() {
   const campaignIds = await seedCampaigns(users.admin);
   await seedDonations(campaignIds, users.memberIds);
   await seedFinanceTransactions(users.admin);
+  await seedSprint5Finance();
   await seedRecurringSubscriptions(users.memberIds);
   await seedMembershipFees(users.memberIds);
 

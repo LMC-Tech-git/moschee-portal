@@ -27,6 +27,8 @@ import {
 import { mapDonationToEUR, FINANCE_CATEGORIES } from "@/lib/constants";
 import { formatBelegNummer } from "@/lib/finance-sequence";
 import { assertDonationEditAllowed, DonationLockedError } from "@/lib/donations-finance-helpers";
+import { feeToKontoChannel } from "@/lib/fees-finance-helpers";
+import { sponsorToKontoChannel } from "@/lib/sponsors-finance-helpers";
 import type { FinanceSourceEvent, Transaction } from "@/types";
 
 let failures = 0;
@@ -274,6 +276,37 @@ ok(
   })(),
   "valide Ausgabe → kein Throw"
 );
+
+// ─── feeToKontoChannel ──────────────────────────────────────────────────────
+
+console.log("\n--- feeToKontoChannel ---");
+const feeTests: [string | null | undefined, string, string][] = [
+  ["cash",     "cash",  "bar"],
+  ["transfer", "bank",  "ueberweisung"],
+  ["stripe",   "bank",  "stripe"],
+  [null,       "bank",  "sonstige"],
+  [undefined,  "bank",  "sonstige"],
+];
+feeTests.forEach(([method, expKonto, expKanal]) => {
+  const { kontoTyp, zahlungskanal } = feeToKontoChannel(method);
+  ok(kontoTyp === expKonto && zahlungskanal === expKanal,
+    `feeToKontoChannel(${method}): konto=${kontoTyp}/${expKonto} kanal=${zahlungskanal}/${expKanal}`);
+});
+
+// ─── sponsorToKontoChannel ───────────────────────────────────────────────────
+
+console.log("\n--- sponsorToKontoChannel ---");
+const sponsorTests: [string | null | undefined, string, string][] = [
+  ["cash",     "cash",  "bar"],
+  ["transfer", "bank",  "ueberweisung"],
+  ["stripe",   "bank",  "stripe"],
+  [null,       "bank",  "sonstige"],
+];
+sponsorTests.forEach(([method, expKonto, expKanal]) => {
+  const { kontoTyp, zahlungskanal } = sponsorToKontoChannel(method);
+  ok(kontoTyp === expKonto && zahlungskanal === expKanal,
+    `sponsorToKontoChannel(${method}): konto=${kontoTyp}/${expKonto} kanal=${zahlungskanal}/${expKanal}`);
+});
 
 console.log("");
 if (failures > 0) {

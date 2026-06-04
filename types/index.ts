@@ -967,6 +967,8 @@ export interface LedgerAtom {
     source_collection: string;
     source_id: string;
     event_uuid: string;
+    relation_type?: "refund_of" | "chargeback_of" | "";   // Sprint 5
+    related_event_id?: string;                             // Sprint 5
   };
   beleg_nummer: string;           // "" bei events
   readonly: boolean;              // event=true, manual=false

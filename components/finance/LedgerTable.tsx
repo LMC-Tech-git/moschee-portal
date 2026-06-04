@@ -37,6 +37,11 @@ export function LedgerTable({
           {atoms.map((a) => {
             const isIncome = a.classification === "income";
             const manual = a.source_system === "manual_transaction";
+            const isRefund = a.source_system === "external_event"
+              && a.classification === "expense"
+              && !!a.source_origin?.related_event_id;
+            const isChargeback = isRefund && a.source_origin?.relation_type === "chargeback_of";
+            const parentRef = a.source_origin?.related_event_id?.slice(0, 8);
             return (
               <tr key={`${a.source_system}-${a.id}`} className="hover:bg-gray-50">
                 <td className="px-4 py-2.5 whitespace-nowrap text-gray-700">{formatDate(a.datum)}</td>
@@ -46,16 +51,34 @@ export function LedgerTable({
                 <td className="px-4 py-2.5 text-gray-700">{t(`kategorie.${a.kategorie}`)}</td>
                 <td className="px-4 py-2.5 text-gray-500">{t(`konto.${a.konto_typ}`)}</td>
                 <td className="px-4 py-2.5">
-                  {manual ? (
-                    <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
-                      {t("source.manual")}
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
-                      <Lock className="h-3 w-3" />
-                      {t("source.event")}
-                    </span>
-                  )}
+                  <div className="flex flex-wrap items-center gap-1">
+                    {manual ? (
+                      <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                        {t("source.manual")}
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
+                        <Lock className="h-3 w-3" />
+                        {t("source.event")}
+                      </span>
+                    )}
+                    {isChargeback && (
+                      <span
+                        title={parentRef ? `${t("badge.parent")}: ${parentRef}…` : undefined}
+                        className="inline-flex items-center rounded-full bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-700"
+                      >
+                        {t("badge.chargeback")}
+                      </span>
+                    )}
+                    {!isChargeback && isRefund && (
+                      <span
+                        title={parentRef ? `${t("badge.parent")}: ${parentRef}…` : undefined}
+                        className="inline-flex items-center rounded-full bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-700"
+                      >
+                        {t("badge.refund")}
+                      </span>
+                    )}
+                  </div>
                 </td>
                 <td
                   className={`px-4 py-2.5 text-right font-medium tabular-nums ${

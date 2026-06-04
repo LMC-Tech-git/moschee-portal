@@ -1,11 +1,14 @@
 "use server";
 
 import { getAdminPB } from "@/lib/pocketbase-admin";
-import { logAudit } from "@/lib/audit";
+import { logAudit, safeAudit } from "@/lib/audit";
 import type { Sponsor, SponsorCategory } from "@/types";
 import type { RecordModel } from "pocketbase";
 import { getStripe, stripeAccountFor } from "@/lib/stripe/client";
 import type { Mosque } from "@/types";
+import { createIncome } from "@/lib/actions/finance-domain";
+import { sponsorToKontoChannel } from "@/lib/sponsors-finance-helpers";
+import { FINANCE_CATEGORIES } from "@/lib/constants";
 
 // --- Helper ---
 
@@ -349,6 +352,63 @@ export async function toggleSponsorActive(
 
 // ─── Admin: Als bezahlt markieren (Bar / Überweisung) ────────────────────────
 
+/**
+ * Emittiert ein `income_received`-Finance-Event für einen bezahlten Förderpartner.
+ * Betrag = amount_cents × monthsPaid (Monatswert × Laufzeit).
+ * Idempotent via UNIQUE-Index auf source_event_key.
+ */
+export async function markSponsorPaidAndEmit(
+  sponsorId: string,
+  paidAt: string,
+  options: {
+    mosqueIdHint?: string;
+    externalEventId?: string;
+    paymentMethod?: "cash" | "transfer" | "stripe";
+    monthsPaid?: number;
+    ctx?: { backfill?: boolean; webhook?: boolean };
+  } = {}
+): Promise<void> {
+  const pb = await getAdminPB();
+  const sponsor = await pb.collection("sponsors").getOne(sponsorId);
+  const mosqueId = options.mosqueIdHint || sponsor.mosque_id;
+  if (!mosqueId) throw new Error(`markSponsorPaidAndEmit: keine mosque_id für sponsor ${sponsorId}`);
+  const paymentMethod = options.paymentMethod || sponsor.payment_method;
+  const monthsPaid = options.monthsPaid || sponsor.months_paid || 1;
+  const amountCents = (sponsor.amount_cents || 0) * monthsPaid;
+  if (amountCents < 1) return; // Kein Betrag → kein Event
+  const { kontoTyp, zahlungskanal } = sponsorToKontoChannel(paymentMethod);
+  try {
+    await createIncome({
+      mosqueId,
+      sourceCollection: "sponsors",
+      sourceType: "sponsor",
+      sourceId: sponsorId,
+      betragCents: amountCents,
+      kategorie: FINANCE_CATEGORIES.FOERDERPARTNER,
+      kontoTyp,
+      zahlungskanal,
+      occurredAt: paidAt,
+      externalEventId: options.externalEventId,
+      payload: {
+        source_status: "paid",
+        category: "foerderpartner",
+        provider: paymentMethod === "stripe" ? "stripe" : "manual",
+        payment_method: paymentMethod || null,
+      },
+      ctx: options.ctx,
+    });
+  } catch (e) {
+    await safeAudit({
+      mosqueId,
+      action: "finance.emit_failed",
+      entityType: "sponsors",
+      entityId: sponsorId,
+      context: { error: String(e), sponsor_id: sponsorId, step: "markSponsorPaidAndEmit" },
+    });
+    throw e;
+  }
+}
+
 export async function markSponsorPaid(
   mosqueId: string,
   userId: string,
@@ -376,18 +436,30 @@ export async function markSponsorPaid(
     const startStr = startDate.toISOString().split("T")[0];
     const endStr = endDate.toISOString().split("T")[0];
 
+    const paidAtStr = new Date().toISOString();
     const record = await pb.collection("sponsors").update(sponsorId, {
       payment_status: "paid",
       payment_method: method,
       start_date: startStr,
       end_date: endStr,
       months_paid: Number(durationMonths) || 0,
-      paid_at: new Date().toISOString(),
+      paid_at: paidAtStr,
       is_active: true,
       is_approved: true,  // Zahlung bestätigt → direkt öffentlich sichtbar
       // notification_sent bleibt false (neue Laufzeit → neue Erinnerung möglich)
       notification_sent: false,
     });
+
+    // Finance-Event emittieren (Sprint 5)
+    try {
+      await markSponsorPaidAndEmit(sponsorId, paidAtStr, {
+        mosqueIdHint: mosqueId,
+        paymentMethod: method,
+        monthsPaid: Number(durationMonths) || 1,
+      });
+    } catch (e) {
+      console.error("[sponsors] markSponsorPaid emit fehlgeschlagen (non-fatal):", e);
+    }
 
     await logAudit({
       mosqueId,

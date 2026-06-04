@@ -183,6 +183,8 @@ function eventToLedgerAtom(event: FinanceSourceEvent): LedgerAtom {
       source_collection: event.source_collection,
       source_id: event.source_id,
       event_uuid: event.event_uuid,
+      relation_type: (event.relation_type as "refund_of" | "chargeback_of" | "") || "",
+      related_event_id: event.related_event_id || "",
     },
     beleg_nummer: "",
     readonly: true,

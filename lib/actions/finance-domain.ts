@@ -8,9 +8,11 @@ import { safeAudit } from "@/lib/audit";
 import { checkDemoLimit } from "@/lib/demo";
 import {
   financeEventPayloadSchema,
+  refundIncomeSchema,
   transactionSchema,
   stornoSchema,
   type FinanceEventPayloadInput,
+  type RefundIncomeInput,
 } from "@/lib/validations";
 import {
   insertTransactionWithBelegNummer,
@@ -18,6 +20,7 @@ import {
 } from "@/lib/finance-sequence";
 import type { FinanceCategoryId } from "@/lib/constants";
 import type { KontoTyp, Zahlungskanal, Transaction, FinanceClassification } from "@/types";
+import type { RecordModel } from "pocketbase";
 
 const BELEG_ALLOWED_MIME = ["application/pdf", "image/jpeg", "image/png"];
 const BELEG_MAX_BYTES = 5 * 1024 * 1024; // 5 MB
@@ -52,7 +55,7 @@ async function getFinanceLockSettings(mosqueId: string): Promise<string | null> 
  *
  * Drei öffentliche Entry-Points:
  *  - `createIncome()` — Sprint 2 SCHARF (Donation→Event)
- *  - `refundIncome()` — Sprint 5 (Stub: NOT_YET_IMPLEMENTED)
+ *  - `refundIncome()` — Sprint 5 SCHARF (Refund/Chargeback)
  *  - `createManualTransaction()` — Sprint 3 (Stub: NOT_YET_IMPLEMENTED)
  *
  * Alles andere (Lock, Sequenz, Emit, Audit) ist intern. UI/Actions rufen
@@ -167,12 +170,7 @@ export async function createIncome(input: CreateIncomeInput): Promise<CreateInco
   }
   const cleanPayload = parsed.data;
 
-  // 2. M5: Sprint 2 nur donations; student_fees/sponsors = Sprint 5
-  if (input.sourceCollection !== "donations") {
-    throw new Error(
-      `createIncome: sourceCollection="${input.sourceCollection}" NOT_YET_IMPLEMENTED_SPRINT_5`
-    );
-  }
+  // 2. M5-Guard entfernt Sprint 5 — createIncome akzeptiert donations/student_fees/sponsors.
 
   // 3. canWrite SYSTEM_EVENT_WRITE (strukturell, immer true Phase 1)
   // hardLockUntil: hier null (events sind immer schreibbar). Settings-Lookup
@@ -260,9 +258,185 @@ export async function createIncome(input: CreateIncomeInput): Promise<CreateInco
   return { eventUuid, duplicated: false, lockSet };
 }
 
-/** Sprint-5-Stub. */
-export async function refundIncome(_input: unknown): Promise<never> {
-  throw new Error("refundIncome: NOT_YET_IMPLEMENTED_SPRINT_5");
+export type RefundIncomeResult = {
+  eventUuid: string | null;
+  duplicated: boolean;
+  refundTotalCents: number;
+};
+
+/**
+ * refundIncome — Sprint 5 SCHARF.
+ *
+ * Alleiniger Schreibpfad für Refund/Chargeback. Emittiert Event UND aktualisiert
+ * Quell-Refund-Felder (nur donations Phase 1). Aufrufer setzen Quellstatus NICHT
+ * vorab; Ausnahme: charge.dispute.created-Webhook setzt status="disputed" für
+ * notifyAdmins — Doppel-Set idempotent.
+ *
+ * fees/sponsors: kein Quell-Update Phase 1 (keine refund_amount_cents Felder).
+ * Refund-Wahrheit lebt im Event-Stream.
+ */
+export async function refundIncome(input: RefundIncomeInput): Promise<RefundIncomeResult> {
+  // 1. Zod-Validation
+  const parsed = refundIncomeSchema.safeParse(input);
+  if (!parsed.success) {
+    const issues = parsed.error.issues.map((i) => `${i.path.join(".")}:${i.message}`).join("; ");
+    throw new Error(`refundIncome: Validation fehlgeschlagen — ${issues}`);
+  }
+  const inp = parsed.data;
+  const { mosqueId, sourceCollection, sourceId, refundAmountCents, externalEventId, eventType, reason, occurredAt, ctx } = inp;
+
+  // 2. getFinancePB
+  const pb = await getFinancePB(mosqueId);
+
+  // 3. Parent-Event laden (income_received für dieselbe Quelle)
+  let parent: import("pocketbase").RecordModel;
+  try {
+    parent = await pb.collection("finance_source_events").getFirstListItem(
+      `source_collection = "${sourceCollection}" && source_id = "${sourceId}" && event_type = "income_received"`
+    );
+  } catch {
+    throw new Error(`refund_parent_not_found: kein income_received-Event für ${sourceCollection}/${sourceId}`);
+  }
+
+  // 4. Provider aus Parent-Payload
+  let parentPayload: Record<string, unknown> = {};
+  try { parentPayload = JSON.parse(parent.payload_json || "{}"); } catch {}
+  const provider = String(parentPayload.provider || "unknown");
+
+  // 5. Sum-Guard (best-effort: race-window in Sprint-5-Plan §13.1)
+  let existingRefundTotal = 0;
+  try {
+    const existingRefunds: RecordModel[] = await pb.collection("finance_source_events").getFullList({
+      filter: `source_collection = "${sourceCollection}" && source_id = "${sourceId}" && (event_type = "income_refunded" || event_type = "chargeback")`,
+      fields: "betrag_cents",
+    });
+    existingRefunds.forEach((ev) => {
+      existingRefundTotal += Number(ev.betrag_cents) || 0;
+    });
+  } catch { /* best-effort, weiter */ }
+  if (existingRefundTotal + refundAmountCents > parent.betrag_cents) {
+    throw new Error(`refund_exceeds_original: Σ ${existingRefundTotal + refundAmountCents} > Original ${parent.betrag_cents}`);
+  }
+
+  // 6. canWrite — strukturell immer true Phase 1
+  canWrite(occurredAt, null, "SYSTEM_EVENT_WRITE");
+
+  // 7. Demo-Limit
+  const demoCheck = await checkDemoLimit(mosqueId, "finance_events");
+  if (!demoCheck.allowed) {
+    throw new Error(`refundIncome: Demo-Limit erreicht — ${demoCheck.error}`);
+  }
+
+  // 8. emitFinanceEvent
+  const emitResult = await emitFinanceEvent({
+    mosqueId,
+    eventType: eventType === "chargeback" ? "chargeback" : "income_refunded",
+    sourceCollection,
+    sourceType: parent.source_type as "donation" | "fee" | "sponsor",
+    sourceId,
+    betragCents: refundAmountCents,
+    kategorie: parent.kategorie,
+    kontoTyp: parent.konto_typ as import("@/types").KontoTyp,
+    zahlungskanal: parent.zahlungskanal as import("@/types").Zahlungskanal,
+    currency: "EUR",
+    occurredAt,
+    externalEventId,
+    relatedEventId: parent.event_uuid,
+    relationType: eventType === "chargeback" ? "chargeback_of" : "refund_of",
+    payload: {
+      source_status: eventType === "chargeback" ? "chargeback" : "refunded",
+      category: parent.kategorie,
+      provider,
+      payment_method: null,
+      reason: reason || null,
+    },
+    metadata: { original_amount_cents: parent.betrag_cents },
+  });
+
+  if (emitResult.duplicated) {
+    await safeAudit({
+      mosqueId,
+      action: eventType === "chargeback" ? "source.chargeback" : "source.refund",
+      entityType: "finance_event",
+      entityId: sourceId,
+      context: { duplicated: true, source_collection: sourceCollection, source_id: sourceId, external_event_id: externalEventId, backfill: ctx?.backfill, webhook: ctx?.webhook },
+    });
+    return { eventUuid: null, duplicated: true, refundTotalCents: existingRefundTotal };
+  }
+
+  const eventUuid = emitResult.eventUuid;
+  const newRefundTotal = existingRefundTotal + refundAmountCents;
+
+  // 9. Quell-Update — nur donations Phase 1
+  if (sourceCollection === "donations") {
+    try {
+      const existing: RecordModel = await pb.collection("donations").getOne(sourceId);
+
+      // Lock-Drift-Check
+      if (existing.is_financially_locked !== true) {
+        await safeAudit({
+          mosqueId,
+          action: "finance.lock_drift_detected",
+          entityType: "finance_event",
+          entityId: eventUuid || sourceId,
+          context: { source_collection: sourceCollection, source_id: sourceId, note: "refundIncome: Quelle nicht gelockt" },
+        });
+      }
+
+      const newStatus =
+        eventType === "chargeback"
+          ? "disputed"
+          : newRefundTotal >= parent.betrag_cents
+          ? "refunded"
+          : existing.status; // Partial: Status unverändert
+
+      await pb.collection("donations").update(sourceId, {
+        refund_amount_cents: newRefundTotal,
+        refunded_at: occurredAt,
+        refund_reason: reason || existing.refund_reason || "",
+        refund_provider_ref: existing.refund_provider_ref || externalEventId || "",
+        status: newStatus,
+      });
+    } catch (e) {
+      // Quell-Update non-fatal — Event-Stream ist Wahrheit
+      await safeAudit({
+        mosqueId,
+        action: "finance.emit_failed",
+        entityType: "finance_event",
+        entityId: eventUuid || sourceId,
+        context: { error: String(e), step: "donation_refund_update", source_id: sourceId },
+      });
+    }
+  } else {
+    // fees/sponsors: kein Update Phase 1
+    await safeAudit({
+      mosqueId,
+      action: "finance.emit_failed",
+      entityType: "finance_event",
+      entityId: eventUuid || sourceId,
+      context: { note: "refundIncome.source_lacks_refund_field", source_collection: sourceCollection, source_id: sourceId },
+    });
+  }
+
+  // 11. Audit
+  await safeAudit({
+    mosqueId,
+    action: eventType === "chargeback" ? "source.chargeback" : "source.refund",
+    entityType: "finance_event",
+    entityId: eventUuid || sourceId,
+    context: {
+      source_collection: sourceCollection,
+      source_id: sourceId,
+      refund_amount_cents: refundAmountCents,
+      parent_event_uuid: parent.event_uuid,
+      external_event_id: externalEventId,
+      total_refunded_cents: newRefundTotal,
+      backfill: ctx?.backfill,
+      webhook: ctx?.webhook,
+    },
+  });
+
+  return { eventUuid, duplicated: false, refundTotalCents: newRefundTotal };
 }
 
 // ===========================================================================

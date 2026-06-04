@@ -23,6 +23,9 @@ import {
 } from "@/lib/stripe/membership-webhook";
 import { getMembershipFeeSettings } from "@/lib/actions/settings";
 import { markDonationPaidAndEmit } from "@/lib/actions/donations";
+import { markStudentFeePaidAndEmit } from "@/lib/actions/student-fees";
+import { markSponsorPaidAndEmit } from "@/lib/actions/sponsors";
+import { refundIncome } from "@/lib/actions/finance-domain";
 import type { RecordModel } from "pocketbase";
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -81,6 +84,16 @@ async function markFeeMultiPaid(
             paid_at: paidNow,
             payment_method: "stripe",
           });
+          // Finance-Event emittieren (Sprint 5)
+          try {
+            await markStudentFeePaidAndEmit(fee.id, paidNow, {
+              mosqueIdHint: mosqueId,
+              paymentMethod: "stripe",
+              ctx: { webhook: true },
+            });
+          } catch (e) {
+            console.error(`[Stripe Webhook] fee_multi emit fehlgeschlagen für fee ${fee.id}:`, e);
+          }
         }
       }
     }
@@ -335,9 +348,10 @@ export async function POST(request: NextRequest) {
             const startDate = paidAt.toISOString().split("T")[0];
             const endDateObj = new Date(paidAt.getFullYear(), paidAt.getMonth() + sponsorMonths, 0);
             const endDate = endDateObj.toISOString().split("T")[0];
+            const paidAtStr = paidAt.toISOString();
             await pb.collection("sponsors").update(sponsorId, {
               payment_status: "paid",
-              paid_at: paidAt.toISOString(),
+              paid_at: paidAtStr,
               payment_method: "stripe",
               is_active: true,
               months_paid: sponsorMonths,
@@ -354,6 +368,18 @@ export async function POST(request: NextRequest) {
                 entityId: sponsorId,
                 details: { amount_cents: session.amount_total, provider: "stripe" },
               });
+              // Finance-Event emittieren (Sprint 5)
+              try {
+                await markSponsorPaidAndEmit(sponsorId, paidAtStr, {
+                  mosqueIdHint: mosqueId,
+                  externalEventId: session.id,
+                  paymentMethod: "stripe",
+                  monthsPaid: sponsorMonths,
+                  ctx: { webhook: true },
+                });
+              } catch (e) {
+                console.error(`[Stripe Webhook] sponsor emit fehlgeschlagen:`, e);
+              }
             }
           }
           break;
@@ -383,9 +409,10 @@ export async function POST(request: NextRequest) {
             break;
           }
           if (session.payment_status === "paid") {
+            const feePaidAt = new Date().toISOString();
             await pb.collection("student_fees").update(feeId, {
               status: "paid",
-              paid_at: new Date().toISOString(),
+              paid_at: feePaidAt,
               payment_method: "stripe",
             });
             console.log(`[Stripe Webhook] StudentFee ${feeId} als bezahlt markiert`);
@@ -397,6 +424,17 @@ export async function POST(request: NextRequest) {
                 entityId: feeId,
                 details: { amount_cents: session.amount_total, provider: "stripe" },
               });
+              // Finance-Event emittieren (Sprint 5)
+              try {
+                await markStudentFeePaidAndEmit(feeId, feePaidAt, {
+                  mosqueIdHint: mosqueId,
+                  externalEventId: session.id,
+                  paymentMethod: "stripe",
+                  ctx: { webhook: true },
+                });
+              } catch (e) {
+                console.error(`[Stripe Webhook] fee emit fehlgeschlagen:`, e);
+              }
             }
           }
           break;
@@ -614,9 +652,10 @@ export async function POST(request: NextRequest) {
           // Einzelne Madrasa-Gebühr (SEPA)
           const feeId = session.metadata?.fee_id;
           if (feeId) {
+            const asyncFeePaidAt = new Date().toISOString();
             await pb.collection("student_fees").update(feeId, {
               status: "paid",
-              paid_at: new Date().toISOString(),
+              paid_at: asyncFeePaidAt,
               payment_method: "stripe",
             });
             console.log(`[Stripe Webhook] Async-Payment Gebühr ${feeId} bezahlt`);
@@ -627,6 +666,17 @@ export async function POST(request: NextRequest) {
               entityId: feeId,
               details: { async: true },
             });
+            // Finance-Event emittieren (Sprint 5)
+            try {
+              await markStudentFeePaidAndEmit(feeId, asyncFeePaidAt, {
+                mosqueIdHint: mosqueIdAsync,
+                externalEventId: session.id,
+                paymentMethod: "stripe",
+                ctx: { webhook: true },
+              });
+            } catch (e) {
+              console.error(`[Stripe Webhook] async fee emit fehlgeschlagen:`, e);
+            }
           }
         } else if (paymentTypeAsync === "fee_multi" && mosqueIdAsync) {
           // Mehrmonatige Vorauszahlung (SEPA)
@@ -714,28 +764,61 @@ export async function POST(request: NextRequest) {
 
       case "charge.refunded": {
         const charge = event.data.object as Stripe.Charge;
-        // Suche die Donation anhand der Session
-        if (charge.payment_intent) {
-          try {
-            const donation = await pb
-              .collection("donations")
-              .getFirstListItem(
-                `provider_ref ~ "${charge.payment_intent}" && provider = "stripe"`
-              );
-            await pb.collection("donations").update(donation.id, {
-              status: "refunded",
-            });
-            console.log(`[Stripe Webhook] Donation ${donation.id} erstattet`);
+        const piId = typeof charge.payment_intent === "string"
+          ? charge.payment_intent
+          : (charge.payment_intent as Stripe.PaymentIntent | null)?.id;
+        if (!piId) break;
 
-            logAudit({
-              mosqueId: donation.mosque_id,
-              action: "donation.refunded",
-              entityType: "donation",
-              entityId: donation.id,
-              details: { provider: "stripe", payment_intent: charge.payment_intent },
+        // 1. Donation via payment_intent ODER invoice (Subscription-Donations)
+        let refundDonation: RecordModel | null = null;
+        try {
+          refundDonation = await pb.collection("donations").getFirstListItem(
+            `provider_ref = "${piId}" && provider = "stripe"`
+          );
+        } catch {}
+        if (!refundDonation && charge.invoice) {
+          const invId = typeof charge.invoice === "string" ? charge.invoice : (charge.invoice as Stripe.Invoice).id;
+          try {
+            refundDonation = await pb.collection("donations").getFirstListItem(
+              `provider_ref = "${invId}" && provider = "stripe"`
+            );
+          } catch {}
+        }
+        if (!refundDonation) {
+          console.warn(`[Stripe Webhook] charge.refunded: Donation für ${piId} nicht gefunden`);
+          break;
+        }
+
+        // 2. Refunds-Liste — has_more → nachladen
+        let refundsList = (charge.refunds?.data || []) as Stripe.Refund[];
+        if (charge.refunds?.has_more) {
+          try {
+            const connectedAccountId = connectMosque?.stripe_account_id;
+            const opts = connectedAccountId ? { stripeAccount: connectedAccountId } : undefined;
+            const full = await stripe.charges.retrieve(charge.id, { expand: ["refunds"] }, opts);
+            refundsList = (full.refunds?.data || []) as Stripe.Refund[];
+          } catch (e) {
+            console.error("[Stripe Webhook] charge.refunded: refunds expand fehlgeschlagen:", e);
+          }
+        }
+
+        // 3. Pro Refund refundIncome aufrufen (UNIQUE-Index = Idempotenz bei Doppel-Delivery)
+        for (let ri = 0; ri < refundsList.length; ri++) {
+          const r = refundsList[ri];
+          try {
+            await refundIncome({
+              mosqueId: refundDonation.mosque_id,
+              sourceCollection: "donations",
+              sourceId: refundDonation.id,
+              refundAmountCents: r.amount,
+              externalEventId: r.id,
+              eventType: "income_refunded",
+              reason: r.reason || undefined,
+              occurredAt: new Date(((r.created ?? Date.now() / 1000)) * 1000).toISOString(),
+              ctx: { webhook: true },
             });
-          } catch {
-            console.warn("[Stripe Webhook] Donation für Refund nicht gefunden");
+          } catch (e) {
+            console.error(`[Stripe Webhook] refundIncome fehlgeschlagen für refund ${r.id}:`, e);
           }
         }
         break;
@@ -1145,6 +1228,25 @@ export async function POST(request: NextRequest) {
           });
         } catch (e) {
           console.error("[Stripe Webhook] dispute admin-notify Fehler:", e);
+        }
+
+        // Chargeback-Event emittieren (Sprint 5)
+        if (dispute.amount && dispute.amount > 0) {
+          try {
+            await refundIncome({
+              mosqueId: donation.mosque_id,
+              sourceCollection: "donations",
+              sourceId: donation.id,
+              refundAmountCents: dispute.amount,
+              externalEventId: dispute.id,
+              eventType: "chargeback",
+              reason: dispute.reason || undefined,
+              occurredAt: new Date(((dispute.created ?? Date.now() / 1000)) * 1000).toISOString(),
+              ctx: { webhook: true },
+            });
+          } catch (e) {
+            console.error("[Stripe Webhook] chargeback-Event fehlgeschlagen:", e);
+          }
         }
         break;
       }

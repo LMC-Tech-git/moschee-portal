@@ -1429,7 +1429,12 @@
         "event_emitted": "Finans olayı kaydedildi",
         "lock_failed": "Finansal kilit başarısız",
         "lock_recovered": "Finansal kilit yenilendi",
-        "emit_failed": "Finans olayı yayımı başarısız"
+        "emit_failed": "Finans olayı yayımı başarısız",
+        "lock_drift_detected": "Kilit kayması tespit edildi"
+      },
+      "source": {
+        "refund": "Bağış iade edildi",
+        "chargeback": "Geri çekme (anlaşmazlık)"
       },
       "transaction": {
         "create": "Kayıt oluşturuldu",
@@ -3418,6 +3423,15 @@
     "source": {
       "manual": "Manuel",
       "event": "Sistem"
+    },
+    "badge": {
+      "refund": "İade",
+      "chargeback": "Geri çekme",
+      "parent": "Asıl belge"
+    },
+    "error": {
+      "refund_parent_not_found": "Asıl kayıt bulunamadı",
+      "refund_exceeds_original": "İade tutarı orijinali aşıyor"
     },
     "filter": {
       "alleKonten": "Tüm hesaplar",

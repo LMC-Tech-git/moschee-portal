@@ -17,6 +17,7 @@ export const DEMO_LIMITS = {
   students: 50,
   push_subscriptions: 50,
   transactions: 100,
+  finance_events: 500,
 } as const;
 
 /** Gibt true zurück wenn die mosqueId die Demo-Moschee ist. */

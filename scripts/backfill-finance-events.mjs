@@ -295,27 +295,138 @@ async function sweepReceivedForMosque(mosqueId) {
   return { scanned, emitted, already, locked, lockedFallback };
 }
 
-async function sweepRefundForMosque(mosqueId) {
-  // TODO Sprint 5: scharf schalten (donations.status∈{refunded,chargeback}
-  // bzw. refund_amount_cents>0 ohne Gegen-Event). Phase-1-Grundgerüst:
-  // Loop läuft, schreibt nichts, gibt Drift-Hinweis (Anzahl Quellen mit
-  // Refund ohne Gegen-Event), damit Cron-Operator vor Sprint 5 sieht ob's
-  // Drift gäbe. UNIQUE auf source_event_key macht spätere Aktivierung
-  // automatisch idempotent.
-  let pending = 0;
-  let page = 1;
-  while (true) {
+/**
+ * Lädt Summe aller existierenden refund/chargeback-Events für eine Donation.
+ */
+async function sumExistingRefundEvents(mosqueId, sourceId) {
+  let total = 0;
+  const enc = encodeURIComponent(
+    `mosque_id = "${mosqueId}" && source_collection = "donations" && source_id = "${sourceId}" && (event_type = "income_refunded" || event_type = "chargeback")`
+  );
+  const list = await pbFetch(
+    `/api/collections/finance_source_events/records?filter=${enc}&perPage=500&fields=betrag_cents,external_event_id,event_uuid`
+  );
+  const events = list?.items || [];
+  events.forEach((e) => { total += e.betrag_cents || 0; });
+  return { total, events };
+}
+
+/**
+ * Sucht das income_received-Event für eine Donation (related_event_id).
+ */
+async function findReceivedEventUuid(mosqueId, sourceId) {
+  try {
     const enc = encodeURIComponent(
-      `mosque_id = "${mosqueId}" && (status = "refunded" || status = "chargeback")`
+      `mosque_id = "${mosqueId}" && source_collection = "donations" && source_id = "${sourceId}" && event_type = "income_received"`
     );
     const list = await pbFetch(
-      `/api/collections/donations/records?filter=${enc}&page=${page}&perPage=200&fields=id,status,refund_amount_cents,refund_provider_ref`
+      `/api/collections/finance_source_events/records?filter=${enc}&perPage=1&fields=event_uuid`
     );
-    pending += (list?.items || []).length;
+    return list?.items?.[0]?.event_uuid || "";
+  } catch { return ""; }
+}
+
+/**
+ * Sprint 5 SCHARF: scannt donations mit refund_amount_cents > 0 und emittiert
+ * fehlende Refund/Chargeback-Events (Σ-Differenz). Granularity-Marker bei
+ * Fallback-Key (kein externalEventId).
+ */
+async function sweepRefundForMosque(mosqueId) {
+  let scanned = 0;
+  let emitted = 0;
+  let already = 0;
+  let page = 1;
+
+  while (true) {
+    const enc = encodeURIComponent(
+      `mosque_id = "${mosqueId}" && (status = "refunded" || status = "disputed" || refund_amount_cents > 0)`
+    );
+    const list = await pbFetch(
+      `/api/collections/donations/records?filter=${enc}&page=${page}&perPage=200` +
+      `&fields=id,status,refund_amount_cents,refund_provider_ref,refunded_at,amount_cents,created,category,provider,payment_method_detail`
+    );
+
+    for (const d of list?.items || []) {
+      scanned++;
+      const donationRefundCents = d.refund_amount_cents || 0;
+      if (donationRefundCents < 1) continue;
+
+      const { total: existingSum, events: existingEvents } = await sumExistingRefundEvents(mosqueId, d.id);
+      const delta = donationRefundCents - existingSum;
+      if (delta <= 0) { already++; continue; }
+
+      // Bestimme event_type
+      const eventType = d.status === "disputed" ? "chargeback" : "income_refunded";
+
+      // Key-Auswahl: refund_provider_ref falls nicht schon im Event
+      let externalEventId = d.refund_provider_ref || "";
+      if (externalEventId) {
+        const alreadyUsed = existingEvents.some((e) => {
+          // external_event_id feld nicht in response — nutze refundKey-Präfix-Check
+          return false; // Fallback: immer nutzen, UNIQUE schützt
+        });
+        void alreadyUsed;
+      }
+
+      // Fallback-Key wenn kein externalEventId
+      const useAggregateMarker = !externalEventId;
+      const occurredAt = d.refunded_at || d.created || new Date().toISOString();
+      const sourceEventKey = refundKey(mosqueId, "donations", d.id, eventType, externalEventId, delta, occurredAt);
+
+      // related_event_id
+      const relatedEventId = await findReceivedEventUuid(mosqueId, d.id);
+
+      // Konto/Kanal
+      let kontoTyp = "bank";
+      let zahlungskanal = "sonstige";
+      if (d.provider === "stripe") { zahlungskanal = "stripe"; }
+      else if (d.provider === "sepa") { zahlungskanal = "ueberweisung"; }
+      else if (d.provider === "paypal_link") { zahlungskanal = "paypal"; }
+      else if (d.provider === "manual" && /bar/i.test(d.payment_method_detail || "")) {
+        kontoTyp = "cash"; zahlungskanal = "bar";
+      }
+
+      const record = {
+        mosque_id: mosqueId,
+        event_uuid: randomUUID(),
+        external_event_id: externalEventId,
+        source_event_key: sourceEventKey,
+        related_event_id: relatedEventId,
+        relation_type: eventType === "chargeback" ? "chargeback_of" : "refund_of",
+        original_amount_cents: d.amount_cents || null,
+        ledger_acceptance_context: "post_lock_system",
+        event_type: eventType,
+        classification: "expense",
+        source_collection: "donations",
+        source_type: "donation",
+        source_id: d.id,
+        betrag_cents: delta,
+        kategorie: mapDonationCategoryToEUR(d.category),
+        konto_typ: kontoTyp,
+        zahlungskanal: zahlungskanal,
+        currency: "EUR",
+        occurred_at: occurredAt,
+        payload_schema_version: 1,
+        payload_json: JSON.stringify({
+          source_status: d.status,
+          category: d.category || null,
+          provider: d.provider || "manual",
+          payment_method: d.payment_method_detail || null,
+          granularity: useAggregateMarker ? "aggregate" : "exact",
+        }),
+        metadata_json: useAggregateMarker ? JSON.stringify({ granularity: "aggregate" }) : "",
+      };
+
+      const result = await tryEmit(record);
+      if (result === "emitted") { emitted++; }
+      else if (result === "duplicated") { already++; }
+    }
+
     if (!list || page >= (list.totalPages || 1)) break;
     page++;
   }
-  return { detected_refunded_sources: pending, emitted: 0, note: "TODO Sprint 5 — refund-Emit scharf" };
+
+  return { scanned, emitted, already };
 }
 
 async function main() {
@@ -337,7 +448,7 @@ async function main() {
       `locked=${recv.locked}${recv.lockedFallback ? ` (paid_at=null Fallback: ${recv.lockedFallback})` : ""}`
     );
     const ref = await sweepRefundForMosque(m.id);
-    console.log(`   refund:    detected=${ref.detected_refunded_sources} emitted=${ref.emitted} (${ref.note})`);
+    console.log(`   refund:    scanned=${ref.scanned} emitted=${ref.emitted} duplicated=${ref.already}`);
     totalEmitted += recv.emitted + ref.emitted;
     totalLocked += recv.locked;
     totalLockedFallback += recv.lockedFallback;

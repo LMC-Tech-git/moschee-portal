@@ -1,12 +1,15 @@
 "use server";
 
 import { getAdminPB } from "@/lib/pocketbase-admin";
-import { logAudit } from "@/lib/audit";
+import { logAudit, safeAudit } from "@/lib/audit";
 import { getMadrasaFeeSettings } from "@/lib/actions/settings";
 import type { StudentFee, Student } from "@/types";
 import type { RecordModel } from "pocketbase";
 import { getStripe, stripeAccountFor } from "@/lib/stripe/client";
 import type { Mosque } from "@/types";
+import { createIncome } from "@/lib/actions/finance-domain";
+import { feeToKontoChannel } from "@/lib/fees-finance-helpers";
+import { FINANCE_CATEGORIES } from "@/lib/constants";
 
 // --- Helpers ---
 
@@ -281,6 +284,58 @@ export async function createMonthlyFees(
 /**
  * Markiert eine Gebühr als manuell bezahlt (bar oder überweisung).
  */
+/**
+ * Emittiert ein `income_received`-Finance-Event für eine bezahlte Madrasa-Gebühr.
+ * Idempotent via UNIQUE-Index auf source_event_key. Aufrufer übergeben Zahlungsmethode.
+ */
+export async function markStudentFeePaidAndEmit(
+  feeId: string,
+  paidAt: string,
+  options: {
+    mosqueIdHint?: string;
+    externalEventId?: string;
+    paymentMethod?: "cash" | "transfer" | "stripe";
+    ctx?: { backfill?: boolean; webhook?: boolean };
+  } = {}
+): Promise<void> {
+  const pb = await getAdminPB();
+  const fee = await pb.collection("student_fees").getOne(feeId);
+  const mosqueId = options.mosqueIdHint || fee.mosque_id;
+  if (!mosqueId) throw new Error(`markStudentFeePaidAndEmit: keine mosque_id für fee ${feeId}`);
+  const paymentMethod = options.paymentMethod || fee.payment_method;
+  const { kontoTyp, zahlungskanal } = feeToKontoChannel(paymentMethod);
+  try {
+    await createIncome({
+      mosqueId,
+      sourceCollection: "student_fees",
+      sourceType: "fee",
+      sourceId: feeId,
+      betragCents: fee.amount_cents || 0,
+      kategorie: FINANCE_CATEGORIES.MADRASA_GEBUEHREN,
+      kontoTyp,
+      zahlungskanal,
+      occurredAt: paidAt,
+      externalEventId: options.externalEventId,
+      payload: {
+        source_status: "paid",
+        category: "madrasa_gebuehren",
+        provider: paymentMethod === "stripe" ? "stripe" : "manual",
+        payment_method: paymentMethod || null,
+      },
+      ctx: options.ctx,
+    });
+  } catch (e) {
+    await safeAudit({
+      mosqueId,
+      action: "finance.emit_failed",
+      entityType: "student_fees",
+      entityId: feeId,
+      context: { error: String(e), fee_id: feeId, step: "markStudentFeePaidAndEmit" },
+    });
+    throw e;
+  }
+}
+
 export async function markFeePaid(
   mosqueId: string,
   userId: string,
@@ -296,13 +351,21 @@ export async function markFeePaid(
       return { success: false, error: "Gebühr nicht gefunden" };
     }
 
+    const paidAt = new Date().toISOString();
     const record = await pb.collection("student_fees").update(feeId, {
       status: "paid",
-      paid_at: new Date().toISOString(),
+      paid_at: paidAt,
       payment_method: paymentMethod,
       notes: notes || existing.notes,
       created_by: userId,
     });
+
+    // Finance-Event emittieren (Sprint 5)
+    try {
+      await markStudentFeePaidAndEmit(feeId, paidAt, { mosqueIdHint: mosqueId, paymentMethod });
+    } catch (e) {
+      console.error("[StudentFees] markFeePaid emit fehlgeschlagen (non-fatal):", e);
+    }
 
     let studentName = "";
     try {

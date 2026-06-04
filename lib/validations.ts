@@ -426,6 +426,23 @@ export const transactionSchema = z.object({
 });
 export type TransactionInput = z.infer<typeof transactionSchema>;
 
+/**
+ * Refund / Chargeback — einziger Schreibpfad für Erstattungen (Sprint 5).
+ * `refundAmountCents` muss positiver Integer sein (Vorzeichen implizit via event_type).
+ */
+export const refundIncomeSchema = z.object({
+  mosqueId: z.string().min(1),
+  sourceCollection: z.enum(["donations", "student_fees", "sponsors"]),
+  sourceId: z.string().min(1),
+  refundAmountCents: z.number().int("Betrag muss ganzzahlig sein").min(1, "Betrag muss ≥ 1 sein"),
+  externalEventId: z.string().max(255).optional(),
+  eventType: z.enum(["income_refunded", "chargeback"]).default("income_refunded"),
+  reason: z.string().max(500).optional(),
+  occurredAt: z.string().min(1, "Datum erforderlich"),
+  ctx: z.object({ backfill: z.boolean().optional(), webhook: z.boolean().optional() }).optional(),
+});
+export type RefundIncomeInput = z.infer<typeof refundIncomeSchema>;
+
 /** Storno einer manuellen Buchung — Gegenbuchung mit eigener Belegnummer. */
 export const stornoSchema = z.object({
   transaction_id: z.string().min(1, "Buchungs-ID erforderlich"),

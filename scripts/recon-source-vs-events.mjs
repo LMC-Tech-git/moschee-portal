@@ -1,18 +1,24 @@
 #!/usr/bin/env node
 /**
- * Recon: Σ(paid donations) vs Σ(income_received events) je Moschee+Jahr.
+ * Recon: Σ(paid sources) vs Σ(income events) je Moschee+Jahr — 6 Buckets (Sprint 5).
  *
- * READ-ONLY. Sprint-2-Vorlauf + Nachlauf (Plan §13.1).
+ * READ-ONLY. Bidirektional: received + refund/chargeback für donations/fees/sponsors.
  *
- * Phase 1: nur Received-Richtung (Donations). Refund-Recon = Sprint 5.
+ * Buckets pro Jahr:
+ *  donations-received  | donations.amount_cents (status=paid)         | income_received events
+ *  donations-refund    | donations.refund_amount_cents (Σ)            | refund+chargeback events
+ *  fees-received       | student_fees.amount_cents (status=paid)      | income_received events
+ *  fees-refund         | n/a (= 0)                                    | refund+chargeback events
+ *  sponsors-received   | sponsors.amount_cents × months_paid (paid)   | income_received events
+ *  sponsors-refund     | n/a (= 0)                                    | refund+chargeback events
  *
  * Nutzung:
- *   node scripts/recon-source-vs-events.mjs --mosque <id>      # eine Moschee
- *   node scripts/recon-source-vs-events.mjs --all              # alle
+ *   node scripts/recon-source-vs-events.mjs --mosque <id>
+ *   node scripts/recon-source-vs-events.mjs --all
  *   node scripts/recon-source-vs-events.mjs --mosque <id> --year 2026
  *
  * Exit:
- *   0 = alle Δ=0 (keine Drift)
+ *   0 = alle Δ=0
  *   1 = Drift erkannt
  *   2 = Fehler / falsche Args
  */
@@ -63,7 +69,7 @@ if (!PB_URL || !ADMIN_EMAIL || !ADMIN_PASSWORD) {
 }
 
 if (!mosqueArg && !allFlag) {
-  console.error("Pflicht: --mosque <id> ODER --all (Safety-Guard, kein silent default-all)");
+  console.error("Pflicht: --mosque <id> ODER --all");
   process.exit(2);
 }
 
@@ -113,113 +119,199 @@ async function listMosques() {
   return r?.items || [];
 }
 
-async function pageAll(path) {
+async function pageAll(collection, filter, fields) {
   const items = [];
   let page = 1;
   const perPage = 200;
   while (true) {
-    const url = path + (path.includes("?") ? "&" : "?") + `perPage=${perPage}&page=${page}`;
+    const enc = encodeURIComponent(filter);
+    const url = `/api/collections/${collection}/records?filter=${enc}&perPage=${perPage}&page=${page}&fields=${fields}`;
     const r = await pbFetch(url);
     const batch = r?.items || [];
     items.push(...batch);
-    if (batch.length < perPage) break;
+    if (batch.length < perPage || !r || page >= (r.totalPages || 1)) break;
     page++;
   }
   return items;
+}
+
+function yearOf(iso) {
+  if (!iso) return "";
+  return String(iso).slice(0, 4);
 }
 
 function donationAmountCents(d) {
   return d.amount_cents || Math.round(Number(d.amount || 0) * 100) || 0;
 }
 
-function year(iso) {
-  if (!iso) return "";
-  return String(iso).slice(0, 4);
-}
-
+/**
+ * 6-Bucket-Recon für eine Moschee.
+ * Gibt Map<year, { [bucket]: { src, srcCount, evt, evtCount } }> zurück.
+ */
 async function reconMosque(mosqueId) {
-  // Paid donations
-  let filter = `mosque_id="${mosqueId}" && status="paid"`;
-  if (yearArg) filter += ` && paid_at>="${yearArg}-01-01" && paid_at<"${Number(yearArg)+1}-01-01"`;
-  const donations = await pageAll(`/api/collections/donations/records?filter=${encodeURIComponent(filter)}`);
+  const yf = yearArg;
 
-  // income_received events
-  let eFilter = `mosque_id="${mosqueId}" && event_type="income_received" && source_collection="donations"`;
-  if (yearArg) eFilter += ` && occurred_at>="${yearArg}-01-01" && occurred_at<"${Number(yearArg)+1}-01-01"`;
-  const events = await pageAll(`/api/collections/finance_source_events/records?filter=${encodeURIComponent(eFilter)}`);
+  // ─── Quell-Daten laden ───────────────────────────────────────────────────
 
-  // Per-year roll-up
-  const buckets = new Map();
-  function getBucket(y) {
-    if (!buckets.has(y)) buckets.set(y, { donations_count: 0, donations_sum: 0, events_count: 0, events_sum: 0 });
-    return buckets.get(y);
+  // 1. Donations paid
+  let donFilter = `mosque_id="${mosqueId}" && status="paid"`;
+  if (yf) donFilter += ` && paid_at>="${yf}-01-01" && paid_at<"${Number(yf)+1}-01-01"`;
+  const paidDonations = await pageAll("donations", donFilter, "id,amount_cents,amount,paid_at,created,refund_amount_cents");
+
+  // 2. Donations refund_amount_cents (alle Status die refund_amount_cents > 0 haben)
+  let donRefFilter = `mosque_id="${mosqueId}" && refund_amount_cents > 0`;
+  if (yf) donRefFilter += ` && refunded_at>="${yf}-01-01" && refunded_at<"${Number(yf)+1}-01-01"`;
+  const refundedDonations = await pageAll("donations", donRefFilter, "id,refund_amount_cents,refunded_at,created");
+
+  // 3. Fees paid
+  let feeFilter = `mosque_id="${mosqueId}" && status="paid"`;
+  if (yf) feeFilter += ` && paid_at>="${yf}-01-01" && paid_at<"${Number(yf)+1}-01-01"`;
+  const paidFees = await pageAll("student_fees", feeFilter, "id,amount_cents,paid_at,created");
+
+  // 4. Sponsors paid
+  let sponsFilter = `mosque_id="${mosqueId}" && payment_status="paid"`;
+  if (yf) sponsFilter += ` && paid_at>="${yf}-01-01" && paid_at<"${Number(yf)+1}-01-01"`;
+  const paidSponsors = await pageAll("sponsors", sponsFilter, "id,amount_cents,months_paid,paid_at,created");
+
+  // ─── Event-Daten laden ───────────────────────────────────────────────────
+
+  const evtBaseFilter = (coll, type) => {
+    let f = `mosque_id="${mosqueId}" && source_collection="${coll}" && event_type="${type}"`;
+    if (yf) f += ` && occurred_at>="${yf}-01-01" && occurred_at<"${Number(yf)+1}-01-01"`;
+    return f;
+  };
+
+  const evtRefundFilter = (coll) => {
+    let f = `mosque_id="${mosqueId}" && source_collection="${coll}" && (event_type="income_refunded" || event_type="chargeback")`;
+    if (yf) f += ` && occurred_at>="${yf}-01-01" && occurred_at<"${Number(yf)+1}-01-01"`;
+    return f;
+  };
+
+  const [
+    donEvtReceived,
+    donEvtRefund,
+    feeEvtReceived,
+    feeEvtRefund,
+    spEvtReceived,
+    spEvtRefund,
+  ] = await Promise.all([
+    pageAll("finance_source_events", evtBaseFilter("donations", "income_received"), "id,betrag_cents,occurred_at"),
+    pageAll("finance_source_events", evtRefundFilter("donations"), "id,betrag_cents,occurred_at"),
+    pageAll("finance_source_events", evtBaseFilter("student_fees", "income_received"), "id,betrag_cents,occurred_at"),
+    pageAll("finance_source_events", evtRefundFilter("student_fees"), "id,betrag_cents,occurred_at"),
+    pageAll("finance_source_events", evtBaseFilter("sponsors", "income_received"), "id,betrag_cents,occurred_at"),
+    pageAll("finance_source_events", evtRefundFilter("sponsors"), "id,betrag_cents,occurred_at"),
+  ]);
+
+  // ─── Per-Jahr Aggregation ────────────────────────────────────────────────
+
+  // Buckets: Map<year, Record<bucket, {src, srcCount, evt, evtCount}>>
+  const years = new Set();
+  const mkBucket = () => ({ src: 0, srcCount: 0, evt: 0, evtCount: 0 });
+  const byYear = {};
+
+  function getYear(y) {
+    if (!byYear[y]) {
+      byYear[y] = {
+        "don-recv": mkBucket(),
+        "don-ref":  mkBucket(),
+        "fee-recv": mkBucket(),
+        "fee-ref":  mkBucket(),
+        "sp-recv":  mkBucket(),
+        "sp-ref":   mkBucket(),
+      };
+      years.add(y);
+    }
+    return byYear[y];
   }
 
-  for (const d of donations) {
-    const y = year(d.paid_at) || year(d.created);
-    const b = getBucket(y);
-    b.donations_count++;
-    b.donations_sum += donationAmountCents(d);
-  }
-  for (const e of events) {
-    const y = year(e.occurred_at);
-    const b = getBucket(y);
-    b.events_count++;
-    b.events_sum += Number(e.betrag_cents || 0);
-  }
+  // Source aggregation
+  paidDonations.forEach((d) => {
+    const y = yearOf(d.paid_at) || yearOf(d.created) || "unknown";
+    const b = getYear(y)["don-recv"];
+    b.src += donationAmountCents(d); b.srcCount++;
+  });
+  refundedDonations.forEach((d) => {
+    const y = yearOf(d.refunded_at) || yearOf(d.created) || "unknown";
+    const b = getYear(y)["don-ref"];
+    b.src += d.refund_amount_cents || 0; b.srcCount++;
+  });
+  paidFees.forEach((f) => {
+    const y = yearOf(f.paid_at) || yearOf(f.created) || "unknown";
+    const b = getYear(y)["fee-recv"];
+    b.src += f.amount_cents || 0; b.srcCount++;
+  });
+  paidSponsors.forEach((s) => {
+    const y = yearOf(s.paid_at) || yearOf(s.created) || "unknown";
+    const b = getYear(y)["sp-recv"];
+    b.src += (s.amount_cents || 0) * (s.months_paid || 1); b.srcCount++;
+  });
 
-  // Set of source_ids check (uncovered = paid without event)
-  const eventSourceIds = new Set(events.map(e => e.source_id));
-  const missing = donations.filter(d => !eventSourceIds.has(d.id));
+  // Event aggregation
+  [donEvtReceived, donEvtRefund, feeEvtReceived, feeEvtRefund, spEvtReceived, spEvtRefund]
+    .forEach((evts, idx) => {
+      const keys = ["don-recv","don-ref","fee-recv","fee-ref","sp-recv","sp-ref"];
+      const key = keys[idx];
+      evts.forEach((e) => {
+        const y = yearOf(e.occurred_at) || "unknown";
+        const b = getYear(y)[key];
+        b.evt += e.betrag_cents || 0; b.evtCount++;
+      });
+    });
 
-  return { buckets, missing };
+  return { byYear, years: [...years].sort() };
 }
 
 async function main() {
   await authenticate();
-  console.log("=== Finance Recon: Source ↔ Event (Phase 1 = received only) ===");
+  console.log("=== Finance Recon: Source ↔ Event — 6 Buckets (Sprint 5) ===");
   console.log(`PB:    ${PB_URL}`);
   console.log(`Scope: ${mosqueArg || "alle Moscheen"}${yearArg ? " Jahr=" + yearArg : ""}\n`);
 
   const mosques = await listMosques();
-  let totalMissing = 0;
-  let totalDeltaCents = 0;
+  let anyDrift = false;
 
   for (const m of mosques) {
-    const r = await reconMosque(m.id);
+    const { byYear, years } = await reconMosque(m.id);
     console.log(`→ ${m.id}`);
-    if (r.buckets.size === 0) {
+
+    if (years.length === 0) {
       console.log("   (keine Daten)");
       continue;
     }
-    for (const [y, b] of [...r.buckets.entries()].sort()) {
-      const deltaCount = b.donations_count - b.events_count;
-      const deltaSum = b.donations_sum - b.events_sum;
-      const flag = (deltaCount === 0 && deltaSum === 0) ? "✅" : "⚠️ ";
-      console.log(
-        `   ${y || "(no-year)"}: donations=${b.donations_count}/${(b.donations_sum/100).toFixed(2)}€  ` +
-        `events=${b.events_count}/${(b.events_sum/100).toFixed(2)}€  ` +
-        `Δcount=${deltaCount} Δsum=${(deltaSum/100).toFixed(2)}€ ${flag}`
-      );
-      totalDeltaCents += Math.abs(deltaSum);
-    }
-    if (r.missing.length > 0) {
-      console.log(`   ⚠️  ${r.missing.length} paid-Donation(s) ohne income_received-Event:`);
-      for (const d of r.missing.slice(0, 5)) {
-        console.log(`      - ${d.id} (${(donationAmountCents(d)/100).toFixed(2)}€, paid_at=${d.paid_at || "null"})`);
+
+    for (const y of years) {
+      const buckets = byYear[y];
+      const rows = [
+        ["donations", "received", buckets["don-recv"]],
+        ["donations", "refund",   buckets["don-ref"]],
+        ["fees     ", "received", buckets["fee-recv"]],
+        ["fees     ", "refund",   buckets["fee-ref"]],
+        ["sponsors ", "received", buckets["sp-recv"]],
+        ["sponsors ", "refund",   buckets["sp-ref"]],
+      ];
+      console.log(`   ${y}`);
+      for (const [src, dir, b] of rows) {
+        const deltaSum = b.src - b.evt;
+        const ok = deltaSum === 0;
+        if (!ok) anyDrift = true;
+        // fees/sponsors-refund: src=0 immer → nur evt zeigen
+        const srcDisplay = (src.trim() === "fees" || src.trim() === "sponsors") && dir === "refund"
+          ? "—"
+          : `${b.srcCount}/${(b.src/100).toFixed(2)}€`;
+        console.log(
+          `     ${src} ${dir.padEnd(9)} src=${srcDisplay.padEnd(16)} events=${b.evtCount}/${(b.evt/100).toFixed(2)}€  Δ=${(deltaSum/100).toFixed(2)}€ ${ok ? "✅" : "⚠️ DRIFT"}`
+        );
       }
-      if (r.missing.length > 5) console.log(`      ... +${r.missing.length - 5} weitere`);
-      totalMissing += r.missing.length;
     }
+    console.log("");
   }
 
-  console.log("");
-  if (totalMissing === 0 && totalDeltaCents === 0) {
-    console.log("✅ Keine Drift (Δcount=0, Δsum=0 alle Moscheen).");
+  if (!anyDrift) {
+    console.log("✅ Kein Drift — alle 6 Buckets Δ=0.");
     process.exit(0);
   } else {
-    console.log(`⚠️  Drift: ${totalMissing} fehlende Events, Σ|Δ|=${(totalDeltaCents/100).toFixed(2)}€`);
-    console.log("    Drift-Sweeper laufen lassen: node scripts/backfill-finance-events.mjs");
+    console.log("⚠️  Drift erkannt. Sweeper laufen lassen: node scripts/backfill-finance-events.mjs");
     process.exit(1);
   }
 }
