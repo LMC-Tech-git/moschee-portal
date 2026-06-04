@@ -971,6 +971,7 @@ export interface LedgerAtom {
     related_event_id?: string;                             // Sprint 5
   };
   beleg_nummer: string;           // "" bei events
+  has_beleg?: boolean;            // true wenn manuelle Buchung mit hochgeladenem Beleg (Sprint 6)
   readonly: boolean;              // event=true, manual=false
 }
 

@@ -1,9 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Wallet, BookOpen, PieChart, BarChart3, Settings as SettingsIcon, Plus, AlertTriangle } from "lucide-react";
+import { Wallet, BookOpen, PieChart, BarChart3, Settings as SettingsIcon, Plus, AlertTriangle, Download } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useMosque } from "@/lib/mosque-context";
+import { useAuth } from "@/lib/auth-context";
+import { hasFinancePermission } from "@/lib/finance-permissions-shared";
 import {
   getLedgerAtoms,
   getFinanceKPIs,
@@ -11,6 +13,10 @@ import {
   getJahresbericht,
   getKassenbericht,
   stornoTransactionAction,
+  exportBuchungenXLSX,
+  exportEURXLSX,
+  exportKassenberichtXLSX,
+  exportKomplettXLSX,
 } from "@/lib/actions/finance";
 import { getFinanceSettings } from "@/lib/actions/settings";
 import type {
@@ -43,6 +49,8 @@ const TABS: { id: TabId; icon: typeof Wallet }[] = [
 export default function FinanzenPage() {
   const t = useTranslations("finanzen");
   const { mosqueId } = useMosque();
+  const { user } = useAuth();
+  const canExport = hasFinancePermission(user?.role ?? "", "finance_export");
 
   const currentYear = new Date().getFullYear();
   const [settings, setSettings] = useState<FinanceSettingsInput | null>(null);
@@ -118,6 +126,36 @@ export default function FinanzenPage() {
     } catch (e) {
       const msg = (e as Error).message || "generic";
       window.alert(t(`error.${["finance_period_locked", "transaction_immutable", "forbidden", "already_storniert", "cannot_storno_a_storno"].includes(msg) ? msg : "generic"}`));
+    }
+  }
+
+  const [exporting, setExporting] = useState<string | null>(null);
+
+  async function handleExport(kind: "buchungen" | "eur" | "kassenbericht" | "komplett") {
+    if (!mosqueId) return;
+    setExporting(kind);
+    try {
+      const fn = {
+        buchungen: exportBuchungenXLSX,
+        eur: exportEURXLSX,
+        kassenbericht: exportKassenberichtXLSX,
+        komplett: exportKomplettXLSX,
+      }[kind];
+      const base64 = await fn(mosqueId, year);
+      const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+      const blob = new Blob([bytes], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `moschee-finanzen-${year}-${kind}.xlsx`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      window.alert(t("error.generic"));
+    } finally {
+      setExporting(null);
     }
   }
 
@@ -210,6 +248,30 @@ export default function FinanzenPage() {
       )}
 
       {loading && <p className="text-sm text-gray-500">{t("loading")}</p>}
+
+      {/* Export-Buttons (Steuerberater-Export, nur Kassenbuch-Tab) */}
+      {enabled && activeTab === "kassenbuch" && canExport && (
+        <div className="rounded-xl border border-gray-100 bg-gray-50/50 p-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <Download className="h-4 w-4 text-gray-500" />
+            {(["buchungen", "eur", "kassenbericht", "komplett"] as const).map((kind) => (
+              <button
+                key={kind}
+                type="button"
+                onClick={() => handleExport(kind)}
+                disabled={exporting !== null}
+                className="inline-flex min-h-[36px] items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              >
+                {exporting === kind ? "…" : t(`export.${kind}`)}
+              </button>
+            ))}
+          </div>
+          <p className="mt-2 text-xs text-gray-400">{t("export.hint")}</p>
+          {(ledger?.total ?? 0) > 5000 && (
+            <p className="mt-1 text-xs text-amber-600">{t("export.warn_large")}</p>
+          )}
+        </div>
+      )}
 
       {/* Tab-Inhalte */}
       {enabled && activeTab === "kassenbuch" && !loading && (

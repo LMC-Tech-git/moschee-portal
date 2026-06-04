@@ -63,6 +63,12 @@ const envSchema = z.object({
   CONTACT_EMAIL: z.string().email().optional(),
 
   // -------------------------------------------------------
+  // Anthropic (KI-Kategorisierung Finanzbuchungen)
+  // Ohne Key wird die KI-Kategorisierung graceful deaktiviert (kein Hard-Fail).
+  // -------------------------------------------------------
+  ANTHROPIC_API_KEY: z.string().optional(),
+
+  // -------------------------------------------------------
   // Rate Limiting (Salt für IP-Hashing, DSGVO-konform)
   // -------------------------------------------------------
   RATE_LIMIT_SALT: z.string().optional(),

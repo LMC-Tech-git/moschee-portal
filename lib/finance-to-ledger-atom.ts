@@ -210,6 +210,7 @@ function transactionToLedgerAtom(tx: Transaction): LedgerAtom {
     source_system: "manual_transaction",
     source_origin: undefined,
     beleg_nummer: tx.beleg_nummer,
+    has_beleg: !!tx.beleg_datei,
     readonly: false,
   };
 }

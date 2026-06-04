@@ -1420,6 +1420,10 @@ async function seedFinanceTransactions(adminId) {
     { typ: "einnahme", kategorie: "spenden",                betrag_cents: 30000, konto_typ: "bank", zahlungskanal: "ueberweisung", beschreibung: "Vorjahr: Großspende",              daysBack: 470 },
     { typ: "einnahme", kategorie: "mitgliedsbeitraege",     betrag_cents: 12000, konto_typ: "cash", zahlungskanal: "bar",          beschreibung: "Vorjahr: Barbeiträge",             daysBack: 440 },
     { typ: "ausgabe",  kategorie: "miete",                  betrag_cents: 120000, konto_typ: "bank", zahlungskanal: "ueberweisung", beschreibung: "Vorjahr: Miete Dezember",          daysBack: 410 },
+    // Sprint 6: weitere Mehrjahr-Buchungen (2024) für Carryover-Demo ab Startjahr 2024
+    { typ: "ausgabe",  kategorie: "miete",                  betrag_cents: 120000, konto_typ: "bank", zahlungskanal: "ueberweisung", beschreibung: "Miete Gebetsraum (Demo 2024)",     daysBack: 540 },
+    { typ: "einnahme", kategorie: "spenden",                betrag_cents: 50000,  konto_typ: "cash", zahlungskanal: "bar",          beschreibung: "Freitagsgebet Barspende 2024",     daysBack: 510 },
+    { typ: "ausgabe",  kategorie: "veranstaltungen_ausgabe", betrag_cents: 18000, konto_typ: "cash", zahlungskanal: "bar",          beschreibung: "Ramadan-Abend Kosten 2024",        daysBack: 500 },
   ];
 
   // Belegnummer-Counter pro Jahr (JJJJ-NNNN), Sortierung nach Datum (alt→neu).
@@ -1455,6 +1459,63 @@ async function seedFinanceTransactions(adminId) {
     created++;
   }
 
+  // Sprint 6: Storno-Beispiel (Original-Buchung + Gegenbuchung). Zeigt den
+  // append-only Storno-Mechanismus in der Demo (Original bleibt, Gegenbuchung
+  // invertiert classification).
+  {
+    const stornoDatum = isoDate(daysAgo(30));
+    const sYear = Number(stornoDatum.slice(0, 4));
+    const origN = (yearCounters[sYear] || 0) + 1;
+    yearCounters[sYear] = origN;
+    const origBeleg = `${sYear}-${String(origN).padStart(4, "0")}`;
+    const orig = await pbCreate("transactions", {
+      mosque_id: MOSQUE_ID,
+      buchungsdatum: stornoDatum,
+      leistungsdatum: "",
+      betrag_cents: 7500,
+      typ: "ausgabe",
+      classification: "expense",
+      kategorie: "sonstige_ausgaben",
+      beschreibung: "Fehlbuchung Materialeinkauf (wird storniert)",
+      beleg_nummer: origBeleg,
+      beleg_datei_sha256: "",
+      konto_typ: "cash",
+      zahlungskanal: "bar",
+      quelle: "manuell",
+      referenz_id: "",
+      storno_of: "",
+      is_storno: false,
+      interne_notiz: "",
+      created_by: adminId || "",
+    });
+    created++;
+
+    const stornoN = (yearCounters[sYear] || 0) + 1;
+    yearCounters[sYear] = stornoN;
+    const stornoBeleg = `${sYear}-${String(stornoN).padStart(4, "0")}`;
+    await pbCreate("transactions", {
+      mosque_id: MOSQUE_ID,
+      buchungsdatum: stornoDatum,
+      leistungsdatum: "",
+      betrag_cents: 7500,
+      typ: "einnahme", // invertiert: Gegenbuchung zur Ausgabe
+      classification: "income",
+      kategorie: "sonstige_ausgaben", // gleiche Kategorie → nettet auf 0
+      beschreibung: "Storno: Fehlbuchung Materialeinkauf",
+      beleg_nummer: stornoBeleg,
+      beleg_datei_sha256: "",
+      konto_typ: "cash",
+      zahlungskanal: "bar",
+      quelle: "storno",
+      referenz_id: "",
+      storno_of: orig.id,
+      is_storno: true,
+      interne_notiz: "",
+      created_by: adminId || "",
+    });
+    created++;
+  }
+
   // finance_sequences-Hint pro Jahr initialisieren (next freie Nummer).
   for (const [year, used] of Object.entries(yearCounters)) {
     await pbCreate("finance_sequences", {
@@ -1465,7 +1526,7 @@ async function seedFinanceTransactions(adminId) {
     });
   }
 
-  console.log(`  ✅ ${created} Buchungen + ${Object.keys(yearCounters).length} Jahres-Counter erstellt\n`);
+  console.log(`  ✅ ${created} Buchungen (inkl. 1 Storno-Paar) + ${Object.keys(yearCounters).length} Jahres-Counter erstellt\n`);
 }
 
 /**
@@ -1556,29 +1617,45 @@ async function seedSprint5Finance() {
   const cbKey = refundKey(MOSQUE_ID, "donations", donBId, "chargeback", "dp_demo_s5", 2500, isoDateTime(daysAgo(5)));
   await emitEvent({ mosque_id: MOSQUE_ID, event_uuid: randomUUID(), external_event_id: "dp_demo_s5", source_event_key: cbKey, related_event_id: incBUuid || "", relation_type: "chargeback_of", original_amount_cents: 2500, ledger_acceptance_context: "post_lock_system", event_type: "chargeback", classification: "expense", source_collection: "donations", source_type: "donation", source_id: donBId, betrag_cents: 2500, kategorie: "spenden", konto_typ: "bank", zahlungskanal: "stripe", currency: "EUR", occurred_at: isoDateTime(daysAgo(5)), payload_schema_version: 1, payload_json: JSON.stringify({ source_status: "chargeback", category: null, provider: "stripe", payment_method: null, reason: "fraudulent" }), metadata_json: "" });
 
-  // ── 3. Fee (Bar) → income_received (student_fees) ────────────────────────
-  // Nutze erste gefundene bezahlte Gebühr der Demo-Moschee
-  const fees = await pbFetch(`collections/student_fees/records?filter=${encodeURIComponent(`mosque_id="${MOSQUE_ID}" && status="paid"`)}&perPage=1`, { throwOnError: false });
-  const fee1 = fees?.items?.[0];
-  if (fee1) {
-    const feeEvtKey = receivedKey(MOSQUE_ID, "student_fees", fee1.id);
-    const r = await emitEvent({ mosque_id: MOSQUE_ID, event_uuid: randomUUID(), external_event_id: "", source_event_key: feeEvtKey, related_event_id: "", relation_type: "", original_amount_cents: null, ledger_acceptance_context: "post_lock_system", event_type: "income_received", classification: "income", source_collection: "student_fees", source_type: "fee", source_id: fee1.id, betrag_cents: fee1.amount_cents || 1000, kategorie: "madrasa_gebuehren", konto_typ: fee1.payment_method === "cash" ? "cash" : "bank", zahlungskanal: fee1.payment_method === "cash" ? "bar" : fee1.payment_method === "transfer" ? "ueberweisung" : "stripe", currency: "EUR", occurred_at: fee1.paid_at || isoDateTime(daysAgo(5)), payload_schema_version: 1, payload_json: JSON.stringify({ source_status: "paid", category: "madrasa_gebuehren", provider: fee1.payment_method === "stripe" ? "stripe" : "manual", payment_method: fee1.payment_method || null }), metadata_json: "" });
-    if (r !== "dup") console.log("  ✅ student_fee income_received Event erstellt");
-    else console.log("  ℹ️  student_fee Event bereits vorhanden (idempotent)");
-  }
-
-  // ── 4. Sponsor (Überweisung) → income_received (sponsors) ───────────────
-  const sponsors = await pbFetch(`collections/sponsors/records?filter=${encodeURIComponent(`mosque_id="${MOSQUE_ID}" && payment_status="paid"`)}&perPage=1`, { throwOnError: false });
-  const sp1 = sponsors?.items?.[0];
-  if (sp1) {
-    const spEvtKey = receivedKey(MOSQUE_ID, "sponsors", sp1.id);
-    const amountCents = (sp1.amount_cents || 0) * (sp1.months_paid || 1);
-    if (amountCents > 0) {
-      const r = await emitEvent({ mosque_id: MOSQUE_ID, event_uuid: randomUUID(), external_event_id: "", source_event_key: spEvtKey, related_event_id: "", relation_type: "", original_amount_cents: null, ledger_acceptance_context: "post_lock_system", event_type: "income_received", classification: "income", source_collection: "sponsors", source_type: "sponsor", source_id: sp1.id, betrag_cents: amountCents, kategorie: "foerderpartner", konto_typ: sp1.payment_method === "cash" ? "cash" : "bank", zahlungskanal: sp1.payment_method === "transfer" ? "ueberweisung" : sp1.payment_method === "stripe" ? "stripe" : sp1.payment_method === "cash" ? "bar" : "sonstige", currency: "EUR", occurred_at: sp1.paid_at || isoDateTime(daysAgo(10)), payload_schema_version: 1, payload_json: JSON.stringify({ source_status: "paid", category: "foerderpartner", provider: sp1.payment_method === "stripe" ? "stripe" : "manual", payment_method: sp1.payment_method || null }), metadata_json: "" });
-      if (r !== "dup") console.log("  ✅ sponsor income_received Event erstellt");
-      else console.log("  ℹ️  sponsor Event bereits vorhanden (idempotent)");
+  // ── 3. ALLE bezahlten Gebühren → income_received (student_fees) ─────────
+  // Wichtig: ALLE paid fees, sonst Recon-Drift (fees received). Seed legt fees
+  // direkt an (umgeht mark-paid-Hook), daher hier Events nachziehen.
+  let feeEmitted = 0;
+  let feePage = 1;
+  while (true) {
+    const fees = await pbFetch(
+      `collections/student_fees/records?filter=${encodeURIComponent(`mosque_id="${MOSQUE_ID}" && status="paid"`)}&perPage=200&page=${feePage}`,
+      { throwOnError: false }
+    );
+    for (const fee of fees?.items || []) {
+      const feeEvtKey = receivedKey(MOSQUE_ID, "student_fees", fee.id);
+      const r = await emitEvent({ mosque_id: MOSQUE_ID, event_uuid: randomUUID(), external_event_id: "", source_event_key: feeEvtKey, related_event_id: "", relation_type: "", original_amount_cents: null, ledger_acceptance_context: "post_lock_system", event_type: "income_received", classification: "income", source_collection: "student_fees", source_type: "fee", source_id: fee.id, betrag_cents: fee.amount_cents || 1000, kategorie: "madrasa_gebuehren", konto_typ: fee.payment_method === "cash" ? "cash" : "bank", zahlungskanal: fee.payment_method === "cash" ? "bar" : fee.payment_method === "transfer" ? "ueberweisung" : "stripe", currency: "EUR", occurred_at: fee.paid_at || isoDateTime(daysAgo(5)), payload_schema_version: 1, payload_json: JSON.stringify({ source_status: "paid", category: "madrasa_gebuehren", provider: fee.payment_method === "stripe" ? "stripe" : "manual", payment_method: fee.payment_method || null }), metadata_json: "" });
+      if (r !== "dup") feeEmitted++;
     }
+    if (!fees || feePage >= (fees.totalPages || 1)) break;
+    feePage++;
   }
+  console.log(`  ✅ student_fees income_received: ${feeEmitted} neu emittiert`);
+
+  // ── 4. ALLE bezahlten Förderpartner → income_received (sponsors) ────────
+  let spEmitted = 0;
+  let spPage = 1;
+  while (true) {
+    const sponsors = await pbFetch(
+      `collections/sponsors/records?filter=${encodeURIComponent(`mosque_id="${MOSQUE_ID}" && payment_status="paid"`)}&perPage=200&page=${spPage}`,
+      { throwOnError: false }
+    );
+    for (const sp of sponsors?.items || []) {
+      const amountCents = (sp.amount_cents || 0) * (sp.months_paid || 1);
+      if (amountCents <= 0) continue;
+      const spEvtKey = receivedKey(MOSQUE_ID, "sponsors", sp.id);
+      const r = await emitEvent({ mosque_id: MOSQUE_ID, event_uuid: randomUUID(), external_event_id: "", source_event_key: spEvtKey, related_event_id: "", relation_type: "", original_amount_cents: null, ledger_acceptance_context: "post_lock_system", event_type: "income_received", classification: "income", source_collection: "sponsors", source_type: "sponsor", source_id: sp.id, betrag_cents: amountCents, kategorie: "foerderpartner", konto_typ: sp.payment_method === "cash" ? "cash" : "bank", zahlungskanal: sp.payment_method === "transfer" ? "ueberweisung" : sp.payment_method === "stripe" ? "stripe" : sp.payment_method === "cash" ? "bar" : "sonstige", currency: "EUR", occurred_at: sp.paid_at || isoDateTime(daysAgo(10)), payload_schema_version: 1, payload_json: JSON.stringify({ source_status: "paid", category: "foerderpartner", provider: sp.payment_method === "stripe" ? "stripe" : "manual", payment_method: sp.payment_method || null }), metadata_json: "" });
+      if (r !== "dup") spEmitted++;
+    }
+    if (!sponsors || spPage >= (sponsors.totalPages || 1)) break;
+    spPage++;
+  }
+  console.log(`  ✅ sponsors income_received: ${spEmitted} neu emittiert`);
 
   console.log("  ✅ Sprint-5 Finance-Demos fertig\n");
 }
@@ -1716,10 +1793,10 @@ async function seedSettings() {
     recurring_donations_enabled: true,
     recurring_min_cents: 1000,
     recurring_quick_amounts: "1000,2000,5000,10000",
-    // Finanzmodul (Sprint 4): aktiviert + Kassenbuch-Startwerte (Vorjahr)
+    // Finanzmodul (Sprint 4/6): aktiviert + Kassenbuch-Startwerte (ab 2024)
     finance_enabled: true,
-    kassenbuch_start_year: new Date().getFullYear() - 1,
-    kassenbuch_bar_start_cents: 50000,
+    kassenbuch_start_year: 2024,
+    kassenbuch_bar_start_cents: 10000,
     kassenbuch_bank_start_cents: 250000,
     verein_anschrift:
       "DITIB Moschee Demo e.V.\nMusterstraße 12\n89073 Ulm",

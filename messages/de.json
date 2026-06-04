@@ -1422,6 +1422,7 @@
       "membership_fee": "Mitgliedsbeitrag",
       "membership_config": "Beitrags-Konfiguration",
       "finance_event": "Finanz-Event",
+      "finance_export": "Finanz-Export",
       "transaction": "Buchung"
     },
     "action": {
@@ -1430,7 +1431,10 @@
         "lock_failed": "Finanz-Sperre fehlgeschlagen",
         "lock_recovered": "Finanz-Sperre nachgezogen",
         "emit_failed": "Finanz-Event-Emission fehlgeschlagen",
-        "lock_drift_detected": "Lock-Drift erkannt"
+        "lock_drift_detected": "Lock-Drift erkannt",
+        "export": "Finanzdaten exportiert",
+        "ai_suggest": "KI-Kategorievorschlag",
+        "beleg_download": "Beleg heruntergeladen"
       },
       "source": {
         "refund": "Spende erstattet",
@@ -2308,7 +2312,15 @@
       "s6_body": "Personenbezogene Daten werden nur so lange gespeichert, wie es für den jeweiligen Zweck erforderlich ist oder gesetzliche Aufbewahrungsfristen bestehen. Auf Anfrage werden Daten gelöscht, sofern keine gesetzliche Pflicht zur Aufbewahrung entgegensteht.",
       "s7_title": "7. Ihre Rechte",
       "s7_body1": "Sie haben jederzeit das Recht auf Auskunft, Berichtigung, Löschung und Einschränkung der Verarbeitung Ihrer personenbezogenen Daten gemäß DSGVO Art. 15–22. Wenden Sie sich dazu an:",
-      "s7_body2": "Sie haben außerdem das Recht, bei einer Aufsichtsbehörde Beschwerde einzulegen. Zuständige Aufsichtsbehörde in Baden-Württemberg: Landesbeauftragter für Datenschutz und Informationsfreiheit (LfDI BW)."
+      "s7_body2": "Sie haben außerdem das Recht, bei einer Aufsichtsbehörde Beschwerde einzulegen. Zuständige Aufsichtsbehörde in Baden-Württemberg: Landesbeauftragter für Datenschutz und Informationsfreiheit (LfDI BW).",
+      "s8_title": "8. KI-Kategorisierungsservice (Anthropic)",
+      "s8_intro": "Für die optionale automatische Kategorievorschlag-Funktion bei der manuellen Erfassung von Finanzbuchungen nutzen wir die API von Anthropic.",
+      "s8_purpose": "Zweck: KI-gestützte Kategorievorschläge bei der manuellen Buchungserfassung im Finanzmodul.",
+      "s8_data": "Übermittelte Daten: anonymisierter Beschreibungstext, Betrag und Buchungstyp. Es werden keine Spenderdaten, keine Mitgliedsdaten und keine Belege übermittelt. E-Mail-Adressen, Telefonnummern, IBANs und erkannte Namen werden vor der Übertragung automatisch maskiert.",
+      "s8_basis": "Rechtsgrundlage: Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an effizienter Buchhaltung).",
+      "s8_eu_scc": "Anbieter: Anthropic PBC, San Francisco, USA. Die Datenübertragung erfolgt auf Basis der EU-Standardvertragsklauseln (Art. 46 DSGVO).",
+      "s8_optout": "Opt-out: Die Funktion ist nur aktiv, wenn serverseitig ein Anthropic-API-Schlüssel hinterlegt ist. Ohne diesen Schlüssel werden keinerlei Daten an Anthropic übertragen.",
+      "s8_link": "Datenschutzerklärung von Anthropic"
     },
     "agb": {
       "meta_title": "Allgemeine Geschäftsbedingungen | moschee.app",
@@ -3440,7 +3452,16 @@
     "action": {
       "erfassen": "Buchung erfassen",
       "storno": "Stornieren",
-      "stornoConfirm": "Diese Buchung wirklich stornieren? Es wird eine Gegenbuchung erstellt; das Original bleibt erhalten."
+      "stornoConfirm": "Diese Buchung wirklich stornieren? Es wird eine Gegenbuchung erstellt; das Original bleibt erhalten.",
+      "beleg": "Beleg herunterladen"
+    },
+    "export": {
+      "hint": "Keine DATEV- oder SKR-konforme Datei. Zur Weitergabe an Steuerberater.",
+      "warn_large": "Über 5.000 Zeilen — der Export kann einen Moment dauern.",
+      "buchungen": "Buchungsliste (Excel)",
+      "eur": "EÜR-Übersicht (Excel)",
+      "kassenbericht": "Kassenbericht (Excel)",
+      "komplett": "Steuerberater-Export (komplett)"
     },
     "ledger": {
       "empty": "Keine Buchungen in diesem Jahr.",
@@ -3472,7 +3493,9 @@
       "beleg": "Beleg (optional)",
       "belegHint": "PDF, JPEG oder PNG, max. 5 MB.",
       "abbrechen": "Abbrechen",
-      "speichern": "Speichern"
+      "speichern": "Speichern",
+      "ki_vorschlag": "Kategorie vorschlagen",
+      "ki_datenschutz_hint": "KI-Vorschlag nutzt die Anthropic-API. Die Beschreibung wird anonymisiert übertragen. Details unter Datenschutz"
     },
     "eur": {
       "einnahmen": "Einnahmen",

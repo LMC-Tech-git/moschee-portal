@@ -95,6 +95,26 @@ export default async function DatenschutzPage() {
             </p>
             <p className="mt-2">{t("s7_body2")}</p>
           </div>
+
+          <div id="s8">
+            <h2 className="text-xl font-bold text-gray-900">{t("s8_title")}</h2>
+            <p className="mt-2">{t("s8_intro")}</p>
+            <p className="mt-2">{t("s8_purpose")}</p>
+            <p className="mt-2">{t("s8_data")}</p>
+            <p className="mt-2">{t("s8_basis")}</p>
+            <p className="mt-2">{t("s8_eu_scc")}</p>
+            <p className="mt-2">{t("s8_optout")}</p>
+            <p className="mt-2">
+              <a
+                href="https://www.anthropic.com/legal/privacy"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary-600 underline hover:text-primary-700"
+              >
+                {t("s8_link")}
+              </a>
+            </p>
+          </div>
         </div>
       </div>
     </section>

@@ -769,7 +769,15 @@ export async function POST(request: NextRequest) {
           : (charge.payment_intent as Stripe.PaymentIntent | null)?.id;
         if (!piId) break;
 
-        // 1. Donation via payment_intent ODER invoice (Subscription-Donations)
+        const connectedAccountId = connectMosque?.stripe_account_id;
+        const acctOpts = connectedAccountId ? { stripeAccount: connectedAccountId } : undefined;
+
+        // 1. Quelle auflösen: donation (pi/invoice) → sonst fee/sponsor (session)
+        let refundSource:
+          | { collection: "donations" | "student_fees" | "sponsors"; rec: RecordModel }
+          | null = null;
+
+        // 1a. Donation via payment_intent ODER invoice (Subscription-Donations)
         let refundDonation: RecordModel | null = null;
         try {
           refundDonation = await pb.collection("donations").getFirstListItem(
@@ -784,8 +792,32 @@ export async function POST(request: NextRequest) {
             );
           } catch {}
         }
-        if (!refundDonation) {
-          console.warn(`[Stripe Webhook] charge.refunded: Donation für ${piId} nicht gefunden`);
+
+        if (refundDonation) {
+          refundSource = { collection: "donations", rec: refundDonation };
+        } else {
+          // 1b. Fee/Sponsor via Checkout-Session (provider_ref = session.id, NICHT pi).
+          // fee_multi: Session ohne einzelne fee_id → KEIN Auto-Refund Phase 1
+          // (Stripe liefert keine fee-ID-Verteilung). Admin → manuelle Storno-Buchung.
+          try {
+            const sessions = await stripe.checkout.sessions.list({ payment_intent: piId, limit: 1 }, acctOpts);
+            const sessionId = sessions.data[0]?.id;
+            if (sessionId) {
+              for (const coll of ["student_fees", "sponsors"] as const) {
+                try {
+                  const rec = await pb.collection(coll).getFirstListItem(`provider_ref = "${sessionId}"`);
+                  refundSource = { collection: coll, rec };
+                  break;
+                } catch {}
+              }
+            }
+          } catch (e) {
+            console.error("[Stripe Webhook] charge.refunded: fee/sponsor-Backref fehlgeschlagen:", e);
+          }
+        }
+
+        if (!refundSource) {
+          console.warn(`[Stripe Webhook] charge.refunded: keine Quelle für ${piId} gefunden (evtl. fee_multi → manuelle Storno-Buchung)`);
           break;
         }
 
@@ -793,9 +825,7 @@ export async function POST(request: NextRequest) {
         let refundsList = (charge.refunds?.data || []) as Stripe.Refund[];
         if (charge.refunds?.has_more) {
           try {
-            const connectedAccountId = connectMosque?.stripe_account_id;
-            const opts = connectedAccountId ? { stripeAccount: connectedAccountId } : undefined;
-            const full = await stripe.charges.retrieve(charge.id, { expand: ["refunds"] }, opts);
+            const full = await stripe.charges.retrieve(charge.id, { expand: ["refunds"] }, acctOpts);
             refundsList = (full.refunds?.data || []) as Stripe.Refund[];
           } catch (e) {
             console.error("[Stripe Webhook] charge.refunded: refunds expand fehlgeschlagen:", e);
@@ -807,9 +837,9 @@ export async function POST(request: NextRequest) {
           const r = refundsList[ri];
           try {
             await refundIncome({
-              mosqueId: refundDonation.mosque_id,
-              sourceCollection: "donations",
-              sourceId: refundDonation.id,
+              mosqueId: refundSource.rec.mosque_id,
+              sourceCollection: refundSource.collection,
+              sourceId: refundSource.rec.id,
               refundAmountCents: r.amount,
               externalEventId: r.id,
               eventType: "income_refunded",

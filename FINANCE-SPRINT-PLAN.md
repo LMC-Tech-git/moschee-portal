@@ -120,14 +120,22 @@ erste UI kommt Sprint 4a.
 | **1** | Storage-Layer (Collections, emitFinanceEvent, Idempotenz, Sweeper-Grundgerüst) | ✅ fertig |
 | **2** | Projection (LedgerAtom) + createIncome (Donation→Event), beide paid-Pfade, Lock-Recovery | ✅ fertig |
 | **3** | createManualTransaction + Storno + Belegnummer-Sequencer + toLedgerAtom(Transaction) | ✅ fertig (`dee7cd2`) |
-| **4a** | **Ledger-Merge (Events + manuelle) + read-only Tabelle/Card-UI + EÜR + Jahresbericht** | ➡️ nächstes |
-| **4b** | **Kassenbericht mit Jahres-Carryover (Endbestand N−1 = Anfang N), Mehrjahr-Fixture-Test** | ➡️ nächstes |
-| **5** | refundIncome + Stripe-Refund-Webhook + student_fees/sponsors-Hooks; Refund-Sweeper/Recon scharf | offen |
-| **6** | XLSX-Steuerberater-Export → KI-Kategorisierung → Permissions → Demo-Seed → Datenschutz | offen |
+| **4a** | Ledger-Merge (Events + manuelle) + read-only Tabelle/Card-UI + EÜR + Jahresbericht | ✅ fertig |
+| **4b** | Kassenbericht mit Jahres-Carryover (Endbestand N−1 = Anfang N), Mehrjahr-Fixture-Test | ✅ fertig |
+| **5** | refundIncome + Stripe-Refund-Webhook + student_fees/sponsors-Hooks; Refund-Sweeper/Recon scharf | ✅ fertig |
+| **6** | XLSX-Steuerberater-Export + KI-Kategorisierung (Anthropic, optional) + granulare Permissions + Beleg-Download-Härtung + Datenschutz §8 + Demo-Polish + fee/sponsor-Refund-Webhook-Backref | ✅ fertig |
 
-**Phase 2/3 (später, nicht Phase 1):** Kontenplan, doppelte Buchführung, DATEV/SKR,
-Period-Closing, versionierter Export, Multi-Beleg, Canonical-Hash/Drift-Check, KPI-Cache,
-atomares Sequenz-Inkrement, Event-Storno, materialized Ledger, Async-Queue.
+**🎉 PHASE 1 ABGESCHLOSSEN** (Sprint 1–6). Event-basiertes Finanzmodul produktiv:
+zwei immutable Streams, deterministischer Merge, EÜR/Kassenbericht/Jahresbericht,
+Refund/Chargeback, XLSX-Export, optionale KI-Kategorisierung, granulare Permissions.
+
+**Phase 2/3 (später):** Kontenplan + doppelte Buchführung (finance_accounts,
+transaction_entries), DATEV/SKR, Period-Closing (finance_period_closures),
+versionierter Export (finance_exports + SHA-256), Multi-Beleg (transaction_attachments),
+Canonical-Hash event_hash_sha256 scharf + Drift-Check, Sum-Guard harte Race-Garantie,
+atomares Sequenz-Inkrement / version-CAS, Soft-Lock + lock_scope, KPI-Read-Cache,
+root_event_id/Graph-Relationen, event_type income_adjusted/fee_applied, Event-Storno,
+sequence_audit_log, treasurer-Rolle granulare Permission-Zuweisung.
 
 ---
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { Undo2, Lock } from "lucide-react";
+import { Undo2, Lock, FileText } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { formatCurrencyCents, formatDate } from "@/lib/utils";
 import type { LedgerAtom } from "@/types";
@@ -87,6 +87,18 @@ export function LedgerCardList({
                   <Undo2 className="h-3.5 w-3.5" />
                   {t("action.storno")}
                 </button>
+              )}
+              {a.has_beleg && (
+                <a
+                  href={`/api/finance/beleg/${a.id}`}
+                  title={t("action.beleg")}
+                  className={`inline-flex min-h-[32px] items-center gap-1 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50 ${
+                    manual && onStorno ? "" : "ml-auto"
+                  }`}
+                >
+                  <FileText className="h-3.5 w-3.5" />
+                  {t("action.beleg")}
+                </a>
               )}
             </div>
           </div>

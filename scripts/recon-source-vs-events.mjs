@@ -153,8 +153,10 @@ async function reconMosque(mosqueId) {
 
   // ─── Quell-Daten laden ───────────────────────────────────────────────────
 
-  // 1. Donations paid
-  let donFilter = `mosque_id="${mosqueId}" && status="paid"`;
+  // 1. Donations received: alle die jemals Geld erhielten (paid + später
+  //    refunded/disputed). Eine erstattete Spende hat ihr income_received-Event
+  //    behalten — der Refund läuft separat über den refund-Bucket (Double-Entry).
+  let donFilter = `mosque_id="${mosqueId}" && (status="paid" || status="refunded" || status="disputed")`;
   if (yf) donFilter += ` && paid_at>="${yf}-01-01" && paid_at<"${Number(yf)+1}-01-01"`;
   const paidDonations = await pageAll("donations", donFilter, "id,amount_cents,amount,paid_at,created,refund_amount_cents");
 

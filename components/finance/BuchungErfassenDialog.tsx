@@ -1,13 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { Sparkles } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import {
   FINANCE_INCOME_CATEGORY_IDS,
   FINANCE_EXPENSE_CATEGORY_IDS,
 } from "@/lib/constants";
-import { createManualTransactionAction } from "@/lib/actions/finance";
+import {
+  createManualTransactionAction,
+  getAiAvailability,
+  suggestTransactionCategory,
+} from "@/lib/actions/finance";
 
 const KONTO_TYPEN = ["cash", "bank", "other"] as const;
 const ZAHLUNGSKANAELE = ["bar", "ueberweisung", "stripe", "paypal", "sonstige"] as const;
@@ -44,6 +49,33 @@ export function BuchungErfassenDialog({
   const [belegFile, setBelegFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // KI-Kategorievorschlag (graceful: Button nur wenn verfügbar)
+  const [aiAvailable, setAiAvailable] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
+
+  useEffect(() => {
+    if (!open || !mosqueId) return;
+    let active = true;
+    getAiAvailability(mosqueId)
+      .then((r) => { if (active) setAiAvailable(r.available); })
+      .catch(() => { if (active) setAiAvailable(false); });
+    return () => { active = false; };
+  }, [open, mosqueId]);
+
+  async function handleKISuggest() {
+    setError(null);
+    setAiLoading(true);
+    try {
+      const betragCents = parseBetragCents(betrag);
+      const res = await suggestTransactionCategory(mosqueId, beschreibung.trim(), betragCents, typ);
+      if (res.category) setKategorie(res.category);
+    } catch {
+      /* graceful: kein Vorschlag */
+    } finally {
+      setAiLoading(false);
+    }
+  }
 
   const kategorien = typ === "einnahme" ? FINANCE_INCOME_CATEGORY_IDS : FINANCE_EXPENSE_CATEGORY_IDS;
 
@@ -187,6 +219,26 @@ export function BuchungErfassenDialog({
             <span className="mb-1 block font-medium text-gray-700">{t("dialog.beschreibung")}</span>
             <input value={beschreibung} onChange={(e) => setBeschreibung(e.target.value)} className={inputCls} maxLength={500} />
           </label>
+
+          {aiAvailable && (
+            <div className="rounded-lg border border-purple-100 bg-purple-50/50 p-3">
+              <button
+                type="button"
+                onClick={handleKISuggest}
+                disabled={aiLoading || beschreibung.trim().length < 3}
+                className="inline-flex min-h-[36px] items-center gap-1.5 rounded-lg border border-purple-300 bg-white px-3 py-1.5 text-sm font-medium text-purple-700 hover:bg-purple-50 disabled:opacity-50"
+              >
+                <Sparkles className="h-3.5 w-3.5" />
+                {aiLoading ? t("dialog.ki_vorschlag") + "…" : t("dialog.ki_vorschlag")}
+              </button>
+              <p className="mt-2 text-xs text-gray-500">
+                {t("dialog.ki_datenschutz_hint")}{" "}
+                <a href="/datenschutz#s8" target="_blank" rel="noopener noreferrer" className="underline">
+                  §8
+                </a>
+              </p>
+            </div>
+          )}
 
           <label className="text-sm">
             <span className="mb-1 block font-medium text-gray-700">{t("dialog.beleg")}</span>

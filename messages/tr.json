@@ -1422,6 +1422,7 @@
       "membership_fee": "Üyelik aidatı",
       "membership_config": "Aidat yapılandırması",
       "finance_event": "Finans olayı",
+      "finance_export": "Mali dışa aktarma",
       "transaction": "Kayıt"
     },
     "action": {
@@ -1430,7 +1431,10 @@
         "lock_failed": "Finansal kilit başarısız",
         "lock_recovered": "Finansal kilit yenilendi",
         "emit_failed": "Finans olayı yayımı başarısız",
-        "lock_drift_detected": "Kilit kayması tespit edildi"
+        "lock_drift_detected": "Kilit kayması tespit edildi",
+        "export": "Mali veriler dışa aktarıldı",
+        "ai_suggest": "YZ kategori önerisi",
+        "beleg_download": "Belge indirildi"
       },
       "source": {
         "refund": "Bağış iade edildi",
@@ -2308,7 +2312,15 @@
       "s6_body": "Kişisel veriler yalnızca ilgili amaç için gerekli olduğu sürece veya yasal saklama yükümlülükleri çerçevesinde saklanmaktadır. Yasal bir saklama yükümlülüğü bulunmadığı sürece talep üzerine veriler silinmektedir.",
       "s7_title": "7. Haklarınız",
       "s7_body1": "GDPR Madde 15–22 uyarınca kişisel verilerinize erişim, düzeltme, silme ve işlemenin kısıtlanmasını talep etme hakkına sahipsiniz. Bu konuda bize ulaşın:",
-      "s7_body2": "Ayrıca bir denetim makamına şikayette bulunma hakkınız vardır. Baden-Württemberg'deki yetkili denetim makamı: Landesbeauftragter für Datenschutz und Informationsfreiheit (LfDI BW)."
+      "s7_body2": "Ayrıca bir denetim makamına şikayette bulunma hakkınız vardır. Baden-Württemberg'deki yetkili denetim makamı: Landesbeauftragter für Datenschutz und Informationsfreiheit (LfDI BW).",
+      "s8_title": "8. YZ kategorilendirme hizmeti (Anthropic)",
+      "s8_intro": "Mali kayıtların manuel girişinde isteğe bağlı otomatik kategori önerisi işlevi için Anthropic API'sini kullanıyoruz.",
+      "s8_purpose": "Amaç: Mali modülde manuel kayıt girişinde YZ destekli kategori önerileri.",
+      "s8_data": "İletilen veriler: anonimleştirilmiş açıklama metni, tutar ve kayıt türü. Bağışçı verileri, üye verileri ve belgeler iletilmez. E-posta adresleri, telefon numaraları, IBAN'lar ve tespit edilen isimler iletimden önce otomatik olarak maskelenir.",
+      "s8_basis": "Hukuki dayanak: GDPR Madde 6(1)(f) (verimli muhasebeye yönelik meşru menfaat).",
+      "s8_eu_scc": "Sağlayıcı: Anthropic PBC, San Francisco, ABD. Veri aktarımı AB Standart Sözleşme Maddeleri (GDPR Madde 46) temelinde gerçekleşir.",
+      "s8_optout": "Vazgeçme: İşlev yalnızca sunucu tarafında bir Anthropic API anahtarı tanımlıysa etkindir. Bu anahtar olmadan Anthropic'e hiçbir veri iletilmez.",
+      "s8_link": "Anthropic Gizlilik Politikası"
     },
     "agb": {
       "meta_title": "Genel Kullanım Koşulları | moschee.app",
@@ -3440,7 +3452,16 @@
     "action": {
       "erfassen": "Kayıt ekle",
       "storno": "İptal et",
-      "stornoConfirm": "Bu kayıt iptal edilsin mi? Bir karşı kayıt oluşturulur; orijinal korunur."
+      "stornoConfirm": "Bu kayıt iptal edilsin mi? Bir karşı kayıt oluşturulur; orijinal korunur.",
+      "beleg": "Belgeyi indir"
+    },
+    "export": {
+      "hint": "DATEV veya SKR uyumlu bir dosya değildir. Mali müşavire iletmek içindir.",
+      "warn_large": "5.000 satırdan fazla — dışa aktarma biraz sürebilir.",
+      "buchungen": "Kayıt listesi (Excel)",
+      "eur": "Gelir-gider özeti (Excel)",
+      "kassenbericht": "Kasa raporu (Excel)",
+      "komplett": "Mali müşavir dışa aktarımı (tam)"
     },
     "ledger": {
       "empty": "Bu yıl için kayıt yok.",
@@ -3472,7 +3493,9 @@
       "beleg": "Belge (isteğe bağlı)",
       "belegHint": "PDF, JPEG veya PNG, en fazla 5 MB.",
       "abbrechen": "İptal",
-      "speichern": "Kaydet"
+      "speichern": "Kaydet",
+      "ki_vorschlag": "Kategori öner",
+      "ki_datenschutz_hint": "YZ önerisi Anthropic API'sini kullanır. Açıklama anonimleştirilerek iletilir. Ayrıntılar: Gizlilik"
     },
     "eur": {
       "einnahmen": "Gelirler",
