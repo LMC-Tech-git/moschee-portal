@@ -125,7 +125,7 @@ export function InviteQRDialog({
           </p>
         </div>
 
-        <DialogFooter className="grid grid-cols-1 gap-2 sm:flex">
+        <DialogFooter className="grid grid-cols-1 gap-2 sm:flex sm:flex-wrap sm:justify-end">
           <Button
             asChild
             variant="outline"
