@@ -11,6 +11,8 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
+import { SortableHeader, type SortDir } from "@/components/shared/SortableHeader";
+import { TableSearch } from "@/components/shared/TableSearch";
 import { useMosque } from "@/lib/mosque-context";
 import { useAuth } from "@/lib/auth-context";
 import { getPostsByMosque, deletePost } from "@/lib/actions/posts";
@@ -39,6 +41,17 @@ export default function AdminPostsPage() {
   const [filter, setFilter] = useState<"all" | "published" | "draft">("all");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [search, setSearch] = useState("");
+  type SortField = "title" | "category" | "status" | "created";
+  const [orderBy, setOrderBy] = useState<SortField | null>(null);
+  const [orderDirection, setOrderDirection] = useState<SortDir>("desc");
+  function toggleSort(f: SortField) {
+    if (orderBy === f) setOrderDirection((d) => (d === "asc" ? "desc" : "asc"));
+    else {
+      setOrderBy(f);
+      setOrderDirection(f === "created" ? "desc" : "asc");
+    }
+  }
 
   useEffect(() => {
     if (!mosqueId) return;
@@ -48,6 +61,9 @@ export default function AdminPostsPage() {
       const statusFilter = filter === "all" ? undefined : filter;
       const result = await getPostsByMosque(mosqueId, {
         status: statusFilter as "published" | "draft" | undefined,
+        search: search || undefined,
+        orderBy: orderBy || undefined,
+        orderDirection,
         page,
       });
       if (result.success && result.data) {
@@ -57,11 +73,15 @@ export default function AdminPostsPage() {
       setIsLoading(false);
     }
     load();
-  }, [mosqueId, filter, page]);
+  }, [mosqueId, filter, page, search, orderBy, orderDirection]);
+
+  // Bei Filter-/Such-/Sortier-Änderung zurück auf Seite 1
+  useEffect(() => {
+    setPage(1);
+  }, [filter, search, orderBy, orderDirection]);
 
   function handleFilterChange(f: "all" | "published" | "draft") {
     setFilter(f);
-    setPage(1);
   }
 
   async function handleDelete(postId: string, title: string) {
@@ -99,24 +119,27 @@ export default function AdminPostsPage() {
         </Link>
       </div>
 
-      {/* Filter */}
-      <div className="flex gap-2" role="tablist" aria-label="Beiträge filtern">
-        {(["all", "published", "draft"] as const).map((f) => (
-          <button
-            key={f}
-            type="button"
-            role="tab"
-            aria-selected={filter === f}
-            onClick={() => handleFilterChange(f)}
-            className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
-              filter === f
-                ? "bg-emerald-100 text-emerald-700"
-                : "text-gray-500 hover:bg-gray-100"
-            }`}
-          >
-            {filterLabels[f]}
-          </button>
-        ))}
+      {/* Filter + Suche */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex gap-2" role="tablist" aria-label="Beiträge filtern">
+          {(["all", "published", "draft"] as const).map((f) => (
+            <button
+              key={f}
+              type="button"
+              role="tab"
+              aria-selected={filter === f}
+              onClick={() => handleFilterChange(f)}
+              className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                filter === f
+                  ? "bg-emerald-100 text-emerald-700"
+                  : "text-gray-500 hover:bg-gray-100"
+              }`}
+            >
+              {filterLabels[f]}
+            </button>
+          ))}
+        </div>
+        <TableSearch value={search} onChange={setSearch} placeholder={t("searchPlaceholder")} />
       </div>
 
       {/* Tabelle */}
@@ -146,15 +169,15 @@ export default function AdminPostsPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b bg-gray-50 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                    <th className="px-4 py-3">{t("colTitle")}</th>
+                    <th className="px-4 py-3"><SortableHeader label={t("colTitle")} active={orderBy === "title"} dir={orderDirection} onClick={() => toggleSort("title")} /></th>
                     <th className="px-4 py-3 hidden sm:table-cell">
-                      {t("colCategory")}
+                      <SortableHeader label={t("colCategory")} active={orderBy === "category"} dir={orderDirection} onClick={() => toggleSort("category")} />
                     </th>
                     <th className="px-4 py-3 hidden md:table-cell">
                       {t("colVisibility")}
                     </th>
-                    <th className="px-4 py-3">{t("colStatus")}</th>
-                    <th className="px-4 py-3 hidden lg:table-cell">{t("colDate")}</th>
+                    <th className="px-4 py-3"><SortableHeader label={t("colStatus")} active={orderBy === "status"} dir={orderDirection} onClick={() => toggleSort("status")} /></th>
+                    <th className="px-4 py-3 hidden lg:table-cell"><SortableHeader label={t("colDate")} active={orderBy === "created"} dir={orderDirection} onClick={() => toggleSort("created")} /></th>
                     <th className="px-4 py-3 text-right">{t("colActions")}</th>
                   </tr>
                 </thead>

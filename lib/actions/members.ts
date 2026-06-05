@@ -50,6 +50,8 @@ export async function getMembersByMosque(
     status?: "pending" | "active" | "inactive" | "blocked";
     role?: "admin" | "member" | "teacher" | "imam" | "editor";
     search?: string;
+    orderBy?: "full_name" | "email" | "role" | "status" | "created";
+    orderDirection?: "asc" | "desc";
     page?: number;
     limit?: number;
   }
@@ -58,6 +60,9 @@ export async function getMembersByMosque(
     const pb = await getAdminPB();
     const page = options?.page || 1;
     const limit = options?.limit || 20;
+    const orderBy = options?.orderBy || "created";
+    const orderDirection = options?.orderDirection || (orderBy === "created" ? "desc" : "asc");
+    const sort = `${orderDirection === "desc" ? "-" : ""}${orderBy}`;
 
     const filters: string[] = [`mosque_id = "${mosqueId}"`, `role != "super_admin"`];
     if (options?.status) {
@@ -75,7 +80,7 @@ export async function getMembersByMosque(
 
     const records = await pb.collection("users").getList(page, limit, {
       filter: filters.join(" && "),
-      sort: "-created",
+      sort,
     });
 
     return {

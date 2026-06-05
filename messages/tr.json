@@ -33,7 +33,12 @@
     "saveDraft": "Taslak kaydet",
     "saveAsDraft": "Taslak olarak kaydet",
     "updatePublish": "Güncelle & Yayımla",
-    "next": "İleri"
+    "next": "İleri",
+    "searchPlaceholder": "Ara...",
+    "noSearchResults": "Aramanızla eşleşen sonuç yok.",
+    "sortAsc": "Artan sıralama",
+    "sortDesc": "Azalan sıralama",
+    "sortBy": "Sırala"
   },
   "nav": {
     "home": "Ana Sayfa",
@@ -615,6 +620,7 @@
   "posts": {
     "title": "Haberler",
     "subtitle": "Caminizin haberlerini yönetin.",
+    "searchPlaceholder": "Haber ara...",
     "newPost": "Yeni Haber",
     "new": {
       "title": "Yeni Haber",
@@ -651,6 +657,7 @@
   "events": {
     "title": "Etkinlikler",
     "subtitle": "Caminizin etkinliklerini yönetin.",
+    "searchPlaceholder": "Etkinlik ara...",
     "newEvent": "Yeni Etkinlik",
     "new": {
       "title": "Yeni Etkinlik",
@@ -717,6 +724,7 @@
   "campaigns": {
     "title": "Kampanyalar",
     "subtitle": "Caminizin bağış kampanyalarını yönetin.",
+    "searchPlaceholder": "Kampanya ara...",
     "newCampaign": "Yeni Kampanya",
     "new": {
       "title": "Yeni Kampanya",
@@ -845,6 +853,7 @@
     "gebuehren": {
       "title": "Ücretler",
       "subtitle": "Aylık medrese ücretlerini yönetin.",
+      "searchStudentPlaceholder": "Öğrenci ara...",
       "allCourses": "Tüm Dersler",
       "backLink": "Medrese Modülü",
       "createSection": "{month} için ücretler oluştur",
@@ -2763,6 +2772,11 @@
       "title": "Destek Ortaklarını Yönet",
       "subtitle": "Caminizin destek ortaklarını ve sponsorlarını yönetin.",
       "add": "Yeni Ortak",
+      "searchPlaceholder": "Destek ortağı ara...",
+      "colPayment": "Ödeme",
+      "colStatus": "Durum",
+      "colDuration": "Süre",
+      "colActions": "İşlemler",
       "empty": "Henüz destek ortağı eklenmemiş.",
       "name": "Ad",
       "namePlaceholder": "İşletme adı",
@@ -3480,6 +3494,7 @@
     },
     "ledger": {
       "empty": "Bu yıl için kayıt yok.",
+      "searchPlaceholder": "Kayıt ara (belge, tutar, kategori...)",
       "truncated": "Bu yıl {cap} kayıttan fazla — yalnızca bir bölümü gösteriliyor. Raporlar/KPI tüm kayıtları dikkate alır."
     },
     "kategorie": {
@@ -3556,6 +3571,7 @@
   },
   "mitgliedsbeitraege": {
     "title": "Üyelik aidatları",
+    "searchMemberPlaceholder": "Üye ara...",
     "tabOverview": "Genel bakış",
     "tabConfig": "Aidat yapılandırması",
     "intervalMonthly": "Aylık",

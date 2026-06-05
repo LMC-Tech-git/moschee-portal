@@ -189,6 +189,9 @@ export async function getLedgerAtoms(
     konto?: "bar" | "bank";
     typ?: "einnahme" | "ausgabe";
     kategorie?: string;
+    search?: string;
+    orderBy?: "datum" | "beleg_nummer" | "kategorie" | "konto_typ" | "betrag";
+    orderDirection?: "asc" | "desc";
     page?: number;
     perPage?: number;
   }
@@ -203,6 +206,49 @@ export async function getLedgerAtoms(
     atoms = atoms.filter((a) => a.classification === cls);
   }
   if (opts.kategorie) atoms = atoms.filter((a) => a.kategorie === opts.kategorie);
+
+  // Volltext-Suche über alle Spalten (Beleg, Kategorie, Konto, Quelle, Datum, Betrag)
+  const q = opts.search?.trim().toLowerCase();
+  if (q) {
+    atoms = atoms.filter((a) => {
+      const eur = (Math.abs(a.signed_amount_cents) / 100).toFixed(2);
+      const haystack = [
+        a.beleg_nummer ?? "",
+        a.kategorie,
+        a.konto_typ,
+        a.source_system,
+        a.datum ?? "",
+        eur,
+        eur.replace(".", ","),
+      ]
+        .join(" ")
+        .toLowerCase();
+      return haystack.includes(q);
+    });
+  }
+
+  // Sortierung
+  if (opts.orderBy) {
+    const dir = opts.orderDirection === "asc" ? 1 : -1;
+    const val = (a: LedgerAtom): string | number => {
+      switch (opts.orderBy) {
+        case "betrag": return a.signed_amount_cents;
+        case "datum": return a.datum ?? "";
+        case "beleg_nummer": return a.beleg_nummer ?? "";
+        case "kategorie": return a.kategorie;
+        case "konto_typ": return a.konto_typ;
+        default: return "";
+      }
+    };
+    atoms = [...atoms].sort((a, b) => {
+      const va = val(a);
+      const vb = val(b);
+      const cmp = typeof va === "number" || typeof vb === "number"
+        ? (Number(va) || 0) - (Number(vb) || 0)
+        : String(va).localeCompare(String(vb), "de");
+      return cmp * dir;
+    });
+  }
 
   const total = atoms.length;
   const truncated = total > LEDGER_UI_CAP;

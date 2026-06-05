@@ -33,7 +33,12 @@
     "saveDraft": "Entwurf speichern",
     "saveAsDraft": "Als Entwurf speichern",
     "updatePublish": "Aktualisieren & Veröffentlichen",
-    "next": "Weiter"
+    "next": "Weiter",
+    "searchPlaceholder": "Suchen...",
+    "noSearchResults": "Keine Treffer für deine Suche.",
+    "sortAsc": "Aufsteigend sortiert",
+    "sortDesc": "Absteigend sortiert",
+    "sortBy": "Sortieren nach"
   },
   "nav": {
     "home": "Startseite",
@@ -615,6 +620,7 @@
   "posts": {
     "title": "Beiträge",
     "subtitle": "Verwalten Sie die Beiträge Ihrer Moschee.",
+    "searchPlaceholder": "Beitrag suchen...",
     "newPost": "Neuer Beitrag",
     "new": {
       "title": "Neuer Beitrag",
@@ -651,6 +657,7 @@
   "events": {
     "title": "Veranstaltungen",
     "subtitle": "Verwalten Sie die Veranstaltungen Ihrer Moschee.",
+    "searchPlaceholder": "Veranstaltung suchen...",
     "newEvent": "Neue Veranstaltung",
     "new": {
       "title": "Neue Veranstaltung",
@@ -717,6 +724,7 @@
   "campaigns": {
     "title": "Kampagnen",
     "subtitle": "Verwalten Sie die Spendenkampagnen Ihrer Moschee.",
+    "searchPlaceholder": "Kampagne suchen...",
     "newCampaign": "Neue Kampagne",
     "new": {
       "title": "Neue Kampagne",
@@ -845,6 +853,7 @@
     "gebuehren": {
       "title": "Gebühren",
       "subtitle": "Monatliche Madrasa-Gebühren verwalten.",
+      "searchStudentPlaceholder": "Schüler suchen...",
       "allCourses": "Alle Kurse",
       "backLink": "Zur Madrasa-Übersicht",
       "createSection": "Gebühren für {month} erstellen",
@@ -2763,6 +2772,11 @@
       "title": "Förderpartner verwalten",
       "subtitle": "Verwalten Sie Förderpartner und Sponsoren Ihrer Moschee.",
       "add": "Neuer Sponsor",
+      "searchPlaceholder": "Förderpartner suchen...",
+      "colPayment": "Zahlung",
+      "colStatus": "Status",
+      "colDuration": "Laufzeit",
+      "colActions": "Aktionen",
       "empty": "Noch keine Förderpartner angelegt.",
       "name": "Name",
       "namePlaceholder": "Name des Unternehmens",
@@ -3480,6 +3494,7 @@
     },
     "ledger": {
       "empty": "Keine Buchungen in diesem Jahr.",
+      "searchPlaceholder": "Buchung suchen (Beleg, Betrag, Kategorie...)",
       "truncated": "Mehr als {cap} Buchungen in diesem Jahr — es wird nur ein Ausschnitt angezeigt. Berichte/KPIs berücksichtigen alle Buchungen."
     },
     "kategorie": {
@@ -3556,6 +3571,7 @@
   },
   "mitgliedsbeitraege": {
     "title": "Mitgliedsbeiträge",
+    "searchMemberPlaceholder": "Mitglied suchen...",
     "tabOverview": "Übersicht",
     "tabConfig": "Beitrags-Konfiguration",
     "intervalMonthly": "Monatlich",

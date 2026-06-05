@@ -26,6 +26,9 @@ import {
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import type { MembershipInterval } from "@/types";
+import { useClientTable } from "@/lib/hooks/use-client-table";
+import { SortableHeader } from "@/components/shared/SortableHeader";
+import { TableSearch } from "@/components/shared/TableSearch";
 
 type Interval = MembershipInterval;
 
@@ -76,6 +79,28 @@ export default function AdminMembershipFeesPage() {
   const [defaultInterval, setDefaultInterval] = useState<Interval>("monthly");
 
   const periodKey = periodKeyFor(interval, refDate);
+
+  const {
+    view: viewRows,
+    search,
+    setSearch,
+    sortBy,
+    sortDir,
+    toggleSort,
+    isSearching,
+  } = useClientTable(rows, {
+    searchText: (r) => `${r.user.first_name ?? ""} ${r.user.last_name ?? ""}`,
+    sorters: {
+      member: (r) => `${r.user.first_name ?? ""} ${r.user.last_name ?? ""}`,
+      amount: (r) => r.fee?.amount_cents ?? r.config?.amount_cents ?? 0,
+      status: (r) => r.fee?.status ?? "",
+      method: (r) => r.fee?.payment_method ?? "",
+      source: (r) => r.fee?.source ?? "",
+      auto: (r) => (r.hasActiveSub ? 1 : 0),
+    },
+    initialField: "member",
+    defaultDirFor: (f) => (f === "amount" || f === "auto" ? "desc" : "asc"),
+  });
 
   const loadOverview = useCallback(async () => {
     if (!mosqueId) return;
@@ -183,6 +208,11 @@ export default function AdminMembershipFeesPage() {
       {tab === "overview" && (
         <>
           <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
+            <TableSearch
+              value={search}
+              onChange={setSearch}
+              placeholder={t("searchMemberPlaceholder")}
+            />
             <select
               value={interval}
               onChange={(e) => setInterval(e.target.value as Interval)}
@@ -246,23 +276,23 @@ export default function AdminMembershipFeesPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm border-collapse">
               <thead>
-                <tr className="text-left border-b">
-                  <th className="p-2">{t("colMember")}</th>
-                  <th className="p-2">{t("colAmount")}</th>
-                  <th className="p-2">{t("colStatus")}</th>
-                  <th className="p-2">{t("colMethod")}</th>
-                  <th className="p-2">{t("colSource")}</th>
-                  <th className="p-2">{t("colAuto")}</th>
+                <tr className="text-left border-b text-gray-500">
+                  <th className="p-2"><SortableHeader label={t("colMember")} active={sortBy === "member"} dir={sortDir} onClick={() => toggleSort("member")} /></th>
+                  <th className="p-2"><SortableHeader label={t("colAmount")} active={sortBy === "amount"} dir={sortDir} onClick={() => toggleSort("amount")} /></th>
+                  <th className="p-2"><SortableHeader label={t("colStatus")} active={sortBy === "status"} dir={sortDir} onClick={() => toggleSort("status")} /></th>
+                  <th className="p-2"><SortableHeader label={t("colMethod")} active={sortBy === "method"} dir={sortDir} onClick={() => toggleSort("method")} /></th>
+                  <th className="p-2"><SortableHeader label={t("colSource")} active={sortBy === "source"} dir={sortDir} onClick={() => toggleSort("source")} /></th>
+                  <th className="p-2"><SortableHeader label={t("colAuto")} active={sortBy === "auto"} dir={sortDir} onClick={() => toggleSort("auto")} /></th>
                   <th className="p-2">{t("colActions")}</th>
                 </tr>
               </thead>
               <tbody>
                 {isLoading ? (
                   <tr><td colSpan={7} className="p-4 text-center text-gray-400">{tCommon("loading")}</td></tr>
-                ) : rows.length === 0 ? (
-                  <tr><td colSpan={7} className="p-4 text-center text-gray-400">{t("empty")}</td></tr>
+                ) : viewRows.length === 0 ? (
+                  <tr><td colSpan={7} className="p-4 text-center text-gray-400">{isSearching ? tCommon("noSearchResults") : t("empty")}</td></tr>
                 ) : (
-                  rows.map((r) => {
+                  viewRows.map((r) => {
                     const f = r.fee;
                     const overdue = f && (f.status === "open" || f.status === "failed");
                     return (
@@ -365,6 +395,27 @@ function ConfigSection({
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
 
+  const {
+    view: viewConfigs,
+    search,
+    setSearch,
+    sortBy,
+    sortDir,
+    toggleSort,
+    isSearching,
+  } = useClientTable(configs, {
+    searchText: (r) => `${r.user.first_name ?? ""} ${r.user.last_name ?? ""}`,
+    sorters: {
+      member: (r) => `${r.user.first_name ?? ""} ${r.user.last_name ?? ""}`,
+      amount: (r) => r.config?.amount_cents ?? 0,
+      interval: (r) => r.config?.interval ?? "",
+      active: (r) => (r.config?.active ? 1 : 0),
+      exempt: (r) => (r.config?.exempt ? 1 : 0),
+    },
+    initialField: "member",
+    defaultDirFor: (f) => (f === "amount" ? "desc" : "asc"),
+  });
+
   function startEdit(row: MembershipConfigRow) {
     setEditId(row.user.id);
     setErr("");
@@ -399,20 +450,29 @@ function ConfigSection({
       {err && (
         <div className="mb-3 p-3 bg-red-50 text-red-700 rounded text-sm">{err}</div>
       )}
+      <div className="mb-3">
+        <TableSearch
+          value={search}
+          onChange={setSearch}
+          placeholder={t("searchMemberPlaceholder")}
+        />
+      </div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="text-left border-b">
-              <th className="p-2">{t("colMember")}</th>
-              <th className="p-2">{t("colAmount")}</th>
-              <th className="p-2">{t("colInterval")}</th>
-              <th className="p-2">{t("colActive")}</th>
-              <th className="p-2">{t("colExempt")}</th>
+            <tr className="text-left border-b text-gray-500">
+              <th className="p-2"><SortableHeader label={t("colMember")} active={sortBy === "member"} dir={sortDir} onClick={() => toggleSort("member")} /></th>
+              <th className="p-2"><SortableHeader label={t("colAmount")} active={sortBy === "amount"} dir={sortDir} onClick={() => toggleSort("amount")} /></th>
+              <th className="p-2"><SortableHeader label={t("colInterval")} active={sortBy === "interval"} dir={sortDir} onClick={() => toggleSort("interval")} /></th>
+              <th className="p-2"><SortableHeader label={t("colActive")} active={sortBy === "active"} dir={sortDir} onClick={() => toggleSort("active")} /></th>
+              <th className="p-2"><SortableHeader label={t("colExempt")} active={sortBy === "exempt"} dir={sortDir} onClick={() => toggleSort("exempt")} /></th>
               <th className="p-2">{t("colActions")}</th>
             </tr>
           </thead>
           <tbody>
-            {configs.map((row) => {
+            {viewConfigs.length === 0 ? (
+              <tr><td colSpan={6} className="p-4 text-center text-gray-400">{isSearching ? tCommon("noSearchResults") : t("empty")}</td></tr>
+            ) : viewConfigs.map((row) => {
               const editing = editId === row.user.id;
               return (
                 <tr key={row.user.id} className="border-b align-top">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMosque } from "@/lib/mosque-context";
 import { useAuth } from "@/lib/auth-context";
 import {
@@ -19,6 +19,8 @@ import { Banknote, CheckCircle, X, ChevronLeft, ChevronRight, Plus, AlertCircle,
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import type { CourseWithStats } from "@/types";
+import { SortableHeader, type SortDir } from "@/components/shared/SortableHeader";
+import { TableSearch } from "@/components/shared/TableSearch";
 
 function getCurrentMonthKey(): string {
   const now = new Date();
@@ -210,6 +212,43 @@ export default function AdminMadrasaGebuehrenPage() {
     ? rows.filter((r) => courseStudentIds.has(r.student.id))
     : rows;
 
+  // Suche + Spaltensortierung
+  const [search, setSearch] = useState("");
+  type SortField = "student" | "amount" | "status" | "method";
+  const [sortBy, setSortBy] = useState<SortField>("student");
+  const [sortDir, setSortDir] = useState<SortDir>("asc");
+  function toggleSort(f: SortField) {
+    if (sortBy === f) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    else {
+      setSortBy(f);
+      setSortDir(f === "amount" ? "desc" : "asc");
+    }
+  }
+  const searchQ = search.trim().toLowerCase();
+  const displayRows = useMemo(() => {
+    const filtered = searchQ
+      ? filteredRows.filter((r) =>
+          `${r.student.first_name ?? ""} ${r.student.last_name ?? ""}`.toLowerCase().includes(searchQ)
+        )
+      : filteredRows;
+    const val = (r: FeeOverviewRow): string | number => {
+      switch (sortBy) {
+        case "student": return `${r.student.first_name ?? ""} ${r.student.last_name ?? ""}`;
+        case "amount": return r.fee?.amount_cents ?? -1;
+        case "status": return r.fee?.status ?? "";
+        case "method": return r.fee?.payment_method ?? "";
+      }
+    };
+    return [...filtered].sort((a, b) => {
+      const va = val(a);
+      const vb = val(b);
+      const cmp = typeof va === "number" || typeof vb === "number"
+        ? (Number(va) || 0) - (Number(vb) || 0)
+        : String(va).localeCompare(String(vb), "de");
+      return sortDir === "asc" ? cmp : -cmp;
+    });
+  }, [filteredRows, searchQ, sortBy, sortDir]);
+
   const openCount = filteredRows.filter((r) => r.fee?.status === "open").length;
   const paidCount = filteredRows.filter((r) => r.fee?.status === "paid").length;
   const waivedCount = filteredRows.filter((r) => r.fee?.status === "waived").length;
@@ -346,7 +385,7 @@ export default function AdminMadrasaGebuehrenPage() {
       </div>
 
       {/* Monat-Picker */}
-      <div className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white p-4">
+      <div className="flex flex-wrap items-center gap-3 rounded-xl border border-gray-200 bg-white p-4">
         <button
           type="button"
           onClick={() => setMonthKey(prevMonthKey(monthKey))}
@@ -366,6 +405,9 @@ export default function AdminMadrasaGebuehrenPage() {
         >
           <ChevronRight className="h-4 w-4" />
         </button>
+        <div className="ml-auto w-full sm:w-auto">
+          <TableSearch value={search} onChange={setSearch} placeholder={t("searchStudentPlaceholder")} />
+        </div>
       </div>
 
       {/* Fehler */}
@@ -509,15 +551,17 @@ export default function AdminMadrasaGebuehrenPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b bg-gray-50 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                  <th className="px-4 py-3">{t("colStudent")}</th>
-                  <th className="px-4 py-3">{t("colAmount")}</th>
-                  <th className="px-4 py-3">{t("colStatus")}</th>
-                  <th className="px-4 py-3 hidden sm:table-cell">{t("colPaymentMethod")}</th>
+                  <th className="px-4 py-3"><SortableHeader label={t("colStudent")} active={sortBy === "student"} dir={sortDir} onClick={() => toggleSort("student")} /></th>
+                  <th className="px-4 py-3"><SortableHeader label={t("colAmount")} active={sortBy === "amount"} dir={sortDir} onClick={() => toggleSort("amount")} /></th>
+                  <th className="px-4 py-3"><SortableHeader label={t("colStatus")} active={sortBy === "status"} dir={sortDir} onClick={() => toggleSort("status")} /></th>
+                  <th className="px-4 py-3 hidden sm:table-cell"><SortableHeader label={t("colPaymentMethod")} active={sortBy === "method"} dir={sortDir} onClick={() => toggleSort("method")} /></th>
                   <th className="px-4 py-3 text-right">{t("colActions")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y">
-                {filteredRows.map((row) => {
+                {displayRows.length === 0 ? (
+                  <tr><td colSpan={5} className="px-4 py-8 text-center text-sm text-gray-400">{tCommon("noSearchResults")}</td></tr>
+                ) : displayRows.map((row) => {
                   const isConfirming = !!actionState && !!row.fee && actionState.feeId === row.fee.id;
                   return (
                     <tr key={row.student.id} className="hover:bg-gray-50 transition-colors">

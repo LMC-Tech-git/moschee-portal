@@ -28,6 +28,8 @@ import {
 } from "@/lib/constants";
 import type { CampaignWithProgress } from "@/types";
 import { useTranslations } from "next-intl";
+import { SortableHeader, type SortDir } from "@/components/shared/SortableHeader";
+import { TableSearch } from "@/components/shared/TableSearch";
 
 export default function AdminCampaignsPage() {
   const t = useTranslations("campaigns");
@@ -43,6 +45,17 @@ export default function AdminCampaignsPage() {
   >("all");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [search, setSearch] = useState("");
+  type SortField = "title" | "status" | "goal_amount_cents" | "created";
+  const [orderBy, setOrderBy] = useState<SortField | null>(null);
+  const [orderDirection, setOrderDirection] = useState<SortDir>("desc");
+  function toggleSort(f: SortField) {
+    if (orderBy === f) setOrderDirection((d) => (d === "asc" ? "desc" : "asc"));
+    else {
+      setOrderBy(f);
+      setOrderDirection(f === "title" ? "asc" : "desc");
+    }
+  }
 
   useEffect(() => {
     if (!mosqueId) return;
@@ -52,6 +65,9 @@ export default function AdminCampaignsPage() {
       const statusFilter = filter === "all" ? undefined : filter;
       const result = await getCampaignsByMosque(mosqueId, {
         status: statusFilter as "active" | "paused" | "completed" | undefined,
+        search: search || undefined,
+        orderBy: orderBy || undefined,
+        orderDirection,
         page,
       });
       if (result.success && result.data) {
@@ -61,13 +77,17 @@ export default function AdminCampaignsPage() {
       setIsLoading(false);
     }
     load();
-  }, [mosqueId, filter, page]);
+  }, [mosqueId, filter, page, search, orderBy, orderDirection]);
+
+  // Bei Filter-/Such-/Sortier-Änderung zurück auf Seite 1
+  useEffect(() => {
+    setPage(1);
+  }, [filter, search, orderBy, orderDirection]);
 
   function handleFilterChange(
     f: "all" | "active" | "paused" | "completed"
   ) {
     setFilter(f);
-    setPage(1);
   }
 
   async function handleDelete(campaignId: string, title: string) {
@@ -111,28 +131,31 @@ export default function AdminCampaignsPage() {
         </Link>
       </div>
 
-      {/* Filter */}
-      <div
-        className="flex gap-2"
-        role="tablist"
-        aria-label="Kampagnen filtern"
-      >
-        {(["all", "active", "paused", "completed"] as const).map((f) => (
-          <button
-            key={f}
-            type="button"
-            role="tab"
-            aria-selected={filter === f}
-            onClick={() => handleFilterChange(f)}
-            className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
-              filter === f
-                ? "bg-emerald-100 text-emerald-700"
-                : "text-gray-500 hover:bg-gray-100"
-            }`}
-          >
-            {filterLabels[f]}
-          </button>
-        ))}
+      {/* Filter + Suche */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div
+          className="flex flex-wrap gap-2"
+          role="tablist"
+          aria-label="Kampagnen filtern"
+        >
+          {(["all", "active", "paused", "completed"] as const).map((f) => (
+            <button
+              key={f}
+              type="button"
+              role="tab"
+              aria-selected={filter === f}
+              onClick={() => handleFilterChange(f)}
+              className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                filter === f
+                  ? "bg-emerald-100 text-emerald-700"
+                  : "text-gray-500 hover:bg-gray-100"
+              }`}
+            >
+              {filterLabels[f]}
+            </button>
+          ))}
+        </div>
+        <TableSearch value={search} onChange={setSearch} placeholder={t("searchPlaceholder")} />
       </div>
 
       {/* Tabelle */}
@@ -175,12 +198,12 @@ export default function AdminCampaignsPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b bg-gray-50 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                    <th className="px-4 py-3">{t("colTitle")}</th>
+                    <th className="px-4 py-3"><SortableHeader label={t("colTitle")} active={orderBy === "title"} dir={orderDirection} onClick={() => toggleSort("title")} /></th>
                     <th className="px-4 py-3 hidden sm:table-cell">
                       {t("colCategory")}
                     </th>
-                    <th className="px-4 py-3">{t("colStatus")}</th>
-                    <th className="px-4 py-3 hidden md:table-cell">{t("colGoal")}</th>
+                    <th className="px-4 py-3"><SortableHeader label={t("colStatus")} active={orderBy === "status"} dir={orderDirection} onClick={() => toggleSort("status")} /></th>
+                    <th className="px-4 py-3 hidden md:table-cell"><SortableHeader label={t("colGoal")} active={orderBy === "goal_amount_cents"} dir={orderDirection} onClick={() => toggleSort("goal_amount_cents")} /></th>
                     <th className="px-4 py-3 hidden lg:table-cell">
                       {t("colProgress")}
                     </th>

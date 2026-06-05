@@ -65,7 +65,14 @@ interface ActionResult<T = void> {
  */
 export async function getPostsByMosque(
   mosqueId: string,
-  options?: { status?: "published" | "draft"; limit?: number; page?: number }
+  options?: {
+    status?: "published" | "draft";
+    search?: string;
+    orderBy?: "title" | "category" | "status" | "created";
+    orderDirection?: "asc" | "desc";
+    limit?: number;
+    page?: number;
+  }
 ): Promise<ActionResult<Post[]> & { totalPages?: number; page?: number }> {
   try {
     const pb = await getAdminPB();
@@ -76,10 +83,17 @@ export async function getPostsByMosque(
     if (options?.status) {
       filter += ` && status = "${options.status}"`;
     }
+    if (options?.search?.trim()) {
+      const q = options.search.trim().replace(/"/g, '\\"');
+      filter += ` && (title ~ "${q}" || content ~ "${q}")`;
+    }
+
+    const dir = options?.orderDirection === "asc" ? "" : "-";
+    const sort = options?.orderBy ? `${dir}${options.orderBy}` : "-pinned,-created";
 
     const records = await pb.collection("posts").getList(page, limit, {
       filter,
-      sort: "-pinned,-created",
+      sort,
       expand: "created_by",
     });
 

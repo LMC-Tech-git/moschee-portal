@@ -55,7 +55,15 @@ interface ActionResult<T = void> {
  */
 export async function getEventsByMosque(
   mosqueId: string,
-  options?: { status?: "published" | "cancelled" | "draft"; upcoming?: boolean; page?: number; limit?: number }
+  options?: {
+    status?: "published" | "cancelled" | "draft";
+    upcoming?: boolean;
+    search?: string;
+    orderBy?: "title" | "category" | "status" | "start_at" | "location_name";
+    orderDirection?: "asc" | "desc";
+    page?: number;
+    limit?: number;
+  }
 ): Promise<ActionResult<Event[]> & { totalPages?: number; page?: number }> {
   try {
     const pb = await getAdminPB();
@@ -69,10 +77,17 @@ export async function getEventsByMosque(
     if (options?.upcoming) {
       filter += ` && start_at >= "${new Date().toISOString()}"`;
     }
+    if (options?.search?.trim()) {
+      const q = options.search.trim().replace(/"/g, '\\"');
+      filter += ` && (title ~ "${q}" || location_name ~ "${q}" || description ~ "${q}")`;
+    }
+
+    const dir = options?.orderDirection === "desc" ? "-" : "";
+    const sort = options?.orderBy ? `${dir}${options.orderBy}` : "start_at";
 
     const records = await pb.collection("events").getList(page, limit, {
       filter,
-      sort: "start_at",
+      sort,
     });
 
     return {

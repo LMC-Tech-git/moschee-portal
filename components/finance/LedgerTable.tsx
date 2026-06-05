@@ -4,19 +4,34 @@ import { Undo2, Lock, FileText } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { formatCurrencyCents, formatDate } from "@/lib/utils";
 import type { LedgerAtom } from "@/types";
+import { SortableHeader, type SortDir } from "@/components/shared/SortableHeader";
+
+export type LedgerSortField = "datum" | "beleg_nummer" | "kategorie" | "konto_typ" | "betrag";
 
 /** Desktop-Tabelle der gemergten LedgerAtoms (read-only Events + manuelle Buchungen). */
 export function LedgerTable({
   atoms,
   onStorno,
+  sortBy,
+  sortDir,
+  onSort,
 }: {
   atoms: LedgerAtom[];
   onStorno?: (id: string) => void;
+  sortBy?: LedgerSortField | null;
+  sortDir?: SortDir;
+  onSort?: (field: LedgerSortField) => void;
 }) {
   const t = useTranslations("finanzen");
+  const dir = sortDir ?? "desc";
 
   if (atoms.length === 0) {
     return <p className="py-8 text-center text-sm text-gray-500">{t("ledger.empty")}</p>;
+  }
+
+  function Th({ field, label, align = "left" }: { field: LedgerSortField; label: string; align?: "left" | "right" }) {
+    if (!onSort) return <>{label}</>;
+    return <SortableHeader label={label} active={sortBy === field} dir={dir} align={align} onClick={() => onSort(field)} />;
   }
 
   return (
@@ -24,12 +39,12 @@ export function LedgerTable({
       <table className="w-full text-sm">
         <thead className="bg-gray-50 text-left text-xs font-medium text-gray-500">
           <tr>
-            <th className="px-4 py-2.5">{t("col.datum")}</th>
-            <th className="px-4 py-2.5">{t("col.beleg")}</th>
-            <th className="px-4 py-2.5">{t("col.kategorie")}</th>
-            <th className="px-4 py-2.5">{t("col.konto")}</th>
+            <th className="px-4 py-2.5"><Th field="datum" label={t("col.datum")} /></th>
+            <th className="px-4 py-2.5"><Th field="beleg_nummer" label={t("col.beleg")} /></th>
+            <th className="px-4 py-2.5"><Th field="kategorie" label={t("col.kategorie")} /></th>
+            <th className="px-4 py-2.5"><Th field="konto_typ" label={t("col.konto")} /></th>
             <th className="px-4 py-2.5">{t("col.quelle")}</th>
-            <th className="px-4 py-2.5 text-right">{t("col.betrag")}</th>
+            <th className="px-4 py-2.5 text-right"><Th field="betrag" label={t("col.betrag")} align="right" /></th>
             <th className="px-4 py-2.5 text-right">{t("col.aktion")}</th>
           </tr>
         </thead>

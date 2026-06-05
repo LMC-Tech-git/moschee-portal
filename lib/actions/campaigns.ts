@@ -96,7 +96,14 @@ interface ActionResult<T = void> {
  */
 export async function getCampaignsByMosque(
   mosqueId: string,
-  options?: { status?: "active" | "paused" | "completed"; page?: number; limit?: number }
+  options?: {
+    status?: "active" | "paused" | "completed";
+    search?: string;
+    orderBy?: "title" | "status" | "goal_amount_cents" | "created";
+    orderDirection?: "asc" | "desc";
+    page?: number;
+    limit?: number;
+  }
 ): Promise<ActionResult<CampaignWithProgress[]> & { totalPages?: number; page?: number }> {
   try {
     const pb = await getAdminPB();
@@ -107,10 +114,17 @@ export async function getCampaignsByMosque(
     if (options?.status) {
       filter += ` && status = "${options.status}"`;
     }
+    if (options?.search?.trim()) {
+      const q = options.search.trim().replace(/"/g, '\\"');
+      filter += ` && (title ~ "${q}" || description ~ "${q}")`;
+    }
+
+    const dir = options?.orderDirection === "asc" ? "" : "-";
+    const sort = options?.orderBy ? `${dir}${options.orderBy}` : "-created";
 
     const records = await pb.collection("campaigns").getList(page, limit, {
       filter,
-      sort: "-created",
+      sort,
     });
 
     // Alle Moschee-Spenden einmalig laden (mosque_id ist plain string → zuverlässig).

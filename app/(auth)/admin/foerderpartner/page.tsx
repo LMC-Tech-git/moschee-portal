@@ -33,6 +33,9 @@ import {
   Bell,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { useClientTable } from "@/lib/hooks/use-client-table";
+import { SortableHeader } from "@/components/shared/SortableHeader";
+import { TableSearch } from "@/components/shared/TableSearch";
 
 const pbUrl = process.env.NEXT_PUBLIC_POCKETBASE_URL ?? "";
 
@@ -121,6 +124,7 @@ export default function AdminFoerderpartnerPage() {
   const { user } = useAuth();
   const { mosqueId } = useMosque();
   const t = useTranslations("sponsors.admin");
+  const tCommon = useTranslations("common");
 
   // Data
   const [sponsors, setSponsors] = useState<Sponsor[]>([]);
@@ -149,6 +153,28 @@ export default function AdminFoerderpartnerPage() {
 
   // Logo file inputs (hidden, one per row)
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+
+  // Suche + Sortierung (clientseitig, alle geladen)
+  const {
+    view: viewSponsors,
+    search,
+    setSearch,
+    sortBy,
+    sortDir,
+    toggleSort,
+    isSearching,
+  } = useClientTable(sponsors, {
+    searchText: (s) =>
+      `${s.name} ${s.category ? sponsorCategoryLabels[s.category] ?? "" : ""} ${s.contact_email ?? ""} ${s.website_url ?? ""}`,
+    sorters: {
+      name: (s) => s.name ?? "",
+      payment: (s) => (s.payment_status === "paid" ? 1 : 0),
+      status: (s) => (s.is_active ? 1 : 0),
+      duration: (s) => s.end_date ?? "",
+    },
+    initialField: "name",
+    defaultDirFor: (f) => (f === "name" || f === "duration" ? "asc" : "desc"),
+  });
 
   // ─── Load ───────────────────────────────────────────────────────────────────
 
@@ -352,14 +378,17 @@ export default function AdminFoerderpartnerPage() {
             {t("subtitle")}
           </p>
         </div>
-        <button
-          type="button"
-          onClick={openCreateDialog}
-          className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
-        >
-          <Plus className="h-4 w-4" />
-          {t("add")}
-        </button>
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+          <TableSearch value={search} onChange={setSearch} placeholder={t("searchPlaceholder")} />
+          <button
+            type="button"
+            onClick={openCreateDialog}
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
+          >
+            <Plus className="h-4 w-4" />
+            {t("add")}
+          </button>
+        </div>
       </div>
 
       {/* Global messages */}
@@ -408,15 +437,17 @@ export default function AdminFoerderpartnerPage() {
               <thead>
                 <tr className="border-b bg-gray-50 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                   <th className="px-4 py-3">{t("logo")}</th>
-                  <th className="px-4 py-3">{t("name")}</th>
-                  <th className="px-4 py-3 hidden md:table-cell">Zahlung</th>
-                  <th className="px-4 py-3 hidden sm:table-cell">Status</th>
-                  <th className="px-4 py-3 hidden lg:table-cell">Laufzeit</th>
-                  <th className="px-4 py-3 text-right">Aktionen</th>
+                  <th className="px-4 py-3"><SortableHeader label={t("name")} active={sortBy === "name"} dir={sortDir} onClick={() => toggleSort("name")} /></th>
+                  <th className="px-4 py-3 hidden md:table-cell"><SortableHeader label={t("colPayment")} active={sortBy === "payment"} dir={sortDir} onClick={() => toggleSort("payment")} /></th>
+                  <th className="px-4 py-3 hidden sm:table-cell"><SortableHeader label={t("colStatus")} active={sortBy === "status"} dir={sortDir} onClick={() => toggleSort("status")} /></th>
+                  <th className="px-4 py-3 hidden lg:table-cell"><SortableHeader label={t("colDuration")} active={sortBy === "duration"} dir={sortDir} onClick={() => toggleSort("duration")} /></th>
+                  <th className="px-4 py-3 text-right">{t("colActions")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {sponsors.map((sponsor) => {
+                {viewSponsors.length === 0 ? (
+                  <tr><td colSpan={6} className="px-4 py-10 text-center text-sm text-gray-400">{isSearching ? tCommon("noSearchResults") : t("empty")}</td></tr>
+                ) : viewSponsors.map((sponsor) => {
                   const logoUrl = getSponsorLogoUrl(sponsor);
                   const daysUntil = getDaysUntil(sponsor.end_date);
                   const isExpired = daysUntil !== null && daysUntil < 0;

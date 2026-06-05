@@ -28,8 +28,10 @@ import type {
 } from "@/types";
 import type { FinanceSettingsInput } from "@/lib/validations";
 import { KassenstandTiles } from "@/components/finance/KassenstandTiles";
-import { LedgerTable } from "@/components/finance/LedgerTable";
+import { LedgerTable, type LedgerSortField } from "@/components/finance/LedgerTable";
 import { LedgerCardList } from "@/components/finance/LedgerCardList";
+import { TableSearch } from "@/components/shared/TableSearch";
+import type { SortDir } from "@/components/shared/SortableHeader";
 import { BuchungErfassenDialog } from "@/components/finance/BuchungErfassenDialog";
 import { EurTable } from "@/components/finance/EurTable";
 import { JahresberichtChart } from "@/components/finance/JahresberichtChart";
@@ -48,6 +50,7 @@ const TABS: { id: TabId; icon: typeof Wallet }[] = [
 
 export default function FinanzenPage() {
   const t = useTranslations("finanzen");
+  const tCommon = useTranslations("common");
   const { mosqueId } = useMosque();
   const { user } = useAuth();
   const canExport = hasFinancePermission(user?.role ?? "", "finance_export");
@@ -62,6 +65,16 @@ export default function FinanzenPage() {
   // Filter (Kassenbuch)
   const [konto, setKonto] = useState<"" | "bar" | "bank">("");
   const [typ, setTyp] = useState<"" | "einnahme" | "ausgabe">("");
+  const [search, setSearch] = useState("");
+  const [ledgerSort, setLedgerSort] = useState<LedgerSortField | null>(null);
+  const [ledgerDir, setLedgerDir] = useState<SortDir>("desc");
+  function toggleLedgerSort(f: LedgerSortField) {
+    if (ledgerSort === f) setLedgerDir((d) => (d === "asc" ? "desc" : "asc"));
+    else {
+      setLedgerSort(f);
+      setLedgerDir(f === "betrag" || f === "datum" ? "desc" : "asc");
+    }
+  }
 
   // Daten je Tab
   const [ledger, setLedger] = useState<LedgerPage | null>(null);
@@ -96,7 +109,15 @@ export default function FinanzenPage() {
     try {
       if (activeTab === "kassenbuch") {
         const [lp, k] = await Promise.all([
-          getLedgerAtoms(mosqueId, { year, konto: konto || undefined, typ: typ || undefined, perPage: 200 }),
+          getLedgerAtoms(mosqueId, {
+            year,
+            konto: konto || undefined,
+            typ: typ || undefined,
+            search: search || undefined,
+            orderBy: ledgerSort || undefined,
+            orderDirection: ledgerDir,
+            perPage: 200,
+          }),
           getFinanceKPIs(mosqueId, year),
         ]);
         setLedger(lp);
@@ -111,7 +132,7 @@ export default function FinanzenPage() {
     } finally {
       setLoading(false);
     }
-  }, [mosqueId, enabled, activeTab, year, konto, typ]);
+  }, [mosqueId, enabled, activeTab, year, konto, typ, search, ledgerSort, ledgerDir]);
 
   useEffect(() => {
     loadTab();
@@ -242,6 +263,27 @@ export default function FinanzenPage() {
                 <option value="einnahme">{t("typ.einnahme")}</option>
                 <option value="ausgabe">{t("typ.ausgabe")}</option>
               </select>
+              <TableSearch value={search} onChange={setSearch} placeholder={t("ledger.searchPlaceholder")} className="sm:w-56" />
+              {/* Sortierung für mobile Card-Ansicht (Desktop nutzt klickbare Spalten) */}
+              <select
+                value={ledgerSort ? `${ledgerSort}:${ledgerDir}` : ""}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  if (!v) { setLedgerSort(null); return; }
+                  const [f, d] = v.split(":") as [LedgerSortField, SortDir];
+                  setLedgerSort(f);
+                  setLedgerDir(d);
+                }}
+                className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm lg:hidden"
+              >
+                <option value="">{tCommon("sortBy")}</option>
+                <option value="datum:desc">{t("col.datum")} ↓</option>
+                <option value="datum:asc">{t("col.datum")} ↑</option>
+                <option value="betrag:desc">{t("col.betrag")} ↓</option>
+                <option value="betrag:asc">{t("col.betrag")} ↑</option>
+                <option value="kategorie:asc">{t("col.kategorie")} ↑</option>
+                <option value="konto_typ:asc">{t("col.konto")} ↑</option>
+              </select>
             </>
           )}
         </div>
@@ -285,7 +327,13 @@ export default function FinanzenPage() {
           )}
           {ledger && (
             <>
-              <LedgerTable atoms={ledger.atoms} onStorno={handleStorno} />
+              <LedgerTable
+                atoms={ledger.atoms}
+                onStorno={handleStorno}
+                sortBy={ledgerSort}
+                sortDir={ledgerDir}
+                onSort={toggleLedgerSort}
+              />
               <LedgerCardList atoms={ledger.atoms} onStorno={handleStorno} />
             </>
           )}

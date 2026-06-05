@@ -32,6 +32,7 @@ import { MemberStatusChart } from "@/components/admin/MemberStatusChart";
 import { cn } from "@/lib/utils";
 import type { User } from "@/types";
 import { useTranslations } from "next-intl";
+import { SortableHeader, type SortDir } from "@/components/shared/SortableHeader";
 
 export default function MitgliederListePage() {
   const t = useTranslations("members");
@@ -92,6 +93,18 @@ export default function MitgliederListePage() {
   const [roleFilter, setRoleFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
 
+  // Sortierung (serverseitig)
+  type SortField = "full_name" | "email" | "role" | "status" | "created";
+  const [orderBy, setOrderBy] = useState<SortField>("created");
+  const [orderDirection, setOrderDirection] = useState<SortDir>("desc");
+  function toggleSort(f: SortField) {
+    if (orderBy === f) setOrderDirection((d) => (d === "asc" ? "desc" : "asc"));
+    else {
+      setOrderBy(f);
+      setOrderDirection(f === "created" ? "desc" : "asc");
+    }
+  }
+
   const loadMembers = useCallback(async () => {
     if (!mosqueId) return;
     setIsLoading(true);
@@ -100,6 +113,8 @@ export default function MitgliederListePage() {
         status: (statusFilter || undefined) as "pending" | "active" | "inactive" | undefined,
         role: (roleFilter || undefined) as "admin" | "member" | "teacher" | undefined,
         search: searchQuery || undefined,
+        orderBy,
+        orderDirection,
         page,
       });
 
@@ -120,16 +135,16 @@ export default function MitgliederListePage() {
       setIsLoading(false);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mosqueId, page, searchQuery, roleFilter, statusFilter]);
+  }, [mosqueId, page, searchQuery, roleFilter, statusFilter, orderBy, orderDirection]);
 
   useEffect(() => {
     loadMembers();
   }, [loadMembers]);
 
-  // Bei Filter-Änderung zurück auf Seite 1
+  // Bei Filter-/Sortier-Änderung zurück auf Seite 1
   useEffect(() => {
     setPage(1);
-  }, [searchQuery, roleFilter, statusFilter]);
+  }, [searchQuery, roleFilter, statusFilter, orderBy, orderDirection]);
 
   // Stats laden (einmalig)
   useEffect(() => {
@@ -386,11 +401,11 @@ export default function MitgliederListePage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b bg-gray-50 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                    <th className="px-4 py-3">{t("colName")}</th>
-                    <th className="px-4 py-3 hidden sm:table-cell">{t("colEmail")}</th>
+                    <th className="px-4 py-3"><SortableHeader label={t("colName")} active={orderBy === "full_name"} dir={orderDirection} onClick={() => toggleSort("full_name")} /></th>
+                    <th className="px-4 py-3 hidden sm:table-cell"><SortableHeader label={t("colEmail")} active={orderBy === "email"} dir={orderDirection} onClick={() => toggleSort("email")} /></th>
                     <th className="px-4 py-3 hidden md:table-cell">{t("colPhone")}</th>
-                    <th className="px-4 py-3">{t("colRole")}</th>
-                    <th className="px-4 py-3">{t("colStatus")}</th>
+                    <th className="px-4 py-3"><SortableHeader label={t("colRole")} active={orderBy === "role"} dir={orderDirection} onClick={() => toggleSort("role")} /></th>
+                    <th className="px-4 py-3"><SortableHeader label={t("colStatus")} active={orderBy === "status"} dir={orderDirection} onClick={() => toggleSort("status")} /></th>
                     <th className="px-4 py-3 text-right">{t("colActions")}</th>
                   </tr>
                 </thead>

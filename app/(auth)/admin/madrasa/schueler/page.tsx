@@ -18,6 +18,7 @@ import type { StudentInput } from "@/lib/validations";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { SortableHeader, type SortDir } from "@/components/shared/SortableHeader";
 
 interface Course {
   id: string;
@@ -44,6 +45,18 @@ export default function AdminStudentsPage() {
   const [statusFilter, setStatusFilter] = useState<"active" | "inactive" | "all">("active");
   const [classFilter, setClassFilter] = useState("all");
   const [noEnrollmentFilter, setNoEnrollmentFilter] = useState(false);
+
+  // Spaltensortierung
+  type SortField = "name" | "school" | "course" | "parent" | "status";
+  const [sortBy, setSortBy] = useState<SortField>("name");
+  const [sortDir, setSortDir] = useState<SortDir>("asc");
+  function toggleSort(f: SortField) {
+    if (sortBy === f) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    else {
+      setSortBy(f);
+      setSortDir("asc");
+    }
+  }
 
   // Selection + bulk enrollment
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -119,6 +132,32 @@ export default function AdminStudentsPage() {
 
     return list;
   }, [students, statusFilter, search, classFilter, noEnrollmentFilter, enrolledIds]);
+
+  // Sortierung auf der gefilterten Liste
+  const sorted = useMemo(() => {
+    function parentText(s: Student): string {
+      const jp = parentsMap[s.id] || [];
+      if (jp.length > 0)
+        return jp.map((p) => p.full_name || `${p.first_name} ${p.last_name}`.trim() || p.email).join(" ");
+      return s.mother_name || s.father_name || s.parent_name || "";
+    }
+    function courseText(s: Student): string {
+      return (enrollmentMap[s.id] || []).map((e) => e.courseName).join(" ");
+    }
+    const val = (s: Student): string => {
+      switch (sortBy) {
+        case "name": return `${s.first_name ?? ""} ${s.last_name ?? ""}`;
+        case "school": return s.school_name || "";
+        case "course": return courseText(s);
+        case "parent": return parentText(s);
+        case "status": return s.status || "";
+      }
+    };
+    return [...filtered].sort((a, b) => {
+      const cmp = val(a).localeCompare(val(b), "de");
+      return sortDir === "asc" ? cmp : -cmp;
+    });
+  }, [filtered, sortBy, sortDir, parentsMap, enrollmentMap]);
 
   // Selection helpers
   function toggleSelect(id: string) {
@@ -354,16 +393,16 @@ export default function AdminStudentsPage() {
                     )}
                   </button>
                 </th>
-                <th className="px-4 py-3 text-left">{t("columns.name")}</th>
-                <th className="hidden px-4 py-3 text-left sm:table-cell">{t("columns.school")}</th>
-                <th className="hidden px-4 py-3 text-left lg:table-cell">{t("columns.course")}</th>
-                <th className="hidden px-4 py-3 text-left md:table-cell">{t("columns.parent")}</th>
-                <th className="px-4 py-3 text-left">{t("columns.status")}</th>
+                <th className="px-4 py-3 text-left"><SortableHeader label={t("columns.name")} active={sortBy === "name"} dir={sortDir} onClick={() => toggleSort("name")} /></th>
+                <th className="hidden px-4 py-3 text-left sm:table-cell"><SortableHeader label={t("columns.school")} active={sortBy === "school"} dir={sortDir} onClick={() => toggleSort("school")} /></th>
+                <th className="hidden px-4 py-3 text-left lg:table-cell"><SortableHeader label={t("columns.course")} active={sortBy === "course"} dir={sortDir} onClick={() => toggleSort("course")} /></th>
+                <th className="hidden px-4 py-3 text-left md:table-cell"><SortableHeader label={t("columns.parent")} active={sortBy === "parent"} dir={sortDir} onClick={() => toggleSort("parent")} /></th>
+                <th className="px-4 py-3 text-left"><SortableHeader label={t("columns.status")} active={sortBy === "status"} dir={sortDir} onClick={() => toggleSort("status")} /></th>
                 <th className="px-4 py-3 text-right">{t("columns.actions")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {filtered.map((student) => {
+              {sorted.map((student) => {
                 const isSelected = selectedIds.has(student.id);
                 const hasEnrollment = enrolledIds.has(student.id);
                 // Junction-table Eltern haben Vorrang vor Legacy-Feldern
