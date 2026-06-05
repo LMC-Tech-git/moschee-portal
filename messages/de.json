@@ -211,7 +211,7 @@
     },
     "finance": {
       "title": "Finanzbuchhaltung",
-      "desc": "Kassenbuch, EÜR und Jahresbericht — revisionssicher. Spenden fließen automatisch ein, manuelle Buchungen per Klick."
+      "desc": "Kassenbuch, EÜR, Jahres- und Kassenbericht — revisionssicher. Spenden, Gebühren und Förderpartner fließen automatisch ein, Rückerstattungen werden automatisch verbucht. Excel-Export für den Steuerberater und optionaler KI-Kategorievorschlag."
     },
     "membership": {
       "title": "Mitgliedsbeiträge",

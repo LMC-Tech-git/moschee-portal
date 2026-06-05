@@ -211,7 +211,7 @@
     },
     "finance": {
       "title": "Muhasebe",
-      "desc": "Kasa defteri, gelir-gider tablosu ve yıllık rapor — denetim güvenli. Bağışlar otomatik olarak işlenir, manuel girişler tek tıkla."
+      "desc": "Kasa defteri, gelir-gider tablosu, yıllık rapor ve kasa raporu — denetim güvenli. Bağışlar, aidatlar ve destekçi katkıları otomatik olarak işlenir, iadeler otomatik kaydedilir. Mali müşavir için Excel dışa aktarımı ve isteğe bağlı yapay zeka kategori önerisi."
     },
     "membership": {
       "title": "Üyelik Aidatları",

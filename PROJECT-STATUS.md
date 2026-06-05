@@ -1,4 +1,4 @@
-# Moschee-Portal — Projektstatus (Stand: Mai 2026, Finanz-Sprint 4)
+# Moschee-Portal — Projektstatus (Stand: Mai 2026, Finanzmodul Phase 1 ✅ abgeschlossen)
 
 ## Tech-Stack
 - **Frontend:** Next.js 14 (App Router), TypeScript, Tailwind CSS, Shadcn/ui (12 Komponenten)
@@ -61,7 +61,7 @@
 | **Madrasa: Schüler-Verwaltung** — alle Schüler einer Moschee, getrennt von Kursen, mit Eltern-Verknüpfung | `app/(auth)/admin/madrasa/schueler/` |
 | **Madrasa: Anwesenheit + Statistiken + Leistungsbewertung** (1–5 Skala je Session, Trend-Detection, Eltern sehen Schnitt) | `app/(auth)/admin/madrasa/[id]/attendance/`, `components/madrasa/PerformanceStats.tsx` |
 | **Madrasa: Gebühren (Bar/Überweisung/Erlassen)** | `app/(auth)/admin/madrasa/gebuehren/` |
-| **Finanzen (Kassenbuch, EÜR, Berichte, Kassenbericht, Einstellungen)** — gated auf `finance_enabled`, Rolle admin/super_admin/treasurer; Event+manuelle Buchungen gemerged read-only, Buchung erfassen + Storno, Mobile Card-Liste | `app/(auth)/admin/finanzen/`, `components/finance/` |
+| **Finanzen (Kassenbuch, EÜR, Berichte, Kassenbericht, Einstellungen)** — gated auf `finance_enabled` + 7 granulare Permissions (view/create/storno/export/settings/ai_use/audit_view); Event+manuelle Buchungen gemerged read-only, Buchung erfassen + Storno, lila Erstattung/Rückbuchung-Badge in Kassenbuch (Sprint 5), KI-Vorschlag-Button (assistiv, graceful ohne Anthropic-Key, Sprint 6), 4 XLSX-Exporte (Buchungen/EÜR/Kassenbericht/Komplett — Sprint 6), Beleg-Download gehärtet (attachment+nosniff, Sprint 6), Mobile Card-Liste | `app/(auth)/admin/finanzen/`, `components/finance/`, `lib/ai/` |
 | **Mitgliedsbeiträge** — Perioden-Picker (monatlich/vierteljährlich/jährlich), Bulk-Erstellen, KPI-Tiles (offen/ausstehend/bezahlt/fehlgeschlagen/erlassen/Dauerauftrag), Bar/Überweisung/Erlassen, Einzelkonfiguration pro Mitglied (Betrag/Intervall/Befreiung), Stripe-Dauerauftrags-Erkennung | `app/(auth)/admin/mitgliedsbeitraege/`, `lib/actions/membership-fees.ts` |
 | **Förderpartner (CRUD, Stripe, Kontakt, Laufzeit, Erinnerungs-Indikator)** | `app/(auth)/admin/foerderpartner/` |
 | **Leitung/Team verwalten** — Admin-Pendant zur öffentlichen Team-Seite, CRUD für Vorstand/Imam/Sekretariat-Einträge mit Foto, Rolle, Bio, Sortierung | `app/(auth)/admin/leitung/` |
@@ -91,38 +91,47 @@
 | **Förderpartner-Tab (nur für verknüpfte Kontakte, Stripe-Zahlung)** | `app/(auth)/member/profile/` (Tab) |
 | Spendenbescheinigung (Drucken + **Per E-Mail senden**) | `app/(auth)/member/spendenbescheinigung/` |
 
-### Finanzbuchhaltungs-Modul (Phase 1, Sprint 1–4) — event-sourced
+### Finanzbuchhaltungs-Modul (Phase 1 ✅ vollständig, Sprint 1–6) — event-sourced
 
 Revisionssichere Finanzakte: **zwei gleichrangige immutable Fact-Streams** —
-`finance_source_events` (extern/systemisch aus Spenden etc.) + `transactions`
-(manuelle Buchungen). Reports/EÜR/Kassenbuch lesen **nie live** aus Fach-Collections,
-sondern normalisiert über `toLedgerAtom()` → `LedgerAtom`. Append-only, immutable,
-Korrektur nur per Storno/Refund/kompensierende Buchung. Aggregation ausschließlich
-über persistiertes `classification`/`kategorie` (nie `event_type`/`typ`). PB <0.23
-ohne GROUP BY → fetch-filtered + JS-Σ.
+`finance_source_events` (extern/systemisch aus Spenden/Gebühren/Förderpartnern) +
+`transactions` (manuelle Buchungen). Reports/EÜR/Kassenbuch lesen **nie live** aus
+Fach-Collections, sondern normalisiert über `toLedgerAtom()` → `LedgerAtom`.
+Append-only, immutable, Korrektur nur per Storno/Refund/kompensierende Buchung.
+Aggregation ausschließlich über persistiertes `classification`/`kategorie` (nie
+`event_type`/`typ`). PB ohne GROUP BY → fetch-filtered + JS-Σ.
 
 | Baustein | Datei(en) |
 |---|---|
 | **PB-Wrapper** (Tenant-Scope, Collection-Whitelist, autoCancellation) | `lib/finance-pb.ts` |
 | **Event-Emission** (einziger Schreibpfad, UNIQUE-Idempotenz `source_event_key`) | `lib/actions/finance-events.ts` |
-| **Projection** (`toSignedAmount`, `toLedgerAtom` für Event+Transaction, `assertEventIntegrity`/`assertTransactionIntegrity`) | `lib/finance-to-ledger-atom.ts` |
+| **Projection** (`toSignedAmount`, `toLedgerAtom` Overload Event+Transaction, `assertEventIntegrity`/`assertTransactionIntegrity`) | `lib/finance-to-ledger-atom.ts` |
 | **Lock-Policy** (`canWrite` mit SYSTEM_EVENT/MANUAL/BACKFILL_WRITE) | `lib/finance-lock-policy.ts` |
 | **Belegnummer-Sequencer** (`JJJJ-NNNN`, UNIQUE-Index-Retry, kein atomares Inkrement) | `lib/finance-sequence.ts`, `lib/finance-pb-errors.ts` |
-| **Domain-Orchestrator** (`createIncome`, `createManualTransaction`, `stornoTransaction`; `refundIncome` = Sprint 5) | `lib/actions/finance-domain.ts` |
-| **Report-Layer** (`getLedgerAtoms`, `getFinanceKPIs`, `getEUR`, `getJahresbericht`, `getKassenbericht`, `updateTransactionNote`, UI-Wrapper mit Rollen-Guard) | `lib/actions/finance.ts` |
-| **Permissions-Guard** (Rolle ∈ {admin,super_admin,treasurer} + mosque-match) | `lib/finance-permissions.ts` |
-| **Donation→Event** (beide paid-Pfade: manueller mark-paid + Stripe-Webhook), Lock-Allowlist nach Sperre | `lib/actions/donations.ts`, `lib/donations-finance-helpers.ts`, `app/api/stripe/webhook/route.ts` |
-| **Recovery** (Drift-Sweeper bidirektional + `--dry-run`, Recon read-only, Replay) | `scripts/backfill-finance-events.mjs`, `scripts/recon-source-vs-events.mjs`, `scripts/replay-events-to-ledger.mjs` |
-| **UI** (5 Tabs, KPI-Tiles, Tabelle+Card, recharts-Chart) | `app/(auth)/admin/finanzen/page.tsx`, `components/finance/*` |
-| **Tests** (echte Module via tsx, Demo-Guard + Cleanup) | `scripts/test-finance-unit.mts`, `test-manual-transaction.mts`, `test-storno.mts`, `test-sequence.mts`, `test-ledger-merge.mts`, `test-eur.mts`, `test-kassenbericht.mts`, `test-tx-integrity.mts` |
+| **Domain-Orchestrator** (3 Entry-Points: `createIncome`, `refundIncome`, `createManualTransaction` + `stornoTransaction`) | `lib/actions/finance-domain.ts` |
+| **Report-Layer** (`getLedgerAtoms`, `getFinanceKPIs`, `getEUR`, `getJahresbericht`, `getKassenbericht`, `updateTransactionNote`, 4 XLSX-Exporte, KI-Vorschlag) | `lib/actions/finance.ts` |
+| **Permissions-Guard** (7 granulare Rechte: `finance_view`/`create`/`storno`/`export`/`settings`/`ai_use`/`audit_view`) | `lib/finance-permissions.ts` |
+| **Donation→Event** (manueller mark-paid + Stripe-Webhook donation-paid), Lock-Allowlist | `lib/actions/donations.ts`, `lib/donations-finance-helpers.ts`, `app/api/stripe/webhook/route.ts` |
+| **Fee→Event + Sponsor→Event** (Sprint 5 mark-paid Helpers + Stripe-Webhook in 5 Branches) | `lib/actions/student-fees.ts`, `lib/actions/sponsors.ts`, `lib/fees-finance-helpers.ts`, `lib/sponsors-finance-helpers.ts` |
+| **Refund/Chargeback** (`refundIncome` mit Parent-Lookup + Sum-Guard, Stripe `charge.refunded`/`charge.dispute.created` + Source-Resolver donation→fee/sponsor via `sessions.list`) | `lib/actions/finance-domain.ts`, `app/api/stripe/webhook/route.ts` |
+| **KI-Kategorisierung** (Anthropic Haiku, sanitize-Pflicht, graceful ohne `ANTHROPIC_API_KEY`) | `lib/ai/sanitize.ts`, `lib/ai/categorize.ts`, `lib/actions/finance.ts#suggestTransactionCategory` |
+| **XLSX-Export** (4 Server-Actions Buchungen/EÜR/Kassenbericht/Komplett, eigener Lade-Pfad ohne UI-Cap, feste Sortierung) | `lib/actions/finance.ts#export*XLSX` |
+| **Beleg-Download-Härtung** (`Content-Disposition: attachment` + `X-Content-Type-Options: nosniff`, Tenant+Permission-Check) | API-Proxy-Route + `lib/actions/finance.ts` |
+| **Recovery** (Drift-Sweeper bidirektional + `--dry-run`, Recon 6 Buckets read-only, Replay) | `scripts/backfill-finance-events.mjs`, `scripts/recon-source-vs-events.mjs`, `scripts/replay-events-to-ledger.mjs` |
+| **UI** (5 Tabs Kassenbuch/EÜR/Berichte/Kassenbericht/Einstellungen, KPI-Tiles, Tabelle+Card, recharts-Chart, lila Erstattung/Rückbuchung-Badge in Kassenbuch, KI-Vorschlag-Button im BuchungErfassen-Dialog) | `app/(auth)/admin/finanzen/page.tsx`, `components/finance/*` |
+| **Datenschutz §8** (Anthropic PBC + EU-SCC, sanitisierte Datenflüsse, Opt-out) | `app/datenschutz/page.tsx` + i18n `legal.datenschutz.s8_*` |
+| **Tests** (echte TS-Module via tsx, Demo-Guard + finally-Cleanup) | `scripts/test-finance-unit.mts`, `test-manual-transaction.mts`, `test-storno.mts`, `test-sequence.mts`, `test-ledger-merge.mts`, `test-eur.mts`, `test-kassenbericht.mts`, `test-tx-integrity.mts`, `test-refund-flow.mts`, `test-partial-refunds.mts`, `test-sum-guard.mts`, `test-chargeback.mts`, `test-student-fee-paid.mts`, `test-sponsor-paid.mts`, `test-recon-bidirectional.mts`, `test-sweeper-refund.mts`, `test-sanitize-ai.mts`, `test-fee-refund-webhook.mts`, `test-sponsor-refund-webhook.mts` |
 
-**Prinzipien:** betrag_cents immer positiv + persistiertes `classification` bestimmt
+**Prinzipien:** `betrag_cents` immer positiv + persistiertes `classification` bestimmt
 Vorzeichen (`signed_amount_cents` nur berechnet); Storno nettet emergent in Original-
 Kategorie (kein Phantom); Storno bucht in Original-Periode wenn offen, sonst heute;
 Kassenbericht-Carryover (Anfang N = Ende N−1) via geteiltem Helper
 `computeKontoBalancesUpToYearEnd` → KPI-Kassenstand == Kassenbericht-Endbestand;
-`konto_typ "other"` → bank; UI-Hard-Limit ~10.000 Atoms/Jahr (truncated-Banner).
+`konto_typ "other"` → bank; UI-Hard-Limit ~10.000 Atoms/Jahr (truncated-Banner);
+XLSX-Export hat eigenen Lade-Pfad ohne UI-Cap; KI-Vorschlag ist assistiv (nie
+Auto-Submit, Audit nur Metadaten — kein Klartext-Leak).
 **Hinweis:** Direkter PB-Edit auf Spenden umgeht die Emit-Pipeline → Drift-Sweeper nötig.
+**Detail-Plan + Phase-2-Trigger:** `FINANCE-SPRINT-PLAN.md` §8.
 
 ### Mitgliedsbeiträge-Modul
 
@@ -221,8 +230,11 @@ vollständiger Zahlungserfassung (Bar, Überweisung, Online, Erlassen).
 | `dashboard.ts` | Dashboard KPI-Aggregation |
 | `settings.ts` | Einstellungen (Branding, Gebetszeiten, Defaults, Madrasa, Kontaktformular, **Finanzen** inkl. `getFeatureFlags.finance_enabled`, **Mitgliedsbeiträge** `getMembershipFeeSettings`/`updateMembershipFeeSettings`) |
 | `finance-events.ts` | Finanz-Event-Emission (einziger Schreibpfad, UNIQUE-Idempotenz) |
-| `finance-domain.ts` | Domain-Orchestrator: `createIncome`, `createManualTransaction`, `stornoTransaction` (`refundIncome` = Sprint 5) |
-| `finance.ts` | Report-Layer: `getLedgerAtoms`/`getFinanceKPIs`/`getEUR`/`getJahresbericht`/`getKassenbericht`/`updateTransactionNote` + UI-Wrapper mit Rollen-Guard |
+| `finance-domain.ts` | Domain-Orchestrator: `createIncome`, `refundIncome`, `createManualTransaction`, `stornoTransaction` — drei öffentliche Entry-Points (Lint-Gate gegen direkte Emit-Calls) |
+| `finance.ts` | Report-Layer: `getLedgerAtoms`/`getFinanceKPIs`/`getEUR`/`getJahresbericht`/`getKassenbericht`/`updateTransactionNote` + 4 XLSX-Exporte (`exportBuchungenXLSX`/`exportEURXLSX`/`exportKassenberichtXLSX`/`exportKomplettXLSX`) + `suggestTransactionCategory` (KI) + UI-Wrapper mit Permission-Guard |
+| `student-fees.ts` | Madrasa-Gebühren — inkl. `markStudentFeePaidAndEmit` (Sprint 5) für income_received-Event-Emission bei mark-paid |
+| `sponsors.ts` | Förderpartner — inkl. `markSponsorPaidAndEmit` (Sprint 5, Betrag × months_paid) |
+| (`lib/ai/`) | `sanitize.ts` (Email/Tel/IBAN/Name vor jedem API-Call maskieren) + `categorize.ts` (Anthropic Haiku, graceful ohne Key, eine ID aus FINANCE_CATEGORIES erzwungen) |
 | `audit.ts` | Audit-Log lesen (paginiert) |
 | `academic-years.ts` | Schuljahre CRUD |
 | `courses.ts` | Madrasa-Kurse CRUD |
@@ -243,7 +255,7 @@ vollständiger Zahlungserfassung (Bar, Überweisung, Online, Erlassen).
 | Collection | Beschreibung |
 |---|---|
 | `mosques` | Haupttenant (Branding, Koordinaten, Stripe-Connect: `stripe_account_id`, `stripe_charges_enabled`, `stripe_payouts_enabled`, `stripe_details_submitted`, `stripe_requirements_currently_due/eventually_due`, `payments_mode` (disabled/platform_legacy/connect_test/connect_live), `stripe_onboarded_at`, `stripe_last_synced_at`, `stripe_card_payments_status`, `stripe_sepa_debit_payments_status` (inactive/pending/active)) |
-| `settings` | Einstellungen pro Moschee (inkl. `contact_*`, `team_visibility`, `recurring_donations_enabled`, `sepa_enabled`, **Finanzen: `finance_enabled` (Admin-Modul-Gate ≠ `public_finance_enabled`), `finance_hard_lock_until`, `kassenbuch_start_year`, `kassenbuch_bar_start_cents`, `kassenbuch_bank_start_cents`**) |
+| `settings` | Einstellungen pro Moschee (inkl. `contact_*`, `team_visibility`, `recurring_donations_enabled`, `sepa_enabled`, **Finanzen: `finance_enabled` (Admin-Modul-Gate ≠ `public_finance_enabled`), `finance_hard_lock_until`, `kassenbuch_start_year`, `kassenbuch_bar_start_cents`, `kassenbuch_bank_start_cents`**) — **`ANTHROPIC_API_KEY` ist Env-only, nicht in settings** (graceful ohne Key) |
 | `users` | Portal-Mitglieder (auth collection) |
 | `posts` | Blog-Beiträge |
 | `events` | Veranstaltungen (inkl. Wiederkehrend: `is_recurring`, `recurrence_type` etc.) |
@@ -385,10 +397,10 @@ Zahlungen                     ████████████ 100%
 Security                      ████████████ 100%
 Mehrsprachigkeit (DE/TR)      ████████████ 100%
 E-Mail-Infrastruktur          ████████████ 100%
-Finanzmodul (Phase 1)         █████████░░░  75%  (Sprint 1–4 ✅, Sprint 5–6 offen)
+Finanzmodul (Phase 1)         ████████████ 100%  (Sprint 1–6 ✅)
 ```
 
-**Gesamt: 100% der V1-Kernfunktionen implementiert** · Finanzmodul Phase 1 zu 75% (Refund + XLSX/KI = Sprint 5–6)
+**Gesamt: 100% der V1-Kernfunktionen implementiert** · Finanzmodul Phase 1 vollständig (Refund/Chargeback, XLSX-Steuerberater-Export, optionale KI-Kategorisierung, 7 granulare Permissions, Datenschutz §8, fee/sponsor-Refund-Webhook-Backref)
 
 ---
 
@@ -404,10 +416,15 @@ Finanzmodul (Phase 1)         █████████░░░  75%  (Sprint
 
 System ist produktionsbereit. Stripe Connect + SEPA-Lastschrift vollständig implementiert und auf `halim.moschee.app` im Test-Modus verifiziert.
 
-**Parallel: Finanzmodul Phase 1 fortführen**
-- **Finanz-Sprint 5:** `refundIncome` + Stripe-Refund-Webhook + `student_fees`/`sponsors`→Event-Hooks; Partial-Refund-Idempotenz + Refund-Sweeper/Recon scharf.
-- **Finanz-Sprint 6:** XLSX-Steuerberater-Export → KI-Kategorisierung (optional) → feingranulare `FinancePermission` → Demo-Seed → Datenschutz-Sektion.
-- Detailpläne: `FINANCE-SPRINT-PLAN.md` + `.claude/plans/`.
+**Finanzmodul Phase 1 abgeschlossen** — alle 6 Sprints fertig. Phase-2-Module sind
+**bedarfsgetrieben** (kein vorauseilender Bau). Trigger-Matrix siehe
+`FINANCE-SPRINT-PLAN.md` §8. Beispiele:
+- **DATEV-Export / SKR03/04** — Trigger: Steuerberater lehnt XLSX-Export ab
+- **Kontenplan + doppelte Buchführung** (`finance_accounts`, `transaction_entries`) — Trigger: Soll/Haben-Buchungssätze gefordert
+- **Period-Closing** (`finance_period_closures`) — Trigger: Vereinsprüfung + Soft-Lock-Bypass
+- **Versionierter Export** (`finance_exports` + SHA-256) — Trigger: Anti-Tampering gefordert
+- **Atomares Sequenz-Inkrement / version-CAS** — Trigger: Belegnummer-Race real in Logs
+- **Event-Storno** — Trigger: falsch emittiertes Event nicht via Refund korrigierbar
 
 ---
 
@@ -436,4 +453,6 @@ System ist produktionsbereit. Stripe Connect + SEPA-Lastschrift vollständig imp
 | **Finanz-Sprint 2** | **Projection + Donation→Event** — `toLedgerAtom`(event)/`toSignedAmount`/`assertEventIntegrity`, `canWrite`-Lock-Policy, `createIncome` scharf (beide paid-Pfade manuell+Stripe-Webhook), `FINANCE_CATEGORIES` (15) + `mapDonationToEUR`, `audit_logs.context_json`, Recon/Replay. Commit `b654305` |
 | **Finanz-Sprint 3** | **Manuelle Buchungen + Storno + Sequencer** — `createManualTransaction`+`stornoTransaction` scharf, `lib/finance-sequence.ts` (Belegnummer UNIQUE-Retry), `toLedgerAtom`(Transaction)+`assertTransactionIntegrity`, `updateTransactionNote` (note-only), `settings.finance_hard_lock_until`, Beleg-Upload MIME+5MB+SHA-256, Demo-Limit. Commit `dee7cd2` |
 | **Finanz-Sprint 4** | **Finanz-UI + Reports** — `/admin/finanzen` (Kassenbuch/EÜR/Berichte/Kassenbericht/Einstellungen, gated `finance_enabled`), `getLedgerAtoms`/`getFinanceKPIs`/`getEUR`/`getJahresbericht`/`getKassenbericht` (EIN Lade-Pfad → KPI==Σ atoms; geteilter Carryover-Helper Anfang N=Ende N−1), `components/finance/*` (Tabelle+Mobile-Card+Dialog+recharts), Rollen-Guard (`finance-permissions.ts`), 4 settings-Felder (`finance_enabled`, `kassenbuch_start_year/bar/bank`), Storno-Datum in Original-Periode (V-A), i18n DE+TR, 4 neue Tests. Commits `00df5eb`, `2317e60` |
+| **Finanz-Sprint 5** | **Refund/Chargeback + fees/sponsors Hooks** — `refundIncome` scharf (Parent-Lookup, Sum-Guard Best-Effort, Lock-Drift-Check, idempotent via UNIQUE auf `source_event_key` mit `external_event_id`), M5-Guard entfernt (`createIncome` akzeptiert donations+student_fees+sponsors), `markStudentFeePaidAndEmit`+`markSponsorPaidAndEmit` mit Helpers (`fees-finance-helpers.ts`, `sponsors-finance-helpers.ts`), Stripe `charge.refunded` (payment_intent-Lookup + invoice-Fallback + Loop pro Refund) + `charge.dispute.created` (Chargeback-Event), Webhook student_fees/sponsors mark-paid in 5 Branches, Backfill-Sweeper refund-Branch SCHARF (Σ-Diff + Fallback-Key), Recon 6 Buckets bidirektional, UI lila Erstattung/Rückbuchung-Badge (Desktop+Mobile), 8 neue Tests + i18n DE+TR + Demo-Seed. Commit `91f6f56`. **Lücke nach Sprint 5:** fee/sponsor-Refund via Webhook fand Quelle nicht (Madrasa-Bug, behoben in Sprint 6) |
+| **Finanz-Sprint 6** | **Polish — Phase 1 abgeschlossen** — (A) **XLSX-Steuerberater-Export** 4 Server-Actions (Buchungen/EÜR/Kassenbericht/Komplett), eigener Lade-Pfad ohne UI-Cap, base64→Download, feste Sortierung. (B) **KI-Kategorisierung** Anthropic Haiku (`claude-haiku-4-5` mit Fallback `claude-3-5-haiku-latest`), `lib/ai/sanitize.ts` maskiert Email/Tel/IBAN/Name vor jedem Call, `lib/ai/categorize.ts` ruft API, Button im BuchungErfassen-Dialog (nie Auto-Submit), Audit nur Metadaten (kein Klartext), graceful ohne `ANTHROPIC_API_KEY`. (C) **7 granulare Permissions** (`finance_view`/`create`/`storno`/`export`/`settings`/`ai_use`/`audit_view`), an admin/super_admin/treasurer gebunden, server-seitig in jeder Action geprüft. (D) **Datenschutz §8** Anthropic PBC + EU-SCC + sanitisierte Datenflüsse + Opt-out, DE+TR. (E) **Demo-Polish** `finance_enabled=true`, Anfangsbestände (Bar 100€/Bank 2500€), Mehrjahr-Buchungen, Storno-Beispiel, Events für ALLE paid fees/sponsors. (F) **fee/sponsor-Refund-Backref** Source-Resolver donation→fee/sponsor via `stripe.checkout.sessions.list({payment_intent})` — **behebt Madrasa-Refund-Bug aus Sprint 5**, fee_multi bleibt manuell. (G) **Beleg-Download-Härtung** `Content-Disposition: attachment` + `X-Content-Type-Options: nosniff` (Stored-XSS-Schutz). **+ Recon-Fix:** refunded/disputed Donations bleiben im received-Bucket (korrektes Double-Entry). 3 neue Tests. Commit `465ebe5`. **🎉 Phase 1 abgeschlossen.** |
 | **26** | **Stripe Connect + SEPA produktiv (komplett)** — (1) **Passwort-Änderung im Profil**: PasswordChangeSection + EmailChangeSection in eigenen Dateien, `changePassword()` Server-Action mit Re-Auth in separater PB-Instanz, Rate-Limit 5/10min, Audit, Login-Toast bei `?reason=password_changed`, zentrale `MIN_PASSWORD_LENGTH`. (2) **Halim-Test-Moschee** angelegt via `scripts/create-mosque-halim.mjs`. (3) **Stripe Connect (Express, Direct Charges)**: 9 mosques-Felder + `stripe_events`-Collection + Backfill, `lib/stripe/{client,connect,idempotency,finalize}.ts` Service-Layer, HMAC-signed state-tokens für Onboarding-Return, Race-Safe Account-Create, `payments_mode`-Enum (disabled/platform_legacy/connect_test/connect_live), 5 Admin-API-Routes (start/refresh/return/dashboard/sync) + Daily-Sync-Cron, Auszahlungen-Tab im Admin mit Mode-Badge + Health-Banner + Status-Cards + Requirements-Liste, Webhook umgestellt auf Connect-Account-Resolution via `event.account` + Idempotenz via `stripe_events` + neue Cases `account.updated`/`application.deauthorized`/`mandate.updated`/`payment_intent.payment_failed`, Stripe-Fix: `transfers` Capability bei `card_payments` Pflicht. (4) **PB v0.23-Migration**: `_superusers`-Auth statt legacy `/api/admins/` (Compat-Token wird nicht mehr als Superuser akzeptiert). (5) **SEPA produktiv (unified)**: Demo-Gate entfernt, identischer Code-Pfad Demo+Connect, `sepa_enabled` Settings-Feld + Backfill, Per-Capability-Status (`stripe_card_payments_status`, `stripe_sepa_debit_payments_status`), `sepaAvailable()` Helper (Server-Authority, Env-Flag `PLATFORM_SEPA_ENABLED` für platform_legacy), Capability-Staleness-Anzeige (fresh/stale/very_stale), DonationForm-Selector Karte/SEPA mit Test-IBAN-Hint vs Live-Hint, Duplicate-Guard (nur `created`-Status, nicht `pending`), Idempotency-Key `donation:${id}` kombiniert mit `stripeAccount`. (6) **Zentraler Finalizer**: `finalizeSuccessfulPayment()` aus exakt 2 Quellen (checkout_async + invoice_paid), `finalizeFailedPayment()` mit SEPA-Failure-Email-Template (Retry-CTA + expired-Tooltip), strikt-pending-Semantik (keine Folgeaktionen bei `payment_status="unpaid"`). (7) **Cleanup-Pending-Cron**: täglich 5 Uhr, Stripe-Recheck (cs_*/in_*/pi_*) bevor `failed_expired` — succeeded → Finalizer (verpasste Webhooks gerettet). (8) **Payment-Method-Detail**: `donations.payment_method_detail` (card/sepa_debit), Quelle-Spalte im Admin zeigt jetzt „Stripe (Karte)" vs „Stripe (SEPA)". |
