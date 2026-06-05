@@ -559,7 +559,9 @@
     "backToPortal": "Portale Dön",
     "nav": {
       "openMenu": "Menüyü aç",
-      "closeMenu": "Menüyü kapat"
+      "closeMenu": "Menüyü kapat",
+      "openAdminMenu": "Yönetim menüsünü aç",
+      "areaLabel": "Yönetim Alanı"
     }
   },
   "members": {

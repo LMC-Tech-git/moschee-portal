@@ -290,25 +290,33 @@ export default function AdminLayout({
             onClick={() => setMobileNavOpen(false)}
           />
           <div className="absolute left-0 top-0 h-full w-72 max-w-[85%] overflow-y-auto bg-white shadow-xl">
-            <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
-              <div className="flex items-center gap-2">
-                {isSuperAdmin ? (
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-100">
-                    <Crown className="h-4 w-4 text-purple-600" />
-                  </div>
-                ) : (
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100">
-                    <Shield className="h-4 w-4 text-emerald-600" />
-                  </div>
-                )}
-                <span className="text-sm font-semibold text-gray-800 truncate">
-                  {isSuperAdmin ? t("platformAdmin") : mosque?.name || t("panel")}
-                </span>
+            <div
+              className={cn(
+                "flex items-center justify-between px-4 py-3 text-white",
+                isSuperAdmin ? "bg-purple-600" : "bg-emerald-600"
+              )}
+            >
+              <div className="flex min-w-0 items-center gap-2.5">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/20">
+                  {isSuperAdmin ? (
+                    <Crown className="h-5 w-5" />
+                  ) : (
+                    <Shield className="h-5 w-5" />
+                  )}
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-white/80">
+                    {isSuperAdmin ? t("platformAdmin") : t("nav.areaLabel")}
+                  </p>
+                  <p className="truncate text-sm font-semibold">
+                    {mosque?.name || t("panel")}
+                  </p>
+                </div>
               </div>
               <button
                 type="button"
                 onClick={() => setMobileNavOpen(false)}
-                className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-white/80 hover:bg-white/20 hover:text-white"
                 aria-label={t("nav.closeMenu")}
               >
                 <X className="h-5 w-5" />
@@ -421,12 +429,17 @@ export default function AdminLayout({
         </div>
       </aside>
 
-      {/* Floating Hamburger (Mobile, immer sichtbar oben rechts) */}
+      {/* Floating Hamburger (Mobile) — grün/lila gefärbt, damit klar vom Gemeinde-Headermenü unterscheidbar */}
       <button
         type="button"
         onClick={() => setMobileNavOpen(true)}
-        className="fixed right-3 top-3 z-40 flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-700 shadow-md hover:bg-gray-50 lg:hidden"
-        aria-label={t("nav.openMenu")}
+        className={cn(
+          "fixed right-3 top-3 z-40 flex h-11 w-11 items-center justify-center rounded-full text-white shadow-lg ring-2 ring-white transition-colors lg:hidden",
+          isSuperAdmin
+            ? "bg-purple-600 hover:bg-purple-700"
+            : "bg-emerald-600 hover:bg-emerald-700"
+        )}
+        aria-label={t("nav.openAdminMenu")}
       >
         <Menu className="h-5 w-5" />
       </button>

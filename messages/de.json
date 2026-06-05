@@ -559,7 +559,9 @@
     "backToPortal": "Zurück zum Portal",
     "nav": {
       "openMenu": "Menü öffnen",
-      "closeMenu": "Menü schließen"
+      "closeMenu": "Menü schließen",
+      "openAdminMenu": "Admin-Menü öffnen",
+      "areaLabel": "Admin-Bereich"
     }
   },
   "members": {
