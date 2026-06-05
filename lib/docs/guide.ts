@@ -7,6 +7,7 @@ export type MadrasaPhase =
   | "finance-setup"
   | "finance-kassenbuch"
   | "finance-reports"
+  | "finance-exports"
   | "membership-setup"
   | "membership-manage"
   | "membership-stripe";
@@ -221,6 +222,24 @@ export const FINANCE_GUIDE: PhaseGuide[] = [
       {
         titleKey: "financeGuide.reports.step3.title",
         descKey: "financeGuide.reports.step3.desc",
+      },
+    ],
+  },
+  {
+    phase: "finance-exports",
+    titleKey: "financeGuide.exports.title",
+    steps: [
+      {
+        titleKey: "financeGuide.exports.step1.title",
+        descKey: "financeGuide.exports.step1.desc",
+      },
+      {
+        titleKey: "financeGuide.exports.step2.title",
+        descKey: "financeGuide.exports.step2.desc",
+      },
+      {
+        titleKey: "financeGuide.exports.step3.title",
+        descKey: "financeGuide.exports.step3.desc",
       },
     ],
   },

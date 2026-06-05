@@ -3096,43 +3096,43 @@
       }
     },
     "financeGuideTitle": "Finanzbuchhaltung — Schritt für Schritt",
-    "financeGuideSubtitle": "Kassenbuch einrichten, Buchungen erfassen und Berichte abrufen.",
+    "financeGuideSubtitle": "Kassenbuch einrichten, Buchungen erfassen, Berichte abrufen und für den Steuerberater nach Excel exportieren.",
     "financeGuide": {
       "setup": {
         "title": "Einrichten",
         "step1": {
           "title": "Modul aktivieren",
-          "desc": "Admin → Einstellungen → Finanzen → 'Finanzbuchhaltung aktivieren' einschalten. Startjahr (ab wann Buchungen erfasst werden) und optionale Anfangsbestände für Bar- und Bankkonto eingeben."
+          "desc": "Admin → Einstellungen → Finanzen → 'Finanzbuchhaltung aktivieren' einschalten. Startjahr (ab wann Buchungen erfasst werden) und optionale Anfangsbestände für Bar- und Bankkonto eingeben. Zugriff erhalten alle Admins; optional kann ein Mitglied die Rolle 'Kassenwart' bekommen (eigene Anmeldung, sieht nur das Finanzmodul)."
         },
         "step2": {
           "title": "Belegnummern & Perioden",
-          "desc": "Belegnummern werden automatisch im Format JJJJ-NNNN vergeben. Das Startjahr bestimmt, ab welchem Jahr Daten im Kassenbuch erscheinen. Vorjahresbuchungen sind für den Carryover-Endbestand wichtig."
+          "desc": "Belegnummern werden automatisch im Format JJJJ-NNNN vergeben. Das Startjahr bestimmt, ab welchem Jahr Daten im Kassenbuch erscheinen. Vorjahresbuchungen sind für den Carryover-Endbestand wichtig. Optionaler Hard-Lock: ab einem gewählten Datum sind manuelle Änderungen gesperrt (für abgeschlossene Vereinsprüfung)."
         }
       },
       "kassenbuch": {
         "title": "Kassenbuch",
         "step1": {
           "title": "Kassenbuch öffnen",
-          "desc": "Admin → Finanzen → Tab 'Kassenbuch'. Jahr und (optional) Konto (Bank/Bar) oder Typ (Einnahme/Ausgabe) filtern. KPI-Kacheln zeigen Einnahmen, Ausgaben, Saldo und Kassenstände."
+          "desc": "Admin → Finanzen → Tab 'Kassenbuch'. Jahr und (optional) Konto (Bank/Bar) oder Typ (Einnahme/Ausgabe) filtern. KPI-Kacheln zeigen Einnahmen, Ausgaben, Saldo und Kassenstände. Mobile: Card-Liste statt Tabelle."
         },
         "step2": {
           "title": "Manuelle Buchung erfassen",
-          "desc": "'Buchung erfassen' klicken: Buchungsdatum, Typ (Einnahme/Ausgabe), Betrag in Euro, Kategorie (z. B. Spenden, Betrieb, Miete), Konto (Bank oder Bar), kurze Beschreibung. Optional: Beleg als PDF oder Bild hochladen (max. 5 MB)."
+          "desc": "'Buchung erfassen' klicken: Buchungsdatum, Typ (Einnahme/Ausgabe), Betrag in Euro, Kategorie (z. B. Spenden, Betrieb, Miete), Konto (Bank oder Bar), kurze Beschreibung. Optional: Beleg als PDF oder Bild hochladen (max. 5 MB). Falls der KI-Vorschlag aktiviert ist, schlägt die KI auf Basis der Beschreibung automatisch eine passende Kategorie vor — der Vorschlag muss bestätigt werden, nichts wird automatisch gebucht."
         },
         "step3": {
-          "title": "Spenden-Buchungen",
-          "desc": "Bezahlte Spenden fließen automatisch als Einnahme-Zeilen ein (Quelle: 'extern', schreibgeschützt). Manuelle Buchungen sind am Beleg-Präfix JJJJ-NNNN erkennbar."
+          "title": "Automatische Buchungen (Spenden, Gebühren, Förderpartner)",
+          "desc": "Bezahlte Spenden, Madrasa-Gebühren und Förderpartner-Beiträge fließen automatisch als Einnahme-Zeilen ein (Quelle: 'extern', schreibgeschützt). Stripe-Rückerstattungen und Chargebacks (Kartenrückbuchungen) werden ebenfalls automatisch erfasst und mit einem lila Badge ('Erstattung' bzw. 'Rückbuchung') markiert — verknüpft mit der Ursprungsbuchung. Manuelle Buchungen sind am Beleg-Präfix JJJJ-NNNN erkennbar."
         },
         "step4": {
           "title": "Storno",
-          "desc": "Fehlerhafte Buchungen können über die Storno-Schaltfläche in der Zeile korrigiert werden. Eine kompensierende Gegenbuchung wird automatisch angelegt — das Original bleibt erhalten (revisionssicher, kein Löschen)."
+          "desc": "Fehlerhafte manuelle Buchungen können über die Storno-Schaltfläche in der Zeile korrigiert werden. Eine kompensierende Gegenbuchung wird automatisch angelegt — das Original bleibt erhalten (revisionssicher, kein Löschen). Für externe Quellen (Spenden, Gebühren) erfolgt die Korrektur über Stripe-Refund oder eine kompensierende manuelle Buchung."
         }
       },
       "reports": {
         "title": "Berichte & Auswertungen",
         "step1": {
           "title": "EÜR (Einnahmen-Überschuss-Rechnung)",
-          "desc": "Tab EÜR: alle 15 Kategorien mit Einnahmen, Ausgaben und Überschuss für das gewählte Jahr. Stornos verrechnen sich automatisch in der richtigen Kategorie."
+          "desc": "Tab EÜR: alle 15 Kategorien mit Einnahmen, Ausgaben und Überschuss für das gewählte Jahr. Stornos und Rückerstattungen verrechnen sich automatisch in der richtigen Kategorie (kein Phantom-Eintrag in fremden Kategorien)."
         },
         "step2": {
           "title": "Jahresbericht",
@@ -3141,6 +3141,21 @@
         "step3": {
           "title": "Kassenbericht",
           "desc": "Tab Kassenbericht: Anfangsbestand, Einnahmen, Ausgaben und Endbestand je Konto (Bar/Bank/Gesamt). Anfangsbestand wird automatisch als Endbestand des Vorjahres berechnet."
+        }
+      },
+      "exports": {
+        "title": "Steuerberater-Export & KI-Vorschlag",
+        "step1": {
+          "title": "Excel-Export für den Steuerberater",
+          "desc": "Auf jeder Berichtsseite gibt es einen 'Excel exportieren'-Button: einzelne Auswertungen (Buchungen, EÜR, Kassenbericht) oder ein Komplettpaket mit allen drei Blättern. Die Datei (.xlsx) öffnet sich in Excel/LibreOffice und kann an den Steuerberater weitergegeben werden. Die Sortierung ist stabil und nachvollziehbar."
+        },
+        "step2": {
+          "title": "KI-Kategorievorschlag (optional)",
+          "desc": "Wenn ein Anthropic-API-Schlüssel hinterlegt ist, schlägt die KI beim Erfassen einer manuellen Buchung eine passende Kategorie vor. Vor dem Senden werden personenbezogene Daten (Namen, E-Mails, Telefonnummern, IBANs) aus der Beschreibung entfernt — übertragen werden nur sanitisierte Beschreibung und Betrag. Der Vorschlag ist immer nur ein Hinweis; der Admin bestätigt oder ändert die Kategorie selbst. Ohne API-Schlüssel funktioniert das Modul vollständig ohne KI."
+        },
+        "step3": {
+          "title": "Beleg-Download",
+          "desc": "Hochgeladene Belege können später aus der Buchung heruntergeladen werden. Aus Sicherheitsgründen werden Belege immer als Download ausgeliefert (nicht im Browser angezeigt) — egal ob PDF, JPG oder PNG."
         }
       }
     },

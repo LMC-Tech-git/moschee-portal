@@ -3096,43 +3096,43 @@
       }
     },
     "financeGuideTitle": "Muhasebe — Adım Adım",
-    "financeGuideSubtitle": "Kasa defterini kurun, kayıt girin ve raporları alın.",
+    "financeGuideSubtitle": "Kasa defterini kurun, kayıt girin, raporları alın ve mali müşavir için Excel'e aktarın.",
     "financeGuide": {
       "setup": {
         "title": "Kurulum",
         "step1": {
           "title": "Modülü etkinleştirin",
-          "desc": "Yönetici → Ayarlar → Finans → 'Muhasebeyi etkinleştir' seçeneğini açın. Başlangıç yılını (kayıt tutmaya başlanacak yıl) ve isteğe bağlı olarak kasa ve banka için başlangıç bakiyelerini girin."
+          "desc": "Yönetici → Ayarlar → Finans → 'Muhasebeyi etkinleştir' seçeneğini açın. Başlangıç yılını (kayıt tutmaya başlanacak yıl) ve isteğe bağlı olarak kasa ve banka için başlangıç bakiyelerini girin. Erişim tüm yöneticilere açıktır; isteğe bağlı olarak bir üyeye 'Sayman' (Kassenwart) rolü verilebilir (kendi hesabıyla giriş yapar, yalnızca Finans modülünü görür)."
         },
         "step2": {
           "title": "Belge numaraları & dönemler",
-          "desc": "Belge numaraları YYYY-NNNN formatında otomatik verilir. Başlangıç yılı, kasa defterinde hangi yıldan itibaren veri görüneceğini belirler. Carryover bakiyesi için önceki yıl kayıtları önemlidir."
+          "desc": "Belge numaraları YYYY-NNNN formatında otomatik verilir. Başlangıç yılı, kasa defterinde hangi yıldan itibaren veri görüneceğini belirler. Carryover bakiyesi için önceki yıl kayıtları önemlidir. İsteğe bağlı sert kilit: seçilen tarihten önceki manuel değişiklikler kilitlenir (kapanmış denetim için)."
         }
       },
       "kassenbuch": {
         "title": "Kasa Defteri",
         "step1": {
           "title": "Kasa defterini açın",
-          "desc": "Yönetici → Finans → 'Kasa Defteri' sekmesi. Yıl ve isteğe bağlı olarak hesap (banka/nakit) veya tür (gelir/gider) filtreleyin. KPI kartları gelir, gider, bakiye ve kasa durumlarını gösterir."
+          "desc": "Yönetici → Finans → 'Kasa Defteri' sekmesi. Yıl ve isteğe bağlı olarak hesap (banka/nakit) veya tür (gelir/gider) filtreleyin. KPI kartları gelir, gider, bakiye ve kasa durumlarını gösterir. Mobilde: tablo yerine kart listesi."
         },
         "step2": {
           "title": "Manuel kayıt girin",
-          "desc": "'Kayıt ekle' butonuna tıklayın: tarih, tür (gelir/gider), tutar, kategori (örn. bağış, işletme, kira), hesap (banka veya nakit), kısa açıklama. İsteğe bağlı: PDF veya görsel olarak belge ekleyin (maks. 5 MB)."
+          "desc": "'Kayıt ekle' butonuna tıklayın: tarih, tür (gelir/gider), tutar, kategori (örn. bağış, işletme, kira), hesap (banka veya nakit), kısa açıklama. İsteğe bağlı: PDF veya görsel olarak belge ekleyin (maks. 5 MB). Yapay zeka önerisi etkinse, açıklamaya göre otomatik kategori önerir — öneri onaylanmalıdır, otomatik kayıt yapılmaz."
         },
         "step3": {
-          "title": "Bağış kayıtları",
-          "desc": "Ödenen bağışlar otomatik olarak gelir satırı olarak işlenir (kaynak: 'harici', salt okunur). Manuel kayıtlar YYYY-NNNN belge önekiyle tanınır."
+          "title": "Otomatik kayıtlar (bağışlar, aidatlar, destekçiler)",
+          "desc": "Ödenen bağışlar, medrese ücretleri ve destekçi katkıları otomatik olarak gelir satırı olarak işlenir (kaynak: 'harici', salt okunur). Stripe iadeleri ve chargeback'ler (kart geri çekimleri) de otomatik kaydedilir ve mor bir rozet ('İade' veya 'Geri çekim') ile işaretlenir — orijinal kayıtla ilişkilendirilmiş. Manuel kayıtlar YYYY-NNNN belge önekiyle tanınır."
         },
         "step4": {
           "title": "Storno",
-          "desc": "Hatalı kayıtlar satırdaki storno butonu ile düzeltilebilir. Otomatik olarak karşı bir kayıt oluşturulur — orijinal kayıt korunur (denetim güvenli, silme yok)."
+          "desc": "Hatalı manuel kayıtlar satırdaki storno butonu ile düzeltilebilir. Otomatik olarak karşı bir kayıt oluşturulur — orijinal kayıt korunur (denetim güvenli, silme yok). Harici kaynaklar (bağış, ücret) için düzeltme Stripe iadesi veya manuel karşı kayıt ile yapılır."
         }
       },
       "reports": {
         "title": "Raporlar & Analizler",
         "step1": {
           "title": "Gelir-Gider Tablosu",
-          "desc": "'Gelir-Gider' sekmesi: seçilen yıl için 15 kategoriyle gelir, gider ve fazla. Stornolar doğru kategoride otomatik mahsup edilir."
+          "desc": "'Gelir-Gider' sekmesi: seçilen yıl için 15 kategoriyle gelir, gider ve fazla. Stornolar ve iadeler doğru kategoride otomatik mahsup edilir (yanlış kategoride hayalet kayıt yok)."
         },
         "step2": {
           "title": "Yıllık Rapor",
@@ -3141,6 +3141,21 @@
         "step3": {
           "title": "Kasa Raporu",
           "desc": "'Kasa Raporu' sekmesi: hesap bazında (nakit/banka/toplam) açılış bakiyesi, gelirler, giderler ve kapanış bakiyesi. Açılış bakiyesi önceki yılın kapanış bakiyesinden otomatik hesaplanır."
+        }
+      },
+      "exports": {
+        "title": "Mali Müşavir İhracı & Yapay Zeka Önerisi",
+        "step1": {
+          "title": "Mali müşavir için Excel ihracı",
+          "desc": "Her rapor sayfasında bir 'Excel'e aktar' butonu vardır: tek tek raporlar (kayıtlar, gelir-gider, kasa raporu) veya üç sayfayı içeren tam paket. Dosya (.xlsx) Excel/LibreOffice'te açılır ve mali müşavire iletilebilir. Sıralama stabil ve izlenebilirdir."
+        },
+        "step2": {
+          "title": "Yapay zeka kategori önerisi (isteğe bağlı)",
+          "desc": "Bir Anthropic API anahtarı tanımlıysa, manuel kayıt girerken yapay zeka uygun bir kategori önerir. Gönderim öncesi kişisel veriler (isimler, e-postalar, telefonlar, IBAN'lar) açıklamadan kaldırılır — yalnızca sanitize edilmiş açıklama ve tutar iletilir. Öneri her zaman sadece bir ipucudur; kategoriyi yönetici onaylar veya değiştirir. API anahtarı olmadan modül yapay zeka olmadan tam çalışır."
+        },
+        "step3": {
+          "title": "Belge indirme",
+          "desc": "Yüklenen belgeler daha sonra kayıttan indirilebilir. Güvenlik nedeniyle belgeler her zaman indirme olarak verilir (tarayıcıda gösterilmez) — PDF, JPG veya PNG fark etmez."
         }
       }
     },
