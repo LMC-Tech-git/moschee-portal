@@ -11,7 +11,6 @@ import {
   Clock,
   FileText,
   CalendarDays,
-  ArrowRight,
   Banknote,
   BookOpen,
   Mail,
@@ -240,12 +239,9 @@ export default function AdminDashboard() {
                 item.desktopOnly ? "hidden md:block" : ""
               }`}
             >
-              <div className="mb-3 flex min-w-0 items-center justify-between gap-2">
-                <div className="flex min-w-0 items-center gap-2">
-                  <Icon className={`h-5 w-5 shrink-0 ${item.color}`} />
-                  <h3 className="truncate font-bold text-gray-900">{item.title}</h3>
-                </div>
-                <ArrowRight className="h-4 w-4 shrink-0 text-gray-400 transition-transform group-hover:translate-x-0.5" />
+              <div className="mb-3 flex items-center gap-2">
+                <Icon className={`h-5 w-5 shrink-0 ${item.color}`} />
+                <h3 className="font-bold text-gray-900">{item.title}</h3>
               </div>
               <p className="line-clamp-2 text-sm text-gray-600">{item.desc}</p>
               {item.badge && (
