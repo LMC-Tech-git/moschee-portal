@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { useTranslations } from "next-intl";
 import { Download, Printer, QrCode } from "lucide-react";
 import { toast } from "sonner";
@@ -93,7 +94,58 @@ export function InviteQRDialog({
 
   const fileName = `qr-${slugifyForFile(label || mosqueName)}.png`;
 
+  // A4-Druck-Sheet als Portal direkt am <body> — nicht im Dialog-Layout.
+  // Im Druck blendet globals.css alles außer .invite-print-root via display:none aus
+  // (display statt visibility → keine leeren Folgeseiten).
+  const printSheet =
+    open && typeof document !== "undefined"
+      ? createPortal(
+          <div className="invite-print-root">
+            <div className="mx-auto flex max-w-[640px] flex-col items-center text-center">
+              {mosqueLogoUrl && logoOk && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={mosqueLogoUrl}
+                  alt={mosqueName}
+                  className="mb-4 max-h-24 w-auto object-contain"
+                  onError={() => setLogoOk(false)}
+                />
+              )}
+              <p className="text-lg font-semibold text-gray-700">{mosqueName}</p>
+              <h1 className="mt-2 text-3xl font-bold text-gray-900">
+                {t("qr.printHeading")}
+              </h1>
+              {label && (
+                <p className="mt-1 text-base text-gray-600">
+                  {label} · {roleLabel}
+                </p>
+              )}
+
+              {png && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={png} alt={t("qr.imgAlt")} className="my-8 h-72 w-72" />
+              )}
+
+              <p className="text-base font-medium text-gray-800">
+                {t("qr.scanHint")}
+              </p>
+
+              <ol className="mt-6 w-full max-w-[460px] list-decimal space-y-2 pl-6 text-left text-base text-gray-700">
+                <li>{t("qr.step1")}</li>
+                <li>{t("qr.step2")}</li>
+                <li>{t("qr.step3")}</li>
+              </ol>
+
+              <p className="mt-8 text-sm text-gray-500">{t("qr.urlFallback")}</p>
+              <p className="break-all font-mono text-sm text-gray-700">{url}</p>
+            </div>
+          </div>,
+          document.body
+        )
+      : null;
+
   return (
+    <>
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
@@ -160,53 +212,9 @@ export function InviteQRDialog({
             {t("qr.close")}
           </Button>
         </DialogFooter>
-
-        {/* Druck-Sheet (A4) — nur beim Drucken sichtbar */}
-        <div className="invite-print-sheet hidden print:block">
-          <div className="mx-auto flex max-w-[640px] flex-col items-center text-center">
-            {mosqueLogoUrl && logoOk && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={mosqueLogoUrl}
-                alt={mosqueName}
-                className="mb-4 max-h-24 w-auto object-contain"
-                onError={() => setLogoOk(false)}
-              />
-            )}
-            <p className="text-lg font-semibold text-gray-700">{mosqueName}</p>
-            <h1 className="mt-2 text-3xl font-bold text-gray-900">
-              {t("qr.printHeading")}
-            </h1>
-            {label && (
-              <p className="mt-1 text-base text-gray-600">
-                {label} · {roleLabel}
-              </p>
-            )}
-
-            {png && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={png}
-                alt={t("qr.imgAlt")}
-                className="my-8 h-72 w-72"
-              />
-            )}
-
-            <p className="text-base font-medium text-gray-800">
-              {t("qr.scanHint")}
-            </p>
-
-            <ol className="mt-6 w-full max-w-[460px] list-decimal space-y-2 pl-6 text-left text-base text-gray-700">
-              <li>{t("qr.step1")}</li>
-              <li>{t("qr.step2")}</li>
-              <li>{t("qr.step3")}</li>
-            </ol>
-
-            <p className="mt-8 text-sm text-gray-500">{t("qr.urlFallback")}</p>
-            <p className="break-all font-mono text-sm text-gray-700">{url}</p>
-          </div>
-        </div>
       </DialogContent>
     </Dialog>
+    {printSheet}
+    </>
   );
 }

@@ -72,18 +72,21 @@
   }
 }
 
-/* Invite-QR Druckansicht — nur aktiv, wenn beim Drucken die Body-Klasse gesetzt ist */
+/* Invite-QR Druckansicht.
+   Sheet hängt per Portal direkt am <body>. Am Bildschirm immer versteckt.
+   Beim Drucken (Body-Klasse gesetzt) werden ALLE anderen Body-Kinder via
+   display:none entfernt — display statt visibility, sonst bleiben leere
+   Folgeseiten in voller Dokumenthöhe stehen. */
+.invite-print-root {
+  display: none;
+}
+
 @media print {
-  body.printing-invite-qr * {
-    visibility: hidden;
+  body.printing-invite-qr > *:not(.invite-print-root) {
+    display: none !important;
   }
-  body.printing-invite-qr .invite-print-sheet,
-  body.printing-invite-qr .invite-print-sheet * {
-    visibility: visible;
-  }
-  body.printing-invite-qr .invite-print-sheet {
-    position: absolute;
-    inset: 0;
+  body.printing-invite-qr .invite-print-root {
+    display: block !important;
   }
   @page {
     size: A4;
