@@ -14,6 +14,7 @@ import {
   UserPlus,
   GraduationCap,
   Shield,
+  QrCode,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
@@ -23,6 +24,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CreateInviteDialog } from "@/components/invites/CreateInviteDialog";
+import { InviteQRDialog } from "@/components/invites/InviteQRDialog";
 import { useTranslations } from "next-intl";
 import type { Invite } from "@/types";
 
@@ -59,8 +61,14 @@ export default function AdminInvitesPage() {
   const [totalItems, setTotalItems] = useState(0);
   const [createOpen, setCreateOpen] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [qrInvite, setQrInvite] = useState<Invite | null>(null);
 
   const mosqueSlug = mosque?.slug || "";
+  const pbUrl = process.env.NEXT_PUBLIC_POCKETBASE_URL || "";
+  const mosqueLogoUrl =
+    mosque?.brand_logo && mosque?.id
+      ? `${pbUrl}/api/files/mosques/${mosque.id}/${mosque.brand_logo}`
+      : null;
 
   function getInviteStatus(invite: Invite): { label: string; className: string } {
     if (!invite.is_active) {
@@ -263,6 +271,18 @@ export default function AdminInvitesPage() {
                         {/* Aktionen */}
                         <td className="px-4 py-3">
                           <div className="flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
+                            {/* QR-Code (nur Gruppen-Invites) */}
+                            {invite.type === "group" && (
+                              <button
+                                type="button"
+                                onClick={() => setQrInvite(invite)}
+                                className="rounded p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700"
+                                title={t("qrAction")}
+                              >
+                                <QrCode className="h-4 w-4" />
+                              </button>
+                            )}
+
                             {/* Link kopieren */}
                             <button
                               type="button"
@@ -353,6 +373,25 @@ export default function AdminInvitesPage() {
           onSuccess={loadInvites}
         />
       )}
+
+      {/* QR-Code Dialog (Gruppen-Invites) */}
+      <InviteQRDialog
+        open={qrInvite !== null}
+        onClose={() => setQrInvite(null)}
+        url={
+          qrInvite && typeof window !== "undefined"
+            ? `${window.location.origin}/${mosqueSlug}/invite/${qrInvite.token}`
+            : ""
+        }
+        mosqueName={mosque?.name ?? ""}
+        mosqueLogoUrl={mosqueLogoUrl}
+        label={qrInvite?.label || ""}
+        roleLabel={
+          qrInvite
+            ? t(`role.${qrInvite.role}` as Parameters<typeof t>[0]) || qrInvite.role
+            : ""
+        }
+      />
     </div>
   );
 }

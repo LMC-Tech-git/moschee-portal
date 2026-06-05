@@ -71,3 +71,22 @@
            focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2;
   }
 }
+
+/* Invite-QR Druckansicht — nur aktiv, wenn beim Drucken die Body-Klasse gesetzt ist */
+@media print {
+  body.printing-invite-qr * {
+    visibility: hidden;
+  }
+  body.printing-invite-qr .invite-print-sheet,
+  body.printing-invite-qr .invite-print-sheet * {
+    visibility: visible;
+  }
+  body.printing-invite-qr .invite-print-sheet {
+    position: absolute;
+    inset: 0;
+  }
+  @page {
+    size: A4;
+    margin: 16mm;
+  }
+}

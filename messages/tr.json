@@ -1366,6 +1366,25 @@
       "createFailed": "Davet oluşturulamadı.",
       "unexpected": "Beklenmeyen bir hata oluştu.",
       "copyFailed": "Kopyalama başarısız. Lütfen manuel olarak kopyalayın."
+    },
+    "qrAction": "QR kodunu göster",
+    "qr": {
+      "button": "QR Kodu & Yazdırma",
+      "title": "\"{label}\" için QR kodu",
+      "intro": "Bu QR kodu taratın — kişi kayıt formunu kendisi doldurur.",
+      "download": "PNG olarak indir",
+      "print": "Yazdır",
+      "close": "Kapat",
+      "generating": "QR kodu oluşturuluyor…",
+      "scanHint": "Kayıt olmak için telefon kamerasıyla tarayın.",
+      "printHeading": "Üye Ol",
+      "step1": "QR kodu telefon kameranızla tarayın.",
+      "step2": "Kayıt formunu doldurun.",
+      "step3": "Cami tarafından onaylanmayı bekleyin.",
+      "urlFallback": "Veya şu adresi açın:",
+      "imgAlt": "Kayıt için QR kodu",
+      "pendingNote": "Not: Kendi kaydolanlar \"Beklemede\" durumunda olur ve üye listesinden onaylanmalıdır.",
+      "toastFailed": "QR kodu oluşturulamadı."
     }
   },
   "audit": {

@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { Copy, Check, Link2, Mail, Users, UserPlus } from "lucide-react";
+import { Copy, Check, Link2, Mail, Users, UserPlus, QrCode } from "lucide-react";
 import { toast } from "sonner";
 import { createInvite } from "@/lib/actions/invites";
+import { useMosque } from "@/lib/mosque-context";
+import { InviteQRDialog } from "@/components/invites/InviteQRDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -47,6 +49,12 @@ export function CreateInviteDialog({
   const tI = useTranslations("invites");
   const tL = useTranslations("labels");
   const tCommon = useTranslations("common");
+  const { mosque } = useMosque();
+  const pbUrl = process.env.NEXT_PUBLIC_POCKETBASE_URL || "";
+  const mosqueLogoUrl =
+    mosque?.brand_logo && mosque?.id
+      ? `${pbUrl}/api/files/mosques/${mosque.id}/${mosque.brand_logo}`
+      : null;
 
   const roleOptions = [
     { value: "member",        label: tL("role.member") },
@@ -70,8 +78,10 @@ export function CreateInviteDialog({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [createdLink, setCreatedLink] = useState("");
+  const [createdToken, setCreatedToken] = useState("");
   const [createdEmail, setCreatedEmail] = useState("");
   const [copied, setCopied] = useState(false);
+  const [qrOpen, setQrOpen] = useState(false);
 
   function resetForm() {
     setStep("form");
@@ -84,8 +94,10 @@ export function CreateInviteDialog({
     setExpiresAt("");
     setError("");
     setCreatedLink("");
+    setCreatedToken("");
     setCreatedEmail("");
     setCopied(false);
+    setQrOpen(false);
   }
 
   function handleClose() {
@@ -122,6 +134,7 @@ export function CreateInviteDialog({
       const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "moschee.app";
       const link = `https://${mosqueSlug}.${rootDomain}/invite/${token}`;
       setCreatedLink(link);
+      setCreatedToken(token);
       setCreatedEmail(result.data.email || "");
       setStep("success");
       onSuccess();
@@ -143,7 +156,13 @@ export function CreateInviteDialog({
     }
   }
 
+  const qrUrl =
+    createdToken && typeof window !== "undefined"
+      ? `${window.location.origin}/${mosqueSlug}/invite/${createdToken}`
+      : "";
+
   return (
+    <>
     <Dialog open={open} onOpenChange={(o) => !o && handleClose()}>
       <DialogContent className="sm:max-w-md">
         {step === "form" ? (
@@ -365,6 +384,23 @@ export function CreateInviteDialog({
                 </p>
               </div>
 
+              {inviteType === "group" && (
+                <Button
+                  variant="outline"
+                  onClick={() => setQrOpen(true)}
+                  className="w-full"
+                >
+                  <QrCode className="mr-2 h-4 w-4" />
+                  {tI("qr.button")}
+                </Button>
+              )}
+
+              {initialStatus === "pending" && (
+                <p className="rounded-lg border border-blue-100 bg-blue-50 px-3 py-2 text-xs text-blue-700">
+                  {tI("qr.pendingNote")}
+                </p>
+              )}
+
               <div className="rounded-lg border border-gray-100 bg-gray-50 p-3 text-xs text-gray-600 space-y-1">
                 <p>
                   <span className="font-medium">{tI("dialog.typeRow")}</span>{" "}
@@ -403,5 +439,16 @@ export function CreateInviteDialog({
         )}
       </DialogContent>
     </Dialog>
+
+    <InviteQRDialog
+      open={qrOpen}
+      onClose={() => setQrOpen(false)}
+      url={qrUrl}
+      mosqueName={mosque?.name ?? ""}
+      mosqueLogoUrl={mosqueLogoUrl}
+      label={label.trim()}
+      roleLabel={roleOptions.find((o) => o.value === role)?.label ?? role}
+    />
+    </>
   );
 }

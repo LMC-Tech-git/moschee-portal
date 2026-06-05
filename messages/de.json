@@ -1366,6 +1366,25 @@
       "createFailed": "Einladung konnte nicht erstellt werden.",
       "unexpected": "Ein unerwarteter Fehler ist aufgetreten.",
       "copyFailed": "Kopieren fehlgeschlagen. Bitte manuell kopieren."
+    },
+    "qrAction": "QR-Code anzeigen",
+    "qr": {
+      "button": "QR-Code & Druckansicht",
+      "title": "QR-Code für \"{label}\"",
+      "intro": "Lass diesen QR-Code scannen — die Person füllt das Registrierungsformular selbst aus.",
+      "download": "Als PNG herunterladen",
+      "print": "Drucken",
+      "close": "Schließen",
+      "generating": "QR-Code wird erstellt…",
+      "scanHint": "Mit der Handy-Kamera scannen, um sich zu registrieren.",
+      "printHeading": "Werde Mitglied",
+      "step1": "Scanne den QR-Code mit deiner Handy-Kamera.",
+      "step2": "Fülle das Registrierungsformular aus.",
+      "step3": "Warte auf die Freischaltung durch die Moschee.",
+      "urlFallback": "Oder öffne diese Adresse:",
+      "imgAlt": "QR-Code zur Registrierung",
+      "pendingNote": "Hinweis: Selbst-Registrierte erhalten den Status \"Ausstehend\" und müssen in der Mitgliederliste freigeschaltet werden.",
+      "toastFailed": "QR-Code konnte nicht erstellt werden."
     }
   },
   "audit": {
