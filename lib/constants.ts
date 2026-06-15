@@ -416,6 +416,7 @@ export function getBrandColor(
 
 export const PRAYER_PROVIDERS = [
   { value: "aladhan", label: "AlAdhan API (Diyanet/Türkei)" },
+  { value: "mawaqit", label: "Mawaqit (Moschee-ID)" },
   { value: "off",     label: "Deaktiviert (kein Widget)" },
 ] as const;
 

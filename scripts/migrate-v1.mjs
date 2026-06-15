@@ -223,6 +223,7 @@ const SETTINGS_COLLECTION = {
     { name: "guest_registration_email_verify", type: "bool", options: { default: false } },
     { name: "prayer_provider", type: "text", options: { default: "aladhan" } },
     { name: "prayer_method", type: "number", options: { min: 1, default: 13 } },
+    { name: "mawaqit_mosque_id", type: "text" },
     { name: "tune", type: "text" },
     { name: "locale", type: "text", options: { default: "de" } },
     { name: "default_post_visibility", type: "text", options: { default: "public" } },
@@ -235,6 +236,7 @@ const SETTINGS_COLLECTION = {
 const SETTINGS_NEW_FIELDS = [
   { name: "prayer_provider", type: "text", options: { default: "aladhan" } },
   { name: "prayer_method", type: "number", options: { min: 1, default: 13 } },
+  { name: "mawaqit_mosque_id", type: "text" },
   { name: "tune", type: "text" },
   { name: "locale", type: "text", options: { default: "de" } },
   { name: "default_post_visibility", type: "text", options: { default: "public" } },

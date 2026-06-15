@@ -100,6 +100,7 @@ async function run() {
       mosque_id: mosque.id,
       prayer_provider: "aladhan",
       prayer_method: 13,
+      mawaqit_mosque_id: "",
       madrasa_enabled: true,
       madrasa_fees_enabled: true,
       madrasa_default_fee_cents: 1500,

@@ -2004,6 +2004,10 @@
     "prayer": {
       "provider": "Namaz Vakti Sağlayıcısı",
       "providerDesc": "Namaz vakti hesaplaması için sağlayıcıyı seçin.",
+      "mawaqitId": "Mawaqit Cami Kimliği",
+      "mawaqitIdDesc": "Caminizin Mawaqit'teki kimliği. Vakitler doğrudan Mawaqit'ten alınır.",
+      "mawaqitIdPlaceholder": "örn. grande-mosquee-de-paris",
+      "mawaqitIdHelp": "Caminizin mawaqit.net sayfasını açın — kimlik, adresin son kısmıdır: mawaqit.net/en/<KİMLİK>. Tam olarak bu kısmı buraya girin.",
       "coordinates": "Konum Koordinatları",
       "coordinatesDesc": "Doğru hesaplama için caminin enlem ve boylamı.",
       "latitude": "Enlem (Latitude)",

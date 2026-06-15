@@ -44,6 +44,7 @@ export async function resolveMosqueSettings(
     guest_registration_email_verify: false,
     prayer_provider: "aladhan",
     prayer_method: 13,
+    mawaqit_mosque_id: "",
     tune: "",
     locale: "de",
     default_post_visibility: "public",

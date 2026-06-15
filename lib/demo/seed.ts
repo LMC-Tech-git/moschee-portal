@@ -527,6 +527,7 @@ async function seedSettings(pb: PocketBase, mosqueId: string): Promise<void> {
     contact_notify_admin: true,
     prayer_provider: "aladhan",
     prayer_method: 13,
+    mawaqit_mosque_id: "",
     sponsors_enabled: true,
     sponsors_visibility: "public",
     team_enabled: true,

@@ -161,6 +161,7 @@ export async function updatePrayerSettings(
   data: {
     prayer_method: number;
     prayer_provider: string;
+    mawaqit_mosque_id: string;
     tune: string;
     latitude: number | null;
     longitude: number | null;
@@ -184,6 +185,7 @@ export async function updatePrayerSettings(
       mosque_id: mosqueId,
       prayer_method: data.prayer_method,
       prayer_provider: data.prayer_provider,
+      mawaqit_mosque_id: data.mawaqit_mosque_id,
       tune: data.tune,
     };
 
@@ -303,6 +305,7 @@ export async function getPortalSettings(mosqueId: string): Promise<{
         guest_registration_email_verify: false,
         prayer_provider: "aladhan",
         prayer_method: 13,
+        mawaqit_mosque_id: "",
         tune: "",
         locale: "de",
         default_post_visibility: "public",

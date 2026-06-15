@@ -2004,6 +2004,10 @@
     "prayer": {
       "provider": "Gebetszeiten-Provider",
       "providerDesc": "Wähle den Anbieter für die Gebetszeiten-Berechnung.",
+      "mawaqitId": "Mawaqit Moschee-ID",
+      "mawaqitIdDesc": "Kennung deiner Moschee bei Mawaqit. Die Zeiten werden direkt von Mawaqit übernommen.",
+      "mawaqitIdPlaceholder": "z. B. grande-mosquee-de-paris",
+      "mawaqitIdHelp": "Öffne deine Moschee-Seite auf mawaqit.net — die ID ist der letzte Teil der Adresse: mawaqit.net/en/<ID>. Genau diesen Teil hier eintragen.",
       "coordinates": "Standort-Koordinaten",
       "coordinatesDesc": "Breitengrad und Längengrad der Moschee für die genaue Berechnung.",
       "latitude": "Breitengrad (Latitude)",

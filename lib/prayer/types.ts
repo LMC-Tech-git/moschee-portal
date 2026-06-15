@@ -12,7 +12,7 @@ export interface PrayerTimes {
   isha: string;     // "HH:mm"
   date: string;     // "YYYY-MM-DD"
   hijriDate: string; // z.B. "02 Sha'ban 1447"
-  provider: "aladhan";
+  provider: "aladhan" | "mawaqit";
 }
 
 export interface TuneOffsets {

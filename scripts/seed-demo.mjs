@@ -98,6 +98,7 @@ async function seedSettings(mosqueId) {
     mosque_id: mosqueId,
     prayer_provider: "aladhan",
     prayer_method: 13,
+    mawaqit_mosque_id: "",
     madrasa_enabled: true,
     madrasa_fees_enabled: true,
     madrasa_default_fee_cents: 1500,

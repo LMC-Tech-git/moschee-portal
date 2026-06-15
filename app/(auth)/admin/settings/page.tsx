@@ -259,7 +259,8 @@ export default function AdminSettingsPage() {
             setSettings({
               ...settings,
               prayer_method: updates.prayer_method,
-              prayer_provider: updates.prayer_provider as "aladhan" | "off",
+              prayer_provider: updates.prayer_provider as "aladhan" | "mawaqit" | "off",
+              mawaqit_mosque_id: updates.mawaqit_mosque_id,
               tune: updates.tune,
             });
             if (updates.lat !== null && updates.lon !== null) {
@@ -938,6 +939,7 @@ function PrayerTab({
   onSaved: (updates: {
     prayer_method: number;
     prayer_provider: string;
+    mawaqit_mosque_id: string;
     tune: string;
     lat: number | null;
     lon: number | null;
@@ -954,10 +956,11 @@ function PrayerTab({
     { key: "maghrib", label: tL("prayer.maghrib") },
     { key: "isha",    label: tL("prayer.isha")    },
   ];
-  const [prayerProvider, setPrayerProvider] = useState<"aladhan" | "off">(
-    (settings.prayer_provider as "aladhan" | "off") || "aladhan"
+  const [prayerProvider, setPrayerProvider] = useState<"aladhan" | "mawaqit" | "off">(
+    (settings.prayer_provider as "aladhan" | "mawaqit" | "off") || "aladhan"
   );
   const [prayerMethod, setPrayerMethod] = useState(settings.prayer_method || 13);
+  const [mawaqitMosqueId, setMawaqitMosqueId] = useState(settings.mawaqit_mosque_id || "");
   const [latitude, setLatitude] = useState(
     mosque.latitude ? String(mosque.latitude) : ""
   );
@@ -1008,6 +1011,7 @@ function PrayerTab({
     const result = await updatePrayerSettings(mosqueId, userId, {
       prayer_method: prayerMethod,
       prayer_provider: prayerProvider,
+      mawaqit_mosque_id: mawaqitMosqueId.trim(),
       tune: tuneJson,
       latitude: lat,
       longitude: lon,
@@ -1016,7 +1020,7 @@ function PrayerTab({
     setIsSaving(false);
     if (result.success) {
       setStatus({ type: "success", message: t("prayer.saved") });
-      onSaved({ prayer_method: prayerMethod, prayer_provider: prayerProvider, tune: tuneJson, lat, lon });
+      onSaved({ prayer_method: prayerMethod, prayer_provider: prayerProvider, mawaqit_mosque_id: mawaqitMosqueId.trim(), tune: tuneJson, lat, lon });
     } else {
       setStatus({ type: "error", message: result.error || t("prayer.saved") });
     }
@@ -1044,7 +1048,7 @@ function PrayerTab({
                 name="prayer_provider"
                 value={value}
                 checked={prayerProvider === value}
-                onChange={() => setPrayerProvider(value as "aladhan" | "off")}
+                onChange={() => setPrayerProvider(value as "aladhan" | "mawaqit" | "off")}
                 className="h-4 w-4 accent-emerald-600"
               />
               <span className="text-sm font-medium text-gray-800">{label}</span>
@@ -1052,6 +1056,27 @@ function PrayerTab({
           ))}
         </div>
       </SectionCard>
+
+      {prayerProvider === "mawaqit" && (
+        <SectionCard
+          title={t("prayer.mawaqitId")}
+          description={t("prayer.mawaqitIdDesc")}
+        >
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">
+              {t("prayer.mawaqitId")}
+            </label>
+            <input
+              type="text"
+              value={mawaqitMosqueId}
+              onChange={(e) => setMawaqitMosqueId(e.target.value)}
+              placeholder={t("prayer.mawaqitIdPlaceholder")}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+            />
+            <p className="text-xs text-gray-500">{t("prayer.mawaqitIdHelp")}</p>
+          </div>
+        </SectionCard>
+      )}
 
       {prayerProvider === "aladhan" && (
         <>

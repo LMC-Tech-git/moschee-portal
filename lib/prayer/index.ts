@@ -5,6 +5,7 @@
 import type { PrayerTimes, TuneOffsets } from "./types";
 import { DEFAULT_TUNE } from "./types";
 import { getAladhanPrayerTimes } from "./aladhan";
+import { getMawaqitPrayerTimes } from "./mawaqit";
 import type { Mosque, Settings } from "@/types";
 
 export type { PrayerTimes, TuneOffsets };
@@ -12,10 +13,11 @@ export { DEFAULT_TUNE } from "./types";
 
 /** Provider-Konfiguration (gebaut aus Mosque + Settings). */
 export interface PrayerConfig {
-  provider: "aladhan" | "off";
+  provider: "aladhan" | "mawaqit" | "off";
   method: number;
   latitude: number;
   longitude: number;
+  mawaqit_mosque_id: string;
   tune?: TuneOffsets;
 }
 
@@ -37,10 +39,11 @@ export function buildPrayerConfig(mosque: Mosque, settings: Settings): PrayerCon
   }
 
   return {
-    provider: (settings.prayer_provider as "aladhan" | "off") || "aladhan",
+    provider: (settings.prayer_provider as "aladhan" | "mawaqit" | "off") || "aladhan",
     method: settings.prayer_method || 13,
     latitude: mosque.latitude || 0,
     longitude: mosque.longitude || 0,
+    mawaqit_mosque_id: settings.mawaqit_mosque_id || "",
     tune,
   };
 }
@@ -59,6 +62,18 @@ export async function getPrayerTimesForDate(
   config: PrayerConfig
 ): Promise<PrayerTimes | null> {
   if (config.provider === "off") return null;
+
+  // Mawaqit braucht keine Koordinaten/Methode, nur den Slug.
+  if (config.provider === "mawaqit") {
+    if (!config.mawaqit_mosque_id) return null;
+    return getMawaqitPrayerTimes(
+      mosqueId,
+      date,
+      config.mawaqit_mosque_id,
+      config.tune
+    );
+  }
+
   if (!config.latitude || !config.longitude) return null;
 
   if (config.provider === "aladhan") {

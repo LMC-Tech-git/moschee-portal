@@ -93,8 +93,9 @@ export interface Settings {
   allow_guest_donations: boolean;
   guest_registration_rate_limit_per_ip_per_hour: number;
   guest_registration_email_verify: boolean;
-  prayer_provider: "aladhan" | "off"; // "aladhan" (default) | "off"
+  prayer_provider: "aladhan" | "mawaqit" | "off"; // "aladhan" (default) | "mawaqit" | "off"
   prayer_method: number;              // Aladhan method (default: 13 = Diyanet)
+  mawaqit_mosque_id: string;          // Slug aus https://mawaqit.net/en/<slug> (nur bei provider="mawaqit")
   tune: string;                       // JSON: TuneOffsets (Minuten-Offsets je Gebet)
   locale: string;                     // "de" | "tr"
   default_post_visibility: string;    // "public" | "members"

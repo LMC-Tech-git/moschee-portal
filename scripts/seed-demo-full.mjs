@@ -1785,6 +1785,7 @@ async function seedSettings() {
     contact_notify_admin: true,
     prayer_provider: "aladhan",
     prayer_method: 13,
+    mawaqit_mosque_id: "",
     madrasa_fees_enabled: true,
     madrasa_default_fee_cents: 5000,
     sibling_discount_enabled: true,
