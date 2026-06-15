@@ -165,6 +165,9 @@ export async function updatePrayerSettings(
     tune: string;
     latitude: number | null;
     longitude: number | null;
+    ramadan_mode: boolean;
+    ramadan_start: string;
+    ramadan_end: string;
   }
 ): Promise<{ success: boolean; error?: string }> {
   try {
@@ -187,6 +190,9 @@ export async function updatePrayerSettings(
       prayer_provider: data.prayer_provider,
       mawaqit_mosque_id: data.mawaqit_mosque_id,
       tune: data.tune,
+      ramadan_mode: data.ramadan_mode,
+      ramadan_start: data.ramadan_start,
+      ramadan_end: data.ramadan_end,
     };
 
     if (settingsId) {
@@ -307,6 +313,9 @@ export async function getPortalSettings(mosqueId: string): Promise<{
         prayer_method: 13,
         mawaqit_mosque_id: "",
         tune: "",
+        ramadan_mode: false,
+        ramadan_start: "",
+        ramadan_end: "",
         locale: "de",
         default_post_visibility: "public",
         default_event_visibility: "public",

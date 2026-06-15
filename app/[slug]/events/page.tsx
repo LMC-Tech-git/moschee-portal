@@ -160,20 +160,30 @@ export default async function EventsPage({
         }}
       >
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-3">
-            <Link
-              href="/"
-              className="text-white/70 hover:text-white transition-colors"
-              aria-label={t("back")}
-            >
-              <ChevronLeft className="h-5 w-5" />
-            </Link>
-            <div>
-              <h1 className="text-2xl font-extrabold text-white sm:text-3xl">
-                {t("title")}
-              </h1>
-              <p className="mt-1 text-sm text-white/70">{mosque.name}</p>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <Link
+                href="/"
+                className="text-white/70 hover:text-white transition-colors"
+                aria-label={t("back")}
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </Link>
+              <div>
+                <h1 className="text-2xl font-extrabold text-white sm:text-3xl">
+                  {t("title")}
+                </h1>
+                <p className="mt-1 text-sm text-white/70">{mosque.name}</p>
+              </div>
             </div>
+            <a
+              href={`/api/${params.slug}/events/ical`}
+              className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-white/15 px-3 py-2 text-sm font-medium text-white backdrop-blur-sm transition-colors hover:bg-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+            >
+              <CalendarDays className="h-4 w-4" aria-hidden="true" />
+              <span className="hidden sm:inline">{t("addToCalendar")}</span>
+              <span className="sr-only sm:hidden">{t("addToCalendar")}</span>
+            </a>
           </div>
         </div>
       </section>

@@ -18,6 +18,8 @@ type Bundle = {
   raised: string;
   goal: string;
   remaining: string;
+  suhur: string;
+  iftar: string;
   prayers: Record<TVPrayerName, string>;
 };
 
@@ -36,6 +38,8 @@ export const TV_STRINGS: Record<TVLocale, Bundle> = {
     raised: "Gesammelt",
     goal: "Ziel",
     remaining: "Verbleibend",
+    suhur: "Suhur",
+    iftar: "Iftar",
     prayers: { fajr: "Fajr", sabah: "Sabah", sunrise: "Sonnenaufgang", dhuhr: "Dhuhr", asr: "Asr", maghrib: "Maghrib", isha: "Isha" },
   },
   tr: {
@@ -52,6 +56,8 @@ export const TV_STRINGS: Record<TVLocale, Bundle> = {
     raised: "Toplanan",
     goal: "Hedef",
     remaining: "Kalan Süre",
+    suhur: "Sahur",
+    iftar: "İftar",
     prayers: { fajr: "İmsak", sabah: "Sabah", sunrise: "Güneş", dhuhr: "Öğle", asr: "İkindi", maghrib: "Akşam", isha: "Yatsı" },
   },
   ar: {
@@ -68,6 +74,8 @@ export const TV_STRINGS: Record<TVLocale, Bundle> = {
     raised: "تم جمعه",
     goal: "الهدف",
     remaining: "المتبقي",
+    suhur: "السحور",
+    iftar: "الإفطار",
     prayers: { fajr: "الفجر", sabah: "الصبح", sunrise: "الشروق", dhuhr: "الظهر", asr: "العصر", maghrib: "المغرب", isha: "العشاء" },
   },
   en: {
@@ -84,6 +92,8 @@ export const TV_STRINGS: Record<TVLocale, Bundle> = {
     raised: "Raised",
     goal: "Goal",
     remaining: "Remaining",
+    suhur: "Suhur",
+    iftar: "Iftar",
     prayers: { fajr: "Fajr", sabah: "Sabah", sunrise: "Sunrise", dhuhr: "Dhuhr", asr: "Asr", maghrib: "Maghrib", isha: "Isha" },
   },
 };

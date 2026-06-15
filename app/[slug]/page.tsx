@@ -22,6 +22,8 @@ const PB_URL = process.env.NEXT_PUBLIC_POCKETBASE_URL || "";
 import { getPrayerTimesForDate, buildPrayerConfig } from "@/lib/prayer";
 import type { PrayerTimes } from "@/lib/prayer";
 import { getNextPrayerKey, isPrayerPast } from "@/lib/prayer/highlight";
+import { isRamadanActive, prayerTimeToMs } from "@/lib/ramadan";
+import { IftarCountdown } from "@/components/prayer/IftarCountdown";
 import {
   getPublicPostsByMosque,
   getMemberPostsByMosque,
@@ -119,6 +121,22 @@ export default async function MosqueDashboard({
     ? getNextPrayerKey(prayerTimes, nowDate, mosqueTz)
     : null;
 
+  // ── Ramadan-Modus: Suhur/Iftar-Countdown-Zeitstempel (server-seitig) ──────
+  const ramadanActive = isRamadanActive(settings, nowDate, mosqueTz);
+  let ramadanCountdown: { suhurMs: number; iftarMs: number; nextSuhurMs: number } | null = null;
+  if (ramadanActive && prayerTimes) {
+    const tomorrow = new Date(nowDate);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowTimes = await getPrayerTimesForDate(mosque.id, tomorrow, prayerConfig);
+    ramadanCountdown = {
+      suhurMs: prayerTimeToMs(prayerTimes.date, prayerTimes.fajr, mosqueTz),
+      iftarMs: prayerTimeToMs(prayerTimes.date, prayerTimes.maghrib, mosqueTz),
+      nextSuhurMs: tomorrowTimes
+        ? prayerTimeToMs(tomorrowTimes.date, tomorrowTimes.fajr, mosqueTz)
+        : NaN,
+    };
+  }
+
   return (
     <>
       {/* Moschee Header */}
@@ -181,36 +199,58 @@ export default async function MosqueDashboard({
                 <span className="text-sm text-gray-400 hidden sm:block">{prayerTimes.hijriDate}</span>
               )}
             </div>
+            {ramadanCountdown && (
+              <IftarCountdown
+                suhurMs={ramadanCountdown.suhurMs}
+                iftarMs={ramadanCountdown.iftarMs}
+                nextSuhurMs={ramadanCountdown.nextSuhurMs}
+              />
+            )}
             <div className="grid grid-cols-3 gap-2 sm:grid-cols-7">
               {PRAYER_LIST.map(({ key, label }) => {
                 const time = prayerTimes[key];
                 if (typeof time !== "string") return null;
                 const isNext = key === nextPrayerKey;
                 const isPast = !isNext && isPrayerPast(time, nowDate, mosqueTz);
+                // Ramadan: Suhur (Fajr) + Iftar (Maghrib) amber hervorheben.
+                const ramadanLabel =
+                  ramadanActive && key === "fajr"
+                    ? t("ramadan.suhur")
+                    : ramadanActive && key === "maghrib"
+                    ? t("ramadan.iftar")
+                    : null;
+                const isRamadanTile = ramadanLabel !== null;
                 return (
                   <div
                     key={key}
                     className={`relative flex flex-col items-center gap-1.5 rounded-xl px-3 py-3 text-center transition-all ${
-                      isNext
+                      isRamadanTile
+                        ? "bg-amber-50 ring-2 ring-amber-500 shadow-sm"
+                        : isNext
                         ? "bg-emerald-50 ring-2 ring-emerald-500 shadow-sm"
                         : isPast
                         ? "opacity-40 bg-gray-50"
                         : "bg-gray-50"
                     }`}
                   >
-                    {isNext && (
+                    {isNext && !isRamadanTile && (
                       <span className="absolute -top-1 -right-1 flex h-3 w-3" aria-hidden="true">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                         <span className="relative inline-flex h-3 w-3 rounded-full bg-emerald-500" />
                       </span>
                     )}
+                    {ramadanLabel && (
+                      <span className="text-[10px] font-bold uppercase tracking-wide text-amber-600">
+                        {ramadanLabel}
+                      </span>
+                    )}
                     <p className={`text-xs font-semibold uppercase tracking-wide ${
-                      isNext ? "text-emerald-700" : "text-gray-500"
+                      isRamadanTile ? "text-amber-700" : isNext ? "text-emerald-700" : "text-gray-500"
                     }`}>
                       {label}
                     </p>
                     <p className={`font-mono text-base font-bold tabular-nums leading-none ${
-                      isNext ? "text-emerald-600" : "text-gray-900"
+                      isRamadanTile ? "text-amber-700" : isNext ? "text-emerald-600" : "text-gray-900"
                     }`}>
                       {time}
                     </p>

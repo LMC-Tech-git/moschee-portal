@@ -262,6 +262,9 @@ export default function AdminSettingsPage() {
               prayer_provider: updates.prayer_provider as "aladhan" | "mawaqit" | "off",
               mawaqit_mosque_id: updates.mawaqit_mosque_id,
               tune: updates.tune,
+              ramadan_mode: updates.ramadan_mode,
+              ramadan_start: updates.ramadan_start,
+              ramadan_end: updates.ramadan_end,
             });
             if (updates.lat !== null && updates.lon !== null) {
               setMosque({ ...mosque, latitude: updates.lat, longitude: updates.lon });
@@ -943,6 +946,9 @@ function PrayerTab({
     tune: string;
     lat: number | null;
     lon: number | null;
+    ramadan_mode: boolean;
+    ramadan_start: string;
+    ramadan_end: string;
   }) => void;
 }) {
   const t = useTranslations("settings");
@@ -969,6 +975,9 @@ function PrayerTab({
   );
   const [tune, setTune] = useState<TuneOffsets>(() => parseTune(settings.tune || ""));
   const [showTune, setShowTune] = useState(false);
+  const [ramadanMode, setRamadanMode] = useState(settings.ramadan_mode || false);
+  const [ramadanStart, setRamadanStart] = useState((settings.ramadan_start || "").slice(0, 10));
+  const [ramadanEnd, setRamadanEnd] = useState((settings.ramadan_end || "").slice(0, 10));
   const [coordError, setCoordError] = useState<{ lat?: string; lon?: string }>({});
   const [isSaving, setIsSaving] = useState(false);
   const [status, setStatus] = useState<{
@@ -1015,12 +1024,15 @@ function PrayerTab({
       tune: tuneJson,
       latitude: lat,
       longitude: lon,
+      ramadan_mode: ramadanMode,
+      ramadan_start: ramadanStart,
+      ramadan_end: ramadanEnd,
     });
 
     setIsSaving(false);
     if (result.success) {
       setStatus({ type: "success", message: t("prayer.saved") });
-      onSaved({ prayer_method: prayerMethod, prayer_provider: prayerProvider, mawaqit_mosque_id: mawaqitMosqueId.trim(), tune: tuneJson, lat, lon });
+      onSaved({ prayer_method: prayerMethod, prayer_provider: prayerProvider, mawaqit_mosque_id: mawaqitMosqueId.trim(), tune: tuneJson, lat, lon, ramadan_mode: ramadanMode, ramadan_start: ramadanStart, ramadan_end: ramadanEnd });
     } else {
       setStatus({ type: "error", message: result.error || t("prayer.saved") });
     }
@@ -1244,6 +1256,55 @@ function PrayerTab({
         <div className="rounded-xl border border-gray-200 bg-gray-50 p-5 text-sm text-gray-500">
           {t("prayer.providerDisabled")}
         </div>
+      )}
+
+      {prayerProvider !== "off" && (
+        <SectionCard
+          title={t("prayer.ramadanMode")}
+          description={t("prayer.ramadanModeDesc")}
+        >
+          <label className="flex cursor-pointer items-center gap-3">
+            <input
+              type="checkbox"
+              checked={ramadanMode}
+              onChange={(e) => setRamadanMode(e.target.checked)}
+              className="h-4 w-4 accent-emerald-600"
+            />
+            <span className="text-sm font-medium text-gray-800">
+              {t("prayer.ramadanMode")}
+            </span>
+          </label>
+
+          {ramadanMode && (
+            <div className="mt-4 space-y-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                    {t("prayer.ramadanStart")}
+                  </label>
+                  <input
+                    type="date"
+                    value={ramadanStart}
+                    onChange={(e) => setRamadanStart(e.target.value)}
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                    {t("prayer.ramadanEnd")}
+                  </label>
+                  <input
+                    type="date"
+                    value={ramadanEnd}
+                    onChange={(e) => setRamadanEnd(e.target.value)}
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  />
+                </div>
+              </div>
+              <p className="text-xs text-gray-500">{t("prayer.ramadanHint")}</p>
+            </div>
+          )}
+        </SectionCard>
       )}
 
       <div className="flex items-center justify-between gap-4">

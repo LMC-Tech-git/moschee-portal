@@ -9,6 +9,7 @@ import { getPrayerTimesForDate, buildPrayerConfig } from "@/lib/prayer";
 import type { Mosque, Settings, TVSlide, TVPrayerSlideData, TVModuleKey } from "@/types";
 import type { TVSettingsResolved } from "@/lib/actions/settings";
 import { computeActivePrayer, wallClockToUtcMs } from "./active-prayer";
+import { isRamadanActive } from "@/lib/ramadan";
 
 const POCKETBASE_URL = process.env.NEXT_PUBLIC_POCKETBASE_URL || "";
 
@@ -81,6 +82,7 @@ export async function buildTVSlides(input: BuildSlidesInput): Promise<BuildSlide
       nextPrayer: active.nextPrayer,
       nextPrayerAtMs: active.nextPrayerAtMs,
       hijriDate: tv.tv_show_hijri ? times.hijriDate || null : null,
+      ramadanMode: isRamadanActive(settings, new Date(nowMs), mosque.timezone || "Europe/Berlin"),
     };
   }
 

@@ -340,7 +340,13 @@
       "dhuhr": "ÖĞLE",
       "asr": "İKİNDİ",
       "maghrib": "AKŞAM",
-      "isha": "YATSI"
+      "isha": "YATSI",
+      "ramadan": {
+        "suhur": "Sahur",
+        "iftar": "İftar",
+        "countdownToIftar": "İftara kalan",
+        "countdownToSuhur": "Sahura kalan"
+      }
     }
   },
   "postCard": {
@@ -369,6 +375,7 @@
   "publicEvents": {
     "title": "Etkinlikler",
     "back": "Ana Sayfaya Dön",
+    "addToCalendar": "Takvime ekle",
     "allCategories": "Tümü",
     "categoryFilter": "Kategori Filtresi",
     "periodFilter": "Dönem Filtresi",
@@ -2021,6 +2028,11 @@
       "tuningHide": "Ofsetleri gizle",
       "tuningMin": "dk",
       "providerDisabled": "Namaz vakitleri widget'ı devre dışı. Bir sağlayıcı seçin ve koordinatları girin.",
+      "ramadanMode": "Ramazan Modu",
+      "ramadanModeDesc": "Sahur (İmsak/Fajr) ve İftar (Akşam) vakitlerini vurgular ve bir İftar geri sayımı gösterir.",
+      "ramadanStart": "Ramazan Başlangıcı",
+      "ramadanEnd": "Ramazan Bitişi",
+      "ramadanHint": "Otomatik algılama için boş bırakın (hicri Ramazan ayı). Otomatik hesaplama ±1 gün şaşabileceğinden manuel tarihler daha kesindir.",
       "saved": "Namaz vakti ayarları kaydedildi."
     },
     "defaults": {

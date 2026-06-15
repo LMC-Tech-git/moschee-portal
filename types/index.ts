@@ -97,6 +97,9 @@ export interface Settings {
   prayer_method: number;              // Aladhan method (default: 13 = Diyanet)
   mawaqit_mosque_id: string;          // Slug aus https://mawaqit.net/en/<slug> (nur bei provider="mawaqit")
   tune: string;                       // JSON: TuneOffsets (Minuten-Offsets je Gebet)
+  ramadan_mode: boolean;              // Ramadan-Modus: Suhur/Iftar hervorheben + Countdown
+  ramadan_start: string;              // ISO date (optional) — leer = Auto-Erkennung (Hijri-Monat 9)
+  ramadan_end: string;                // ISO date (optional)
   locale: string;                     // "de" | "tr"
   default_post_visibility: string;    // "public" | "members"
   default_event_visibility: string;   // "public" | "members"
@@ -208,6 +211,7 @@ export type TVPrayerSlideData = {
   nextPrayer: TVPrayerName | null;
   nextPrayerAtMs: number | null;
   hijriDate: string | null;
+  ramadanMode: boolean;
 };
 
 export type TVEventItem = {

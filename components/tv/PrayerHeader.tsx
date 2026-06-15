@@ -137,11 +137,24 @@ export function PrayerHeader({
         {prayerData.times.map((p) => {
           const isNext = nextKey === p.name;
           const showCountdown = isNext && remainingMs > 0;
+          // Ramadan: Suhur (Fajr) + Iftar (Maghrib) amber hervorheben.
+          const ramadanTag =
+            prayerData.ramadanMode && p.name === "fajr"
+              ? tPrim.suhur
+              : prayerData.ramadanMode && p.name === "maghrib"
+              ? tPrim.iftar
+              : null;
           return (
             <div
               key={p.name}
               className={`tv-prayer-cell${isNext ? " is-next" : ""}`}
+              style={ramadanTag ? { boxShadow: "inset 0 0 0 2px #f59e0b", borderRadius: "0.5rem" } : undefined}
             >
+              {ramadanTag && (
+                <div style={{ fontSize: "0.7em", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#f59e0b" }}>
+                  {ramadanTag}
+                </div>
+              )}
               {showArabicPrayerNames && (
                 <div className="tv-prayer-arabic">{ARABIC_PRAYER_NAMES[p.name]}</div>
               )}

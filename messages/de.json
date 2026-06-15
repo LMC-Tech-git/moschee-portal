@@ -340,7 +340,13 @@
       "dhuhr": "DUHR",
       "asr": "ASSR",
       "maghrib": "MAGHRIB",
-      "isha": "ISHAA"
+      "isha": "ISHAA",
+      "ramadan": {
+        "suhur": "Suhur",
+        "iftar": "Iftar",
+        "countdownToIftar": "Bis zum Iftar",
+        "countdownToSuhur": "Bis zum Suhur"
+      }
     }
   },
   "postCard": {
@@ -369,6 +375,7 @@
   "publicEvents": {
     "title": "Veranstaltungen",
     "back": "Zurück zur Startseite",
+    "addToCalendar": "Zum Kalender hinzufügen",
     "allCategories": "Alle",
     "categoryFilter": "Kategorie-Filter",
     "periodFilter": "Zeitraum-Filter",
@@ -2021,6 +2028,11 @@
       "tuningHide": "Offsets ausblenden",
       "tuningMin": "min",
       "providerDisabled": "Gebetszeiten-Widget ist deaktiviert. Wähle einen Provider und gib Koordinaten ein.",
+      "ramadanMode": "Ramadan-Modus",
+      "ramadanModeDesc": "Hebt Suhur (Imsak/Fajr) und Iftar (Maghrib) hervor und zeigt einen Iftar-Countdown.",
+      "ramadanStart": "Ramadan-Beginn",
+      "ramadanEnd": "Ramadan-Ende",
+      "ramadanHint": "Leer lassen für automatische Erkennung (islamischer Monat Ramadan). Manuelle Daten sind exakter, da die automatische Berechnung um ±1 Tag abweichen kann.",
       "saved": "Gebetszeiten-Einstellungen gespeichert."
     },
     "defaults": {
