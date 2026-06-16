@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { TVColors, TVLocale, TVLocaleConfig, TVPrayerSlideData, TVSlide, TVTimeContext } from "@/types";
 import { TVLocaleProvider } from "./LocaleAwareText";
-import { PrayerHeader } from "./PrayerHeader";
+import { TVTopBar, PrayerRail } from "./PrayerHeader";
 import { PrayerSlide } from "./slides/PrayerSlide";
 import { EventsSlide } from "./slides/EventsSlide";
 import { PostsSlide } from "./slides/PostsSlide";
@@ -282,23 +282,28 @@ export function TVClient({
         <div className="tv-bg-mesh" aria-hidden />
 
         <div className="tv-content">
-          <PrayerHeader
-            prayerData={prayerData}
+          <TVTopBar
             mosqueName={mosqueName}
             mosqueLogoUrl={mosqueLogoUrl}
-            showArabicPrayerNames={showArabicPrayerNames}
-            clientOffsetMs={clientOffsetMs}
+            hijriDate={prayerData?.hijriDate ?? null}
             mosqueTimezone={timeContext.mosqueTimezone}
-            currentDateYmd={timeContext.currentDateInMosqueTz}
+            clientOffsetMs={clientOffsetMs}
           />
 
           <main className="tv-stage">
             <div className={`tv-slide${transitioning ? " is-out" : ""}`}>
-              {slideToRender && renderSlide(slideToRender, colors, showArabicPrayerNames, clientOffsetMs, timeContext.mosqueTimezone)}
+              {slideToRender && renderSlide(slideToRender, colors, showArabicPrayerNames, clientOffsetMs, timeContext.mosqueTimezone, timeContext.currentDateInMosqueTz)}
             </div>
 
             <div className="tv-footer-url">{mosqueSlug}.moschee.app/tv</div>
           </main>
+
+          <PrayerRail
+            prayerData={prayerData}
+            showArabicPrayerNames={showArabicPrayerNames}
+            clientOffsetMs={clientOffsetMs}
+            mosqueTimezone={timeContext.mosqueTimezone}
+          />
         </div>
       </div>
     </TVLocaleProvider>
@@ -310,7 +315,8 @@ function renderSlide(
   colors: TVColors,
   showArabicPrayerNames: boolean,
   clientOffsetMs: number,
-  mosqueTimezone: string
+  mosqueTimezone: string,
+  currentDateYmd: string
 ) {
   switch (slide.type) {
     case "prayer":
@@ -320,6 +326,8 @@ function renderSlide(
           colors={colors}
           showArabicPrayerNames={showArabicPrayerNames}
           clientOffsetMs={clientOffsetMs}
+          mosqueTimezone={mosqueTimezone}
+          currentDateYmd={currentDateYmd}
         />
       );
     case "active_prayer":

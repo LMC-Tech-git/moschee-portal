@@ -11,7 +11,7 @@ export function resolveTVColors(
   tv: Pick<TVSettingsResolved, "tv_bg_color" | "tv_text_color" | "tv_accent_color">
 ): TVColors {
   const brand = getBrandColor(mosque.brand_theme, mosque.brand_primary_color);
-  const defaults: TVColors = { bg: "#0a0a0a", text: "#fafafa", accent: brand };
+  const defaults: TVColors = { bg: "#f3efe6", text: "#1c1b17", accent: brand };
   return {
     bg: tv.tv_bg_color || defaults.bg,
     text: tv.tv_text_color || defaults.text,

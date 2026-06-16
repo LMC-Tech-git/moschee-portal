@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import type { TVColors, TVPrayerSlideData } from "@/types";
+import { useEffect, useMemo, useState } from "react";
+import type { TVColors, TVPrayerName, TVPrayerSlideData } from "@/types";
 import { useTVLocale } from "../LocaleAwareText";
 import { tvT } from "../tv-i18n";
-import { ARABIC_PRAYER_NAMES } from "@/app/[slug]/tv/active-prayer";
+import { ARABIC_PRAYER_NAMES, wallClockToUtcMs } from "@/app/[slug]/tv/active-prayer";
+import { getNextPrayerKey } from "@/lib/prayer/highlight";
+import type { PrayerTimes } from "@/lib/prayer";
 
 function formatCountdown(ms: number): string {
   if (ms <= 0) return "00:00:00";
@@ -15,34 +17,81 @@ function formatCountdown(ms: number): string {
   return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 }
 
+function buildTimesLookup(times: TVPrayerSlideData["times"]): PrayerTimes {
+  const out: Partial<Record<TVPrayerName, string>> = {};
+  for (const p of times) out[p.name] = p.time;
+  return {
+    fajr: out.fajr || "",
+    sabah: out.sabah,
+    sunrise: out.sunrise || "",
+    dhuhr: out.dhuhr || "",
+    asr: out.asr || "",
+    maghrib: out.maghrib || "",
+    isha: out.isha || "",
+    date: "",
+    hijriDate: "",
+    provider: "aladhan",
+  };
+}
+
+function nextDayYmd(ymd: string): string {
+  const [y, m, d] = ymd.split("-").map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d + 1));
+  return `${dt.getUTCFullYear()}-${String(dt.getUTCMonth() + 1).padStart(2, "0")}-${String(dt.getUTCDate()).padStart(2, "0")}`;
+}
+
 /**
- * Prayer-Focus-Slide:
- * Da PrayerHeader bereits alle Zeiten kompakt oben zeigt, fokussiert dieser
- * Slide auf das nächste Gebet: Arabisch riesig + lokalisierter Name + Countdown.
+ * Prayer-Focus-Slide (Hero):
+ * Nächstes Gebet — Arabisch riesig + lokalisierter Name + Countdown.
+ *
+ * WICHTIG: Das "nächste" Gebet wird CLIENT-SEITIG live berechnet
+ * (getNextPrayerKey, identisch zur Rail/Homepage). Vorher kam der Wert
+ * statisch aus dem Server-Snapshot → bei lange offenem Tab driftete er
+ * (z.B. "Fajr" am Mittag). Jetzt single source of truth.
  */
 export function PrayerSlide({
   data,
   colors: _colors,
   showArabicPrayerNames,
   clientOffsetMs,
+  mosqueTimezone,
+  currentDateYmd,
 }: {
   data: TVPrayerSlideData;
   colors: TVColors;
   showArabicPrayerNames: boolean;
   clientOffsetMs: number;
+  mosqueTimezone: string;
+  currentDateYmd: string;
 }) {
   const { mode, currentLocale, secondary } = useTVLocale();
   const t = tvT(currentLocale);
   const tSec = mode === "bilingual" && secondary !== "none" ? tvT(secondary) : null;
   const [nowMs, setNowMs] = useState(() => Date.now() + clientOffsetMs);
 
+  const timesLookup = useMemo(() => buildTimesLookup(data.times), [data.times]);
+
   useEffect(() => {
     const i = setInterval(() => setNowMs(Date.now() + clientOffsetMs), 1000);
     return () => clearInterval(i);
   }, [clientOffsetMs]);
 
-  const remainingMs = data.nextPrayerAtMs ? data.nextPrayerAtMs - nowMs : 0;
-  const nextName = data.nextPrayer;
+  // Live nächstes Gebet + dessen Startzeit (UTC ms).
+  const { nextName, nextAtMs } = useMemo(() => {
+    const key = getNextPrayerKey(timesLookup, new Date(nowMs), mosqueTimezone) as TVPrayerName | null;
+    if (key) {
+      const time = timesLookup[key];
+      return { nextName: key, nextAtMs: time ? wallClockToUtcMs(currentDateYmd, time, mosqueTimezone) : null };
+    }
+    // Alle Gebete heute vorbei → Fajr des Folgetags
+    const fajr = timesLookup.fajr;
+    return {
+      nextName: "fajr" as TVPrayerName,
+      nextAtMs: fajr ? wallClockToUtcMs(nextDayYmd(currentDateYmd), fajr, mosqueTimezone) : null,
+    };
+  }, [timesLookup, nowMs, mosqueTimezone, currentDateYmd]);
+
+  const remainingMs = nextAtMs ? nextAtMs - nowMs : 0;
 
   if (!nextName) return null;
 
@@ -51,7 +100,7 @@ export function PrayerSlide({
       style={{
         display: "grid",
         placeItems: "center",
-        gap: "5vh",
+        gap: "4vh",
         textAlign: "center",
         width: "100%",
       }}
@@ -60,7 +109,6 @@ export function PrayerSlide({
         {mode === "bilingual" && tSec ? `${t.nextPrayer} · ${tSec.nextPrayer}` : t.nextPrayer}
       </div>
 
-      {/* Arabic giant */}
       {showArabicPrayerNames && (
         <div
           dir="rtl"
@@ -70,21 +118,19 @@ export function PrayerSlide({
             fontWeight: 700,
             color: "var(--accent)",
             lineHeight: 1,
-            textShadow: "0 0 60px var(--accent-glow)",
           }}
         >
           {ARABIC_PRAYER_NAMES[nextName]}
         </div>
       )}
 
-      {/* Localized name */}
       <div
         style={{
-          fontFamily: "var(--font-display)",
+          fontFamily: "var(--font-serif)",
           fontSize: "var(--t-xl)",
-          fontWeight: 700,
+          fontWeight: 600,
           color: "var(--text)",
-          letterSpacing: "-0.02em",
+          letterSpacing: "-0.01em",
         }}
       >
         {mode === "bilingual" && tSec ? (
@@ -98,9 +144,8 @@ export function PrayerSlide({
         )}
       </div>
 
-      {/* Countdown */}
       {remainingMs > 0 && (
-        <div style={{ display: "grid", placeItems: "center", gap: "1vh", marginTop: "2vh" }}>
+        <div style={{ display: "grid", placeItems: "center", gap: "1vh", marginTop: "1vh" }}>
           <div
             style={{
               fontFamily: "var(--font-mono)",
@@ -115,9 +160,8 @@ export function PrayerSlide({
           <div
             className="tv-stat"
             style={{
-              fontSize: "var(--t-hero)",
+              fontSize: "var(--t-2xl)",
               color: "var(--accent)",
-              textShadow: "0 0 50px var(--accent-glow)",
               lineHeight: 1,
             }}
           >
