@@ -311,6 +311,7 @@
   "mosque": {
     "dashboard": {
       "prayerTimes": "Bugünün Namaz Vakitleri",
+      "nextPrayer": "Sıradaki Namaz",
       "sabah": "SABAH NAMAZI",
       "sunrise": "GÜNEŞ",
       "posts": "Haberler",

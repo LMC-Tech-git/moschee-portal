@@ -3,9 +3,24 @@
 import { useEffect, useMemo, useState } from "react";
 import type { TVPrayerName, TVPrayerSlideData } from "@/types";
 import { getNextPrayerKey } from "@/lib/prayer/highlight";
+import { wallClockToUtcMs } from "@/app/[slug]/tv/active-prayer";
 import type { PrayerTimes } from "@/lib/prayer";
 import { tvT } from "./tv-i18n";
 import { useTVLocale } from "./LocaleAwareText";
+
+/** YYYY-MM-DD eines Zeitpunkts in der angegebenen IANA-Zeitzone. */
+function ymdInTz(date: Date, tz: string): string {
+  try {
+    return new Intl.DateTimeFormat("en-CA", {
+      timeZone: tz,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(date);
+  } catch {
+    return "";
+  }
+}
 
 const INTL_LOCALE: Record<string, string> = { de: "de-DE", tr: "tr-TR", ar: "ar", en: "en-GB" };
 
@@ -124,19 +139,57 @@ export function PrayerRail({
     return () => clearInterval(i);
   }, [clientOffsetMs, timesLookup, mosqueTimezone, nextKey]);
 
+  // Sekündlicher Countdown-Tick (server-korrigiert via clientOffsetMs).
+  const [nowMs, setNowMs] = useState(() => Date.now() + clientOffsetMs);
+  useEffect(() => {
+    const i = setInterval(() => setNowMs(Date.now() + clientOffsetMs), 1000);
+    return () => clearInterval(i);
+  }, [clientOffsetMs]);
+
+  // Ziel-Timestamp des nächsten Gebets (heute, oder morgen Fajr wenn alle vorbei).
+  const countdown = useMemo(() => {
+    if (!timesLookup) return null;
+    const name: TVPrayerName = nextKey ?? "fajr";
+    const time = timesLookup[name];
+    if (!time) return null;
+    const ymd = nextKey
+      ? ymdInTz(new Date(nowMs), mosqueTimezone)
+      : ymdInTz(new Date(nowMs + 86_400_000), mosqueTimezone);
+    const targetMs = wallClockToUtcMs(ymd, time, mosqueTimezone);
+    if (!Number.isFinite(targetMs)) return null;
+    const totalSec = Math.max(0, Math.floor((targetMs - nowMs) / 1000));
+    const pad = (n: number) => String(n).padStart(2, "0");
+    return {
+      name,
+      text: `${pad(Math.floor(totalSec / 3600))}:${pad(Math.floor((totalSec % 3600) / 60))}:${pad(totalSec % 60)}`,
+    };
+  }, [timesLookup, nextKey, nowMs, mosqueTimezone]);
+
   if (!prayerData) return null;
 
   return (
-    <div className="tv-rail">
-      {prayerData.times.map((p) => {
-        const isNext = nextKey === p.name;
-        return (
-          <div key={p.name} className={`tv-rail-cell${isNext ? " is-next" : ""}`}>
-            <div className="tv-prayer-name">{t.prayers[p.name]}</div>
-            <div className="tv-prayer-time">{p.time || "--:--"}</div>
-          </div>
-        );
-      })}
-    </div>
+    <>
+      {countdown && (
+        <div className="tv-countdown">
+          <span className="tv-countdown-label">
+            {t.nextPrayer}: {t.prayers[countdown.name]}
+          </span>
+          <span className="tv-countdown-time" aria-hidden="true">
+            {countdown.text}
+          </span>
+        </div>
+      )}
+      <div className="tv-rail">
+        {prayerData.times.map((p) => {
+          const isNext = nextKey === p.name;
+          return (
+            <div key={p.name} className={`tv-rail-cell${isNext ? " is-next" : ""}`}>
+              <div className="tv-prayer-name">{t.prayers[p.name]}</div>
+              <div className="tv-prayer-time">{p.time || "--:--"}</div>
+            </div>
+          );
+        })}
+      </div>
+    </>
   );
 }

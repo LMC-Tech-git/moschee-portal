@@ -194,6 +194,32 @@
    Gebets-Raster (Leiste unten)
    ───────────────────────────────────────────────────────────────────── */
 
+.tv-countdown {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 1.2vw;
+  padding: 0.8vh 1vw;
+  background: var(--accent, #2f6b4f);
+  color: #fff;
+  border-top: 1px solid var(--hairline-x);
+}
+.tv-countdown-label {
+  font-family: var(--font-serif);
+  font-size: var(--t-base);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  opacity: 0.92;
+}
+.tv-countdown-time {
+  font-family: var(--font-mono);
+  font-size: clamp(1.8rem, 4.6vh, 3.6rem);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
 .tv-rail {
   flex: 0 0 auto;
   height: 22vh;

@@ -311,6 +311,7 @@
   "mosque": {
     "dashboard": {
       "prayerTimes": "Heutige Gebetszeiten",
+      "nextPrayer": "Nächstes Gebet",
       "sabah": "SALATUL FADJR",
       "sunrise": "SHURUK",
       "posts": "Beiträge",

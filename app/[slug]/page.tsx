@@ -24,6 +24,7 @@ import type { PrayerTimes } from "@/lib/prayer";
 import { getNextPrayerKey, isPrayerPast } from "@/lib/prayer/highlight";
 import { isRamadanActive, prayerTimeToMs } from "@/lib/ramadan";
 import { IftarCountdown } from "@/components/prayer/IftarCountdown";
+import { NextPrayerCountdown } from "@/components/prayer/NextPrayerCountdown";
 import {
   getPublicPostsByMosque,
   getMemberPostsByMosque,
@@ -121,13 +122,38 @@ export default async function MosqueDashboard({
     ? getNextPrayerKey(prayerTimes, nowDate, mosqueTz)
     : null;
 
+  // Morgige Zeiten immer laden (für „alle heute vorbei → morgen Fajr" + Ramadan-Suhur).
+  // Diyanet/Mawaqit cachen den Monats-/Jahreskalender → günstig.
+  let tomorrowTimes: PrayerTimes | null = null;
+  if (prayerTimes) {
+    const tomorrow = new Date(nowDate);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrowTimes = await getPrayerTimesForDate(mosque.id, tomorrow, prayerConfig);
+  }
+
+  // ── Countdown zum nächsten Gebet (server-seitiges Ziel, Client tickt) ──────
+  const serverNowMs = Date.now();
+  let nextPrayerTargetMs = NaN;
+  let nextPrayerLabel = "";
+  if (prayerTimes) {
+    if (nextPrayerKey) {
+      nextPrayerTargetMs = prayerTimeToMs(
+        prayerTimes.date,
+        prayerTimes[nextPrayerKey as keyof PrayerTimes] as string,
+        mosqueTz
+      );
+      nextPrayerLabel = t(nextPrayerKey);
+    } else if (tomorrowTimes) {
+      // Alle Gebete heute vorbei → nächstes ist morgen Fajr.
+      nextPrayerTargetMs = prayerTimeToMs(tomorrowTimes.date, tomorrowTimes.fajr, mosqueTz);
+      nextPrayerLabel = t("fajr");
+    }
+  }
+
   // ── Ramadan-Modus: Suhur/Iftar-Countdown-Zeitstempel (server-seitig) ──────
   const ramadanActive = isRamadanActive(settings, nowDate, mosqueTz);
   let ramadanCountdown: { suhurMs: number; iftarMs: number; nextSuhurMs: number } | null = null;
   if (ramadanActive && prayerTimes) {
-    const tomorrow = new Date(nowDate);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const tomorrowTimes = await getPrayerTimesForDate(mosque.id, tomorrow, prayerConfig);
     ramadanCountdown = {
       suhurMs: prayerTimeToMs(prayerTimes.date, prayerTimes.fajr, mosqueTz),
       iftarMs: prayerTimeToMs(prayerTimes.date, prayerTimes.maghrib, mosqueTz),
@@ -199,12 +225,20 @@ export default async function MosqueDashboard({
                 <span className="text-sm text-gray-400 hidden sm:block">{prayerTimes.hijriDate}</span>
               )}
             </div>
-            {ramadanCountdown && (
+            {ramadanCountdown ? (
               <IftarCountdown
                 suhurMs={ramadanCountdown.suhurMs}
                 iftarMs={ramadanCountdown.iftarMs}
                 nextSuhurMs={ramadanCountdown.nextSuhurMs}
               />
+            ) : (
+              Number.isFinite(nextPrayerTargetMs) && (
+                <NextPrayerCountdown
+                  targetMs={nextPrayerTargetMs}
+                  serverNowMs={serverNowMs}
+                  prayerLabel={nextPrayerLabel}
+                />
+              )
             )}
             <div className="grid grid-cols-3 gap-2 sm:grid-cols-7">
               {PRAYER_LIST.map(({ key, label }) => {
