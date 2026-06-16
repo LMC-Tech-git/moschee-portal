@@ -40,7 +40,7 @@ export const TV_STRINGS: Record<TVLocale, Bundle> = {
     remaining: "Verbleibend",
     suhur: "Suhur",
     iftar: "Iftar",
-    prayers: { fajr: "FAJR", sabah: "SABAH", sunrise: "SHURUQ", dhuhr: "DHUHR", asr: "ASR", maghrib: "MAGHRIB", isha: "ISHA" },
+    prayers: { fajr: "FAJR", sabah: "SALATUL FAJR", sunrise: "SHURUQ", dhuhr: "DHUHR", asr: "ASR", maghrib: "MAGHRIB", isha: "ISHA" },
   },
   tr: {
     nextPrayer: "Sıradaki Namaz",
