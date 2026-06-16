@@ -93,10 +93,13 @@ export async function getPrayerTimesForDate(
   if (config.provider === "off") return null;
 
   // Tabellen-Provider (Diyanet/IGMG/Bosnisch): offizielle Zeiten je generischer Quell-ID.
+  // Tune wird hier BEWUSST NICHT angewandt: offizielle Tabellen sind autoritativ, und
+  // Alt-Offsets aus einer früheren AlAdhan-Konfiguration (settings.tune) dürfen die exakten
+  // Zeiten nicht verfälschen. Die Tuning-UI ist für Tabellen-Provider ohnehin ausgeblendet.
   const tableProvider = TABLE_PROVIDERS[config.provider];
   if (tableProvider) {
     if (!config.source_id) return null;
-    return tableProvider(mosqueId, date, config.source_id, config.tune);
+    return tableProvider(mosqueId, date, config.source_id, undefined);
   }
 
   // Mawaqit braucht keine Koordinaten/Methode, nur den Slug.
