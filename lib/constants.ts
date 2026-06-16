@@ -414,8 +414,13 @@ export function getBrandColor(
 // Gebetszeit-Provider
 // =========================================
 
+// Tabellen-Provider (offizielle Verbandszeiten je prayer_source_id) brauchen das
+// Quell-ID-Feld statt Koordinaten/Methode. Wird in der Admin-UI zum bedingten Rendern genutzt.
+export const TABLE_PRAYER_PROVIDERS = ["diyanet", "igmg", "bosnian"] as const;
+
 export const PRAYER_PROVIDERS = [
-  { value: "aladhan", label: "AlAdhan API (Diyanet/Türkei)" },
+  { value: "aladhan", label: "AlAdhan API (Berechnung, weltweit/arabisch)" },
+  { value: "diyanet", label: "Diyanet offiziell (exakte Tabelle, kein Account)" },
   { value: "mawaqit", label: "Mawaqit (Moschee-ID)" },
   { value: "off",     label: "Deaktiviert (kein Widget)" },
 ] as const;

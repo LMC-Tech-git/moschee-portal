@@ -5,15 +5,20 @@
 
 import { getAdminPB } from "@/lib/pocketbase-admin";
 
-const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 Stunden
+const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 Stunden (Default, z.B. AlAdhan/Mawaqit)
 
 /**
  * Liest den monatlichen Kalender-Cache aus PocketBase.
  * Gibt { data, stale } zurück, oder null wenn kein Eintrag.
+ *
+ * @param ttlMs - optionale TTL in Millisekunden (Default 24h). Tabellen-Provider mit
+ *   straffem Rate-Limit (z.B. Diyanet AwqatSalah) übergeben eine längere TTL, da sich
+ *   der Monatskalender ohnehin nicht täglich ändert.
  */
 export async function getCachedMonthlyCalendar(
   mosqueId: string,
-  monthKey: string
+  monthKey: string,
+  ttlMs: number = CACHE_TTL_MS
 ): Promise<{ data: unknown; stale: boolean } | null> {
   try {
     const pb = await getAdminPB();
@@ -24,7 +29,7 @@ export async function getCachedMonthlyCalendar(
       );
 
     const fetchedAt = new Date(record.fetched_at as string).getTime();
-    const stale = Date.now() - fetchedAt > CACHE_TTL_MS;
+    const stale = Date.now() - fetchedAt > ttlMs;
     const data = JSON.parse(record.calendar_json as string);
 
     return { data, stale };

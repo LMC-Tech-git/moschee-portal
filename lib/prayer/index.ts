@@ -6,18 +6,46 @@ import type { PrayerTimes, TuneOffsets } from "./types";
 import { DEFAULT_TUNE } from "./types";
 import { getAladhanPrayerTimes } from "./aladhan";
 import { getMawaqitPrayerTimes } from "./mawaqit";
+import { getDiyanetPrayerTimes } from "./diyanet";
 import type { Mosque, Settings } from "@/types";
 
 export type { PrayerTimes, TuneOffsets };
 export { DEFAULT_TUNE } from "./types";
 
+export type PrayerProvider =
+  | "aladhan"
+  | "diyanet"
+  | "igmg"
+  | "bosnian"
+  | "mawaqit"
+  | "off";
+
+/**
+ * Tabellen-basierte Provider: beziehen offizielle Verbandszeiten je generischer Quell-ID
+ * (settings.prayer_source_id). Einheitliche Signatur → Dispatch-Map, neuer Verband = neues
+ * Modul + 1 Map-Eintrag, kein Eingriff in die Layer-Logik.
+ */
+type TableProviderFn = (
+  mosqueId: string,
+  date: Date,
+  sourceId: string,
+  tune?: TuneOffsets
+) => Promise<PrayerTimes | null>;
+
+const TABLE_PROVIDERS: Partial<Record<PrayerProvider, TableProviderFn>> = {
+  diyanet: getDiyanetPrayerTimes,
+  // igmg:    getIgmgPrayerTimes,     // Folge-Ticket
+  // bosnian: getBosnianPrayerTimes,  // Folge-Ticket
+};
+
 /** Provider-Konfiguration (gebaut aus Mosque + Settings). */
 export interface PrayerConfig {
-  provider: "aladhan" | "mawaqit" | "off";
+  provider: PrayerProvider;
   method: number;
   latitude: number;
   longitude: number;
   mawaqit_mosque_id: string;
+  source_id: string;
   tune?: TuneOffsets;
 }
 
@@ -39,11 +67,12 @@ export function buildPrayerConfig(mosque: Mosque, settings: Settings): PrayerCon
   }
 
   return {
-    provider: (settings.prayer_provider as "aladhan" | "mawaqit" | "off") || "aladhan",
+    provider: (settings.prayer_provider as PrayerProvider) || "aladhan",
     method: settings.prayer_method || 13,
     latitude: mosque.latitude || 0,
     longitude: mosque.longitude || 0,
     mawaqit_mosque_id: settings.mawaqit_mosque_id || "",
+    source_id: settings.prayer_source_id || "",
     tune,
   };
 }
@@ -63,6 +92,13 @@ export async function getPrayerTimesForDate(
 ): Promise<PrayerTimes | null> {
   if (config.provider === "off") return null;
 
+  // Tabellen-Provider (Diyanet/IGMG/Bosnisch): offizielle Zeiten je generischer Quell-ID.
+  const tableProvider = TABLE_PROVIDERS[config.provider];
+  if (tableProvider) {
+    if (!config.source_id) return null;
+    return tableProvider(mosqueId, date, config.source_id, config.tune);
+  }
+
   // Mawaqit braucht keine Koordinaten/Methode, nur den Slug.
   if (config.provider === "mawaqit") {
     if (!config.mawaqit_mosque_id) return null;
@@ -74,9 +110,9 @@ export async function getPrayerTimesForDate(
     );
   }
 
-  if (!config.latitude || !config.longitude) return null;
-
+  // AlAdhan: braucht Koordinaten + Methode (astronomische Berechnung).
   if (config.provider === "aladhan") {
+    if (!config.latitude || !config.longitude) return null;
     return getAladhanPrayerTimes(
       mosqueId,
       date,

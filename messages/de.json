@@ -2015,6 +2015,14 @@
       "mawaqitIdDesc": "Kennung deiner Moschee bei Mawaqit. Die Zeiten werden direkt von Mawaqit übernommen.",
       "mawaqitIdPlaceholder": "z. B. grande-mosquee-de-paris",
       "mawaqitIdHelp": "Öffne deine Moschee-Seite auf mawaqit.net — die ID ist der letzte Teil der Adresse: mawaqit.net/en/<ID>. Genau diesen Teil hier eintragen.",
+      "sourceId": "Quell-ID (Bezirks-/Stadt-ID)",
+      "sourceIdDesc": "Kennung deines Standorts beim gewählten Verband. Die offiziellen Zeiten werden direkt aus der Verbands-Tabelle übernommen (kein Drift).",
+      "sourceIdPlaceholder": "z. B. 11028",
+      "sourceIdHelp": {
+        "diyanet": "Diyanet City-ID deines Ortes. Öffne namazvakitleri.diyanet.gov.tr, wähle deine Stadt — die Zahl in der Adresse ist die ID (z. B. Ulm: .../11028 → 11028). Kein Account nötig.",
+        "igmg": "IGMG-Standort-ID (folgt).",
+        "bosnian": "Vaktija-/Rijaset-Standort-ID (folgt)."
+      },
       "coordinates": "Standort-Koordinaten",
       "coordinatesDesc": "Breitengrad und Längengrad der Moschee für die genaue Berechnung.",
       "latitude": "Breitengrad (Latitude)",

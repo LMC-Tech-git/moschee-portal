@@ -2015,6 +2015,14 @@
       "mawaqitIdDesc": "Caminizin Mawaqit'teki kimliği. Vakitler doğrudan Mawaqit'ten alınır.",
       "mawaqitIdPlaceholder": "örn. grande-mosquee-de-paris",
       "mawaqitIdHelp": "Caminizin mawaqit.net sayfasını açın — kimlik, adresin son kısmıdır: mawaqit.net/en/<KİMLİK>. Tam olarak bu kısmı buraya girin.",
+      "sourceId": "Kaynak Kimliği (İlçe/Şehir Kimliği)",
+      "sourceIdDesc": "Seçilen kurumdaki konumunuzun kimliği. Resmî vakitler doğrudan kurumun tablosundan alınır (sapma olmaz).",
+      "sourceIdPlaceholder": "örn. 11028",
+      "sourceIdHelp": {
+        "diyanet": "Konumunuzun Diyanet şehir kimliği. namazvakitleri.diyanet.gov.tr adresini açın, şehrinizi seçin — adresteki sayı kimliktir (örn. Ulm: .../11028 → 11028). Hesap gerekmez.",
+        "igmg": "IGMG konum kimliği (yakında).",
+        "bosnian": "Vaktija/Rijaset konum kimliği (yakında)."
+      },
       "coordinates": "Konum Koordinatları",
       "coordinatesDesc": "Doğru hesaplama için caminin enlem ve boylamı.",
       "latitude": "Enlem (Latitude)",

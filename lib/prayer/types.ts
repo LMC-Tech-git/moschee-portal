@@ -4,7 +4,8 @@
 
 export interface PrayerTimes {
   fajr: string;     // "HH:mm"
-  sabah?: string;   // "HH:mm" — Salatul Fadjr / Sabah Namazı (Default: 30 Min vor sunrise)
+  imsak?: string;   // "HH:mm" — offizieller İmsak (Tabellen-Provider; bei Diyanet == fajr)
+  sabah?: string;   // "HH:mm" — Salatul Fadjr / Sabah Namazı (nur berechnete Provider, z.B. Mawaqit: 30 Min vor sunrise)
   sunrise: string;  // "HH:mm"
   dhuhr: string;    // "HH:mm"
   asr: string;      // "HH:mm"
@@ -12,7 +13,7 @@ export interface PrayerTimes {
   isha: string;     // "HH:mm"
   date: string;     // "YYYY-MM-DD"
   hijriDate: string; // z.B. "02 Sha'ban 1447"
-  provider: "aladhan" | "mawaqit";
+  provider: "aladhan" | "diyanet" | "igmg" | "bosnian" | "mawaqit";
 }
 
 export interface TuneOffsets {

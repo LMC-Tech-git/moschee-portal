@@ -45,6 +45,7 @@ export async function resolveMosqueSettings(
     prayer_provider: "aladhan",
     prayer_method: 13,
     mawaqit_mosque_id: "",
+    prayer_source_id: "",
     tune: "",
     ramadan_mode: false,
     ramadan_start: "",
