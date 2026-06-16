@@ -329,7 +329,7 @@
     0 0 0 1px var(--accent-hair),
     0 3vh 8vh -3vh rgba(28, 27, 23, 0.3);
   aspect-ratio: 1;
-  width: min(55vh, 55vw);
+  width: min(44vh, 44vw);
   display: grid;
   place-items: center;
 }

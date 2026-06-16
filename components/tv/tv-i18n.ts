@@ -40,7 +40,7 @@ export const TV_STRINGS: Record<TVLocale, Bundle> = {
     remaining: "Verbleibend",
     suhur: "Suhur",
     iftar: "Iftar",
-    prayers: { fajr: "Fajr", sabah: "Sabah", sunrise: "Sonnenaufgang", dhuhr: "Dhuhr", asr: "Asr", maghrib: "Maghrib", isha: "Isha" },
+    prayers: { fajr: "FADJR", sabah: "SALATUL FADJR", sunrise: "SHURUK", dhuhr: "DUHR", asr: "ASSR", maghrib: "MAGHRIB", isha: "ISHAA" },
   },
   tr: {
     nextPrayer: "Sıradaki Namaz",
@@ -58,7 +58,7 @@ export const TV_STRINGS: Record<TVLocale, Bundle> = {
     remaining: "Kalan Süre",
     suhur: "Sahur",
     iftar: "İftar",
-    prayers: { fajr: "İmsak", sabah: "Sabah", sunrise: "Güneş", dhuhr: "Öğle", asr: "İkindi", maghrib: "Akşam", isha: "Yatsı" },
+    prayers: { fajr: "İMSAK", sabah: "SABAH NAMAZI", sunrise: "GÜNEŞ", dhuhr: "ÖĞLE", asr: "İKİNDİ", maghrib: "AKŞAM", isha: "YATSI" },
   },
   ar: {
     nextPrayer: "الصلاة القادمة",

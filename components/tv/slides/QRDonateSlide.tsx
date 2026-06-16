@@ -20,9 +20,8 @@ export function QRDonateSlide({
       style={{
         display: "grid",
         placeItems: "center",
-        gap: "4vh",
+        gap: "3vh",
         width: "100%",
-        height: "100%",
       }}
     >
       <div style={{ textAlign: "center" }}>

@@ -300,7 +300,6 @@ export function TVClient({
 
           <PrayerRail
             prayerData={prayerData}
-            showArabicPrayerNames={showArabicPrayerNames}
             clientOffsetMs={clientOffsetMs}
             mosqueTimezone={timeContext.mosqueTimezone}
           />

@@ -5,7 +5,6 @@ import type { TVPrayerName, TVPrayerSlideData } from "@/types";
 import { getNextPrayerKey } from "@/lib/prayer/highlight";
 import type { PrayerTimes } from "@/lib/prayer";
 import { tvT } from "./tv-i18n";
-import { ARABIC_PRAYER_NAMES } from "@/app/[slug]/tv/active-prayer";
 import { useTVLocale } from "./LocaleAwareText";
 
 const INTL_LOCALE: Record<string, string> = { de: "de-DE", tr: "tr-TR", ar: "ar", en: "en-GB" };
@@ -91,18 +90,15 @@ export function TVTopBar({
  */
 export function PrayerRail({
   prayerData,
-  showArabicPrayerNames,
   clientOffsetMs,
   mosqueTimezone,
 }: {
   prayerData: TVPrayerSlideData | null;
-  showArabicPrayerNames: boolean;
   clientOffsetMs: number;
   mosqueTimezone: string;
 }) {
-  const { primary, secondary } = useTVLocale();
-  const tPrim = tvT(primary);
-  const tSec = secondary !== "none" && secondary !== primary ? tvT(secondary) : null;
+  const { currentLocale } = useTVLocale();
+  const t = tvT(currentLocale);
 
   const timesLookup = useMemo(
     () => (prayerData ? buildTimesLookup(prayerData.times) : null),
@@ -136,13 +132,7 @@ export function PrayerRail({
         const isNext = nextKey === p.name;
         return (
           <div key={p.name} className={`tv-rail-cell${isNext ? " is-next" : ""}`}>
-            {showArabicPrayerNames && (
-              <div className="tv-prayer-arabic">{ARABIC_PRAYER_NAMES[p.name]}</div>
-            )}
-            <div className="tv-prayer-name">{tPrim.prayers[p.name]}</div>
-            {tSec && (
-              <div className="tv-prayer-name-secondary">{tSec.prayers[p.name]}</div>
-            )}
+            <div className="tv-prayer-name">{t.prayers[p.name]}</div>
             <div className="tv-prayer-time">{p.time || "--:--"}</div>
           </div>
         );
