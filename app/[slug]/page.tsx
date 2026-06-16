@@ -240,7 +240,7 @@ export default async function MosqueDashboard({
                 />
               )
             )}
-            <div className="grid grid-cols-3 gap-2 sm:grid-cols-7">
+            <div className="flex flex-wrap justify-center gap-2 sm:grid sm:grid-cols-7">
               {PRAYER_LIST.map(({ key, label }) => {
                 const time = prayerTimes[key];
                 if (typeof time !== "string") return null;
@@ -257,18 +257,16 @@ export default async function MosqueDashboard({
                 return (
                   <div
                     key={key}
-                    className={`relative flex flex-col items-center gap-1.5 rounded-xl px-3 py-3 text-center transition-all ${
+                    className={`relative flex min-h-[5rem] basis-[calc((100%-1rem)/3)] flex-col items-center justify-center gap-1.5 rounded-xl px-3 py-3 text-center transition-all sm:basis-auto ${
                       isRamadanTile
                         ? "bg-amber-50 ring-2 ring-amber-500 shadow-sm"
                         : isNext
                         ? "bg-emerald-50 ring-2 ring-emerald-500 shadow-sm"
-                        : isPast
-                        ? "opacity-40 bg-gray-50"
                         : "bg-gray-50"
                     }`}
                   >
                     {isNext && !isRamadanTile && (
-                      <span className="absolute -top-1 -right-1 flex h-3 w-3" aria-hidden="true">
+                      <span className="absolute -top-1.5 -right-1.5 flex h-3 w-3" aria-hidden="true">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                         <span className="relative inline-flex h-3 w-3 rounded-full bg-emerald-500" />
                       </span>
@@ -284,7 +282,7 @@ export default async function MosqueDashboard({
                       {label}
                     </p>
                     <p className={`font-mono text-base font-bold tabular-nums leading-none ${
-                      isRamadanTile ? "text-amber-700" : isNext ? "text-emerald-600" : "text-gray-900"
+                      isRamadanTile ? "text-amber-700" : isNext ? "text-emerald-600" : isPast ? "text-gray-500" : "text-gray-900"
                     }`}>
                       {time}
                     </p>
