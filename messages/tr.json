@@ -312,7 +312,7 @@
     "dashboard": {
       "prayerTimes": "Bugünün Namaz Vakitleri",
       "nextPrayer": "Sıradaki Namaz",
-      "sabah": "SABAH NAMAZI",
+      "sabah": "SABAH",
       "sunrise": "GÜNEŞ",
       "posts": "Haberler",
       "noPosts": "Henüz haber yayımlanmadı.",
@@ -2225,7 +2225,7 @@
     },
     "prayer": {
       "fajr": "İMSAK",
-      "sabah": "SABAH NAMAZI",
+      "sabah": "SABAH",
       "sunrise": "GÜNEŞ",
       "dhuhr": "ÖĞLE",
       "asr": "İKİNDİ",
