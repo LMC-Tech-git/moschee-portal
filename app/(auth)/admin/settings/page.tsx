@@ -262,6 +262,7 @@ export default function AdminSettingsPage() {
               prayer_provider: updates.prayer_provider as SettingsType["prayer_provider"],
               mawaqit_mosque_id: updates.mawaqit_mosque_id,
               prayer_source_id: updates.prayer_source_id,
+              sabah_offset_minutes: updates.sabah_offset_minutes,
               tune: updates.tune,
               ramadan_mode: updates.ramadan_mode,
               ramadan_start: updates.ramadan_start,
@@ -950,6 +951,7 @@ function PrayerTab({
     prayer_provider: string;
     mawaqit_mosque_id: string;
     prayer_source_id: string;
+    sabah_offset_minutes: number;
     tune: string;
     lat: number | null;
     lon: number | null;
@@ -976,6 +978,9 @@ function PrayerTab({
   const [prayerMethod, setPrayerMethod] = useState(settings.prayer_method || 13);
   const [mawaqitMosqueId, setMawaqitMosqueId] = useState(settings.mawaqit_mosque_id || "");
   const [prayerSourceId, setPrayerSourceId] = useState(settings.prayer_source_id || "");
+  const [sabahOffset, setSabahOffset] = useState<string>(
+    String(settings.sabah_offset_minutes ?? -30)
+  );
   const [latitude, setLatitude] = useState(
     mosque.latitude ? String(mosque.latitude) : ""
   );
@@ -1026,11 +1031,16 @@ function PrayerTab({
     setStatus(null);
 
     const tuneJson = JSON.stringify(tune);
+    const sabahOffsetNum = (() => {
+      const n = parseInt(sabahOffset.trim(), 10);
+      return Number.isNaN(n) ? -30 : n;
+    })();
     const result = await updatePrayerSettings(mosqueId, userId, {
       prayer_method: prayerMethod,
       prayer_provider: prayerProvider,
       mawaqit_mosque_id: mawaqitMosqueId.trim(),
       prayer_source_id: prayerSourceId.trim(),
+      sabah_offset_minutes: sabahOffsetNum,
       tune: tuneJson,
       latitude: lat,
       longitude: lon,
@@ -1042,7 +1052,7 @@ function PrayerTab({
     setIsSaving(false);
     if (result.success) {
       setStatus({ type: "success", message: t("prayer.saved") });
-      onSaved({ prayer_method: prayerMethod, prayer_provider: prayerProvider, mawaqit_mosque_id: mawaqitMosqueId.trim(), prayer_source_id: prayerSourceId.trim(), tune: tuneJson, lat, lon, ramadan_mode: ramadanMode, ramadan_start: ramadanStart, ramadan_end: ramadanEnd });
+      onSaved({ prayer_method: prayerMethod, prayer_provider: prayerProvider, mawaqit_mosque_id: mawaqitMosqueId.trim(), prayer_source_id: prayerSourceId.trim(), sabah_offset_minutes: sabahOffsetNum, tune: tuneJson, lat, lon, ramadan_mode: ramadanMode, ramadan_start: ramadanStart, ramadan_end: ramadanEnd });
     } else {
       setStatus({ type: "error", message: result.error || t("prayer.saved") });
     }
@@ -1078,6 +1088,32 @@ function PrayerTab({
           ))}
         </div>
       </SectionCard>
+
+      {prayerProvider !== "off" && (
+        <SectionCard
+          title={t("prayer.sabahTitle")}
+          description={t("prayer.sabahDesc")}
+        >
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">
+              {t("prayer.sabahOffsetLabel")}
+            </label>
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                inputMode="numeric"
+                step={1}
+                value={sabahOffset}
+                onChange={(e) => setSabahOffset(e.target.value)}
+                placeholder="-30"
+                className="w-28 rounded-lg border border-gray-300 px-3 py-2 text-sm font-mono focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+              />
+              <span className="text-sm text-gray-500">{t("prayer.tuningMin")}</span>
+            </div>
+            <p className="text-xs text-gray-500">{t("prayer.sabahOffsetHelp")}</p>
+          </div>
+        </SectionCard>
+      )}
 
       {prayerProvider === "mawaqit" && (
         <SectionCard

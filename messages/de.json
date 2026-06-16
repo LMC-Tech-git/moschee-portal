@@ -2023,6 +2023,10 @@
         "igmg": "IGMG-Standort-ID (folgt).",
         "bosnian": "Vaktija-/Rijaset-Standort-ID (folgt)."
       },
+      "sabahTitle": "Salatul Fadjr / Sabah-Namazı",
+      "sabahDesc": "Zeitpunkt des Morgengebets relativ zum Sonnenaufgang — gilt für alle Provider.",
+      "sabahOffsetLabel": "Versatz zum Sonnenaufgang",
+      "sabahOffsetHelp": "Minuten relativ zum Sonnenaufgang (Shuruk). Negativ = davor: z. B. -30 = 30 Minuten vor Sonnenaufgang. Gilt unabhängig vom gewählten Provider.",
       "coordinates": "Standort-Koordinaten",
       "coordinatesDesc": "Breitengrad und Längengrad der Moschee für die genaue Berechnung.",
       "latitude": "Breitengrad (Latitude)",

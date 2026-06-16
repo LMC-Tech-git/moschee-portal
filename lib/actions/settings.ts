@@ -163,6 +163,7 @@ export async function updatePrayerSettings(
     prayer_provider: string;
     mawaqit_mosque_id: string;
     prayer_source_id: string;
+    sabah_offset_minutes: number;
     tune: string;
     latitude: number | null;
     longitude: number | null;
@@ -191,6 +192,7 @@ export async function updatePrayerSettings(
       prayer_provider: data.prayer_provider,
       mawaqit_mosque_id: data.mawaqit_mosque_id,
       prayer_source_id: data.prayer_source_id,
+      sabah_offset_minutes: data.sabah_offset_minutes,
       tune: data.tune,
       ramadan_mode: data.ramadan_mode,
       ramadan_start: data.ramadan_start,
@@ -315,6 +317,7 @@ export async function getPortalSettings(mosqueId: string): Promise<{
         prayer_method: 13,
         mawaqit_mosque_id: "",
         prayer_source_id: "",
+        sabah_offset_minutes: -30,
         tune: "",
         ramadan_mode: false,
         ramadan_start: "",

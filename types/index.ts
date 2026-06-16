@@ -97,7 +97,8 @@ export interface Settings {
   prayer_method: number;              // Aladhan method (default: 13 = Diyanet) — nur bei provider="aladhan"
   mawaqit_mosque_id: string;          // Slug aus https://mawaqit.net/en/<slug> (nur bei provider="mawaqit")
   prayer_source_id: string;           // Generische Quell-ID für Tabellen-Provider (Diyanet City-Id / IGMG-Id / Bosnisch-Vaktija-Id)
-  tune: string;                       // JSON: TuneOffsets (Minuten-Offsets je Gebet)
+  sabah_offset_minutes: number;       // Salatul Fadjr / Sabah relativ zu Sonnenaufgang (z.B. -30 = 30 Min davor) — provider-unabhängig
+  tune: string;                       // JSON: TuneOffsets (Minuten-Offsets je Gebet, nur AlAdhan/Mawaqit)
   ramadan_mode: boolean;              // Ramadan-Modus: Suhur/Iftar hervorheben + Countdown
   ramadan_start: string;              // ISO date (optional) — leer = Auto-Erkennung (Hijri-Monat 9)
   ramadan_end: string;                // ISO date (optional)

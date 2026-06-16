@@ -46,7 +46,20 @@ export interface PrayerConfig {
   longitude: number;
   mawaqit_mosque_id: string;
   source_id: string;
+  /** Sabah/Salatul-Fadjr-Offset in Minuten relativ zu Sonnenaufgang (z.B. -30 = 30 Min davor). Provider-unabhängig. */
+  sabah_offset_minutes: number;
   tune?: TuneOffsets;
+}
+
+/** Default-Sabah-Offset: 30 Minuten vor Sonnenaufgang. */
+export const DEFAULT_SABAH_OFFSET = -30;
+
+/** Addiert (signierte) Minuten auf eine "HH:mm"-Zeit, mit Tagesumbruch-Normalisierung. */
+function addMinutesToTime(time: string, offsetMinutes: number): string {
+  const [h, m] = time.split(":").map(Number);
+  if (Number.isNaN(h) || Number.isNaN(m)) return time;
+  const total = ((h * 60 + m + offsetMinutes) % 1440 + 1440) % 1440;
+  return `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
 }
 
 /**
@@ -73,6 +86,10 @@ export function buildPrayerConfig(mosque: Mosque, settings: Settings): PrayerCon
     longitude: mosque.longitude || 0,
     mawaqit_mosque_id: settings.mawaqit_mosque_id || "",
     source_id: settings.prayer_source_id || "",
+    sabah_offset_minutes:
+      typeof settings.sabah_offset_minutes === "number"
+        ? settings.sabah_offset_minutes
+        : DEFAULT_SABAH_OFFSET,
     tune,
   };
 }
@@ -92,6 +109,25 @@ export async function getPrayerTimesForDate(
 ): Promise<PrayerTimes | null> {
   if (config.provider === "off") return null;
 
+  const times = await fetchFromProvider(mosqueId, date, config);
+  if (!times) return null;
+
+  // Sabah / Salatul Fadjr provider-UNABHÄNGIG aus Sonnenaufgang ableiten.
+  // Jede Moschee stellt den Offset selbst ein (sabah_offset_minutes, z.B. -30 = 30 Min vor Shuruk).
+  // Überschreibt bewusst etwaige provider-interne Sabah-Werte → einheitliches Verhalten.
+  if (times.sunrise) {
+    times.sabah = addMinutesToTime(times.sunrise, config.sabah_offset_minutes);
+  }
+
+  return times;
+}
+
+/** Ruft den konfigurierten Provider auf (ohne Sabah-Nachbearbeitung). */
+async function fetchFromProvider(
+  mosqueId: string,
+  date: Date,
+  config: PrayerConfig
+): Promise<PrayerTimes | null> {
   // Tabellen-Provider (Diyanet/IGMG/Bosnisch): offizielle Zeiten je generischer Quell-ID.
   // Tune wird hier BEWUSST NICHT angewandt: offizielle Tabellen sind autoritativ, und
   // Alt-Offsets aus einer früheren AlAdhan-Konfiguration (settings.tune) dürfen die exakten

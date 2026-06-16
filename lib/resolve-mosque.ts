@@ -46,6 +46,7 @@ export async function resolveMosqueSettings(
     prayer_method: 13,
     mawaqit_mosque_id: "",
     prayer_source_id: "",
+    sabah_offset_minutes: -30,
     tune: "",
     ramadan_mode: false,
     ramadan_start: "",

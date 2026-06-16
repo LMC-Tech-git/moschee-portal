@@ -2023,6 +2023,10 @@
         "igmg": "IGMG konum kimliği (yakında).",
         "bosnian": "Vaktija/Rijaset konum kimliği (yakında)."
       },
+      "sabahTitle": "Sabah Namazı / Salatul Fadjr",
+      "sabahDesc": "Sabah namazının güneşe göre zamanı — tüm sağlayıcılar için geçerlidir.",
+      "sabahOffsetLabel": "Güneşe göre kaydırma",
+      "sabahOffsetHelp": "Güneşe (Şuruk) göre dakika. Negatif = öncesi: örn. -30 = güneşten 30 dakika önce. Seçilen sağlayıcıdan bağımsız geçerlidir.",
       "coordinates": "Konum Koordinatları",
       "coordinatesDesc": "Doğru hesaplama için caminin enlem ve boylamı.",
       "latitude": "Enlem (Latitude)",
