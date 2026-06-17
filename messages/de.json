@@ -471,8 +471,20 @@
     "paymentMethodTitle": "Zahlungsmethode",
     "paymentMethodCard": "Kartenzahlung",
     "paymentMethodSepa": "SEPA-Lastschrift",
+    "paymentMethodTransfer": "Überweisung",
     "sepaTestHint": "<strong>Test-IBAN:</strong> DE08 3704 0044 0532 0130 03 — Zahlung wechselt nach ~3 Min. auf erfolgreich.",
-    "sepaLiveHint": "SEPA-Lastschrift dauert 3–5 Werktage. Sie erhalten eine Bestätigung sobald die Zahlung verarbeitet wurde."
+    "sepaLiveHint": "SEPA-Lastschrift dauert 3–5 Werktage. Sie erhalten eine Bestätigung sobald die Zahlung verarbeitet wurde.",
+    "transferTitle": "Überweisungs-QR-Code",
+    "transferScanHint": "Mit der Banking-App scannen — IBAN, Empfänger, Betrag und Verwendungszweck werden automatisch ausgefüllt. Sie müssen nur noch senden.",
+    "transferUnavailable": "QR-Code derzeit nicht verfügbar.",
+    "transferHolder": "Empfänger",
+    "transferIban": "IBAN",
+    "transferBic": "BIC",
+    "transferAmount": "Betrag",
+    "transferPurpose": "Verwendungszweck",
+    "transferCopy": "Kopieren",
+    "transferCopied": "Kopiert",
+    "transferPurposeDefault": "Spende {mosque}"
   },
   "eventCard": {
     "recurring": "Wiederkehrend",
@@ -1640,6 +1652,7 @@
       "update_finance_settings": "Finanz-Einstellungen aktualisiert",
       "update_contact_settings": "Kontaktformular-Einstellungen aktualisiert",
       "update_recurring_donation_settings": "Dauerauftrag-Einstellungen aktualisiert",
+      "update_bank_transfer_settings": "Überweisungs-Einstellungen aktualisiert",
       "update_tv_settings": "TV-Anzeige aktualisiert",
       "push_sent": "Push-Benachrichtigung gesendet",
       "push_unsubscribe": "Push-Benachrichtigung abbestellt",
@@ -1853,6 +1866,7 @@
       "payouts": "Auszahlungen",
       "madrasa": "Madrasa",
       "recurring": "Daueraufträge",
+      "banktransfer": "Überweisung",
       "sponsors": "Förderpartner",
       "team": "Team",
       "contact": "Kontaktformular",
@@ -1860,6 +1874,20 @@
       "email": "E-Mail",
       "membership": "Mitgliedsbeiträge",
       "tv": "TV-Anzeige"
+    },
+    "bankTransfer": {
+      "title": "Überweisungs-QR-Code (Girocode)",
+      "desc": "Spender scannen einen QR-Code mit ihrer Banking-App; IBAN, Empfänger, Betrag und Verwendungszweck werden automatisch ausgefüllt. Keine Gebühren, kein Zahlungsanbieter.",
+      "enableLabel": "Überweisung per QR-Code auf der Spendenseite anbieten",
+      "holderLabel": "Kontoinhaber",
+      "holderPlaceholder": "z. B. Moscheeverein e.V.",
+      "ibanLabel": "IBAN",
+      "ibanInvalid": "Diese IBAN ist ungültig. Bitte Eingabe prüfen.",
+      "bicLabel": "BIC (optional)",
+      "bicHint": "Bei deutschen IBANs nicht zwingend nötig.",
+      "infoHint": "Hinweis: Überweisungen werden nicht automatisch erfasst. Bitte den Zahlungseingang manuell in der Buchhaltung verbuchen.",
+      "saved": "Überweisungs-Einstellungen gespeichert.",
+      "saveError": "Überweisungs-Einstellungen konnten nicht gespeichert werden."
     },
     "verein": {
       "title": "Vereinsangaben für Spendenbescheinigungen",

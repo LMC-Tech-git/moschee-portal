@@ -143,6 +143,11 @@ export interface Settings {
   kassenbuch_bank_start_cents: number;   // Anfangsbestand Bank im Startjahr
   // SEPA-Lastschrift Opt-In pro Moschee
   sepa_enabled: boolean;
+  // Überweisungs-QR (EPC069-12 / Girocode) — manuelle Banküberweisung
+  bank_transfer_enabled: boolean;
+  bank_iban: string;
+  bank_bic: string;
+  bank_holder: string;
   // Vereinsangaben für Spendenbescheinigungen (BMF-konform)
   verein_anschrift: string;            // Mehrzeilige Anschrift (Fallback: Moschee-Adresse)
   verein_steuernummer: string;         // Steuernummer des Vereins
@@ -178,6 +183,7 @@ export const TV_MODULE_KEYS = [
   "posts",
   "campaigns",
   "qr_donate",
+  "qr_transfer",
   "announcement",
 ] as const;
 export type TVModuleKey = (typeof TV_MODULE_KEYS)[number];
@@ -243,6 +249,7 @@ export type TVSlide =
   | { type: "posts"; data: TVPostItem[] }
   | { type: "campaigns"; data: TVCampaignItem[] }
   | { type: "qr_donate"; data: { url: string; svg: string } }
+  | { type: "qr_transfer"; data: { svg: string; iban: string; holder: string } }
   | { type: "announcement"; data: { textPrimary: string; textSecondary: string } }
   | { type: "active_prayer"; data: { prayer: TVPrayerName; arabicName: string; startedAtMs: number } };
 

@@ -66,9 +66,10 @@ const DEFAULT_FORM: TVForm = {
     posts: true,
     campaigns: false,
     qr_donate: false,
+    qr_transfer: false,
     announcement: false,
   },
-  tv_slide_order: ["prayer", "events", "posts", "announcement", "campaigns", "qr_donate"],
+  tv_slide_order: ["prayer", "events", "posts", "announcement", "campaigns", "qr_donate", "qr_transfer"],
   tv_module_counts: { events: 3, posts: 1, campaigns: 1 },
   tv_rotation_seconds: 15,
   tv_locale_mode: "single",
@@ -96,6 +97,7 @@ const MODULE_LABELS: Record<TVModuleKey, { de: string; icon: string }> = {
   posts:        { de: "Beiträge", icon: "📝" },
   campaigns:    { de: "Spendenaktionen", icon: "🎯" },
   qr_donate:    { de: "Spendenlink (QR)", icon: "📲" },
+  qr_transfer:  { de: "Überweisung (QR)", icon: "🏦" },
   announcement: { de: "Ankündigung", icon: "📢" },
 };
 

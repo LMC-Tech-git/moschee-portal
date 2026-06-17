@@ -273,6 +273,11 @@ export default async function DonatePage({
             sepaEnabled={sepaAvailable(mosque, settings)}
             isTestMode={mosque.payments_mode === "connect_test"}
             isDemoMode={isDemoMosque}
+            bankTransferEnabled={!!settings.bank_transfer_enabled && !!settings.bank_iban}
+            bankIban={settings.bank_iban || ""}
+            bankBic={settings.bank_bic || ""}
+            bankHolder={settings.bank_holder || ""}
+            mosqueName={mosque.name}
           />
         </div>
       </div>

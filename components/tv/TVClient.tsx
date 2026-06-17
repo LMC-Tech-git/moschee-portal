@@ -10,6 +10,7 @@ import { EventsSlide } from "./slides/EventsSlide";
 import { PostsSlide } from "./slides/PostsSlide";
 import { CampaignsSlide } from "./slides/CampaignsSlide";
 import { QRDonateSlide } from "./slides/QRDonateSlide";
+import { QRTransferSlide } from "./slides/QRTransferSlide";
 import { AnnouncementSlide } from "./slides/AnnouncementSlide";
 import { ActivePrayerSlide } from "./slides/ActivePrayerSlide";
 import { ARABIC_PRAYER_NAMES } from "@/app/[slug]/tv/active-prayer";
@@ -339,6 +340,8 @@ function renderSlide(
       return <CampaignsSlide data={slide.data} colors={colors} />;
     case "qr_donate":
       return <QRDonateSlide data={slide.data} colors={colors} />;
+    case "qr_transfer":
+      return <QRTransferSlide data={slide.data} colors={colors} />;
     case "announcement":
       return <AnnouncementSlide data={slide.data} colors={colors} />;
     default:

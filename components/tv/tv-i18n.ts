@@ -12,6 +12,7 @@ type Bundle = {
   currentCampaign: string;
   currentCampaigns: string;
   donateCta: string;
+  transferCta: string;
   welcome: string;
   noEvents: string;
   raisedOfGoal: string;
@@ -32,6 +33,7 @@ export const TV_STRINGS: Record<TVLocale, Bundle> = {
     currentCampaign: "Aktuelle Kampagne",
     currentCampaigns: "Aktuelle Kampagnen",
     donateCta: "Zum Spenden scannen",
+    transferCta: "Per Überweisung spenden",
     welcome: "Herzlich willkommen",
     noEvents: "Keine bevorstehenden Veranstaltungen",
     raisedOfGoal: "{raised} von {goal}",
@@ -50,6 +52,7 @@ export const TV_STRINGS: Record<TVLocale, Bundle> = {
     currentCampaign: "Güncel Kampanya",
     currentCampaigns: "Güncel Kampanyalar",
     donateCta: "Bağış İçin Tarayın",
+    transferCta: "Havale ile Bağış",
     welcome: "Hoş Geldiniz",
     noEvents: "Yaklaşan Etkinlik Yok",
     raisedOfGoal: "{raised} / {goal}",
@@ -68,6 +71,7 @@ export const TV_STRINGS: Record<TVLocale, Bundle> = {
     currentCampaign: "الحملة الحالية",
     currentCampaigns: "الحملات الحالية",
     donateCta: "امسح للتبرع",
+    transferCta: "التبرع عبر التحويل البنكي",
     welcome: "أهلاً وسهلاً",
     noEvents: "لا توجد فعاليات قادمة",
     raisedOfGoal: "{raised} من {goal}",
@@ -86,6 +90,7 @@ export const TV_STRINGS: Record<TVLocale, Bundle> = {
     currentCampaign: "Current campaign",
     currentCampaigns: "Current campaigns",
     donateCta: "Scan to donate",
+    transferCta: "Donate via bank transfer",
     welcome: "Welcome",
     noEvents: "No upcoming events",
     raisedOfGoal: "{raised} of {goal}",

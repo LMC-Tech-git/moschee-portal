@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Settings, Palette, Clock, Sliders, Save, RotateCcw, Upload, X, Check, ChevronDown, ChevronUp, GraduationCap, Mail, CheckCircle, AlertCircle, Send, Handshake, Users, MessageSquare, ExternalLink, Repeat, Wallet, FileText, Banknote, Tv } from "lucide-react";
+import { Settings, Palette, Clock, Sliders, Save, RotateCcw, Upload, X, Check, ChevronDown, ChevronUp, GraduationCap, Mail, CheckCircle, AlertCircle, Send, Handshake, Users, MessageSquare, ExternalLink, Repeat, Wallet, FileText, Banknote, Tv, QrCode } from "lucide-react";
 import { useMosque } from "@/lib/mosque-context";
 import { useAuth } from "@/lib/auth-context";
 import {
@@ -24,9 +24,13 @@ import {
   updateTeamSettings,
   updateContactSettings,
   updateVereinSettings,
+  getBankTransferSettings,
+  updateBankTransferSettings,
+  type BankTransferSettings,
   getResendStatus,
 } from "@/lib/actions/settings";
 import type { PbSmtpSettings } from "@/lib/actions/settings";
+import { isValidIban } from "@/lib/epc-qr";
 import { sendTestEmailAction } from "@/lib/actions/email";
 import { THEME_PRESETS, PRAYER_METHODS, PRAYER_PROVIDERS, TABLE_PRAYER_PROVIDERS } from "@/lib/constants";
 import type { TuneOffsets } from "@/lib/prayer";
@@ -45,6 +49,7 @@ const TABS = [
   { id: "payouts", icon: Wallet },
   { id: "madrasa", icon: GraduationCap },
   { id: "recurring", icon: Repeat },
+  { id: "banktransfer", icon: QrCode },
   { id: "membership", icon: Banknote },
   { id: "sponsors", icon: Handshake },
   { id: "team", icon: Users },
@@ -153,14 +158,22 @@ export default function AdminSettingsPage() {
     membership_default_interval: "monthly",
   });
 
+  const [bankTransferSettings, setBankTransferSettings] = useState<BankTransferSettings>({
+    bank_transfer_enabled: false,
+    bank_iban: "",
+    bank_bic: "",
+    bank_holder: "",
+  });
+
   useEffect(() => {
     if (!mosqueId) return;
     async function load() {
-      const [portalResult, feeResult, recResult, memResult] = await Promise.all([
+      const [portalResult, feeResult, recResult, memResult, bankResult] = await Promise.all([
         getPortalSettings(mosqueId),
         getMadrasaFeeSettings(mosqueId),
         getRecurringDonationSettings(mosqueId),
         getMembershipFeeSettings(mosqueId),
+        getBankTransferSettings(mosqueId),
       ]);
       if (portalResult.success && portalResult.mosque && portalResult.settings) {
         setMosque(portalResult.mosque);
@@ -186,6 +199,9 @@ export default function AdminSettingsPage() {
       }
       if (memResult.success && memResult.data) {
         setMembershipSettings(memResult.data);
+      }
+      if (bankResult.success && bankResult.data) {
+        setBankTransferSettings(bankResult.data);
       }
       setIsLoading(false);
     }
@@ -301,6 +317,14 @@ export default function AdminSettingsPage() {
           settings={recurringSettings}
           donationProvider={mosque.donation_provider}
           onSaved={(updated) => setRecurringSettings({ ...recurringSettings, ...updated })}
+        />
+      )}
+      {activeTab === "banktransfer" && (
+        <BankTransferTab
+          mosqueId={mosqueId}
+          userId={user?.id || ""}
+          settings={bankTransferSettings}
+          onSaved={(updated) => setBankTransferSettings(updated)}
         />
       )}
       {activeTab === "membership" && (
@@ -2628,6 +2652,134 @@ function VereinTab({
             type="button"
             onClick={handleSave}
             disabled={isSaving}
+            className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+          >
+            <Save className="h-4 w-4" />
+            {isSaving ? t("saving") : t("save")}
+          </button>
+        </div>
+      </SectionCard>
+    </div>
+  );
+}
+
+// =========================================
+// Tab: Überweisungs-QR (EPC / Girocode)
+// =========================================
+
+function BankTransferTab({
+  mosqueId,
+  userId,
+  settings,
+  onSaved,
+}: {
+  mosqueId: string;
+  userId: string;
+  settings: BankTransferSettings;
+  onSaved: (updated: BankTransferSettings) => void;
+}) {
+  const t = useTranslations("settings");
+  const [enabled, setEnabled] = useState(settings.bank_transfer_enabled);
+  const [iban, setIban] = useState(settings.bank_iban);
+  const [bic, setBic] = useState(settings.bank_bic);
+  const [holder, setHolder] = useState(settings.bank_holder);
+  const [isSaving, setIsSaving] = useState(false);
+  const [status, setStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
+
+  // Live-IBAN-Hinweis (Server validiert zusätzlich)
+  const ibanTrimmed = iban.trim();
+  const ibanValid = ibanTrimmed.length === 0 || isValidIban(ibanTrimmed);
+
+  async function handleSave() {
+    setIsSaving(true);
+    setStatus(null);
+    const payload: BankTransferSettings = {
+      bank_transfer_enabled: enabled,
+      bank_iban: iban.trim(),
+      bank_bic: bic.trim(),
+      bank_holder: holder.trim(),
+    };
+    const result = await updateBankTransferSettings(mosqueId, userId, payload);
+    if (result.success) {
+      onSaved(payload);
+      setStatus({ type: "success", message: t("bankTransfer.saved") });
+    } else {
+      setStatus({ type: "error", message: result.error || t("bankTransfer.saveError") });
+    }
+    setIsSaving(false);
+  }
+
+  const inputCls =
+    "w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20";
+
+  return (
+    <div className="space-y-6">
+      <StatusMessage status={status} />
+      <SectionCard title={t("bankTransfer.title")} description={t("bankTransfer.desc")}>
+        <div className="space-y-5">
+          <label className="flex cursor-pointer items-start gap-3">
+            <input
+              type="checkbox"
+              checked={enabled}
+              onChange={(e) => setEnabled(e.target.checked)}
+              className="mt-0.5 h-4 w-4 cursor-pointer rounded accent-emerald-600"
+            />
+            <span className="text-sm text-gray-700">{t("bankTransfer.enableLabel")}</span>
+          </label>
+
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+            <div className="sm:col-span-2">
+              <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                {t("bankTransfer.holderLabel")}
+              </label>
+              <input
+                type="text"
+                value={holder}
+                onChange={(e) => setHolder(e.target.value)}
+                placeholder={t("bankTransfer.holderPlaceholder")}
+                className={inputCls}
+              />
+            </div>
+
+            <div className="sm:col-span-2">
+              <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                {t("bankTransfer.ibanLabel")}
+              </label>
+              <input
+                type="text"
+                value={iban}
+                onChange={(e) => setIban(e.target.value)}
+                placeholder="DE00 0000 0000 0000 0000 00"
+                className={`${inputCls} font-mono ${!ibanValid ? "border-red-400 focus:border-red-500 focus:ring-red-500/20" : ""}`}
+              />
+              {!ibanValid && (
+                <p className="mt-1 text-xs text-red-600">{t("bankTransfer.ibanInvalid")}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                {t("bankTransfer.bicLabel")}
+              </label>
+              <input
+                type="text"
+                value={bic}
+                onChange={(e) => setBic(e.target.value)}
+                placeholder="ABCDDEFFXXX"
+                className={`${inputCls} font-mono`}
+              />
+              <p className="mt-1 text-xs text-gray-500">{t("bankTransfer.bicHint")}</p>
+            </div>
+          </div>
+
+          <p className="rounded-lg bg-blue-50 px-3 py-2.5 text-xs text-blue-700">
+            {t("bankTransfer.infoHint")}
+          </p>
+
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={isSaving || (enabled && !ibanValid)}
             className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
           >
             <Save className="h-4 w-4" />

@@ -470,8 +470,20 @@
     "paymentMethodTitle": "Ödeme yöntemi",
     "paymentMethodCard": "Kart ile ödeme",
     "paymentMethodSepa": "SEPA Otomatik Ödeme",
+    "paymentMethodTransfer": "Havale",
     "sepaTestHint": "<strong>Test IBAN:</strong> DE08 3704 0044 0532 0130 03 — ödeme yaklaşık 3 dakika sonra başarılı olur.",
-    "sepaLiveHint": "SEPA otomatik ödeme 3–5 iş günü sürer. Ödeme tamamlandığında onay alacaksınız."
+    "sepaLiveHint": "SEPA otomatik ödeme 3–5 iş günü sürer. Ödeme tamamlandığında onay alacaksınız.",
+    "transferTitle": "Havale QR Kodu",
+    "transferScanHint": "Bankacılık uygulamanızla tarayın — IBAN, alıcı, tutar ve açıklama otomatik doldurulur. Yalnızca göndermeniz yeterli.",
+    "transferUnavailable": "QR kodu şu anda kullanılamıyor.",
+    "transferHolder": "Alıcı",
+    "transferIban": "IBAN",
+    "transferBic": "BIC",
+    "transferAmount": "Tutar",
+    "transferPurpose": "Açıklama",
+    "transferCopy": "Kopyala",
+    "transferCopied": "Kopyalandı",
+    "transferPurposeDefault": "Bağış {mosque}"
   },
   "eventCard": {
     "recurring": "Tekrarlayan",
@@ -1639,6 +1651,7 @@
       "update_finance_settings": "Finans ayarları güncellendi",
       "update_contact_settings": "İletişim formu ayarları güncellendi",
       "update_recurring_donation_settings": "Düzenli bağış ayarları güncellendi",
+      "update_bank_transfer_settings": "Havale ayarları güncellendi",
       "update_tv_settings": "TV Ekranı güncellendi",
       "push_sent": "Push bildirimi gönderildi",
       "push_unsubscribe": "Push bildirimi aboneliği iptal edildi",
@@ -1852,6 +1865,7 @@
       "payouts": "Ödemeler",
       "madrasa": "Medrese",
       "recurring": "Düzenli Bağışlar",
+      "banktransfer": "Havale",
       "sponsors": "Destek Ortakları",
       "team": "Ekip",
       "contact": "İletişim Formu",
@@ -1859,6 +1873,20 @@
       "email": "E-posta",
       "membership": "Üyelik aidatları",
       "tv": "TV Ekranı"
+    },
+    "bankTransfer": {
+      "title": "Havale QR Kodu (Girocode)",
+      "desc": "Bağışçılar bankacılık uygulamasıyla bir QR kodu tarar; IBAN, alıcı, tutar ve açıklama otomatik doldurulur. Komisyon yok, ödeme sağlayıcı yok.",
+      "enableLabel": "Bağış sayfasında QR kodu ile havale seçeneği sun",
+      "holderLabel": "Hesap sahibi",
+      "holderPlaceholder": "örn. Cami Derneği e.V.",
+      "ibanLabel": "IBAN",
+      "ibanInvalid": "Bu IBAN geçersiz. Lütfen kontrol edin.",
+      "bicLabel": "BIC (isteğe bağlı)",
+      "bicHint": "Alman IBAN'ları için zorunlu değildir.",
+      "infoHint": "Not: Havaleler otomatik kaydedilmez. Lütfen gelen ödemeyi muhasebeye elle işleyin.",
+      "saved": "Havale ayarları kaydedildi.",
+      "saveError": "Havale ayarları kaydedilemedi."
     },
     "verein": {
       "title": "Bağış makbuzları için dernek bilgileri",

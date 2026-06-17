@@ -10,13 +10,14 @@ import type { Mosque, Settings, TVSlide, TVPrayerSlideData, TVModuleKey } from "
 import type { TVSettingsResolved } from "@/lib/actions/settings";
 import { computeActivePrayer, wallClockToUtcMs } from "./active-prayer";
 import { isRamadanActive } from "@/lib/ramadan";
+import { buildGirocodeString, normalizeIban } from "@/lib/epc-qr";
 
 const POCKETBASE_URL = process.env.NEXT_PUBLIC_POCKETBASE_URL || "";
 
-async function generateQrSvg(url: string): Promise<string> {
+async function generateQrSvg(payload: string): Promise<string> {
   try {
     const mod = await import("qrcode");
-    const svg = await mod.toString(url, {
+    const svg = await mod.toString(payload, {
       type: "svg",
       errorCorrectionLevel: "M",
       margin: 1,
@@ -108,6 +109,18 @@ export async function buildTVSlides(input: BuildSlidesInput): Promise<BuildSlide
     qrSvg = await generateQrSvg(donateUrl);
   }
 
+  // Überweisungs-QR (EPC / Girocode) — statisch, ohne Betrag
+  let transferSvg = "";
+  if (tv.tv_modules.qr_transfer && settings.bank_transfer_enabled && settings.bank_iban) {
+    const epcString = buildGirocodeString({
+      name: settings.bank_holder || mosque.name,
+      iban: settings.bank_iban,
+      bic: settings.bank_bic || undefined,
+      remittance: `Spende ${mosque.name}`,
+    });
+    if (epcString) transferSvg = await generateQrSvg(epcString);
+  }
+
   // Slides nach tv_slide_order aufbauen
   const slides: TVSlide[] = [];
   for (const key of tv.tv_slide_order) {
@@ -168,6 +181,20 @@ export async function buildTVSlides(input: BuildSlidesInput): Promise<BuildSlide
         type: "qr_donate",
         data: { url: donateUrl, svg: qrSvg },
       });
+      continue;
+    }
+
+    if (key === "qr_transfer") {
+      if (transferSvg) {
+        slides.push({
+          type: "qr_transfer",
+          data: {
+            svg: transferSvg,
+            iban: normalizeIban(settings.bank_iban).replace(/(.{4})/g, "$1 ").trim(),
+            holder: settings.bank_holder || mosque.name,
+          },
+        });
+      }
       continue;
     }
 

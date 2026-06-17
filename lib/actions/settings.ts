@@ -12,6 +12,7 @@ import {
 import { assertFinanceAccess } from "@/lib/finance-permissions";
 import { validateTVColors } from "@/lib/color-contrast";
 import { getBrandColor } from "@/lib/constants";
+import { isValidIban, normalizeIban } from "@/lib/epc-qr";
 import type { Mosque, Settings, TVColors, TVModules, TVModuleCounts, TVModuleKey } from "@/types";
 import { TV_MODULE_KEYS } from "@/types";
 
@@ -354,14 +355,18 @@ export async function getPortalSettings(mosqueId: string): Promise<{
         kassenbuch_bar_start_cents: 0,
         kassenbuch_bank_start_cents: 0,
         sepa_enabled: true,
+        bank_transfer_enabled: false,
+        bank_iban: "",
+        bank_bic: "",
+        bank_holder: "",
         verein_anschrift: "",
         verein_steuernummer: "",
         freistellungsbescheid_text: "",
         verein_foerderzweck: "",
         // TV defaults
         tv_enabled: false,
-        tv_modules: JSON.stringify({ prayer: true, events: true, posts: true, campaigns: false, qr_donate: false, announcement: false }),
-        tv_slide_order: JSON.stringify(["prayer", "events", "posts", "announcement", "campaigns", "qr_donate"]),
+        tv_modules: JSON.stringify({ prayer: true, events: true, posts: true, campaigns: false, qr_donate: false, qr_transfer: false, announcement: false }),
+        tv_slide_order: JSON.stringify(["prayer", "events", "posts", "announcement", "campaigns", "qr_donate", "qr_transfer"]),
         tv_module_counts: JSON.stringify({ events: 3, posts: 1, campaigns: 1 }),
         tv_rotation_seconds: 15,
         tv_locale_mode: "single",
@@ -1010,6 +1015,108 @@ export async function updateVereinSettings(
 }
 
 // =========================================
+// Überweisungs-QR (EPC069-12 / Girocode)
+// =========================================
+
+export interface BankTransferSettings {
+  bank_transfer_enabled: boolean;
+  bank_iban: string;
+  bank_bic: string;
+  bank_holder: string;
+}
+
+export async function getBankTransferSettings(mosqueId: string): Promise<{
+  success: boolean;
+  data?: BankTransferSettings;
+  error?: string;
+}> {
+  try {
+    const pb = await getAdminPB();
+    let record: Record<string, unknown> | null = null;
+    try {
+      record = await pb
+        .collection("settings")
+        .getFirstListItem(`mosque_id = "${mosqueId}"`);
+    } catch {
+      // Kein Settings-Record → Defaults
+    }
+    return {
+      success: true,
+      data: {
+        bank_transfer_enabled: (record?.bank_transfer_enabled as boolean) || false,
+        bank_iban: (record?.bank_iban as string) || "",
+        bank_bic: (record?.bank_bic as string) || "",
+        bank_holder: (record?.bank_holder as string) || "",
+      },
+    };
+  } catch (error) {
+    console.error("[settings] getBankTransferSettings:", error);
+    return { success: false, error: "Einstellungen konnten nicht geladen werden." };
+  }
+}
+
+export async function updateBankTransferSettings(
+  mosqueId: string,
+  userId: string,
+  data: BankTransferSettings
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    // IBAN serverseitig per mod-97 prüfen → Admin-Tippfehler fällt sofort auf,
+    // nicht erst beim Spender mit kaputtem QR-Code.
+    if (data.bank_transfer_enabled) {
+      if (!data.bank_iban?.trim()) {
+        return { success: false, error: "Bitte eine IBAN angeben, wenn Überweisung aktiviert ist." };
+      }
+      if (!isValidIban(data.bank_iban)) {
+        return { success: false, error: "Ungültige IBAN. Bitte Eingabe prüfen." };
+      }
+      if (!data.bank_holder?.trim()) {
+        return { success: false, error: "Bitte den Kontoinhaber angeben." };
+      }
+    }
+
+    const pb = await getAdminPB();
+
+    let settingsId: string | null = null;
+    try {
+      const record = await pb
+        .collection("settings")
+        .getFirstListItem(`mosque_id = "${mosqueId}"`);
+      settingsId = record.id;
+    } catch {
+      // Kein Settings-Record
+    }
+
+    const payload = {
+      mosque_id: mosqueId,
+      bank_transfer_enabled: data.bank_transfer_enabled,
+      bank_iban: normalizeIban(data.bank_iban),
+      bank_bic: (data.bank_bic || "").replace(/\s+/g, "").toUpperCase(),
+      bank_holder: (data.bank_holder || "").trim(),
+    };
+
+    if (settingsId) {
+      await pb.collection("settings").update(settingsId, payload);
+    } else {
+      await pb.collection("settings").create(payload);
+    }
+
+    await logAudit({
+      mosqueId,
+      userId,
+      action: "update_bank_transfer_settings",
+      entityType: "settings",
+      entityId: settingsId || mosqueId,
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("[settings] updateBankTransferSettings:", error);
+    return { success: false, error: "Überweisungs-Einstellungen konnten nicht gespeichert werden." };
+  }
+}
+
+// =========================================
 // Zahlungsarten-Einstellungen (PayPal)
 // =========================================
 
@@ -1222,6 +1329,7 @@ const DEFAULT_TV_MODULES: TVModules = {
   posts: true,
   campaigns: false,
   qr_donate: false,
+  qr_transfer: false,
   announcement: false,
 };
 
@@ -1232,6 +1340,7 @@ const DEFAULT_TV_SLIDE_ORDER: TVModuleKey[] = [
   "announcement",
   "campaigns",
   "qr_donate",
+  "qr_transfer",
 ];
 
 const DEFAULT_TV_MODULE_COUNTS: TVModuleCounts = {
@@ -1272,7 +1381,7 @@ function normalizeTVSlideOrder(raw: unknown): TVModuleKey[] {
   for (const k of DEFAULT_TV_SLIDE_ORDER) {
     if (!filtered.includes(k)) filtered.push(k);
   }
-  return filtered.slice(0, 6);
+  return filtered.slice(0, 7);
 }
 
 function normalizeTVModuleCounts(raw: unknown): TVModuleCounts {

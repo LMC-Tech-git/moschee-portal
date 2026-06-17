@@ -1935,6 +1935,11 @@ async function seedSettings() {
     recurring_donations_enabled: true,
     recurring_min_cents: 1000,
     recurring_quick_amounts: "1000,2000,5000,10000",
+    // Überweisungs-QR (EPC / Girocode) — Test-IBAN
+    bank_transfer_enabled: true,
+    bank_iban: "DE89370400440532013000",
+    bank_bic: "COBADEFFXXX",
+    bank_holder: "DITIB Moschee Demo e.V.",
     // Finanzmodul (Sprint 4/6): aktiviert + Kassenbuch-Startwerte (ab 2024)
     finance_enabled: true,
     kassenbuch_start_year: 2024,
@@ -1955,9 +1960,10 @@ async function seedSettings() {
       posts: true,
       campaigns: true,
       qr_donate: true,
+      qr_transfer: true,
       announcement: true,
     }),
-    tv_slide_order: JSON.stringify(["prayer", "events", "posts", "announcement", "campaigns", "qr_donate"]),
+    tv_slide_order: JSON.stringify(["prayer", "events", "posts", "announcement", "campaigns", "qr_donate", "qr_transfer"]),
     tv_module_counts: JSON.stringify({ events: 3, posts: 1, campaigns: 1 }),
     tv_rotation_seconds: 15,
     tv_locale_mode: "rotate",

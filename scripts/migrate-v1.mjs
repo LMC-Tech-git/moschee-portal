@@ -260,6 +260,14 @@ const SETTINGS_RECURRING_FIELDS = [
   { name: "recurring_quick_amounts", type: "text", options: { default: "1000,2000,5000,10000" } },
 ];
 
+// Überweisungs-QR (EPC069-12 / Girocode): Bankdaten für SEPA-QR-Codes auf der Spendenseite.
+const SETTINGS_BANK_TRANSFER_FIELDS = [
+  { name: "bank_transfer_enabled", type: "bool", options: { default: false } },
+  { name: "bank_iban", type: "text" },
+  { name: "bank_bic", type: "text" },
+  { name: "bank_holder", type: "text" },
+];
+
 // Finance V1 (Sprint 3): Hard-Lock-Periode für manuelle Buchungen.
 // Sperrt MANUAL_WRITE mit buchungsdatum ≤ Datum (canWrite, Plan §0). Events
 // bleiben immer schreibbar.
@@ -2302,6 +2310,18 @@ async function main() {
       console.log(`   ✅ settings (finance): ${financeFieldsToAdd.map((f) => f.name).join(", ")} hinzugefügt`);
     } else {
       console.log("   ⏭️  settings: alle Finance-Felder vorhanden");
+    }
+
+    // 18c. settings: Überweisungs-QR-Felder (bank_transfer_enabled, bank_iban, ...)
+    const settingsCol3 = (await getExistingCollections()).find((c) => c.name === "settings");
+    const existingFieldNames3 = (settingsCol3?.schema || []).map((f) => f.name);
+    const bankFieldsToAdd = SETTINGS_BANK_TRANSFER_FIELDS.filter((f) => !existingFieldNames3.includes(f.name));
+    if (bankFieldsToAdd.length > 0) {
+      const newSchema = [...(settingsCol3?.schema || []), ...bankFieldsToAdd];
+      await updateCollection("settings", { schema: newSchema });
+      console.log(`   ✅ settings (bank transfer): ${bankFieldsToAdd.map((f) => f.name).join(", ")} hinzugefügt`);
+    } else {
+      console.log("   ⏭️  settings: alle Überweisungs-Felder vorhanden");
     }
   }
 

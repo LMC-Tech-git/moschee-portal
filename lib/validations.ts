@@ -468,7 +468,7 @@ const tvHexColor = z.union([
   z.literal(""),
 ]);
 const tvLocale = z.enum(["de", "tr", "ar", "en"]);
-const tvModuleKey = z.enum(["prayer", "events", "posts", "campaigns", "qr_donate", "announcement"]);
+const tvModuleKey = z.enum(["prayer", "events", "posts", "campaigns", "qr_donate", "qr_transfer", "announcement"]);
 
 export const tvSettingsSchema = z
   .object({
@@ -479,9 +479,10 @@ export const tvSettingsSchema = z
       posts: z.boolean(),
       campaigns: z.boolean(),
       qr_donate: z.boolean(),
+      qr_transfer: z.boolean(),
       announcement: z.boolean(),
     }),
-    tv_slide_order: z.array(tvModuleKey).min(1).max(6),
+    tv_slide_order: z.array(tvModuleKey).min(1).max(7),
     tv_module_counts: z.object({
       prayer: z.number().int().min(1).max(10).optional(),
       events: z.number().int().min(1).max(10).optional(),

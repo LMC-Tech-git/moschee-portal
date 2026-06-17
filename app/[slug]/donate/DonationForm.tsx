@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { Heart, ExternalLink, UserCheck, ShieldCheck, CreditCard, Building2 } from "lucide-react";
+import { Heart, ExternalLink, UserCheck, ShieldCheck, CreditCard, Building2, QrCode } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useAuth } from "@/lib/auth-context";
 import { formatCurrencyCents } from "@/lib/utils";
 import { TurnstileWidget } from "@/components/shared/TurnstileWidget";
 import { DEMO_MOSQUE_ID } from "@/lib/demo";
+import { BankTransferCard } from "./BankTransferCard";
 import type { CampaignWithProgress } from "@/types";
 
 const DEFAULT_PRESET_AMOUNTS = [500, 1000, 2000, 5000, 10000]; // in Cents
@@ -29,11 +30,18 @@ interface DonationFormProps {
   // Stripe-Mode Hinweise (Test-IBAN-Hint vs Live-Hint)
   isTestMode?: boolean;
   isDemoMode?: boolean;
+  // Überweisungs-QR (EPC / Girocode) — provider-unabhängig
+  bankTransferEnabled?: boolean;
+  bankIban?: string;
+  bankBic?: string;
+  bankHolder?: string;
+  mosqueName?: string;
 }
 
 export function DonationForm({
   slug,
   mosqueId,
+  campaigns,
   preselectedCampaignId,
   donationProvider,
   externalDonationUrl,
@@ -46,6 +54,11 @@ export function DonationForm({
   sepaEnabled = false,
   isTestMode = false,
   isDemoMode = false,
+  bankTransferEnabled = false,
+  bankIban = "",
+  bankBic = "",
+  bankHolder = "",
+  mosqueName = "",
 }: DonationFormProps) {
   const oneOffPresets = (quickAmounts && quickAmounts.length > 0) ? quickAmounts : DEFAULT_PRESET_AMOUNTS;
   const recurringPresets = (recurringQuickAmounts && recurringQuickAmounts.length > 0)
@@ -64,7 +77,7 @@ export function DonationForm({
   const [donorName, setDonorName] = useState("");
   const [donorEmail, setDonorEmail] = useState("");
   const [coverFees, setCoverFees] = useState(false);
-  const [paymentMethodType, setPaymentMethodType] = useState<"card" | "sepa_debit">("card");
+  const [paymentMethodType, setPaymentMethodType] = useState<"card" | "sepa_debit" | "bank_transfer">("card");
   // Legacy-Alias für Demo-Banner (außerhalb Zahlungsmethoden-Logik)
   const isDemo = isDemoMode || (DEMO_MOSQUE_ID !== "" && mosqueId === DEMO_MOSQUE_ID);
   const [turnstileToken, setTurnstileToken] = useState("");
@@ -72,13 +85,20 @@ export function DonationForm({
   const [error, setError] = useState("");
 
   const isMonthly = mode === "monthly";
+  // Verwendungszweck für Überweisungs-QR (inkl. Kampagne, falls gewählt)
+  const selectedCampaign = campaigns.find((c) => c.id === campaignId);
+  const transferRemittance = selectedCampaign
+    ? `${t("transferPurposeDefault", { mosque: mosqueName })} - ${selectedCampaign.title}`
+    : t("transferPurposeDefault", { mosque: mosqueName });
   // Einheitliche Gebühren-Formel (Frontend = Backend)
   // Stripe EU-Schätzung: 1,5% + 0,25 €
   const adjustedCents = Math.ceil((amountCents + 25) / 0.985);
   const feeEstimateCents = adjustedCents - amountCents;
   const displayTotalCents = coverFees ? adjustedCents : amountCents;
   // Checkbox nur anzeigen wenn Betrag >= 200 ct (2€), sonst wäre Fixgebühr unverhältnismäßig
-  const showFeeCheckbox = amountCents >= 200 && !isMonthly;
+  const showBankTransfer = bankTransferEnabled && !isMonthly;
+  const isBankTransfer = showBankTransfer && paymentMethodType === "bank_transfer";
+  const showFeeCheckbox = amountCents >= 200 && !isMonthly && !isBankTransfer;
 
   // Vorausfüllen wenn eingeloggt
   useEffect(() => {
@@ -91,6 +111,19 @@ export function DonationForm({
   const handleTurnstileVerify = useCallback((token: string) => {
     setTurnstileToken(token);
   }, []);
+
+  // Überweisungs-QR ist provider-unabhängig: auch bei external/paypal/none anbieten.
+  // (Statischer QR ohne Betrag — Spender trägt Betrag in der Banking-App ein.)
+  const bankTransferSection = bankTransferEnabled ? (
+    <div className="mt-6 border-t border-gray-200 pt-6 text-left">
+      <BankTransferCard
+        iban={bankIban}
+        bic={bankBic}
+        holder={bankHolder}
+        remittance={transferRemittance}
+      />
+    </div>
+  ) : null;
 
   // Externe Spende (PayPal Link oder externe URL)
   if (donationProvider === "external" && externalDonationUrl) {
@@ -109,6 +142,7 @@ export function DonationForm({
           <ExternalLink className="h-5 w-5" />
           {externalDonationLabel || t("donateNow")}
         </a>
+        {bankTransferSection}
       </div>
     );
   }
@@ -129,6 +163,7 @@ export function DonationForm({
           <ExternalLink className="h-5 w-5" />
           {t("paypalBtn")}
         </a>
+        {bankTransferSection}
       </div>
     );
   }
@@ -143,6 +178,7 @@ export function DonationForm({
         <p className="mt-2 text-sm text-gray-400">
           {t("disabledHint")}
         </p>
+        {bankTransferSection}
       </div>
     );
   }
@@ -279,6 +315,7 @@ export function DonationForm({
                 setAmountCents(recurringPresets[Math.floor(recurringPresets.length / 2)] ?? 1000);
                 setCustomAmount("");
                 setCoverFees(false);
+                if (paymentMethodType === "bank_transfer") setPaymentMethodType("card");
               }}
               className={`rounded-lg border px-4 py-2.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
                 mode === "monthly"
@@ -417,13 +454,13 @@ export function DonationForm({
         )}
       </div>
 
-      {/* Zahlungsmethode — sichtbar wenn SEPA aktiv (Demo + Connect identisch) */}
-      {sepaEnabled && (
+      {/* Zahlungsmethode — sichtbar wenn SEPA und/oder Überweisung verfügbar */}
+      {(sepaEnabled || showBankTransfer) && (
         <div>
           <p className="mb-2 text-sm font-medium text-gray-700">
             {t("paymentMethodTitle")}
           </p>
-          <div className="grid grid-cols-2 gap-2" role="group" aria-label={t("paymentMethodTitle")}>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3" role="group" aria-label={t("paymentMethodTitle")}>
             <button
               type="button"
               onClick={() => setPaymentMethodType("card")}
@@ -436,18 +473,34 @@ export function DonationForm({
               <CreditCard className="h-4 w-4" aria-hidden="true" />
               {t("paymentMethodCard")}
             </button>
-            <button
-              type="button"
-              onClick={() => setPaymentMethodType("sepa_debit")}
-              className={`flex items-center justify-center gap-2 rounded-lg border px-4 py-3 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
-                paymentMethodType === "sepa_debit"
-                  ? "border-emerald-500 bg-emerald-50 text-emerald-700"
-                  : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
-              }`}
-            >
-              <Building2 className="h-4 w-4" aria-hidden="true" />
-              {t("paymentMethodSepa")}
-            </button>
+            {sepaEnabled && (
+              <button
+                type="button"
+                onClick={() => setPaymentMethodType("sepa_debit")}
+                className={`flex items-center justify-center gap-2 rounded-lg border px-4 py-3 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
+                  paymentMethodType === "sepa_debit"
+                    ? "border-emerald-500 bg-emerald-50 text-emerald-700"
+                    : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+                }`}
+              >
+                <Building2 className="h-4 w-4" aria-hidden="true" />
+                {t("paymentMethodSepa")}
+              </button>
+            )}
+            {showBankTransfer && (
+              <button
+                type="button"
+                onClick={() => setPaymentMethodType("bank_transfer")}
+                className={`flex items-center justify-center gap-2 rounded-lg border px-4 py-3 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
+                  paymentMethodType === "bank_transfer"
+                    ? "border-emerald-500 bg-emerald-50 text-emerald-700"
+                    : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+                }`}
+              >
+                <QrCode className="h-4 w-4" aria-hidden="true" />
+                {t("paymentMethodTransfer")}
+              </button>
+            )}
           </div>
           {paymentMethodType === "sepa_debit" && (isTestMode || isDemoMode) && (
             <p className="mt-2 rounded-lg bg-blue-50 px-3 py-2 text-xs text-blue-700">
@@ -462,40 +515,55 @@ export function DonationForm({
         </div>
       )}
 
-      <TurnstileWidget onVerify={handleTurnstileVerify} />
+      {isBankTransfer ? (
+        <>
+          {/* Überweisung: QR statt Online-Checkout — kein Turnstile/Stripe nötig */}
+          <BankTransferCard
+            iban={bankIban}
+            bic={bankBic}
+            holder={bankHolder}
+            remittance={transferRemittance}
+            amountCents={amountCents}
+          />
+        </>
+      ) : (
+        <>
+          <TurnstileWidget onVerify={handleTurnstileVerify} />
 
-      {/* Submit */}
-      <button
-        type="button"
-        onClick={handleStripeCheckout}
-        disabled={isSubmitting || amountCents < 100}
-        className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-6 py-3 text-lg font-bold text-white shadow-lg transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        {isSubmitting ? (
-          t("submitting")
-        ) : (
-          <>
-            <Heart className="h-5 w-5" />
-            {coverFees
-              ? `Jetzt ${formatCurrencyCents(displayTotalCents)} spenden`
-              : t("submitBtn")}
-          </>
-        )}
-      </button>
+          {/* Submit */}
+          <button
+            type="button"
+            onClick={handleStripeCheckout}
+            disabled={isSubmitting || amountCents < 100}
+            className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-6 py-3 text-lg font-bold text-white shadow-lg transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {isSubmitting ? (
+              t("submitting")
+            ) : (
+              <>
+                <Heart className="h-5 w-5" />
+                {coverFees
+                  ? `Jetzt ${formatCurrencyCents(displayTotalCents)} spenden`
+                  : t("submitBtn")}
+              </>
+            )}
+          </button>
 
-      {/* Transparenz-Hinweis */}
-      <div className="flex items-start gap-2 rounded-lg border border-emerald-100 bg-emerald-50 px-3 py-2.5">
-        <ShieldCheck className="mt-0.5 h-4 w-4 flex-shrink-0 text-emerald-600" />
-        <p className="text-xs text-emerald-800">
-          {coverFees
-            ? "Sie übernehmen die Transaktionskosten, sodass der Spendenbetrag nahezu vollständig bei der Moschee ankommt."
-            : "Moschee.App erhebt keine Provision. Ihre Zahlung wird direkt an die Moschee weitergeleitet. Es können lediglich Gebühren des Zahlungsanbieters (Stripe) anfallen."}
-        </p>
-      </div>
+          {/* Transparenz-Hinweis */}
+          <div className="flex items-start gap-2 rounded-lg border border-emerald-100 bg-emerald-50 px-3 py-2.5">
+            <ShieldCheck className="mt-0.5 h-4 w-4 flex-shrink-0 text-emerald-600" />
+            <p className="text-xs text-emerald-800">
+              {coverFees
+                ? "Sie übernehmen die Transaktionskosten, sodass der Spendenbetrag nahezu vollständig bei der Moschee ankommt."
+                : "Moschee.App erhebt keine Provision. Ihre Zahlung wird direkt an die Moschee weitergeleitet. Es können lediglich Gebühren des Zahlungsanbieters (Stripe) anfallen."}
+            </p>
+          </div>
 
-      <p className="text-center text-xs text-gray-400">
-        {t("securePayment")}
-      </p>
+          <p className="text-center text-xs text-gray-400">
+            {t("securePayment")}
+          </p>
+        </>
+      )}
     </div>
   );
 }
