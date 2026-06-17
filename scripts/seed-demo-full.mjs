@@ -2106,6 +2106,69 @@ async function seedMembershipFees(memberIds) {
   console.log(`  ✅ ${cfgCount} Konfigurationen, ${feeCount} Ledger-Einträge, 1 Auto-Sub\n`);
 }
 
+// ─── Rechts-Zustimmungen (legal_acceptances) ─────────────────────────────────
+
+async function seedLegalAcceptances(adminId, memberIds) {
+  console.log("📜 Vertragsannahmen (legal_acceptances)...");
+  await deleteAllForMosque("legal_acceptances");
+
+  const now = new Date().toISOString();
+  const DEMO_HASH = "a".repeat(64); // Platzhalter (SHA-256 Länge) — kein echter Text-Hash im Seed
+  let created = 0;
+
+  // 1) Vorstand-Ebene: Admin akzeptiert Nutzungsvereinbarung + AVV für die Gemeinde
+  const mosqueDocs = ["nutzungsvereinbarung", "avv"];
+  for (const docType of mosqueDocs) {
+    await pbCreate("legal_acceptances", {
+      mosque_id: MOSQUE_ID,
+      user_id: adminId,
+      scope: "mosque",
+      legal_basis: "contract",
+      doc_type: docType,
+      doc_version: 1,
+      doc_hash: DEMO_HASH,
+      doc_locale: "de",
+      accepted_at: now,
+      ip_hash: DEMO_HASH,
+      accepter_name: "Demo Admin",
+      accepter_email: "demo-admin@moschee.app",
+      accepter_role: "1. Vorsitzender",
+      user_agent: "seed-demo-full.mjs",
+    }).catch(() => {});
+    created++;
+  }
+
+  // 2) Nutzer-Ebene: Admin + alle Mitglieder akzeptieren AGB + Datenschutz
+  const userDocs = [
+    { doc_type: "agb", legal_basis: "contract" },
+    { doc_type: "datenschutz", legal_basis: "notice" },
+  ];
+  const allUserIds = [adminId, ...(memberIds || [])].filter(Boolean);
+  for (const userId of allUserIds) {
+    for (const { doc_type, legal_basis } of userDocs) {
+      await pbCreate("legal_acceptances", {
+        mosque_id: MOSQUE_ID,
+        user_id: userId,
+        scope: "user",
+        legal_basis,
+        doc_type,
+        doc_version: 1,
+        doc_hash: DEMO_HASH,
+        doc_locale: "de",
+        accepted_at: now,
+        ip_hash: DEMO_HASH,
+        accepter_name: "Demo Nutzer",
+        accepter_email: "",
+        accepter_role: "",
+        user_agent: "seed-demo-full.mjs",
+      }).catch(() => {});
+      created++;
+    }
+  }
+
+  console.log(`  ✅ ${created} Vertragsannahmen (Vorstand + ${allUserIds.length} Nutzer)\n`);
+}
+
 async function main() {
   console.log("🌱 seed-demo-full.mjs gestartet");
   console.log("   PocketBase: " + PB_URL);
@@ -2134,6 +2197,7 @@ async function main() {
   await seedSprint5Finance();
   await seedRecurringSubscriptions(users.memberIds);
   await seedMembershipFees(users.memberIds);
+  await seedLegalAcceptances(users.admin, users.memberIds);
 
   console.log("✅ Demo-Seed abgeschlossen!");
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");

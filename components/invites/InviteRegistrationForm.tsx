@@ -318,13 +318,21 @@ export function InviteRegistrationForm({
               <label htmlFor="privacy" className="text-sm text-gray-600">
                 Ich akzeptiere die{" "}
                 <Link
+                  href="/agb"
+                  className="text-emerald-600 hover:text-emerald-700"
+                  target="_blank"
+                >
+                  AGB
+                </Link>{" "}
+                und habe die{" "}
+                <Link
                   href="/datenschutz"
                   className="text-emerald-600 hover:text-emerald-700"
                   target="_blank"
                 >
                   Datenschutzerklärung
-                </Link>
-                .
+                </Link>{" "}
+                zur Kenntnis genommen.
               </label>
             </div>
           </CardContent>

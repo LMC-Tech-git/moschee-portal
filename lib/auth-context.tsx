@@ -50,6 +50,8 @@ interface RegisterData {
   last_name: string;
   member_no?: string;
   mosque_id: string;
+  /** Aktuelle UI-Sprache — für den Hash der akzeptierten Rechtstext-Fassung. */
+  locale?: string;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);

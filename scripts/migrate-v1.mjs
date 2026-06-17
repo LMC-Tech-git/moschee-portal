@@ -729,6 +729,34 @@ const PUSH_SUBSCRIPTIONS_COLLECTION = {
   ],
 };
 
+// Rechtstext-Zustimmungen (Vertragsannahmen) — nachweisbarer Audit-Trail.
+// WICHTIG: user_id OHNE cascadeDelete — der Beweis muss eine User-Löschung
+// überleben (Streitfälle entstehen nach Account-Ende). Daher Name/E-Mail-Snapshot.
+const LEGAL_ACCEPTANCES_COLLECTION = {
+  name: "legal_acceptances",
+  type: "base",
+  schema: [
+    { name: "mosque_id", type: "relation", required: true, options: { collectionId: "", maxSelect: 1 } },
+    { name: "user_id", type: "relation", options: { collectionId: "", maxSelect: 1 } },
+    { name: "scope", type: "select", required: true, options: { values: ["mosque", "user"], maxSelect: 1 } },
+    { name: "legal_basis", type: "select", required: true, options: { values: ["contract", "notice"], maxSelect: 1 } },
+    { name: "doc_type", type: "select", required: true, options: { values: ["agb", "datenschutz", "nutzungsvereinbarung", "avv"], maxSelect: 1 } },
+    { name: "doc_version", type: "number", required: true, options: { min: 1 } },
+    { name: "doc_hash", type: "text", options: { max: 128 } },
+    { name: "doc_locale", type: "text", options: { max: 8 } },
+    { name: "accepted_at", type: "date" },
+    { name: "ip_hash", type: "text", options: { max: 128 } },
+    { name: "accepter_name", type: "text", options: { max: 200 } },
+    { name: "accepter_email", type: "text", options: { max: 200 } },
+    { name: "accepter_role", type: "text", options: { max: 120 } },
+    { name: "user_agent", type: "text", options: { max: 400 } },
+  ],
+  indexes: [
+    "CREATE INDEX idx_legal_acc_lookup ON legal_acceptances (mosque_id, scope, doc_type)",
+    "CREATE INDEX idx_legal_acc_user ON legal_acceptances (user_id)",
+  ],
+};
+
 // --- Felder für bestehende Collections ---
 
 const MOSQUES_NEW_FIELDS = [
@@ -1533,6 +1561,7 @@ async function main() {
     FINANCE_SOURCE_EVENTS_COLLECTION,
     TRANSACTIONS_COLLECTION,
     FINANCE_SEQUENCES_COLLECTION,
+    LEGAL_ACCEPTANCES_COLLECTION,
   ];
 
   for (const colDef of newCollections) {

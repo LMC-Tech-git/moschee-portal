@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import {
   UserPlus,
   Mail,
@@ -31,6 +31,7 @@ import {
 
 export default function RegisterPage() {
   const t = useTranslations();
+  const locale = useLocale();
   const router = useRouter();
   const { register } = useAuth();
   const { mosqueId, isLoading: mosqueLoading } = useMosque();
@@ -108,6 +109,7 @@ export default function RegisterPage() {
         last_name: formData.last_name,
         member_no: formData.member_no || undefined,
         mosque_id: mosqueId || "",
+        locale,
       });
       toast.success(t("register.success"));
       router.push("/member/profile");
@@ -296,14 +298,26 @@ export default function RegisterPage() {
                 disabled={isLoading}
               />
               <label htmlFor="agb" className="text-sm text-gray-600">
-                Ich akzeptiere die{" "}
-                <Link href="/agb" className="text-emerald-600 hover:text-emerald-700" target="_blank">
-                  {t("register.agbLink")}
-                </Link>{" "}
-                und{" "}
-                <Link href="/datenschutz" className="text-emerald-600 hover:text-emerald-700" target="_blank">
-                  {t("register.privacyLink")}
-                </Link>.
+                {t.rich("register.acceptTerms", {
+                  agb: (chunks) => (
+                    <Link
+                      href="/agb"
+                      className="text-emerald-600 hover:text-emerald-700"
+                      target="_blank"
+                    >
+                      {chunks}
+                    </Link>
+                  ),
+                  privacy: (chunks) => (
+                    <Link
+                      href="/datenschutz"
+                      className="text-emerald-600 hover:text-emerald-700"
+                      target="_blank"
+                    >
+                      {chunks}
+                    </Link>
+                  ),
+                })}
               </label>
             </div>
           </CardContent>

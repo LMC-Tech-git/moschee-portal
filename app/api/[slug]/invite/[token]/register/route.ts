@@ -5,6 +5,7 @@ import { checkRateLimit, hashIP, getRateLimitHeaders } from "@/lib/rate-limit";
 import { verifyTurnstileToken } from "@/lib/turnstile";
 import { getAdminPB } from "@/lib/pocketbase-admin";
 import { logAudit } from "@/lib/audit";
+import { recordUserAcceptance } from "@/lib/actions/legal";
 import { inviteRegisterSchema } from "@/lib/validations";
 import { notifyAdmins } from "@/lib/email/notify-admin";
 import { checkDemoLimit } from "@/lib/demo";
@@ -124,6 +125,13 @@ export async function POST(
       { success: false, error: "Registrierung fehlgeschlagen. Bitte versuche es erneut." },
       { status: 500 }
     );
+  }
+
+  // 5b. Vertragsannahme nachweisbar speichern (AGB + Datenschutz)
+  try {
+    await recordUserAcceptance(userId, body.locale === "tr" ? "tr" : "de");
+  } catch (error) {
+    console.error("[InviteRegister] recordUserAcceptance fehlgeschlagen:", error);
   }
 
   // 6. uses_count inkrementieren

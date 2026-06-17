@@ -22,6 +22,10 @@ export const registerSchema = z
     password: z.string().min(8, "Mindestens 8 Zeichen"),
     passwordConfirm: z.string().min(8, "Mindestens 8 Zeichen"),
     member_no: z.string().optional(),
+    // AGB akzeptiert (Vertrag) + Datenschutz zur Kenntnis genommen
+    accept_terms: z.literal(true, {
+      message: "AGB und Datenschutzerklärung müssen bestätigt werden",
+    }),
   })
   .refine((data) => data.password === data.passwordConfirm, {
     message: "Die Passwörter stimmen nicht überein",

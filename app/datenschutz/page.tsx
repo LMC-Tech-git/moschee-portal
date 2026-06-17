@@ -1,121 +1,28 @@
 import type { Metadata } from "next";
-import { getTranslations } from "next-intl/server";
+import { getLocale } from "next-intl/server";
+import { LegalDocView } from "@/components/legal/LegalDocView";
+import { getFrozenDoc, LEGAL_VERSIONS, type LegalLocale } from "@/lib/legal";
+
+const DOC = "datenschutz" as const;
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations("legal.datenschutz");
+  const locale = (await getLocale()) as LegalLocale;
+  const doc = getFrozenDoc(DOC, LEGAL_VERSIONS[DOC], locale);
   return {
-    title: t("meta_title"),
-    description: t("meta_desc"),
-    alternates: {
-      canonical: "https://moschee.app/datenschutz",
-    },
-    openGraph: {
-      title: t("meta_title"),
-      description: t("meta_desc"),
-    },
+    title: doc?.title ?? "Datenschutzerklärung",
+    description: doc?.title,
+    alternates: { canonical: "https://moschee.app/datenschutz" },
   };
 }
 
 export default async function DatenschutzPage() {
-  const t = await getTranslations("legal.datenschutz");
-
+  const locale = (await getLocale()) as LegalLocale;
+  const doc = getFrozenDoc(DOC, LEGAL_VERSIONS[DOC], locale);
+  if (!doc) return null;
   return (
     <section className="py-16">
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-        <h1 className="mb-8 text-3xl font-bold text-gray-900">
-          {t("title")}
-        </h1>
-
-        <div className="space-y-8 text-gray-600">
-          <div>
-            <h2 className="text-xl font-bold text-gray-900">{t("s1_title")}</h2>
-            <p className="mt-2">{t("s1_body")}</p>
-          </div>
-
-          <div>
-            <h2 className="text-xl font-bold text-gray-900">{t("s2_title")}</h2>
-            <p className="mt-2 whitespace-pre-line">
-              {t("s2_body")}
-              <br />
-              E-Mail:{" "}
-              <a href="mailto:kontakt@lmctech.de" className="text-primary-600 underline hover:text-primary-700">
-                kontakt@lmctech.de
-              </a>
-            </p>
-          </div>
-
-          <div>
-            <h2 className="text-xl font-bold text-gray-900">{t("s3_title")}</h2>
-            <p className="mt-2">{t("s3_hosting")}</p>
-            <p className="mt-2">{t("s3_cookies")}</p>
-          </div>
-
-          <div>
-            <h2 className="text-xl font-bold text-gray-900">{t("s4_title")}</h2>
-            <p className="mt-2">{t("s4_intro")}</p>
-            <ul className="mt-2 list-disc pl-6 space-y-1">
-              <li>{t("s4_li1")}</li>
-              <li>{t("s4_li2")}</li>
-              <li>{t("s4_li3")}</li>
-              <li>{t("s4_li4")}</li>
-            </ul>
-            <p className="mt-2">{t("s4_outro")}</p>
-          </div>
-
-          <div>
-            <h2 className="text-xl font-bold text-gray-900">{t("s5_title")}</h2>
-            <p className="mt-2">
-              {t("s5_body")}{" "}
-              <a
-                href="https://stripe.com/de/privacy"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-primary-600 underline hover:text-primary-700"
-              >
-                {t("s5_link")}
-              </a>
-            </p>
-          </div>
-
-          <div>
-            <h2 className="text-xl font-bold text-gray-900">{t("s6_title")}</h2>
-            <p className="mt-2">{t("s6_body")}</p>
-          </div>
-
-          <div>
-            <h2 className="text-xl font-bold text-gray-900">{t("s7_title")}</h2>
-            <p className="mt-2">
-              {t("s7_body1")}{" "}
-              <a
-                href="mailto:kontakt@lmctech.de"
-                className="text-primary-600 underline hover:text-primary-700"
-              >
-                kontakt@lmctech.de
-              </a>
-            </p>
-            <p className="mt-2">{t("s7_body2")}</p>
-          </div>
-
-          <div id="s8">
-            <h2 className="text-xl font-bold text-gray-900">{t("s8_title")}</h2>
-            <p className="mt-2">{t("s8_intro")}</p>
-            <p className="mt-2">{t("s8_purpose")}</p>
-            <p className="mt-2">{t("s8_data")}</p>
-            <p className="mt-2">{t("s8_basis")}</p>
-            <p className="mt-2">{t("s8_eu_scc")}</p>
-            <p className="mt-2">{t("s8_optout")}</p>
-            <p className="mt-2">
-              <a
-                href="https://www.anthropic.com/legal/privacy"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-primary-600 underline hover:text-primary-700"
-              >
-                {t("s8_link")}
-              </a>
-            </p>
-          </div>
-        </div>
+        <LegalDocView doc={doc} />
       </div>
     </section>
   );

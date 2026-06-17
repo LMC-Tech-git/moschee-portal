@@ -9,6 +9,7 @@
  */
 
 import PocketBase from "pocketbase";
+import { recordUserAcceptance } from "@/lib/actions/legal";
 
 function getPB(): PocketBase {
   const url =
@@ -60,10 +61,12 @@ export async function registerAction(data: {
   last_name: string;
   member_no?: string;
   mosque_id: string;
+  locale?: string;
 }): Promise<AuthActionResult> {
   const pb = getPB();
+  let newUserId = "";
   try {
-    await pb.collection("users").create({
+    const record = await pb.collection("users").create({
       email: data.email,
       password: data.password,
       passwordConfirm: data.passwordConfirm,
@@ -76,6 +79,7 @@ export async function registerAction(data: {
       status: "pending",
       role: "member",
     });
+    newUserId = record.id;
   } catch (e: unknown) {
     // PocketBase Fehler-Struktur serialisieren, bevor sie die Server→Client-Grenze überquert
     const pbErr = e as {
@@ -94,6 +98,15 @@ export async function registerAction(data: {
     }
     throw new Error(pbErr?.response?.message || pbErr?.message || "Registrierung fehlgeschlagen");
   }
+
+  // Vertragsannahme (AGB akzeptiert + Datenschutz zur Kenntnis genommen)
+  // nachweisbar speichern — Fehler dürfen die Registrierung nicht blockieren.
+  try {
+    await recordUserAcceptance(newUserId, data.locale === "tr" ? "tr" : "de");
+  } catch (e) {
+    console.error("[auth] recordUserAcceptance nach Registrierung fehlgeschlagen", e);
+  }
+
   // Konto mit Status "pending" erstellt — direkt einloggen (Gate zeigt Wartestatus)
   return loginAction(data.email, data.password);
 }

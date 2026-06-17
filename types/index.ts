@@ -313,6 +313,27 @@ export interface User {
   updated: string;
 }
 
+// --- Rechtstext-Zustimmungen (Vertragsannahmen) ---
+export interface LegalAcceptance {
+  id: string;
+  mosque_id: string;
+  user_id: string;
+  scope: "mosque" | "user";
+  legal_basis: "contract" | "notice";
+  doc_type: "agb" | "datenschutz" | "nutzungsvereinbarung" | "avv";
+  doc_version: number;
+  doc_hash: string;
+  doc_locale: string;
+  accepted_at: string;
+  ip_hash: string;
+  accepter_name: string;
+  accepter_email: string;
+  accepter_role: string;
+  user_agent: string;
+  created: string;
+  updated: string;
+}
+
 // --- Web-Push Subscriptions ---
 export type PushTopic =
   | "prayer_times"

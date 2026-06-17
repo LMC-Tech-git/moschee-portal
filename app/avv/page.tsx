@@ -3,18 +3,18 @@ import { getLocale } from "next-intl/server";
 import { LegalDocView } from "@/components/legal/LegalDocView";
 import { getFrozenDoc, LEGAL_VERSIONS, type LegalLocale } from "@/lib/legal";
 
-const DOC = "agb" as const;
+const DOC = "avv" as const;
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = (await getLocale()) as LegalLocale;
   const doc = getFrozenDoc(DOC, LEGAL_VERSIONS[DOC], locale);
   return {
-    title: doc?.title ?? "AGB",
+    title: doc?.title ?? "Auftragsverarbeitungsvertrag",
     description: doc?.title,
   };
 }
 
-export default async function AGBPage() {
+export default async function AVVPage() {
   const locale = (await getLocale()) as LegalLocale;
   const doc = getFrozenDoc(DOC, LEGAL_VERSIONS[DOC], locale);
   if (!doc) return null;

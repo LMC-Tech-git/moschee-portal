@@ -1430,7 +1430,8 @@
       "push_subscription": "Bildirimler",
       "membership_fees": "Üyelik aidatları",
       "finance_event": "Finans olayları",
-      "transaction": "Kayıtlar"
+      "transaction": "Kayıtlar",
+      "legal_acceptance": "Sözleşme onayları"
     },
     "entity": {
       "post": "Haber",
@@ -1461,7 +1462,8 @@
       "membership_config": "Aidat yapılandırması",
       "finance_event": "Finans olayı",
       "finance_export": "Mali dışa aktarma",
-      "transaction": "Kayıt"
+      "transaction": "Kayıt",
+      "legal_acceptance": "Sözleşme onayı"
     },
     "action": {
       "finance": {
@@ -1488,6 +1490,10 @@
         "push_unsubscribe": "Push aboneliği iptal",
         "push_update": "Push konuları değişti",
         "push_sent": "Push bildirimi gönderildi"
+      },
+      "legal_acceptance": {
+        "legal_accept_user": "Kullanım koşulları kabul edildi",
+        "legal_accept_mosque": "Cemaat adına sözleşme dijital olarak onaylandı"
       },
       "post": {
         "created": "Haber oluşturuldu",
@@ -2404,6 +2410,24 @@
       "s7_body": "LMC Tech, bu kullanım koşullarını istediği zaman değiştirme hakkını saklı tutar. Önemli değişiklikler kullanıcılara zamanında bildirilecektir.",
       "s8_title": "8. Uygulanacak Hukuk",
       "s8_body": "Alman hukuku geçerlidir. Yasal olarak izin verildiği ölçüde yargı yeri Neu-Ulm'dur."
+    },
+    "gate": {
+      "mosque_title": "Dijital sözleşme onayı gerekli",
+      "mosque_subtitle": "Devam etmeden önce lütfen aşağıdaki belgeleri okuyun ve yetkili kişi olarak onaylayın.",
+      "mosque_confirm": "Bu belgeleri okuduğumu ve anladığımı, cemaat adına yetkili kişi sıfatıyla bağlayıcı şekilde kabul ettiğimi onaylıyorum.",
+      "mosque_accept": "Bağlayıcı olarak kabul et",
+      "name_label": "Ad ve Soyad",
+      "name_placeholder": "Örn. Ahmet Yılmaz",
+      "role_label": "Cemaat içindeki görevi",
+      "role_placeholder": "Örn. 1. Başkan",
+      "error": "Kaydedilirken hata oluştu. Lütfen tekrar deneyin.",
+      "submitting": "Kaydediliyor…",
+      "user_title": "Güncellenmiş koşullar",
+      "user_subtitle_contract": "Devam etmek için lütfen okuyun ve kabul edin.",
+      "user_subtitle_notice": "Lütfen aşağıdaki bilgileri dikkate alın.",
+      "later": "Daha sonra",
+      "user_accept": "Kabul et ve devam et",
+      "user_acknowledge": "Okudum, anladım"
     }
   },
   "forgotPassword": {

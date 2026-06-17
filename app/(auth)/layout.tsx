@@ -1,44 +1,58 @@
-"use client";
+import { getLocale } from "next-intl/server";
+import { getAuthFromCookie } from "@/lib/auth-cookie";
+import { getAdminPB } from "@/lib/pocketbase-admin";
+import {
+  getMosqueAcceptanceStatus,
+  getUserAcceptanceStatus,
+} from "@/lib/actions/legal";
+import type { LegalDocType, LegalLocale } from "@/lib/legal";
+import AuthShell from "./AuthShell";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/lib/auth-context";
-import { PWAInstallPrompt } from "@/components/shared/PWAInstallPrompt";
-import { IOSInstallHint } from "@/components/shared/IOSInstallHint";
-export default function AuthLayout({
+const ADMIN_ROLES = new Set(["admin", "super_admin"]);
+
+/**
+ * Server-Layout: löst den Rechts-Gate-Status server-seitig auf (aus dem
+ * pb_auth-Cookie), damit das blockierende Modal ohne Flash erscheint.
+ * Die eigentliche Auth-Weiterleitung bleibt in der Client-Hülle (AuthShell).
+ */
+export default async function AuthLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { isAuthenticated, isLoading } = useAuth();
-  const router = useRouter();
+  const locale = ((await getLocale()) as LegalLocale) || "de";
+  const { isLoggedIn, userId } = getAuthFromCookie();
 
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      router.replace("/login");
+  let mosqueOutstanding: LegalDocType[] = [];
+  let userOutstanding: LegalDocType[] = [];
+
+  if (isLoggedIn && userId) {
+    let role = "";
+    let mosqueId = "";
+    try {
+      const pb = await getAdminPB();
+      const u = await pb.collection("users").getOne(userId, {
+        fields: "role,mosque_id",
+      });
+      role = (u as { role?: string }).role || "";
+      mosqueId = (u as { mosque_id?: string }).mosque_id || "";
+    } catch {
+      // Cookie kann veraltet sein → Gates bleiben leer, AuthShell leitet um
     }
-  }, [isAuthenticated, isLoading, router]);
 
-  if (isLoading) {
-    return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary-200 border-t-primary-500" />
-          <p className="text-sm text-gray-500">Authentifizierung wird geprüft...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return null;
+    if (mosqueId && ADMIN_ROLES.has(role)) {
+      mosqueOutstanding = (await getMosqueAcceptanceStatus(mosqueId)).outstanding;
+    }
+    userOutstanding = (await getUserAcceptanceStatus(userId)).outstanding;
   }
 
   return (
-    <>
+    <AuthShell
+      mosqueOutstanding={mosqueOutstanding}
+      userOutstanding={userOutstanding}
+      locale={locale}
+    >
       {children}
-      <PWAInstallPrompt />
-      <IOSInstallHint />
-    </>
+    </AuthShell>
   );
 }

@@ -289,6 +289,7 @@
     "passwordConfirmPlaceholder": "Passwort wiederholen",
     "passwordMismatch": "Die Passwörter stimmen nicht überein.",
     "agbLabel": "Ich akzeptiere die AGB und Datenschutzerklärung.",
+    "acceptTerms": "Ich akzeptiere die <agb>AGB</agb> und habe die <privacy>Datenschutzerklärung</privacy> zur Kenntnis genommen.",
     "agbLink": "AGB",
     "privacyLink": "Datenschutzerklärung",
     "submit": "Registrieren",
@@ -1430,7 +1431,8 @@
       "push_subscription": "Benachrichtigungen",
       "membership_fees": "Mitgliedsbeiträge",
       "finance_event": "Finanz-Events",
-      "transaction": "Buchungen"
+      "transaction": "Buchungen",
+      "legal_acceptance": "Vertragsannahmen"
     },
     "entity": {
       "post": "Post",
@@ -1461,7 +1463,8 @@
       "membership_config": "Beitrags-Konfiguration",
       "finance_event": "Finanz-Event",
       "finance_export": "Finanz-Export",
-      "transaction": "Buchung"
+      "transaction": "Buchung",
+      "legal_acceptance": "Vertragsannahme"
     },
     "action": {
       "finance": {
@@ -1488,6 +1491,10 @@
         "push_unsubscribe": "Push abgemeldet",
         "push_update": "Push-Themen geändert",
         "push_sent": "Push-Benachrichtigung gesendet"
+      },
+      "legal_acceptance": {
+        "legal_accept_user": "Nutzungsbedingungen akzeptiert",
+        "legal_accept_mosque": "Vertrag für Gemeinde digital bestätigt"
       },
       "post": {
         "created": "Post erstellt",
@@ -2404,6 +2411,24 @@
       "s7_body": "LMC Tech behält sich vor, diese Nutzungsbedingungen jederzeit zu ändern. Wesentliche Änderungen werden den Nutzern rechtzeitig mitgeteilt.",
       "s8_title": "8. Anwendbares Recht",
       "s8_body": "Es gilt deutsches Recht. Gerichtsstand ist Neu-Ulm, sofern gesetzlich zulässig."
+    },
+    "gate": {
+      "mosque_title": "Digitale Vertragsannahme erforderlich",
+      "mosque_subtitle": "Bitte lesen und als vertretungsberechtigte Person bestätigen, bevor Sie fortfahren.",
+      "mosque_confirm": "Ich bestätige hiermit als vertretungsberechtigte Person der Gemeinde, die vorstehenden Dokumente gelesen und verstanden zu haben, und nehme diese im Namen der Gemeinde verbindlich an.",
+      "mosque_accept": "Verbindlich akzeptieren",
+      "name_label": "Vor- und Nachname",
+      "name_placeholder": "z. B. Ahmet Yılmaz",
+      "role_label": "Funktion in der Gemeinde",
+      "role_placeholder": "z. B. 1. Vorsitzender",
+      "error": "Fehler beim Speichern. Bitte versuchen Sie es erneut.",
+      "submitting": "Wird gespeichert…",
+      "user_title": "Aktualisierte Bedingungen",
+      "user_subtitle_contract": "Bitte lesen und akzeptieren, um fortzufahren.",
+      "user_subtitle_notice": "Bitte nehmen Sie die folgenden Informationen zur Kenntnis.",
+      "later": "Später",
+      "user_accept": "Akzeptieren und fortfahren",
+      "user_acknowledge": "Zur Kenntnis genommen"
     }
   },
   "forgotPassword": {
