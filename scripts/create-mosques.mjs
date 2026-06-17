@@ -35,6 +35,13 @@ const MOSQUES = [
     latitude: 48.4889,
     longitude: 9.6886,
   },
+  {
+    slug: "ditib-ditzingen",
+    name: "DITIB Ditzingen",
+    city: "Ditzingen",
+    latitude: 48.8267,
+    longitude: 9.0653,
+  },
 ];
 
 let authToken = "";
