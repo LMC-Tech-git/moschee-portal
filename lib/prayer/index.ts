@@ -129,13 +129,13 @@ async function fetchFromProvider(
   config: PrayerConfig
 ): Promise<PrayerTimes | null> {
   // Tabellen-Provider (Diyanet/IGMG/Bosnisch): offizielle Zeiten je generischer Quell-ID.
-  // Tune wird hier BEWUSST NICHT angewandt: offizielle Tabellen sind autoritativ, und
-  // Alt-Offsets aus einer früheren AlAdhan-Konfiguration (settings.tune) dürfen die exakten
-  // Zeiten nicht verfälschen. Die Tuning-UI ist für Tabellen-Provider ohnehin ausgeblendet.
+  // Tune wird als additiver Geo-Offset je Gebet angewandt — für Orte ohne eigene Tabelle, die eine
+  // Nachbarstadt nutzen (z.B. Erbach = Ulm -1 Min). Standard 0 = exakte offizielle Zeit.
+  // sabah bleibt provider-unabhängig über sabah_offset_minutes (siehe getPrayerTimesForDate).
   const tableProvider = TABLE_PROVIDERS[config.provider];
   if (tableProvider) {
     if (!config.source_id) return null;
-    return tableProvider(mosqueId, date, config.source_id, undefined);
+    return tableProvider(mosqueId, date, config.source_id, config.tune);
   }
 
   // Mawaqit braucht keine Koordinaten/Methode, nur den Slug.

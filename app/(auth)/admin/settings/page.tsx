@@ -962,9 +962,9 @@ function PrayerTab({
 }) {
   const t = useTranslations("settings");
   const tL = useTranslations("labels");
+  // sabah NICHT enthalten — Sabah wird zentral über sabah_offset_minutes gesteuert (tune.sabah ist tot).
   const tuneLabels: { key: keyof TuneOffsets; label: string }[] = [
     { key: "fajr",    label: tL("prayer.fajr")    },
-    { key: "sabah",   label: tL("prayer.sabah")   },
     { key: "sunrise", label: tL("prayer.sunrise")  },
     { key: "dhuhr",   label: tL("prayer.dhuhr")   },
     { key: "asr",     label: tL("prayer.asr")     },
@@ -1261,29 +1261,66 @@ function PrayerTab({
             </div>
           </SectionCard>
 
-          {/* Feinabstimmung (Tune) */}
-          <SectionCard
-            title={t("prayer.tuning")}
-            description={t("prayer.tuningDesc")}
-          >
-            <p className="mb-3 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900">
-              {t("prayer.sabahHint")}
-            </p>
-            <button
-              type="button"
-              onClick={() => setShowTune((v) => !v)}
-              className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900"
-            >
-              {showTune ? (
-                <ChevronUp className="h-4 w-4" />
-              ) : (
-                <ChevronDown className="h-4 w-4" />
-              )}
-              {showTune ? t("prayer.tuningHide") : t("prayer.tuningShow")}
-            </button>
+        </>
+      )}
 
-            {showTune && (
-              <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+      {prayerProvider === "off" && (
+        <div className="rounded-xl border border-gray-200 bg-gray-50 p-5 text-sm text-gray-500">
+          {t("prayer.providerDisabled")}
+        </div>
+      )}
+
+      {/* Feinabstimmung (Tune) — provider-unabhängig (Geo-Offset für Nachbarort) */}
+      {prayerProvider !== "off" && (
+        <SectionCard
+          title={t("prayer.tuning")}
+          description={t("prayer.tuningDesc")}
+        >
+          <p className="mb-3 rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-600">
+            {t("prayer.tuningHint")}
+          </p>
+          <button
+            type="button"
+            onClick={() => setShowTune((v) => !v)}
+            className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900"
+          >
+            {showTune ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            {showTune ? t("prayer.tuningHide") : t("prayer.tuningShow")}
+          </button>
+
+          {showTune && (
+            <div className="mt-4 space-y-4">
+              {/* Sammelfeld: setzt alle Gebete gleichzeitig */}
+              <div className="flex flex-wrap items-center gap-2 rounded-lg bg-emerald-50 px-3 py-2">
+                <label className="text-xs font-semibold text-emerald-800">
+                  {t("prayer.tuningAll")}
+                </label>
+                <input
+                  type="number"
+                  min={-60}
+                  max={60}
+                  placeholder="—"
+                  value={
+                    tuneLabels.every(({ key }) => tune[key] === tune[tuneLabels[0].key])
+                      ? tune[tuneLabels[0].key]
+                      : ""
+                  }
+                  onChange={(e) => {
+                    const v = parseInt(e.target.value) || 0;
+                    setTune((prev) => {
+                      const next = { ...prev };
+                      tuneLabels.forEach(({ key }) => {
+                        next[key] = v;
+                      });
+                      return next;
+                    });
+                  }}
+                  className="w-20 rounded-lg border border-emerald-300 px-2 py-1.5 text-sm font-mono text-center focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                />
+                <span className="text-xs text-emerald-700">{t("prayer.tuningMin")}</span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                 {tuneLabels.map(({ key, label }) => (
                   <div key={key}>
                     <label className="mb-1 block text-xs font-medium text-gray-600">
@@ -1296,11 +1333,7 @@ function PrayerTab({
                         min={-60}
                         max={60}
                         onChange={(e) =>
-                          setTune((prev) => ({
-                            ...prev,
-                            [key]: parseInt(e.target.value) || 0,
-
-                          }))
+                          setTune((prev) => ({ ...prev, [key]: parseInt(e.target.value) || 0 }))
                         }
                         className="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm font-mono text-center focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                       />
@@ -1309,23 +1342,17 @@ function PrayerTab({
                   </div>
                 ))}
               </div>
-            )}
+            </div>
+          )}
 
-            {!showTune && Object.values(tune).some((v) => v !== 0) && (
-              <p className="mt-2 text-xs text-amber-600">
-                Aktive Offsets: {tuneLabels.filter(({ key }) => tune[key] !== 0)
-                  .map(({ key, label }) => `${label} ${tune[key] > 0 ? "+" : ""}${tune[key]}`)
-                  .join(", ")}
-              </p>
-            )}
-          </SectionCard>
-        </>
-      )}
-
-      {prayerProvider === "off" && (
-        <div className="rounded-xl border border-gray-200 bg-gray-50 p-5 text-sm text-gray-500">
-          {t("prayer.providerDisabled")}
-        </div>
+          {!showTune && tuneLabels.some(({ key }) => tune[key] !== 0) && (
+            <p className="mt-2 text-xs text-amber-600">
+              Aktive Offsets: {tuneLabels.filter(({ key }) => tune[key] !== 0)
+                .map(({ key, label }) => `${label} ${tune[key] > 0 ? "+" : ""}${tune[key]}`)
+                .join(", ")}
+            </p>
+          )}
+        </SectionCard>
       )}
 
       {prayerProvider !== "off" && (
