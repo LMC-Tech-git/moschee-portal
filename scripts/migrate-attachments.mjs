@@ -158,10 +158,12 @@ function getSchemaArray(collection) {
   return collection.schema || collection.fields || [];
 }
 
-function sameStringSet(a = [], b = []) {
-  if (a.length !== b.length) return false;
-  const setB = new Set(b);
-  return a.every((x) => setB.has(x));
+function sameStringSet(a, b) {
+  const arrA = Array.isArray(a) ? a : [];
+  const arrB = Array.isArray(b) ? b : [];
+  if (arrA.length !== arrB.length) return false;
+  const setB = new Set(arrB);
+  return arrA.every((x) => setB.has(x));
 }
 
 async function migrateCollection(name) {
