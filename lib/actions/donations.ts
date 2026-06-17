@@ -384,6 +384,7 @@ export async function createManualDonation(
     campaign_id?: string;
     notes?: string;
     paid_at?: string; // ISO-String, default jetzt
+    payment_method?: "bar" | "ueberweisung" | "sonstige";
   }
 ): Promise<ActionResult<Donation>> {
   try {
@@ -405,6 +406,9 @@ export async function createManualDonation(
       is_recurring: false,
       provider: "manual",
       provider_ref: data.notes || "",
+      // Steuert Finance-Kanal-Mapping (donationToKontoChannel): bar→cash/bar,
+      // ueberweisung→bank/ueberweisung, sonst→bank/sonstige. Default Überweisung.
+      payment_method_detail: data.payment_method || "ueberweisung",
       status: "paid",
       paid_at: data.paid_at || new Date().toISOString(),
     });

@@ -93,6 +93,7 @@ function ManualDonationDialog({
   const [donorEmail, setDonorEmail] = useState("");
   const [amountEur, setAmountEur] = useState("");
   const [campaignId, setCampaignId] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState<"bar" | "ueberweisung" | "sonstige">("ueberweisung");
   const [notes, setNotes] = useState("");
   const [paidAt, setPaidAt] = useState(
     new Date().toISOString().slice(0, 16) // "YYYY-MM-DDTHH:MM"
@@ -120,6 +121,7 @@ function ManualDonationDialog({
       campaign_id: campaignId || undefined,
       notes: notes.trim() || undefined,
       paid_at: new Date(paidAt).toISOString(),
+      payment_method: paymentMethod,
     });
     setIsSubmitting(false);
     if (result.success) {
@@ -217,6 +219,20 @@ function ManualDonationDialog({
                     {c.title}
                   </option>
                 ))}
+              </select>
+            </div>
+            <div className="col-span-2">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
+                {t("manual.paymentMethod")}
+              </label>
+              <select
+                value={paymentMethod}
+                onChange={(e) => setPaymentMethod(e.target.value as "bar" | "ueberweisung" | "sonstige")}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+              >
+                <option value="ueberweisung">{t("manual.paymentMethodTransfer")}</option>
+                <option value="bar">{t("manual.paymentMethodBar")}</option>
+                <option value="sonstige">{t("manual.paymentMethodOther")}</option>
               </select>
             </div>
             <div className="col-span-2">
