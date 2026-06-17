@@ -29,9 +29,9 @@ export default function NewEventPage() {
     });
   }, [mosqueId]);
 
-  async function handleCreate(data: EventInput) {
+  async function handleCreate(data: EventInput, files: FormData) {
     if (!user) return { success: false, error: tCommon("notLoggedIn") };
-    return createEvent(mosqueId, user.id, data, notifyPush);
+    return createEvent(mosqueId, user.id, data, { files, notifyPush });
   }
 
   return (

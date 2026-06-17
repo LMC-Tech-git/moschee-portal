@@ -19,6 +19,7 @@ import { readFileSync } from "fs";
 import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
 import { createHash, randomUUID } from "crypto";
+import { deflateSync } from "zlib";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -135,6 +136,120 @@ async function batchCreate(collection, items, chunkSize = 10) {
     created += chunk.length;
   }
   return created;
+}
+
+// ─── Demo-Anhänge (Bilder + PDF) ─────────────────────────────────────────────
+// Assets werden zur Laufzeit generiert (keine Binär-Dateien im Repo).
+
+const CRC_TABLE = (() => {
+  const t = new Array(256);
+  for (let n = 0; n < 256; n++) {
+    let c = n;
+    for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+    t[n] = c >>> 0;
+  }
+  return t;
+})();
+function crc32(buf) {
+  let c = 0xffffffff;
+  for (let i = 0; i < buf.length; i++) c = CRC_TABLE[(c ^ buf[i]) & 0xff] ^ (c >>> 8);
+  return (c ^ 0xffffffff) >>> 0;
+}
+function pngChunk(type, data) {
+  const len = Buffer.alloc(4);
+  len.writeUInt32BE(data.length, 0);
+  const typeBuf = Buffer.from(type, "ascii");
+  const body = Buffer.concat([typeBuf, data]);
+  const crc = Buffer.alloc(4);
+  crc.writeUInt32BE(crc32(body), 0);
+  return Buffer.concat([len, body, crc]);
+}
+/** Erzeugt ein einfarbiges PNG (klein dank Deflate). */
+function makePng(width, height, [r, g, b]) {
+  const rowLen = width * 3;
+  const raw = Buffer.alloc((rowLen + 1) * height);
+  for (let y = 0; y < height; y++) {
+    const base = y * (rowLen + 1);
+    raw[base] = 0; // Filter: None
+    for (let x = 0; x < width; x++) {
+      const o = base + 1 + x * 3;
+      raw[o] = r; raw[o + 1] = g; raw[o + 2] = b;
+    }
+  }
+  const sig = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
+  const ihdr = Buffer.alloc(13);
+  ihdr.writeUInt32BE(width, 0);
+  ihdr.writeUInt32BE(height, 4);
+  ihdr[8] = 8;  // bit depth
+  ihdr[9] = 2;  // color type RGB
+  return Buffer.concat([
+    sig,
+    pngChunk("IHDR", ihdr),
+    pngChunk("IDAT", deflateSync(raw)),
+    pngChunk("IEND", Buffer.alloc(0)),
+  ]);
+}
+/** Erzeugt ein minimales, gültiges einseitiges PDF mit Titeltext. */
+function makePdf(title) {
+  const safe = String(title).replace(/[()\\]/g, "");
+  const content = `BT /F1 24 Tf 60 760 Td (${safe}) Tj ET`;
+  const objs = [
+    "<< /Type /Catalog /Pages 2 0 R >>",
+    "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+    "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>",
+    "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+    `<< /Length ${content.length} >>\nstream\n${content}\nendstream`,
+  ];
+  let pdf = "%PDF-1.4\n";
+  const offsets = [];
+  objs.forEach((o, i) => {
+    offsets.push(pdf.length);
+    pdf += `${i + 1} 0 obj\n${o}\nendobj\n`;
+  });
+  const xref = pdf.length;
+  pdf += `xref\n0 ${objs.length + 1}\n0000000000 65535 f \n`;
+  offsets.forEach((off) => {
+    pdf += String(off).padStart(10, "0") + " 00000 n \n";
+  });
+  pdf += `trailer\n<< /Size ${objs.length + 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`;
+  return Buffer.from(pdf, "latin1");
+}
+
+const DEMO_COLORS = [
+  [16, 185, 129], [59, 130, 246], [245, 158, 11], [239, 68, 68], [139, 92, 246],
+];
+/** Baut Demo-Anhänge: `count` Bilder + optional 1 PDF. */
+function demoAssets(prefix, count, withPdf) {
+  const files = [];
+  for (let i = 0; i < count; i++) {
+    files.push({
+      name: `${prefix}-${i + 1}.png`,
+      type: "image/png",
+      buf: makePng(640, 426, DEMO_COLORS[i % DEMO_COLORS.length]),
+    });
+  }
+  if (withPdf) {
+    files.push({ name: `${prefix}-info.pdf`, type: "application/pdf", buf: makePdf(prefix) });
+  }
+  return files;
+}
+
+/** Lädt Anhänge per Multipart hoch — nur wenn der Record noch keine hat (idempotent). */
+async function uploadAttachmentsIfEmpty(collection, record, files) {
+  if (!record || (Array.isArray(record.attachments) && record.attachments.length > 0)) return;
+  const fd = new FormData();
+  for (const f of files) {
+    fd.append("attachments", new Blob([f.buf], { type: f.type }), f.name);
+  }
+  const res = await fetch(`${PB_URL}/api/collections/${collection}/records/${record.id}`, {
+    method: "PATCH",
+    headers: { ...(authToken ? { Authorization: authToken } : {}) },
+    body: fd,
+  });
+  if (!res.ok) {
+    const t = await res.text().catch(() => "");
+    console.warn(`    ⚠️  Anhang-Upload fehlgeschlagen (${collection}/${record.id}): ${t}`);
+  }
 }
 
 /** Löscht alle Datensätze einer Collection für eine Moschee. */
@@ -917,8 +1032,9 @@ async function seedPosts(adminId) {
     },
   ];
 
+  let pIdx = 0;
   for (const p of posts) {
-    const { created } = await findOrCreate(
+    const { record, created } = await findOrCreate(
       "posts",
       `mosque_id = "${MOSQUE_ID}" && title = "${p.title}"`,
       {
@@ -933,7 +1049,14 @@ async function seedPosts(adminId) {
         created_by: adminId,
       }
     );
+    // Repräsentative Anhänge: 1–3 Bilder, jeder 4. Beitrag zusätzlich ein PDF.
+    await uploadAttachmentsIfEmpty(
+      "posts",
+      record,
+      demoAssets(`beitrag-${pIdx + 1}`, (pIdx % 3) + 1, pIdx % 4 === 0)
+    );
     console.log(created ? `  ✅ ${p.title}` : `  ⏭️  ${p.title}`);
+    pIdx++;
   }
   console.log();
 }
@@ -1055,6 +1178,7 @@ async function seedEvents(adminId) {
   ];
 
   const eventIds = [];
+  let eIdx = 0;
   for (const e of events) {
     const startDate = e.daysOff >= 0 ? daysFromNow(e.daysOff) : daysAgo(-e.daysOff);
     startDate.setHours(e.daysOff < 0 ? 19 : 14, 0, 0, 0); // vergangene = 19 Uhr, zukünftige = 14 Uhr
@@ -1084,8 +1208,14 @@ async function seedEvents(adminId) {
         created_by: adminId,
       }
     );
+    await uploadAttachmentsIfEmpty(
+      "events",
+      record,
+      demoAssets(`event-${eIdx + 1}`, (eIdx % 3) + 1, eIdx % 3 === 0)
+    );
     console.log(created ? `  ✅ ${e.title}` : `  ⏭️  ${e.title}`);
     eventIds.push({ id: record.id, ...e });
+    eIdx++;
   }
   console.log();
   return eventIds;
@@ -1306,14 +1436,22 @@ async function seedCampaigns(adminId) {
   ];
 
   const campaignIds = [];
+  let cIdx = 0;
   for (const c of campaigns) {
     const { record, created } = await findOrCreate(
       "campaigns",
       `mosque_id = "${MOSQUE_ID}" && title = "${c.title}"`,
       { ...c, mosque_id: MOSQUE_ID, currency: "EUR", created_by: adminId }
     );
+    // Jede Kampagne: 2 Bilder + 1 PDF (z. B. Projektbeschreibung).
+    await uploadAttachmentsIfEmpty(
+      "campaigns",
+      record,
+      demoAssets(`kampagne-${cIdx + 1}`, 2, true)
+    );
     console.log(created ? `  ✅ ${c.title}` : `  ⏭️  ${c.title}`);
     campaignIds.push(record.id);
+    cIdx++;
   }
   console.log();
   return campaignIds;

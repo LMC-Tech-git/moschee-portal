@@ -391,6 +391,7 @@ export interface Event {
   capacity: number; // 0 = unbegrenzt
   status: "published" | "cancelled" | "draft";
   cover_image: string;
+  attachments: string[];
   created_by: string;
   created: string;
   updated: string;
@@ -456,6 +457,7 @@ export interface Campaign {
   end_at: string;
   status: "active" | "paused" | "completed";
   cover_image: string;
+  attachments: string[];
   created_by: string;
   created: string;
   updated: string;

@@ -1,15 +1,20 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { ImagePlus, X } from "lucide-react";
 import type { Post } from "@/types";
 import type { PostInput } from "@/lib/validations";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import {
+  AttachmentUploader,
+  attachmentsToFormData,
+  emptyAttachmentState,
+  type AttachmentState,
+} from "@/components/shared/AttachmentUploader";
 
 interface PostFormProps {
   initialData?: Post;
@@ -25,7 +30,6 @@ export function PostForm({ initialData, onSubmit, isEdit, backPath = "/admin/pos
   const tP = useTranslations("posts.form");
   const tCommon = useTranslations("common");
   const tPush = useTranslations("push");
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const categoryOptions = [
     { value: "announcement", label: tL("post.category.announcement") },
@@ -60,38 +64,9 @@ export function PostForm({ initialData, onSubmit, isEdit, backPath = "/admin/pos
     }
   }, [defaultVisibility, initialData]);
 
-  // Existing images (from saved post) — filenames
-  const [existingImages, setExistingImages] = useState<string[]>(
-    initialData?.attachments || []
+  const [attachments, setAttachments] = useState<AttachmentState>(
+    emptyAttachmentState(initialData?.attachments || [])
   );
-  // New images selected by user (not yet uploaded)
-  const [newImages, setNewImages] = useState<File[]>([]);
-  // Preview URLs for new images
-  const [newImagePreviews, setNewImagePreviews] = useState<string[]>([]);
-
-  const pbUrl = process.env.NEXT_PUBLIC_POCKETBASE_URL || "";
-
-  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const files = Array.from(e.target.files || []);
-    if (!files.length) return;
-
-    const previews = files.map((f) => URL.createObjectURL(f));
-    setNewImages((prev) => [...prev, ...files]);
-    setNewImagePreviews((prev) => [...prev, ...previews]);
-
-    // Reset input so same file can be selected again
-    e.target.value = "";
-  }
-
-  function removeNewImage(index: number) {
-    URL.revokeObjectURL(newImagePreviews[index]);
-    setNewImages((prev) => prev.filter((_, i) => i !== index));
-    setNewImagePreviews((prev) => prev.filter((_, i) => i !== index));
-  }
-
-  function removeExistingImage(filename: string) {
-    setExistingImages((prev) => prev.filter((f) => f !== filename));
-  }
 
   async function handleSubmit(status: "published" | "draft") {
     setError("");
@@ -107,17 +82,12 @@ export function PostForm({ initialData, onSubmit, isEdit, backPath = "/admin/pos
       fd.append("status", status);
       fd.append("notify_push", String(notifyPush && status === "published"));
 
-      // Neue Bilder anhängen
-      newImages.forEach((file) => fd.append("images", file));
-
-      // Bei Bearbeitung: welche bestehenden Bilder wurden entfernt?
-      if (isEdit && initialData?.attachments) {
-        initialData.attachments.forEach((filename) => {
-          if (!existingImages.includes(filename)) {
-            fd.append("removedImages", filename);
-          }
-        });
-      }
+      // Anhänge (Bilder + PDFs): neue Dateien + Entfernungen übernehmen
+      const filesFd = attachmentsToFormData(attachments);
+      filesFd.getAll("attachments").forEach((f) => fd.append("attachments", f));
+      filesFd
+        .getAll("attachments-")
+        .forEach((n) => fd.append("attachments-", n as string));
 
       const result = await onSubmit(fd);
 
@@ -133,8 +103,6 @@ export function PostForm({ initialData, onSubmit, isEdit, backPath = "/admin/pos
       setIsSubmitting(false);
     }
   }
-
-  const totalImages = existingImages.length + newImages.length;
 
   return (
     <div className="space-y-6">
@@ -234,92 +202,13 @@ export function PostForm({ initialData, onSubmit, isEdit, backPath = "/admin/pos
         </div>
       )}
 
-      {/* Bilder */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <Label>
-            {tP("imagesLabel")}{" "}
-            <span className="text-xs font-normal text-gray-400">{tP("imagesHint")}</span>
-          </Label>
-          {totalImages < 10 && (
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="inline-flex items-center gap-1.5 rounded-md border border-dashed border-gray-300 px-3 py-1.5 text-xs text-gray-500 hover:border-gray-400 hover:text-gray-700 transition-colors"
-            >
-              <ImagePlus className="h-3.5 w-3.5" />
-              {tP("addImages")}
-            </button>
-          )}
-        </div>
-
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          multiple
-          className="hidden"
-          onChange={handleFileChange}
-        />
-
-        {(existingImages.length > 0 || newImages.length > 0) && (
-          <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5">
-            {/* Bestehende Bilder */}
-            {existingImages.map((filename) => (
-              <div key={filename} className="group relative aspect-square rounded-lg overflow-hidden border border-gray-200 bg-gray-50">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={`${pbUrl}/api/files/posts/${initialData?.id}/${filename}`}
-                  alt={filename}
-                  className="h-full w-full object-cover"
-                />
-                <button
-                  type="button"
-                  onClick={() => removeExistingImage(filename)}
-                  className="absolute right-1 top-1 rounded-full bg-red-600 p-0.5 text-white opacity-0 transition-opacity group-hover:opacity-100 focus:opacity-100"
-                  aria-label={`Bild ${filename} entfernen`}
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              </div>
-            ))}
-
-            {/* Neue (noch nicht hochgeladene) Bilder */}
-            {newImagePreviews.map((preview, i) => (
-              <div key={preview} className="group relative aspect-square rounded-lg overflow-hidden border border-violet-200 bg-gray-50">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={preview}
-                  alt={`Neues Bild ${i + 1}`}
-                  className="h-full w-full object-cover"
-                />
-                <div className="absolute inset-x-0 bottom-0 bg-violet-600/80 py-0.5 text-center text-[10px] text-white">
-                  {tP("newBadge")}
-                </div>
-                <button
-                  type="button"
-                  onClick={() => removeNewImage(i)}
-                  className="absolute right-1 top-1 rounded-full bg-red-600 p-0.5 text-white opacity-0 transition-opacity group-hover:opacity-100 focus:opacity-100"
-                  aria-label={`Neues Bild ${i + 1} entfernen`}
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {totalImages === 0 && (
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className="flex w-full flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-gray-200 py-8 text-gray-400 hover:border-gray-300 hover:text-gray-500 transition-colors"
-          >
-            <ImagePlus className="h-8 w-8" />
-            <span className="text-sm">{tP("selectImages")}</span>
-          </button>
-        )}
-      </div>
+      {/* Anhänge (Bilder + PDFs) */}
+      <AttachmentUploader
+        collection="posts"
+        recordId={initialData?.id}
+        value={attachments}
+        onChange={setAttachments}
+      />
 
       {/* Buttons */}
       <div className="flex flex-wrap gap-3 border-t border-gray-200 pt-4">

@@ -2,7 +2,6 @@
 export const dynamic = "force-dynamic";
 
 import { notFound } from "next/navigation";
-import Image from "next/image";
 import Link from "next/link";
 import { ChevronLeft, Heart, Users, Calendar, TrendingUp } from "lucide-react";
 import { resolveMosqueBySlug } from "@/lib/resolve-mosque";
@@ -11,8 +10,7 @@ import { formatCurrencyCents, formatDate } from "@/lib/utils";
 import { campaignCategoryLabels, campaignCategoryColors } from "@/lib/constants";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-
-const PB_URL = process.env.NEXT_PUBLIC_POCKETBASE_URL || "";
+import { AttachmentGallery } from "@/components/shared/AttachmentGallery";
 
 export async function generateMetadata({
   params,
@@ -96,18 +94,14 @@ export default async function PublicCampaignPage({
       <section className="py-10">
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 space-y-8">
 
-          {/* Cover-Bild */}
-          {campaign.cover_image && (
-            <div className="relative overflow-hidden rounded-xl bg-gray-100" style={{ maxHeight: "400px", minHeight: "200px" }}>
-              <Image
-                src={`${PB_URL}/api/files/campaigns/${campaign.id}/${campaign.cover_image}`}
-                alt={campaign.title}
-                fill
-                className="object-cover"
-                sizes="(max-width: 768px) 100vw, 800px"
-              />
-            </div>
-          )}
+          {/* Galerie (Bilder + PDFs) */}
+          <AttachmentGallery
+            collection="campaigns"
+            recordId={campaign.id}
+            attachments={campaign.attachments}
+            coverImageFallback={campaign.cover_image}
+            title={campaign.title}
+          />
 
           {/* Fortschritt */}
           <div className="rounded-xl border border-gray-200 bg-white p-6 space-y-4">

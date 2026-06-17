@@ -11,6 +11,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { DatePicker } from "@/components/ui/date-picker";
+import {
+  AttachmentUploader,
+  attachmentsToFormData,
+  emptyAttachmentState,
+  type AttachmentState,
+} from "@/components/shared/AttachmentUploader";
 
 const SELECT_CLASS =
   "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2";
@@ -22,7 +28,10 @@ const TOGGLE_INACTIVE = "text-gray-500 hover:text-gray-700";
 
 interface EventFormProps {
   initialData?: Event;
-  onSubmit: (data: EventInput) => Promise<{ success: boolean; error?: string }>;
+  onSubmit: (
+    data: EventInput,
+    files: FormData
+  ) => Promise<{ success: boolean; error?: string }>;
   isEdit?: boolean;
   defaultVisibility?: string;
 }
@@ -79,6 +88,9 @@ export function EventForm({ initialData, onSubmit, isEdit, defaultVisibility }: 
   );
   const [capacity, setCapacity] = useState<number | "">(
     initialData?.capacity || ""
+  );
+  const [attachments, setAttachments] = useState<AttachmentState>(
+    emptyAttachmentState(initialData?.attachments || [])
   );
 
   // Wenn defaultVisibility nachgeladen wird (Settings-Fetch in der Elternseite), übernehmen
@@ -208,7 +220,7 @@ export function EventForm({ initialData, onSubmit, isEdit, defaultVisibility }: 
         recurrence_end_date: isRecurring && recurrenceEndDate ? new Date(recurrenceEndDate).toISOString() : "",
         is_paid: isPaid,
         price_cents: isPaid ? Math.round(parseFloat(priceEuro || "0") * 100) : 0,
-      });
+      }, attachmentsToFormData(attachments));
 
       if (result.success) {
         router.push("/admin/events");
@@ -254,6 +266,14 @@ export function EventForm({ initialData, onSubmit, isEdit, defaultVisibility }: 
           rows={5}
         />
       </div>
+
+      {/* Anhänge (Bilder + PDFs) */}
+      <AttachmentUploader
+        collection="events"
+        recordId={initialData?.id}
+        value={attachments}
+        onChange={setAttachments}
+      />
 
       {/* Kategorie + Sichtbarkeit */}
       <div className="grid gap-4 sm:grid-cols-2">

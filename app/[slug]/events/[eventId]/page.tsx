@@ -1,7 +1,6 @@
 export const dynamic = "force-dynamic";
 
 import { notFound } from "next/navigation";
-import Image from "next/image";
 import Link from "next/link";
 import {
   ChevronLeft,
@@ -27,8 +26,7 @@ import { getNextOccurrence, getRecurrenceLabel } from "@/lib/recurrence";
 import { GuestRegistrationForm } from "./GuestRegistrationForm";
 import { MemberRegistrationButton } from "./MemberRegistrationButton";
 import { PaymentResultBanner } from "./PaymentResultBanner";
-
-const PB_URL = process.env.NEXT_PUBLIC_POCKETBASE_URL || "";
+import { AttachmentGallery } from "@/components/shared/AttachmentGallery";
 
 export async function generateMetadata({
   params,
@@ -232,18 +230,14 @@ export default async function PublicEventPage({
             />
           )}
 
-          {/* Cover-Bild */}
-          {event.cover_image && (
-            <div className="relative overflow-hidden rounded-xl bg-gray-100" style={{ maxHeight: "400px", minHeight: "200px" }}>
-              <Image
-                src={`${PB_URL}/api/files/events/${event.id}/${event.cover_image}`}
-                alt={event.title}
-                fill
-                className="object-cover"
-                sizes="(max-width: 768px) 100vw, 800px"
-              />
-            </div>
-          )}
+          {/* Galerie (Bilder + PDFs) */}
+          <AttachmentGallery
+            collection="events"
+            recordId={event.id}
+            attachments={event.attachments}
+            coverImageFallback={event.cover_image}
+            title={event.title}
+          />
 
           {/* Absage-Hinweis */}
           {isCancelled && (

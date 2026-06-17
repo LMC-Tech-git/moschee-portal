@@ -1,16 +1,14 @@
 import Link from "next/link";
-import Image from "next/image";
-import { Pin, Calendar, User, Images } from "lucide-react";
+import { Pin, Calendar, User } from "lucide-react";
 import type { Post } from "@/types";
 import { formatDate } from "@/lib/utils";
 import { getTranslations } from "next-intl/server";
+import { AttachmentThumb } from "@/components/shared/AttachmentGallery";
 import {
   postCategoryColors,
   postStatusLabels,
   postStatusColors,
 } from "@/lib/constants";
-
-const PB_URL = process.env.NEXT_PUBLIC_POCKETBASE_URL || "";
 
 interface PostCardProps {
   post: Post;
@@ -60,29 +58,16 @@ export async function PostCard({ post, compact, href }: PostCardProps) {
     );
   }
 
-  const firstImage = post.attachments?.[0];
-  const extraImageCount = (post.attachments?.length || 0) - 1;
-
   const card = (
     <article aria-label={post.title} className={`overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-shadow hover:shadow-md${href ? " cursor-pointer" : ""}`}>
       {/* Cover-Bild */}
-      {firstImage && (
-        <div className="relative mx-auto aspect-square w-1/2 overflow-hidden rounded-lg bg-gray-100">
-          <Image
-            src={`${PB_URL}/api/files/posts/${post.id}/${firstImage}`}
-            alt={post.title}
-            fill
-            className="object-contain"
-            sizes="(max-width: 768px) 50vw, 300px"
-          />
-          {extraImageCount > 0 && (
-            <div className="absolute bottom-2 right-2 flex items-center gap-1 rounded-full bg-black/60 px-2 py-0.5 text-xs text-white">
-              <Images className="h-3 w-3" />
-              +{extraImageCount}
-            </div>
-          )}
-        </div>
-      )}
+      <AttachmentThumb
+        collection="posts"
+        recordId={post.id}
+        attachments={post.attachments}
+        title={post.title}
+        className="mx-auto aspect-square w-1/2"
+      />
       <div className="p-5">
         {/* Header */}
         <div className="mb-3 flex items-start justify-between gap-2">

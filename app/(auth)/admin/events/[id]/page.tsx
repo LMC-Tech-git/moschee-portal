@@ -36,9 +36,9 @@ export default function EditEventPage() {
     load();
   }, [mosqueId, eventId]);
 
-  async function handleUpdate(data: EventInput) {
+  async function handleUpdate(data: EventInput, files: FormData) {
     if (!user) return { success: false, error: "Nicht eingeloggt" };
-    return updateEvent(eventId, mosqueId, user.id, data);
+    return updateEvent(eventId, mosqueId, user.id, data, { files });
   }
 
   if (isLoading) {

@@ -18,9 +18,9 @@ export default function NewCampaignPage() {
   const tPush = useTranslations("push");
   const [notifyPush, setNotifyPush] = useState(false);
 
-  async function handleCreate(data: CampaignInput) {
+  async function handleCreate(data: CampaignInput, files: FormData) {
     if (!user) return { success: false, error: tCommon("notLoggedIn") };
-    return createCampaign(mosqueId, user.id, data, notifyPush);
+    return createCampaign(mosqueId, user.id, data, { files, notifyPush });
   }
 
   return (

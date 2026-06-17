@@ -35,9 +35,9 @@ export default function EditCampaignPage() {
     load();
   }, [mosqueId, campaignId]);
 
-  async function handleUpdate(data: CampaignInput) {
+  async function handleUpdate(data: CampaignInput, files: FormData) {
     if (!user) return { success: false, error: "Nicht eingeloggt" };
-    return updateCampaign(campaignId, mosqueId, user.id, data);
+    return updateCampaign(campaignId, mosqueId, user.id, data, { files });
   }
 
   if (isLoading) {

@@ -4,6 +4,7 @@ import { getAdminPB } from "@/lib/pocketbase-admin";
 import { campaignSchema, type CampaignInput } from "@/lib/validations";
 import { logAudit } from "@/lib/audit";
 import { sendPushToMosque } from "@/lib/push";
+import { buildRecordFormData, hasAttachmentChanges } from "@/lib/attachments";
 import type { Campaign, CampaignWithProgress } from "@/types";
 import type { RecordModel } from "pocketbase";
 
@@ -22,6 +23,7 @@ function mapRecordToCampaign(record: RecordModel): Campaign {
     end_at: record.end_at || "",
     status: record.status || "active",
     cover_image: record.cover_image || "",
+    attachments: record.attachments || [],
     created_by: record.created_by || "",
     created: record.created || "",
     updated: record.updated || "",
@@ -264,20 +266,24 @@ export async function createCampaign(
   mosqueId: string,
   userId: string,
   input: CampaignInput,
-  notifyPush = false
+  opts: { files?: FormData | null; notifyPush?: boolean } = {}
 ): Promise<ActionResult<Campaign>> {
+  const { files, notifyPush = false } = opts;
   try {
     const validated = campaignSchema.parse(input);
     const pb = await getAdminPB();
 
-    const record = await pb.collection("campaigns").create({
+    const payload = {
       ...validated,
       currency: "EUR",
       mosque_id: mosqueId,
       created_by: userId,
       type: "general",       // PB-Pflichtfeld
       visibility: "public",  // PB-Pflichtfeld
-    });
+    };
+    const record = hasAttachmentChanges(files)
+      ? await pb.collection("campaigns").create(buildRecordFormData(payload, files))
+      : await pb.collection("campaigns").create(payload);
 
     await logAudit({
       mosqueId,
@@ -333,8 +339,10 @@ export async function updateCampaign(
   campaignId: string,
   mosqueId: string,
   userId: string,
-  input: CampaignInput
+  input: CampaignInput,
+  opts: { files?: FormData | null } = {}
 ): Promise<ActionResult<Campaign>> {
+  const { files } = opts;
   try {
     const validated = campaignSchema.parse(input);
     const pb = await getAdminPB();
@@ -344,7 +352,9 @@ export async function updateCampaign(
       return { success: false, error: "Kampagne nicht gefunden" };
     }
 
-    const record = await pb.collection("campaigns").update(campaignId, validated);
+    const record = hasAttachmentChanges(files)
+      ? await pb.collection("campaigns").update(campaignId, buildRecordFormData(validated, files))
+      : await pb.collection("campaigns").update(campaignId, validated);
 
     await logAudit({
       mosqueId,

@@ -3,6 +3,7 @@ import type { Event } from "@/types";
 import { formatDate, formatDateTime } from "@/lib/utils";
 import { getNextOccurrence } from "@/lib/recurrence";
 import { getTranslations } from "next-intl/server";
+import { AttachmentThumb } from "@/components/shared/AttachmentGallery";
 import {
   eventCategoryColors,
   eventStatusLabels,
@@ -86,6 +87,14 @@ export async function EventCard({ event, compact, registrationCount }: EventCard
 
   return (
     <article aria-label={event.title} className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-shadow hover:shadow-md">
+      <AttachmentThumb
+        collection="events"
+        recordId={event.id}
+        attachments={event.attachments}
+        coverImageFallback={event.cover_image}
+        title={event.title}
+        className="aspect-video w-full"
+      />
       <div className="p-5">
         {/* Header */}
         <div className="mb-3 flex items-start justify-between gap-2">

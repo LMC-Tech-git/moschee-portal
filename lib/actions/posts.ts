@@ -295,10 +295,10 @@ export async function createPost(
       pbFormData.append("published_at", new Date().toISOString());
     }
 
-    const images = formData.getAll("images");
-    images.forEach((item) => {
+    const newFiles = formData.getAll("attachments");
+    newFiles.forEach((item) => {
       if (item && typeof item !== "string" && "size" in (item as object) && (item as File).size > 0) {
-        pbFormData.append("attachments", item as Blob, (item as File).name || "image");
+        pbFormData.append("attachments", item as Blob, (item as File).name || "file");
       }
     });
 
@@ -391,17 +391,17 @@ export async function updatePost(
       pbFormData.append("published_at", new Date().toISOString());
     }
 
-    // Neue Bilder anhängen
-    const images = formData.getAll("images");
-    images.forEach((item) => {
+    // Neue Anhänge (Bilder + PDFs) anhängen
+    const newFiles = formData.getAll("attachments");
+    newFiles.forEach((item) => {
       if (item && typeof item !== "string" && "size" in (item as object) && (item as File).size > 0) {
-        pbFormData.append("attachments", item as Blob, (item as File).name || "image");
+        pbFormData.append("attachments", item as Blob, (item as File).name || "file");
       }
     });
 
-    // Bestehende Bilder löschen (PocketBase: "attachments-" = Dateinamen zum Löschen)
-    const removedImages = formData.getAll("removedImages") as string[];
-    removedImages.forEach((filename) => {
+    // Bestehende Anhänge löschen (PocketBase: "attachments-" = Dateinamen zum Löschen)
+    const removed = formData.getAll("attachments-") as string[];
+    removed.forEach((filename) => {
       if (filename) pbFormData.append("attachments-", filename);
     });
 

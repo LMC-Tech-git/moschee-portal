@@ -9,6 +9,7 @@ import type { Event, EventRegistration } from "@/types";
 import type { RecordModel } from "pocketbase";
 import { checkDemoLimit } from "@/lib/demo";
 import { sendPushToMosque } from "@/lib/push";
+import { buildRecordFormData, hasAttachmentChanges } from "@/lib/attachments";
 import Stripe from "stripe";
 
 // --- Helpers ---
@@ -29,6 +30,7 @@ function mapRecordToEvent(record: RecordModel): Event {
     capacity: record.capacity || 0,
     status: record.status || "draft",
     cover_image: record.cover_image || "",
+    attachments: record.attachments || [],
     created_by: record.created_by || "",
     created: record.created || "",
     updated: record.updated || "",
@@ -293,8 +295,9 @@ export async function createEvent(
   mosqueId: string,
   userId: string,
   input: EventInput,
-  notifyPush = false
+  opts: { files?: FormData | null; notifyPush?: boolean } = {}
 ): Promise<ActionResult<Event>> {
+  const { files, notifyPush = false } = opts;
   try {
     const validated = eventSchema.parse(input);
     const pb = await getAdminPB();
@@ -302,11 +305,10 @@ export async function createEvent(
     const demoCheck = await checkDemoLimit(mosqueId, "events");
     if (!demoCheck.allowed) return { success: false, error: demoCheck.error };
 
-    const record = await pb.collection("events").create({
-      ...validated,
-      mosque_id: mosqueId,
-      created_by: userId,
-    });
+    const payload = { ...validated, mosque_id: mosqueId, created_by: userId };
+    const record = hasAttachmentChanges(files)
+      ? await pb.collection("events").create(buildRecordFormData(payload, files))
+      : await pb.collection("events").create(payload);
 
     await logAudit({
       mosqueId,
@@ -354,8 +356,10 @@ export async function updateEvent(
   eventId: string,
   mosqueId: string,
   userId: string,
-  input: EventInput
+  input: EventInput,
+  opts: { files?: FormData | null } = {}
 ): Promise<ActionResult<Event>> {
+  const { files } = opts;
   try {
     const validated = eventSchema.parse(input);
     const pb = await getAdminPB();
@@ -365,7 +369,9 @@ export async function updateEvent(
       return { success: false, error: "Veranstaltung nicht gefunden" };
     }
 
-    const record = await pb.collection("events").update(eventId, validated);
+    const record = hasAttachmentChanges(files)
+      ? await pb.collection("events").update(eventId, buildRecordFormData(validated, files))
+      : await pb.collection("events").update(eventId, validated);
 
     await logAudit({
       mosqueId,

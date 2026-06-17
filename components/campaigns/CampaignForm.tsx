@@ -9,10 +9,19 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import {
+  AttachmentUploader,
+  attachmentsToFormData,
+  emptyAttachmentState,
+  type AttachmentState,
+} from "@/components/shared/AttachmentUploader";
 
 interface CampaignFormProps {
   initialData?: Campaign;
-  onSubmit: (data: CampaignInput) => Promise<{ success: boolean; error?: string }>;
+  onSubmit: (
+    data: CampaignInput,
+    files: FormData
+  ) => Promise<{ success: boolean; error?: string }>;
   isEdit?: boolean;
 }
 
@@ -46,6 +55,9 @@ export function CampaignForm({ initialData, onSubmit, isEdit }: CampaignFormProp
   const [endAt, setEndAt] = useState(
     initialData?.end_at ? initialData.end_at.slice(0, 10) : ""
   );
+  const [attachments, setAttachments] = useState<AttachmentState>(
+    emptyAttachmentState(initialData?.attachments || [])
+  );
 
   async function handleSubmit(status: "active" | "paused" | "completed") {
     setError("");
@@ -62,7 +74,7 @@ export function CampaignForm({ initialData, onSubmit, isEdit }: CampaignFormProp
         start_at: startAt || "",
         end_at: endAt || "",
         status,
-      });
+      }, attachmentsToFormData(attachments));
 
       if (result.success) {
         router.push("/admin/kampagnen");
@@ -108,6 +120,14 @@ export function CampaignForm({ initialData, onSubmit, isEdit }: CampaignFormProp
           rows={5}
         />
       </div>
+
+      {/* Anhänge (Bilder + PDFs) */}
+      <AttachmentUploader
+        collection="campaigns"
+        recordId={initialData?.id}
+        value={attachments}
+        onChange={setAttachments}
+      />
 
       {/* Kategorie + Ziel */}
       <div className="grid gap-4 sm:grid-cols-2">

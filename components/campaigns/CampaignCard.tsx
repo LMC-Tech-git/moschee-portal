@@ -1,6 +1,7 @@
 import { Heart, Users } from "lucide-react";
 import { formatCurrencyCents } from "@/lib/utils";
 import { getTranslations } from "next-intl/server";
+import { AttachmentThumb } from "@/components/shared/AttachmentGallery";
 import type { CampaignWithProgress } from "@/types";
 
 const categoryColors: Record<CampaignWithProgress["category"], string> = {
@@ -60,6 +61,14 @@ export async function CampaignCard({ campaign, compact }: CampaignCardProps) {
 
   return (
     <article className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-shadow hover:shadow-md">
+      <AttachmentThumb
+        collection="campaigns"
+        recordId={campaign.id}
+        attachments={campaign.attachments}
+        coverImageFallback={campaign.cover_image}
+        title={campaign.title}
+        className="aspect-video w-full"
+      />
       <div className="p-5">
         {/* Header */}
         <div className="mb-3 flex items-start justify-between gap-2">

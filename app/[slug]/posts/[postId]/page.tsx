@@ -2,7 +2,6 @@ export const dynamic = "force-dynamic";
 
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
 import { ChevronLeft, Calendar, User, Pin } from "lucide-react";
 import { resolveMosqueBySlug } from "@/lib/resolve-mosque";
 import { getAuthFromCookie } from "@/lib/auth-cookie";
@@ -10,8 +9,7 @@ import { getAdminPB } from "@/lib/pocketbase-admin";
 import { getPostById } from "@/lib/actions/posts";
 import { formatDate } from "@/lib/utils";
 import { postCategoryLabels, postCategoryColors } from "@/lib/constants";
-
-const PB_URL = process.env.NEXT_PUBLIC_POCKETBASE_URL || "";
+import { AttachmentGallery } from "@/components/shared/AttachmentGallery";
 
 export async function generateMetadata({
   params,
@@ -122,38 +120,15 @@ export default async function PostDetailPage({
       {/* Inhalt */}
       <section className="py-10">
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-          {/* Bilder-Galerie */}
-          {post.attachments && post.attachments.length > 0 && (
-            <div
-              className={`mb-8 grid gap-3 ${
-                post.attachments.length === 1
-                  ? "grid-cols-1"
-                  : post.attachments.length === 2
-                  ? "grid-cols-2"
-                  : "grid-cols-2 sm:grid-cols-3"
-              }`}
-            >
-              {post.attachments.map((filename, idx) => (
-                <a
-                  key={filename}
-                  href={`${PB_URL}/api/files/posts/${post.id}/${filename}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group relative overflow-hidden rounded-xl bg-gray-100"
-                >
-                  <div className="relative w-full" style={{ aspectRatio: "4/3" }}>
-                    <Image
-                      src={`${PB_URL}/api/files/posts/${post.id}/${filename}`}
-                      alt={`Bild ${idx + 1} – ${post.title}`}
-                      fill
-                      className="object-cover transition-transform duration-200 group-hover:scale-105"
-                      sizes="(max-width: 768px) 100vw, 50vw"
-                    />
-                  </div>
-                </a>
-              ))}
-            </div>
-          )}
+          {/* Galerie (Bilder + PDFs) */}
+          <div className="mb-8">
+            <AttachmentGallery
+              collection="posts"
+              recordId={post.id}
+              attachments={post.attachments}
+              title={post.title}
+            />
+          </div>
 
           {/* Text */}
           <div className="whitespace-pre-wrap text-gray-800 leading-relaxed text-base">

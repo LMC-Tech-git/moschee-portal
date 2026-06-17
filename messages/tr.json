@@ -1,4 +1,19 @@
 {
+  "attachments": {
+    "label": "Ekler",
+    "hint": "(Resim + PDF, toplam en fazla 10 dosya, her biri en fazla 10 MB)",
+    "add": "Dosya ekle",
+    "select": "Tıklayarak dosya seçin",
+    "newBadge": "Yeni",
+    "removeAria": "{name} kaldır",
+    "tooManyFiles": "En fazla {max} dosyaya izin verilir.",
+    "tooLarge": "Dosya çok büyük (en fazla 10 MB).",
+    "pdfFile": "PDF belgesi",
+    "imageAlt": "Resim {index}",
+    "next": "Sonraki resim",
+    "prev": "Önceki resim",
+    "counter": "{current} / {total}"
+  },
   "common": {
     "save": "Kaydet",
     "saving": "Kaydediliyor...",

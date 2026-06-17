@@ -1,4 +1,19 @@
 {
+  "attachments": {
+    "label": "Anhänge",
+    "hint": "(Bilder + PDF, max. 10 Dateien gesamt, je max. 10 MB)",
+    "add": "Dateien hinzufügen",
+    "select": "Dateien per Klick auswählen",
+    "newBadge": "Neu",
+    "removeAria": "{name} entfernen",
+    "tooManyFiles": "Maximal {max} Dateien erlaubt.",
+    "tooLarge": "Datei zu groß (max. 10 MB).",
+    "pdfFile": "PDF-Dokument",
+    "imageAlt": "Bild {index}",
+    "next": "Nächstes Bild",
+    "prev": "Vorheriges Bild",
+    "counter": "{current} / {total}"
+  },
   "common": {
     "save": "Speichern",
     "saving": "Speichern...",
