@@ -63,7 +63,7 @@ export async function middleware(request: NextRequest) {
       `/${slug}`,   // Verhindert Doppel-Rewrite bei bestehenden /{slug}/... Links
       "/login", "/register", "/api",
       "/admin", "/member", "/lehrer", "/imam",
-      "/impressum", "/datenschutz", "/agb",
+      "/impressum", "/datenschutz", "/agb", "/avv", "/nutzungsvereinbarung",
       "/passwort-vergessen", "/passwort-zuruecksetzen",
     ];
     const needsRewrite = !PASS_THROUGH.some((p) => pathname.startsWith(p));
