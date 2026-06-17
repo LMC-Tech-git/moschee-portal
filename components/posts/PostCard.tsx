@@ -66,7 +66,6 @@ export async function PostCard({ post, compact, href }: PostCardProps) {
         recordId={post.id}
         attachments={post.attachments}
         title={post.title}
-        className="mx-auto aspect-square w-1/2"
       />
       <div className="p-5">
         {/* Header */}

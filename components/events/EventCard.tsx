@@ -93,7 +93,6 @@ export async function EventCard({ event, compact, registrationCount }: EventCard
         attachments={event.attachments}
         coverImageFallback={event.cover_image}
         title={event.title}
-        className="aspect-video w-full"
       />
       <div className="p-5">
         {/* Header */}

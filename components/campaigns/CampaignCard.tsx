@@ -67,7 +67,6 @@ export async function CampaignCard({ campaign, compact }: CampaignCardProps) {
         attachments={campaign.attachments}
         coverImageFallback={campaign.cover_image}
         title={campaign.title}
-        className="aspect-video w-full"
       />
       <div className="p-5">
         {/* Header */}

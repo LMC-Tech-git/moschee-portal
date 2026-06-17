@@ -63,7 +63,7 @@ export function AttachmentGallery({
                 src={buildFileUrl(collection, recordId, name, THUMB_SIZES.grid)}
                 alt={`${title} – ${t("imageAlt", { index: i + 1 })}`}
                 loading="lazy"
-                className="h-full w-full object-cover transition-transform group-hover:scale-105"
+                className="h-full w-full object-contain transition-transform group-hover:scale-105"
               />
             </button>
           ))}
@@ -109,8 +109,8 @@ interface AttachmentThumbProps {
 }
 
 /**
- * Kompakter Karten-Thumbnail: erstes Bild + `+N`-Badge.
- * Rendert nichts, wenn kein Bild vorhanden ist.
+ * Karten-Vorschau: bis zu 3 Bilder nebeneinander + `+N`-Badge auf der letzten
+ * Kachel. Rendert nichts, wenn kein Bild vorhanden ist.
  */
 export function AttachmentThumb({
   collection,
@@ -121,25 +121,33 @@ export function AttachmentThumb({
   className,
 }: AttachmentThumbProps) {
   const { images } = splitAttachments(attachments || []);
-  const first = images[0] || coverImageFallback;
-  if (!first) return null;
+  const all = images.length > 0 ? images : coverImageFallback ? [coverImageFallback] : [];
+  if (all.length === 0) return null;
 
-  const extra = Math.max(0, images.length - 1);
+  const previews = all.slice(0, 3);
+  const extra = all.length - previews.length;
 
   return (
-    <div className={`relative overflow-hidden rounded-lg bg-gray-100 ${className || ""}`}>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={buildFileUrl(collection, recordId, first, THUMB_SIZES.card)}
-        alt={title}
-        loading="lazy"
-        className="h-full w-full object-cover"
-      />
-      {extra > 0 && (
-        <div className="absolute bottom-1 right-1 rounded-full bg-black/60 px-1.5 py-0.5 text-[10px] text-white">
-          +{extra}
+    <div
+      className={`grid gap-1 ${className || ""}`}
+      style={{ gridTemplateColumns: `repeat(${previews.length}, minmax(0, 1fr))` }}
+    >
+      {previews.map((name, i) => (
+        <div key={name} className="relative h-40 overflow-hidden bg-gray-100 sm:h-48">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={buildFileUrl(collection, recordId, name, THUMB_SIZES.grid)}
+            alt={title}
+            loading="lazy"
+            className="h-full w-full object-cover"
+          />
+          {i === previews.length - 1 && extra > 0 && (
+            <div className="absolute bottom-1 right-1 rounded-full bg-black/60 px-1.5 py-0.5 text-[10px] text-white">
+              +{extra}
+            </div>
+          )}
         </div>
-      )}
+      ))}
     </div>
   );
 }
