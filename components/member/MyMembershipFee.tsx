@@ -9,6 +9,7 @@ import {
   type MyMembershipFeeData,
 } from "@/lib/actions/membership-fees";
 import { cancelRecurringSubscription } from "@/lib/actions/recurring-donations";
+import { stripeOnlineEnabled } from "@/lib/stripe/online-enabled";
 import { formatCurrencyCents, formatDate } from "@/lib/utils";
 import { Banknote, AlertTriangle, RefreshCw } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -106,6 +107,9 @@ export function MyMembershipFee() {
     );
   }
 
+  // Auto-Einzug nur wenn Onboarding abgeschlossen (sonst Plattform-Konto).
+  const cardEnabled = !!mosque && stripeOnlineEnabled(mosque);
+
   const cfg = data.config;
   const intervalLabel = t(
     `interval${cfg.interval.charAt(0).toUpperCase()}${cfg.interval.slice(1)}` as never
@@ -142,7 +146,7 @@ export function MyMembershipFee() {
               {busy ? <RefreshCw className="h-3 w-3 animate-spin" /> : t("cancelAuto")}
             </button>
           </div>
-        ) : (
+        ) : cardEnabled ? (
           <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
             <select
               value={method}
@@ -161,6 +165,10 @@ export function MyMembershipFee() {
               {busy ? tCommon("saving") : t("activateAuto")}
             </button>
           </div>
+        ) : (
+          <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+            {t("onlineUnavailable")}
+          </p>
         )}
       </div>
 

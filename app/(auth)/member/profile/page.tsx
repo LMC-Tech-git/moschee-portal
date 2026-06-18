@@ -30,6 +30,7 @@ import {
 } from "@/lib/actions/student-fees";
 import { getMadrasaFeeSettings, getPortalSettings } from "@/lib/actions/settings";
 import { getSponsorsByContact, createSponsorStripeCheckout } from "@/lib/actions/sponsors";
+import { stripeOnlineEnabled } from "@/lib/stripe/online-enabled";
 import type { Sponsor } from "@/types";
 import { DemoHint } from "@/components/demo/DemoHint";
 import {
@@ -155,9 +156,11 @@ export default function MemberProfilePage() {
   }, [mosqueId, user]);
 
   useEffect(() => {
-    if (mosque?.donation_provider === "stripe") {
-      setStripeEnabled(true);
-    }
+    // Karte nur wenn Provider Stripe UND Onboarding abgeschlossen
+    // (sonst lädt Geld aufs Plattform-Konto — siehe stripeOnlineEnabled).
+    setStripeEnabled(
+      mosque?.donation_provider === "stripe" && stripeOnlineEnabled(mosque)
+    );
   }, [mosque]);
 
   if (!user) return null;

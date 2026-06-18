@@ -476,6 +476,7 @@
     "transferTitle": "Havale QR Kodu",
     "transferScanHint": "Bankacılık uygulamanızla tarayın — IBAN, alıcı, tutar ve açıklama otomatik doldurulur. Yalnızca göndermeniz yeterli.",
     "transferUnavailable": "QR kodu şu anda kullanılamıyor.",
+    "onlineUnavailable": "Bu cami için çevrimiçi ödeme henüz ayarlanmadı. Lütfen daha sonra tekrar deneyin.",
     "transferHolder": "Alıcı",
     "transferIban": "IBAN",
     "transferBic": "BIC",
@@ -3748,6 +3749,7 @@
     "memberFailedHint": "Bir tahsilat başarısız oldu. Lütfen ödeme bilgilerini kontrol et.",
     "memberTransparency": "Moschee.App üyelik aidatlarından komisyon almaz.",
     "activateError": "Etkinleştirme başarısız.",
+    "onlineUnavailable": "Bu cami için çevrimiçi ödeme henüz ayarlanmadı. Lütfen cami ile iletişime geçin.",
     "cancelConfirm": "Otomatik tahsilat gerçekten iptal edilsin mi?"
   },
   "tv": {

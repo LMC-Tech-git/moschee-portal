@@ -71,19 +71,27 @@ export async function GET(request: NextRequest) {
         // Mosque für stripeAccount-Routing laden
         const mosqueRec = await pb.collection("mosques").getOne(d.mosque_id);
         const mosque = mosqueRec as unknown as Mosque;
-        let opts;
+        let opts: { stripeAccount: string } | undefined;
         try {
           opts = stripeAccountFor(mosque);
         } catch {
-          // Mosque payments_mode = disabled — direkt failed_expired
-          await finalizeFailedPayment({
-            donationId: d.id,
-            mosqueId: d.mosque_id,
-            source: "expired",
-            reason: "Mosque-Stripe nicht mehr verfügbar",
-          });
-          finalizedFailed++;
-          continue;
+          // stripeAccountFor wirft jetzt auch für platform_legacy/leer
+          // (Onboarding nicht abgeschlossen). NUR bei "disabled" sofort
+          // failen — sonst könnte eine vor dem Onboarding-Gate erstellte,
+          // tatsächlich bezahlte Legacy-Donation fälschlich failed werden.
+          if (mosque.payments_mode === "disabled") {
+            await finalizeFailedPayment({
+              donationId: d.id,
+              mosqueId: d.mosque_id,
+              source: "expired",
+              reason: "Mosque-Stripe nicht mehr verfügbar",
+            });
+            finalizedFailed++;
+            continue;
+          }
+          // Legacy-Charges liegen auf dem Plattform-Konto → ohne stripeAccount
+          // (opts=undefined) weiter normal gegen Stripe prüfen.
+          opts = undefined;
         }
 
         // provider_ref kann cs_... (CheckoutSession) oder pi_... (PaymentIntent)

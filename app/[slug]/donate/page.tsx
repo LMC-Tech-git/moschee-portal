@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ChevronLeft, Heart, TrendingUp } from "lucide-react";
 import { resolveMosqueWithSettings } from "@/lib/resolve-mosque";
-import { sepaAvailable } from "@/lib/stripe/client";
+import { sepaAvailable, stripeOnlineEnabled } from "@/lib/stripe/client";
 import { getTranslations } from "next-intl/server";
 import { getPublicCampaigns, getCampaignById } from "@/lib/actions/campaigns";
 import { DonationForm } from "./DonationForm";
@@ -271,6 +271,7 @@ export default async function DonatePage({
             recurringMinCents={recurringMinCents}
             recurringQuickAmounts={recurringQuickAmounts}
             sepaEnabled={sepaAvailable(mosque, settings)}
+            cardPaymentsEnabled={stripeOnlineEnabled(mosque)}
             isTestMode={mosque.payments_mode === "connect_test"}
             isDemoMode={isDemoMosque}
             bankTransferEnabled={!!settings.bank_transfer_enabled && !!settings.bank_iban}

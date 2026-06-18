@@ -477,6 +477,7 @@
     "transferTitle": "Überweisungs-QR-Code",
     "transferScanHint": "Mit der Banking-App scannen — IBAN, Empfänger, Betrag und Verwendungszweck werden automatisch ausgefüllt. Sie müssen nur noch senden.",
     "transferUnavailable": "QR-Code derzeit nicht verfügbar.",
+    "onlineUnavailable": "Online-Zahlung ist für diese Moschee derzeit noch nicht eingerichtet. Bitte versuchen Sie es später erneut.",
     "transferHolder": "Empfänger",
     "transferIban": "IBAN",
     "transferBic": "BIC",
@@ -3749,6 +3750,7 @@
     "memberFailedHint": "Eine Abbuchung ist fehlgeschlagen. Bitte prüfe deine Zahlungsdaten.",
     "memberTransparency": "Moschee.App erhebt keine Provision auf Mitgliedsbeiträge.",
     "activateError": "Aktivierung fehlgeschlagen.",
+    "onlineUnavailable": "Online-Zahlung ist für diese Moschee derzeit noch nicht eingerichtet. Bitte wende dich an die Gemeinde.",
     "cancelConfirm": "Automatischen Einzug wirklich kündigen?"
   },
   "tv": {

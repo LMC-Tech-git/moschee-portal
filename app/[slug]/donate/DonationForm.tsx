@@ -27,6 +27,9 @@ interface DonationFormProps {
   recurringQuickAmounts?: number[];
   // SEPA: Server-seitig berechnet (sepaAvailable). Demo + Connect identisch.
   sepaEnabled?: boolean;
+  // Karten-/Stripe-Online-Zahlung verfügbar? Server-seitig (stripeOnlineEnabled).
+  // false = kein abgeschlossenes Onboarding → nur Überweisung anbieten.
+  cardPaymentsEnabled?: boolean;
   // Stripe-Mode Hinweise (Test-IBAN-Hint vs Live-Hint)
   isTestMode?: boolean;
   isDemoMode?: boolean;
@@ -52,6 +55,7 @@ export function DonationForm({
   recurringMinCents = 300,
   recurringQuickAmounts,
   sepaEnabled = false,
+  cardPaymentsEnabled = true,
   isTestMode = false,
   isDemoMode = false,
   bankTransferEnabled = false,
@@ -84,7 +88,10 @@ export function DonationForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
 
-  const isMonthly = mode === "monthly";
+  // Kein abgeschlossenes Stripe-Onboarding → keine Karte/SEPA/Dauerauftrag,
+  // nur Überweisung (falls konfiguriert). Greift nur im Stripe-Zweig.
+  const cardDisabled = !cardPaymentsEnabled;
+  const isMonthly = mode === "monthly" && !cardDisabled;
   // Verwendungszweck für Überweisungs-QR (inkl. Kampagne, falls gewählt)
   const selectedCampaign = campaigns.find((c) => c.id === campaignId);
   const transferRemittance = selectedCampaign
@@ -102,7 +109,7 @@ export function DonationForm({
   const paymentMethodCount = 1 + (sepaEnabled ? 1 : 0) + (showBankTransfer ? 1 : 0);
   const paymentGridCols =
     paymentMethodCount === 1 ? "grid-cols-1" : paymentMethodCount === 2 ? "grid-cols-2" : "grid-cols-3";
-  const showFeeCheckbox = amountCents >= 200 && !isMonthly && !isBankTransfer;
+  const showFeeCheckbox = amountCents >= 200 && !isMonthly && !isBankTransfer && !cardDisabled;
 
   // Vorausfüllen wenn eingeloggt
   useEffect(() => {
@@ -292,8 +299,8 @@ export function DonationForm({
         </div>
       )}
 
-      {/* Einmalig / Monatlich Toggle */}
-      {recurringDonationsEnabled && (
+      {/* Einmalig / Monatlich Toggle — Dauerauftrag braucht Stripe */}
+      {recurringDonationsEnabled && !cardDisabled && (
         <div>
           <p className="mb-2 text-sm font-medium text-gray-700">Spendenart</p>
           <div className="grid grid-cols-2 gap-2" role="group" aria-label="Spendenart wählen">
@@ -458,8 +465,10 @@ export function DonationForm({
         )}
       </div>
 
-      {/* Zahlungsmethode — sichtbar wenn SEPA und/oder Überweisung verfügbar */}
-      {(sepaEnabled || showBankTransfer) && (
+      {/* Zahlungsmethode — sichtbar wenn SEPA und/oder Überweisung verfügbar.
+          Bei gesperrter Karte (kein Onboarding) entfällt die Auswahl —
+          es gibt dann nur Überweisung (siehe unten). */}
+      {!cardDisabled && (sepaEnabled || showBankTransfer) && (
         <div>
           <p className="mb-2 text-sm font-medium text-gray-700">
             {t("paymentMethodTitle")}
@@ -519,7 +528,22 @@ export function DonationForm({
         </div>
       )}
 
-      {isBankTransfer ? (
+      {cardDisabled ? (
+        bankTransferEnabled ? (
+          /* Onboarding offen → nur Überweisung (QR), keine Karte/SEPA/Stripe */
+          <BankTransferCard
+            iban={bankIban}
+            bic={bankBic}
+            holder={bankHolder}
+            remittance={transferRemittance}
+            amountCents={amountCents}
+          />
+        ) : (
+          <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-center text-sm text-amber-800">
+            {t("onlineUnavailable")}
+          </div>
+        )
+      ) : isBankTransfer ? (
         <>
           {/* Überweisung: QR statt Online-Checkout — kein Turnstile/Stripe nötig */}
           <BankTransferCard
