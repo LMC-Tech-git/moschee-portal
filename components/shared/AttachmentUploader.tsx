@@ -289,38 +289,39 @@ function PreviewTile({
         </div>
       )}
 
+      {/* Auf Touch (kein Hover) immer sichtbar; Desktop blendet auf Hover ein. */}
       {!disabled && (
         <button
           type="button"
           onClick={onRemove}
-          className="absolute right-1 top-1 rounded-full bg-red-600 p-0.5 text-white opacity-0 transition-opacity focus:opacity-100 group-hover:opacity-100"
+          className="absolute right-1 top-1 rounded-full bg-red-600 p-1 text-white opacity-100 transition-opacity focus:opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
           aria-label={t("removeAria", { name })}
         >
-          <X className="h-3 w-3" />
+          <X className="h-3.5 w-3.5" />
         </button>
       )}
 
-      {/* Sortier-Steuerung (Touch/A11y); Drag zusätzlich für Desktop */}
+      {/* Sortier-Steuerung: Touch via Buttons (Drag feuert nicht auf Touch). */}
       {!disabled && total > 1 && (
-        <div className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-black/55 px-1 py-0.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+        <div className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-black/55 px-0.5 py-0.5 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100">
           <button
             type="button"
             onClick={onMovePrev}
             disabled={index === 0}
             aria-label={t("moveLeft")}
-            className="rounded p-0.5 text-white disabled:opacity-30"
+            className="flex h-8 w-8 items-center justify-center rounded text-white disabled:opacity-30"
           >
-            <ChevronLeft className="h-4 w-4" />
+            <ChevronLeft className="h-5 w-5" />
           </button>
-          <GripVertical className="h-3.5 w-3.5 text-white/70" />
+          <GripVertical className="hidden h-3.5 w-3.5 text-white/70 sm:block" />
           <button
             type="button"
             onClick={onMoveNext}
             disabled={index === total - 1}
             aria-label={t("moveRight")}
-            className="rounded p-0.5 text-white disabled:opacity-30"
+            className="flex h-8 w-8 items-center justify-center rounded text-white disabled:opacity-30"
           >
-            <ChevronRight className="h-4 w-4" />
+            <ChevronRight className="h-5 w-5" />
           </button>
         </div>
       )}
