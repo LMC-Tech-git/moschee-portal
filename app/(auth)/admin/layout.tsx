@@ -75,6 +75,9 @@ export default function AdminLayout({
   const router = useRouter();
   const pathname = usePathname();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  // Admin läuft praktisch immer auf der Hauptdomain → Slug-Pfad, damit super_admin
+  // beim "Zurück zum Portal" in der GEWÄHLTEN Gemeinde landet, nicht auf der Root-Domain.
+  const portalHref = mosque?.slug ? `/${mosque.slug}` : "/";
 
   // Drawer schließen bei Route-Wechsel
   useEffect(() => {
@@ -328,7 +331,7 @@ export default function AdminLayout({
                 <LanguageSwitcher />
               </div>
               <Link
-                href="/"
+                href={portalHref}
                 onClick={() => setMobileNavOpen(false)}
                 className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-500 hover:bg-gray-50 hover:text-gray-700"
               >
@@ -419,7 +422,7 @@ export default function AdminLayout({
               <LanguageSwitcher />
             </div>
             <Link
-              href="/"
+              href={portalHref}
               className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-500 hover:bg-gray-50 hover:text-gray-700"
             >
               <ChevronLeft className="h-4 w-4" />

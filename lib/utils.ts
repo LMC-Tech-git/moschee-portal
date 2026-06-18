@@ -10,6 +10,27 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 /**
+ * Baut den Basis-Pfad für Moschee-Links abhängig vom Host.
+ * - Subdomain (`<slug>.moschee.app`): "" — Middleware ergänzt den Slug, saubere Pfade.
+ * - Hauptdomain (`moschee.app`) / localhost: `/<slug>` — Slug muss im Pfad stehen
+ *   (z.B. super_admin, der im Admin eine Gemeinde gewählt hat).
+ */
+export function getMosqueBasePath(
+  slug: string | null | undefined,
+  host: string | null | undefined,
+  rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "moschee.app"
+): string {
+  if (!slug) return "";
+  const hostname = (host ?? "").split(":")[0]; // Port abschneiden (localhost:3000)
+  const onSubdomain =
+    !!hostname &&
+    hostname !== rootDomain &&
+    hostname !== `www.${rootDomain}` &&
+    hostname.endsWith(`.${rootDomain}`);
+  return onSubdomain ? "" : `/${slug}`;
+}
+
+/**
  * Formatiert einen Betrag als Euro-Währung.
  */
 export function formatCurrency(amount: number): string {

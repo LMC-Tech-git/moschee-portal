@@ -29,6 +29,7 @@ import {
 import { useTranslations } from "next-intl";
 import { useAuth } from "@/lib/auth-context";
 import { useMosque } from "@/lib/mosque-context";
+import { getMosqueBasePath } from "@/lib/utils";
 import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
 
 const PB_URL = process.env.NEXT_PUBLIC_POCKETBASE_URL || "";
@@ -56,7 +57,7 @@ const AVATAR_GRADIENTS = [
   "from-fuchsia-400 to-violet-600",
 ];
 
-export default function Header() {
+export default function Header({ host }: { host?: string | null }) {
   const t = useTranslations();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { user, isAuthenticated, logout } = useAuth();
@@ -75,10 +76,11 @@ export default function Header() {
   // während urlSlug auf Subdomains (z.B. demo.moschee.app) initial null ist,
   // da usePathname() die Browser-URL zurückgibt, nicht den Middleware-Rewrite-Pfad.
   const slug = mosque?.slug ?? urlSlug;
-  // Auf Subdomains (mosque?.slug gesetzt) saubere Pfade nutzen ("/events" statt "/demo/events"),
-  // da die Middleware sonst doppelt rewritet: demo.moschee.app/demo/events → /demo/demo/events → 404.
-  // Auf der Hauptdomain (nur urlSlug) den Slug-Pfad beibehalten.
-  const basePath = mosque?.slug ? "" : (slug ? `/${slug}` : "");
+  // Subdomain (host = <slug>.moschee.app): saubere Pfade ("/events"), Middleware ergänzt den Slug —
+  // sonst Doppel-Rewrite demo.moschee.app/demo/events → /demo/demo/events → 404.
+  // Hauptdomain (moschee.app, localhost): Slug-Pfad nötig ("/demo/events"), z.B. wenn super_admin
+  // im Admin eine Gemeinde gewählt hat (mosque?.slug gesetzt, aber kein urlSlug im /admin-Pfad).
+  const basePath = getMosqueBasePath(slug, host);
 
   const closeMobileMenu = useCallback(() => setMobileMenuOpen(false), []);
 

@@ -95,7 +95,9 @@ export default async function RootLayout({
 
   // TV-Route: minimaler Shell — kein Header/DemoBanner/Footer/SW-Registration.
   // Header injiziert vom Middleware via x-tv-route bei Subdomain-Rewrite und Direkt-Aufruf.
-  const isTvRoute = (await headers()).get("x-tv-route") === "1";
+  const headersList = await headers();
+  const isTvRoute = headersList.get("x-tv-route") === "1";
+  const host = headersList.get("host");
 
   return (
     <html lang={locale}>
@@ -118,7 +120,7 @@ export default async function RootLayout({
                 <main id="main-content">{children}</main>
               ) : (
                 <div className="flex min-h-screen flex-col">
-                  <Header />
+                  <Header host={host} />
                   <DemoBanner />
                   <main id="main-content" className="flex-1">{children}</main>
                   <ContextualFooter />
