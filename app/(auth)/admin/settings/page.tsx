@@ -39,6 +39,7 @@ import type { Mosque, Settings as SettingsType } from "@/types";
 import { useTranslations } from "next-intl";
 import StripeConnectTab from "@/components/admin/StripeConnectTab";
 import TVSettingsTab from "@/components/settings/TVSettingsTab";
+import { ToggleSwitch } from "@/components/ui/toggle-switch";
 
 const PB_URL = process.env.NEXT_PUBLIC_POCKETBASE_URL || "";
 
@@ -1384,17 +1385,12 @@ function PrayerTab({
           title={t("prayer.ramadanMode")}
           description={t("prayer.ramadanModeDesc")}
         >
-          <label className="flex cursor-pointer items-center gap-3">
-            <input
-              type="checkbox"
-              checked={ramadanMode}
-              onChange={(e) => setRamadanMode(e.target.checked)}
-              className="h-4 w-4 accent-emerald-600"
-            />
-            <span className="text-sm font-medium text-gray-800">
-              {t("prayer.ramadanMode")}
-            </span>
-          </label>
+          <ToggleSwitch
+            checked={ramadanMode}
+            onCheckedChange={setRamadanMode}
+            label={t("prayer.ramadanMode")}
+            description={t("prayer.ramadanModeDesc")}
+          />
 
           {ramadanMode && (
             <div className="mt-4 space-y-3">
@@ -1759,29 +1755,12 @@ function MadrasaTab({
         title={t("madrasaFee.title")}
         description={t("madrasaFee.desc")}
       >
-        <label className="flex cursor-pointer items-center justify-between gap-4 rounded-xl border border-gray-200 p-4 hover:bg-gray-50">
-          <div>
-            <p className="font-medium text-gray-900">{t("madrasaFee.enabled")}</p>
-            <p className="mt-0.5 text-sm text-gray-500">
-              {t("madrasaFee.enabledDesc")}
-            </p>
-          </div>
-          <button
-            type="button"
-            role="switch"
-            aria-checked={feesEnabled}
-            onClick={() => setFeesEnabled((p) => !p)}
-            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 ${
-              feesEnabled ? "bg-emerald-600" : "bg-gray-300"
-            }`}
-          >
-            <span
-              className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow ring-0 transition-transform ${
-                feesEnabled ? "translate-x-5" : "translate-x-0"
-              }`}
-            />
-          </button>
-        </label>
+        <ToggleSwitch
+          checked={feesEnabled}
+          onCheckedChange={setFeesEnabled}
+          label={t("madrasaFee.enabled")}
+          description={t("madrasaFee.enabledDesc")}
+        />
       </SectionCard>
 
       {feesEnabled && (
@@ -1813,29 +1792,12 @@ function MadrasaTab({
             title={t("madrasaFee.siblingDiscount.title")}
             description={t("madrasaFee.siblingDiscount.desc")}
           >
-            <label className="flex cursor-pointer items-center justify-between gap-4 rounded-xl border border-gray-200 p-4 hover:bg-gray-50">
-              <div>
-                <p className="font-medium text-gray-900">{t("madrasaFee.siblingDiscount.enabled")}</p>
-                <p className="mt-0.5 text-sm text-gray-500">
-                  {t("madrasaFee.siblingDiscount.enabledDesc")}
-                </p>
-              </div>
-              <button
-                type="button"
-                role="switch"
-                aria-checked={siblingDiscountEnabled}
-                onClick={() => setSiblingDiscountEnabled((p) => !p)}
-                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 ${
-                  siblingDiscountEnabled ? "bg-emerald-600" : "bg-gray-300"
-                }`}
-              >
-                <span
-                  className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow ring-0 transition-transform ${
-                    siblingDiscountEnabled ? "translate-x-5" : "translate-x-0"
-                  }`}
-                />
-              </button>
-            </label>
+            <ToggleSwitch
+              checked={siblingDiscountEnabled}
+              onCheckedChange={setSiblingDiscountEnabled}
+              label={t("madrasaFee.siblingDiscount.enabled")}
+              description={t("madrasaFee.siblingDiscount.enabledDesc")}
+            />
 
             {siblingDiscountEnabled && (
               <div className="mt-4 space-y-4">
@@ -1926,29 +1888,12 @@ function MadrasaTab({
             title={t("madrasaFee.reminderTitle")}
             description={t("madrasaFee.reminderDesc")}
           >
-            <label className="flex cursor-pointer items-center justify-between gap-4 rounded-xl border border-gray-200 p-4 hover:bg-gray-50">
-              <div>
-                <p className="font-medium text-gray-900">{t("madrasaFee.reminderEnabled")}</p>
-                <p className="mt-0.5 text-sm text-gray-500">
-                  {t("madrasaFee.reminderEnabledDesc")}
-                </p>
-              </div>
-              <button
-                type="button"
-                role="switch"
-                aria-checked={reminderEnabled}
-                onClick={() => setReminderEnabled((p) => !p)}
-                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 ${
-                  reminderEnabled ? "bg-emerald-600" : "bg-gray-300"
-                }`}
-              >
-                <span
-                  className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow ring-0 transition-transform ${
-                    reminderEnabled ? "translate-x-5" : "translate-x-0"
-                  }`}
-                />
-              </button>
-            </label>
+            <ToggleSwitch
+              checked={reminderEnabled}
+              onCheckedChange={setReminderEnabled}
+              label={t("madrasaFee.reminderEnabled")}
+              description={t("madrasaFee.reminderEnabledDesc")}
+            />
 
             {reminderEnabled && (
               <div className="mt-4 space-y-2">
@@ -2239,18 +2184,13 @@ function EmailTab({ mosqueId: _mosqueId, adminEmail }: { mosqueId: string; admin
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
-              <input
-                id="smtp-tls"
-                type="checkbox"
-                checked={smtpData.smtp.tls}
-                onChange={(e) => updateSmtp("tls", e.target.checked)}
-                className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
-              />
-              <label htmlFor="smtp-tls" className="text-sm text-gray-700">
-                {t("email.tls")}
-              </label>
-            </div>
+            <ToggleSwitch
+              layout="inline"
+              size="sm"
+              checked={smtpData.smtp.tls}
+              onCheckedChange={(v) => updateSmtp("tls", v)}
+              label={t("email.tls")}
+            />
 
             <div className="flex items-center justify-between gap-4 pt-2">
               <StatusMessage status={smtpStatus} />
@@ -2312,27 +2252,12 @@ function SponsorsTab({
       <StatusMessage status={status} />
       <SectionCard title={t("sponsors.title")} description={t("sponsors.desc")}>
         <div className="space-y-4">
-          <label className="flex cursor-pointer items-start gap-3">
-            <div className="relative mt-0.5">
-              <input
-                type="checkbox"
-                className="sr-only"
-                checked={enabled}
-                onChange={(e) => setEnabled(e.target.checked)}
-              />
-              <div
-                className={`h-5 w-10 rounded-full transition-colors ${enabled ? "bg-emerald-600" : "bg-gray-200"}`}
-              >
-                <div
-                  className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${enabled ? "translate-x-5" : "translate-x-0.5"}`}
-                />
-              </div>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-900">{t("sponsors.enabledLabel")}</p>
-              <p className="text-xs text-gray-500">{t("sponsors.enabledHint")}</p>
-            </div>
-          </label>
+          <ToggleSwitch
+            checked={enabled}
+            onCheckedChange={setEnabled}
+            label={t("sponsors.enabledLabel")}
+            description={t("sponsors.enabledHint")}
+          />
 
           {/* Sichtbarkeit */}
           {enabled && (
@@ -2436,27 +2361,12 @@ function TeamTab({
       <SectionCard title={t("team.title")} description={t("team.desc")}>
         <div className="space-y-4">
           {/* Toggle */}
-          <label className="flex cursor-pointer items-start gap-3">
-            <div className="relative mt-0.5">
-              <input
-                type="checkbox"
-                className="sr-only"
-                checked={enabled}
-                onChange={(e) => setEnabled(e.target.checked)}
-              />
-              <div
-                className={`h-5 w-10 rounded-full transition-colors ${enabled ? "bg-emerald-600" : "bg-gray-200"}`}
-              >
-                <div
-                  className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${enabled ? "translate-x-5" : "translate-x-0.5"}`}
-                />
-              </div>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-900">{t("team.enabledLabel")}</p>
-              <p className="text-xs text-gray-500">{t("team.enabledHint")}</p>
-            </div>
-          </label>
+          <ToggleSwitch
+            checked={enabled}
+            onCheckedChange={setEnabled}
+            label={t("team.enabledLabel")}
+            description={t("team.enabledHint")}
+          />
 
           {/* Sichtbarkeit */}
           {enabled && (
@@ -2717,15 +2627,11 @@ function BankTransferTab({
       <StatusMessage status={status} />
       <SectionCard title={t("bankTransfer.title")} description={t("bankTransfer.desc")}>
         <div className="space-y-5">
-          <label className="flex cursor-pointer items-start gap-3">
-            <input
-              type="checkbox"
-              checked={enabled}
-              onChange={(e) => setEnabled(e.target.checked)}
-              className="mt-0.5 h-4 w-4 cursor-pointer rounded accent-emerald-600"
-            />
-            <span className="text-sm text-gray-700">{t("bankTransfer.enableLabel")}</span>
-          </label>
+          <ToggleSwitch
+            checked={enabled}
+            onCheckedChange={setEnabled}
+            label={t("bankTransfer.enableLabel")}
+          />
 
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
             <div className="sm:col-span-2">
@@ -2867,73 +2773,38 @@ function ContactTab({
           </div>
 
           {/* Aktivierungs-Toggle */}
-          <label className="flex cursor-pointer items-start gap-3">
-            <div className="relative mt-0.5">
-              <input
-                type="checkbox"
-                className="sr-only"
-                checked={enabled}
-                disabled={!hasTargetEmail}
-                onChange={(e) => setEnabled(e.target.checked)}
-              />
-              <div
-                className={`h-5 w-10 rounded-full transition-colors ${enabled && hasTargetEmail ? "bg-emerald-600" : "bg-gray-200"}`}
-              >
-                <div
-                  className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${enabled && hasTargetEmail ? "translate-x-5" : "translate-x-0.5"}`}
-                />
-              </div>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-900">{t("contact.enabledLabel")}</p>
-              <p className="text-xs text-gray-500">
-                {!hasTargetEmail
-                  ? t("contact.enabledRequiresEmail")
-                  : t("contact.enabledHint")}
-              </p>
-            </div>
-          </label>
+          <ToggleSwitch
+            checked={enabled && hasTargetEmail}
+            onCheckedChange={setEnabled}
+            disabled={!hasTargetEmail}
+            label={t("contact.enabledLabel")}
+            description={
+              !hasTargetEmail
+                ? t("contact.enabledRequiresEmail")
+                : t("contact.enabledHint")
+            }
+          />
 
           {/* Weitere Optionen nur wenn aktiviert */}
           {enabled && hasTargetEmail && (
             <div className="space-y-3 rounded-lg border border-gray-200 bg-gray-50 p-4">
               {/* Admin-Benachrichtigung */}
-              <label className="flex cursor-pointer items-start gap-3">
-                <div className="relative mt-0.5">
-                  <input
-                    type="checkbox"
-                    className="sr-only"
-                    checked={notifyAdmin}
-                    onChange={(e) => setNotifyAdmin(e.target.checked)}
-                  />
-                  <div className={`h-5 w-10 rounded-full transition-colors ${notifyAdmin ? "bg-emerald-600" : "bg-gray-200"}`}>
-                    <div className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${notifyAdmin ? "translate-x-5" : "translate-x-0.5"}`} />
-                  </div>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-900">{t("contact.notifyAdminLabel")}</p>
-                  <p className="text-xs text-gray-500">{t("contact.notifyAdminHint")}</p>
-                </div>
-              </label>
+              <ToggleSwitch
+                layout="inline"
+                checked={notifyAdmin}
+                onCheckedChange={setNotifyAdmin}
+                label={t("contact.notifyAdminLabel")}
+                description={t("contact.notifyAdminHint")}
+              />
 
               {/* Auto-Reply */}
-              <label className="flex cursor-pointer items-start gap-3">
-                <div className="relative mt-0.5">
-                  <input
-                    type="checkbox"
-                    className="sr-only"
-                    checked={autoReply}
-                    onChange={(e) => setAutoReply(e.target.checked)}
-                  />
-                  <div className={`h-5 w-10 rounded-full transition-colors ${autoReply ? "bg-emerald-600" : "bg-gray-200"}`}>
-                    <div className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${autoReply ? "translate-x-5" : "translate-x-0.5"}`} />
-                  </div>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-900">{t("contact.autoReplyLabel")}</p>
-                  <p className="text-xs text-gray-500">{t("contact.autoReplyHint")}</p>
-                </div>
-              </label>
+              <ToggleSwitch
+                layout="inline"
+                checked={autoReply}
+                onCheckedChange={setAutoReply}
+                label={t("contact.autoReplyLabel")}
+                description={t("contact.autoReplyHint")}
+              />
             </div>
           )}
 
@@ -3030,18 +2901,12 @@ function MembershipTab({
       <div className="space-y-4">
         <StatusMessage status={status} />
 
-        <label className="flex items-start gap-3">
-          <input
-            type="checkbox"
-            checked={enabled}
-            onChange={(e) => setEnabled(e.target.checked)}
-            className="mt-1 h-4 w-4 rounded"
-          />
-          <div>
-            <p className="font-medium text-gray-900">{t("membershipFee.toggleLabel")}</p>
-            <p className="text-xs text-gray-500">{t("membershipFee.toggleDesc")}</p>
-          </div>
-        </label>
+        <ToggleSwitch
+          checked={enabled}
+          onCheckedChange={setEnabled}
+          label={t("membershipFee.toggleLabel")}
+          description={t("membershipFee.toggleDesc")}
+        />
 
         <div>
           <label className="mb-1 block text-sm font-medium text-gray-700">
@@ -3152,18 +3017,12 @@ function RecurringDonationsTab({
       <div className="space-y-4">
         <StatusMessage status={status} />
 
-        <label className="flex items-start gap-3">
-          <input
-            type="checkbox"
-            checked={enabled}
-            onChange={(e) => setEnabled(e.target.checked)}
-            className="mt-1 h-4 w-4 rounded"
-          />
-          <div>
-            <p className="font-medium text-gray-900">{t("recurring.toggleLabel")}</p>
-            <p className="text-xs text-gray-500">{t("recurring.toggleDesc")}</p>
-          </div>
-        </label>
+        <ToggleSwitch
+          checked={enabled}
+          onCheckedChange={setEnabled}
+          label={t("recurring.toggleLabel")}
+          description={t("recurring.toggleDesc")}
+        />
 
         <div>
           <label className="mb-1 block text-sm font-medium text-gray-700">

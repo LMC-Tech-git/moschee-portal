@@ -31,6 +31,7 @@ import { getTVSettings, updateTVSettings } from "@/lib/actions/settings";
 import type { TVModuleKey, TVLocaleMode } from "@/types";
 import { TV_MODULE_KEYS } from "@/types";
 import { getContrastRatio } from "@/lib/color-contrast";
+import { ToggleSwitch } from "@/components/ui/toggle-switch";
 import { useTranslations } from "next-intl";
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -190,20 +191,7 @@ function SortableModuleRow({
       )}
 
       {/* Toggle */}
-      <button
-        type="button"
-        onClick={onToggle}
-        className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer items-center rounded-full transition-colors ${
-          enabled ? "bg-emerald-500" : "bg-gray-200"
-        }`}
-        aria-pressed={enabled}
-      >
-        <span
-          className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform ${
-            enabled ? "translate-x-4" : "translate-x-0.5"
-          }`}
-        />
-      </button>
+      <ToggleSwitch size="sm" layout="bare" checked={enabled} onCheckedChange={onToggle} />
     </div>
   );
 }
@@ -451,25 +439,13 @@ export default function TVSettingsTab({
         </div>
 
         {/* Master switch */}
-        <div className="mb-5 flex items-center justify-between rounded-lg border border-gray-100 bg-gray-50 px-4 py-3">
-          <div>
-            <p className="text-sm font-medium text-gray-800">TV-Anzeige aktiv</p>
-            <p className="text-xs text-gray-500">Öffentliche Seite für Eingangshallen-Monitor</p>
-          </div>
-          <button
-            type="button"
-            onClick={() => set("tv_enabled", !form.tv_enabled)}
-            className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer items-center rounded-full transition-colors ${
-              form.tv_enabled ? "bg-emerald-500" : "bg-gray-200"
-            }`}
-            aria-pressed={form.tv_enabled}
-          >
-            <span
-              className={`inline-block h-4 w-4 rounded-full bg-white shadow transition-transform ${
-                form.tv_enabled ? "translate-x-6" : "translate-x-1"
-              }`}
-            />
-          </button>
+        <div className="mb-5">
+          <ToggleSwitch
+            checked={form.tv_enabled}
+            onCheckedChange={(v) => set("tv_enabled", v)}
+            label="TV-Anzeige aktiv"
+            description="Öffentliche Seite für Eingangshallen-Monitor"
+          />
         </div>
 
         {/* URL box */}
@@ -594,24 +570,20 @@ export default function TVSettingsTab({
 
           {/* Arabic prayer names + Hijri */}
           <div className="flex flex-col gap-3 border-t border-gray-100 pt-3">
-            <label className="flex items-center gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={form.tv_show_arabic_prayer_names}
-                onChange={(e) => set("tv_show_arabic_prayer_names", e.target.checked)}
-                className="h-4 w-4 rounded accent-emerald-600"
-              />
-              <span className="text-sm text-gray-700">Arabische Gebetsnamen anzeigen (الفجر, الظهر, …)</span>
-            </label>
-            <label className="flex items-center gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={form.tv_show_hijri}
-                onChange={(e) => set("tv_show_hijri", e.target.checked)}
-                className="h-4 w-4 rounded accent-emerald-600"
-              />
-              <span className="text-sm text-gray-700">Hijri-Datum anzeigen</span>
-            </label>
+            <ToggleSwitch
+              layout="inline"
+              size="sm"
+              checked={form.tv_show_arabic_prayer_names}
+              onCheckedChange={(v) => set("tv_show_arabic_prayer_names", v)}
+              label="Arabische Gebetsnamen anzeigen (الفجر, الظهر, …)"
+            />
+            <ToggleSwitch
+              layout="inline"
+              size="sm"
+              checked={form.tv_show_hijri}
+              onCheckedChange={(v) => set("tv_show_hijri", v)}
+              label="Hijri-Datum anzeigen"
+            />
           </div>
         </div>
       </div>
@@ -697,15 +669,15 @@ export default function TVSettingsTab({
 
           {/* Highlight */}
           <div className="border-t border-gray-100 pt-4">
-            <label className="flex items-center gap-3 cursor-pointer mb-3">
-              <input
-                type="checkbox"
+            <div className="mb-3">
+              <ToggleSwitch
+                layout="inline"
+                size="sm"
                 checked={form.tv_highlight_active_prayer}
-                onChange={(e) => set("tv_highlight_active_prayer", e.target.checked)}
-                className="h-4 w-4 rounded accent-emerald-600"
+                onCheckedChange={(v) => set("tv_highlight_active_prayer", v)}
+                label="Adhan-Highlight aktivieren"
               />
-              <span className="text-sm font-medium text-gray-700">Adhan-Highlight aktivieren</span>
-            </label>
+            </div>
             <div className="ml-7 rounded-lg border border-blue-100 bg-blue-50 px-3 py-2 text-xs text-blue-700 flex items-start gap-2">
               <Info className="mt-0.5 h-3.5 w-3.5 flex-shrink-0" />
               Adhan = eingetretene Gebetszeit. Zeigt Vollbild-Overlay für die gewählte Dauer.
