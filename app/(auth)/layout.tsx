@@ -8,7 +8,10 @@ import {
 import type { LegalDocType, LegalLocale } from "@/lib/legal";
 import AuthShell from "./AuthShell";
 
-const ADMIN_ROLES = new Set(["admin", "super_admin"]);
+// Nur Gemeinde-Admins (Vorstand) müssen Verträge akzeptieren. Der
+// super_admin ist der Plattform-Betreiber und schließt keinen Vertrag mit
+// sich selbst — daher von beiden Gates ausgenommen.
+const MOSQUE_ADMIN_ROLES = new Set(["admin"]);
 
 /**
  * Server-Layout: löst den Rechts-Gate-Status server-seitig auf (aus dem
@@ -40,10 +43,13 @@ export default async function AuthLayout({
       // Cookie kann veraltet sein → Gates bleiben leer, AuthShell leitet um
     }
 
-    if (mosqueId && ADMIN_ROLES.has(role)) {
-      mosqueOutstanding = (await getMosqueAcceptanceStatus(mosqueId)).outstanding;
+    // super_admin = Betreiber → kein Gate (weder Vorstand noch Nutzer)
+    if (role !== "super_admin") {
+      if (mosqueId && MOSQUE_ADMIN_ROLES.has(role)) {
+        mosqueOutstanding = (await getMosqueAcceptanceStatus(mosqueId)).outstanding;
+      }
+      userOutstanding = (await getUserAcceptanceStatus(userId)).outstanding;
     }
-    userOutstanding = (await getUserAcceptanceStatus(userId)).outstanding;
   }
 
   return (
