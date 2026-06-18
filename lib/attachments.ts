@@ -66,46 +66,79 @@ export function buildFileUrl(
 }
 
 /**
- * Prüft, ob eine Files-FormData echte Änderungen enthält
- * (neue Uploads unter `attachments` oder Entfernungen unter `attachments-`).
+ * Prüft, ob eine Files-FormData überhaupt Anhang-Eingaben enthält
+ * (neue Uploads oder eine Reihenfolge-Angabe). Wenn nicht, kann die
+ * Attachment-Verarbeitung komplett übersprungen werden.
  */
-export function hasAttachmentChanges(files?: FormData | null): boolean {
+export function hasAttachmentInput(files?: FormData | null): boolean {
   if (!files) return false;
-  const added = files
-    .getAll("attachments")
-    .some((f) => f && typeof f !== "string" && (f as File).size > 0);
-  const removed = files.getAll("attachments-").some((n) => !!n);
-  return added || removed;
+  return files.getAll("attachments").length > 0 || files.getAll("order").length > 0;
 }
 
+type PBLike<T> = {
+  collection: (name: string) => {
+    update: (id: string, data: FormData | Record<string, unknown>) => Promise<T>;
+  };
+};
+
 /**
- * Baut eine PocketBase-FormData aus validierten Skalar-Feldern plus den
- * Datei-Operationen aus `files` (neue `attachments` + zu löschende
- * `attachments-`). Für create/update von Records mit Datei-Uploads.
- * `undefined`/`null` werden übersprungen, Objekte/Arrays als JSON serialisiert.
+ * Wendet Anhang-Änderungen inkl. benutzerdefinierter Reihenfolge auf einen
+ * bereits existierenden Record an (Skalare müssen vorher gespeichert sein).
+ *
+ * Contract aus dem Client (attachmentsToFormData):
+ *   - `attachments`: neue Dateien in gewünschter Reihenfolge
+ *   - `order`: Tokens für die Endreihenfolge — "E:<dateiname>" (Bestand) | "N" (nächste neue Datei)
+ *   Weggelassene Bestands-Dateien werden gelöscht.
+ *
+ * Zwei Phasen, da PB neue Uploads immer ans Ende hängt und ihren finalen
+ * Dateinamen erst danach kennt:
+ *   1. neue Dateien hochladen + entfernte löschen
+ *   2. Endreihenfolge per JSON-Update setzen
  */
-export function buildRecordFormData(
-  fields: Record<string, unknown>,
-  files?: FormData | null
-): FormData {
-  const fd = new FormData();
-  Object.entries(fields).forEach(([key, value]) => {
-    if (value === undefined || value === null) return;
-    if (value instanceof Date) fd.append(key, value.toISOString());
-    else if (typeof value === "object") fd.append(key, JSON.stringify(value));
-    else fd.append(key, String(value));
-  });
-  if (files) {
-    files.getAll("attachments").forEach((f) => {
-      if (f && typeof f !== "string" && (f as File).size > 0) {
-        fd.append("attachments", f as Blob, (f as File).name || "file");
-      }
-    });
-    files.getAll("attachments-").forEach((name) => {
-      if (name) fd.append("attachments-", name as string);
-    });
+export async function applyAttachments<T extends { id: string; attachments?: string[] }>(
+  pb: PBLike<T>,
+  collection: string,
+  record: T,
+  files: FormData
+): Promise<T> {
+  const existing: string[] = record.attachments || [];
+  const orderTokens = (files.getAll("order") as string[]).map((t) => String(t));
+  const newFiles = files
+    .getAll("attachments")
+    .filter((f) => f && typeof f !== "string" && (f as File).size > 0) as File[];
+
+  // Welche Bestands-Dateien bleiben (laut order) → Rest wird gelöscht.
+  const keptExisting = orderTokens
+    .filter((t) => t.startsWith("E:"))
+    .map((t) => t.slice(2))
+    .filter((n) => existing.includes(n));
+  const removed = existing.filter((n) => !keptExisting.includes(n));
+
+  let current: T = record;
+
+  // Phase 1: hochladen + löschen
+  if (newFiles.length > 0 || removed.length > 0) {
+    const fd = new FormData();
+    newFiles.forEach((f) => fd.append("attachments", f, f.name));
+    removed.forEach((n) => fd.append("attachments-", n));
+    current = await pb.collection(collection).update(record.id, fd);
   }
-  return fd;
+
+  // Phase 2: Endreihenfolge bestimmen + setzen
+  if (orderTokens.length > 0) {
+    const afterUpload = current.attachments || [];
+    const newNames = afterUpload.filter((n) => !existing.includes(n)); // neue in Upload-Reihenfolge
+    let ni = 0;
+    const finalOrder = orderTokens
+      .map((t) => (t === "N" ? newNames[ni++] : t.slice(2)))
+      .filter((n): n is string => !!n);
+
+    if (finalOrder.length > 0 && finalOrder.join("\n") !== afterUpload.join("\n")) {
+      current = await pb.collection(collection).update(record.id, { attachments: finalOrder });
+    }
+  }
+
+  return current;
 }
 
 /** Teilt Dateinamen in Bilder und PDFs (Reihenfolge bleibt erhalten). */

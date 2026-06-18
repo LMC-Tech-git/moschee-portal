@@ -10,6 +10,9 @@
     "tooLarge": "Datei zu groß (max. 10 MB).",
     "pdfFile": "PDF-Dokument",
     "imageAlt": "Bild {index}",
+    "reorderHint": "Ziehen oder Pfeile nutzen, um die Reihenfolge zu ändern.",
+    "moveLeft": "Nach vorne verschieben",
+    "moveRight": "Nach hinten verschieben",
     "next": "Nächstes Bild",
     "prev": "Vorheriges Bild",
     "counter": "{current} / {total}"

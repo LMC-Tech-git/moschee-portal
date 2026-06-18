@@ -4,7 +4,7 @@ import { getAdminPB } from "@/lib/pocketbase-admin";
 import { campaignSchema, type CampaignInput } from "@/lib/validations";
 import { logAudit } from "@/lib/audit";
 import { sendPushToMosque } from "@/lib/push";
-import { buildRecordFormData, hasAttachmentChanges } from "@/lib/attachments";
+import { applyAttachments, hasAttachmentInput } from "@/lib/attachments";
 import type { Campaign, CampaignWithProgress } from "@/types";
 import type { RecordModel } from "pocketbase";
 
@@ -281,9 +281,10 @@ export async function createCampaign(
       type: "general",       // PB-Pflichtfeld
       visibility: "public",  // PB-Pflichtfeld
     };
-    const record = hasAttachmentChanges(files)
-      ? await pb.collection("campaigns").create(buildRecordFormData(payload, files))
-      : await pb.collection("campaigns").create(payload);
+    let record = await pb.collection("campaigns").create(payload);
+    if (files && hasAttachmentInput(files)) {
+      record = await applyAttachments<RecordModel>(pb, "campaigns", record, files);
+    }
 
     await logAudit({
       mosqueId,
@@ -352,9 +353,10 @@ export async function updateCampaign(
       return { success: false, error: "Kampagne nicht gefunden" };
     }
 
-    const record = hasAttachmentChanges(files)
-      ? await pb.collection("campaigns").update(campaignId, buildRecordFormData(validated, files))
-      : await pb.collection("campaigns").update(campaignId, validated);
+    let record = await pb.collection("campaigns").update(campaignId, validated);
+    if (files && hasAttachmentInput(files)) {
+      record = await applyAttachments<RecordModel>(pb, "campaigns", record, files);
+    }
 
     await logAudit({
       mosqueId,

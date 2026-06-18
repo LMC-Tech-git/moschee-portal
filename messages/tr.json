@@ -10,6 +10,9 @@
     "tooLarge": "Dosya çok büyük (en fazla 10 MB).",
     "pdfFile": "PDF belgesi",
     "imageAlt": "Resim {index}",
+    "reorderHint": "Sırayı değiştirmek için sürükleyin veya okları kullanın.",
+    "moveLeft": "Öne taşı",
+    "moveRight": "Arkaya taşı",
     "next": "Sonraki resim",
     "prev": "Önceki resim",
     "counter": "{current} / {total}"

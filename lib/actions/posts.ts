@@ -5,6 +5,7 @@ import { postSchema } from "@/lib/validations";
 import { logAudit } from "@/lib/audit";
 import { checkDemoLimit } from "@/lib/demo";
 import { sendPushToMosque } from "@/lib/push";
+import { applyAttachments, hasAttachmentInput } from "@/lib/attachments";
 import type { Post } from "@/types";
 import type { RecordModel } from "pocketbase";
 
@@ -295,14 +296,10 @@ export async function createPost(
       pbFormData.append("published_at", new Date().toISOString());
     }
 
-    const newFiles = formData.getAll("attachments");
-    newFiles.forEach((item) => {
-      if (item && typeof item !== "string" && "size" in (item as object) && (item as File).size > 0) {
-        pbFormData.append("attachments", item as Blob, (item as File).name || "file");
-      }
-    });
-
-    const record = await pb.collection("posts").create(pbFormData);
+    let record = await pb.collection("posts").create(pbFormData);
+    if (hasAttachmentInput(formData)) {
+      record = await applyAttachments<RecordModel>(pb, "posts", record, formData);
+    }
 
     await logAudit({
       mosqueId,
@@ -391,21 +388,10 @@ export async function updatePost(
       pbFormData.append("published_at", new Date().toISOString());
     }
 
-    // Neue Anhänge (Bilder + PDFs) anhängen
-    const newFiles = formData.getAll("attachments");
-    newFiles.forEach((item) => {
-      if (item && typeof item !== "string" && "size" in (item as object) && (item as File).size > 0) {
-        pbFormData.append("attachments", item as Blob, (item as File).name || "file");
-      }
-    });
-
-    // Bestehende Anhänge löschen (PocketBase: "attachments-" = Dateinamen zum Löschen)
-    const removed = formData.getAll("attachments-") as string[];
-    removed.forEach((filename) => {
-      if (filename) pbFormData.append("attachments-", filename);
-    });
-
-    const record = await pb.collection("posts").update(postId, pbFormData);
+    let record = await pb.collection("posts").update(postId, pbFormData);
+    if (hasAttachmentInput(formData)) {
+      record = await applyAttachments<RecordModel>(pb, "posts", record, formData);
+    }
 
     await logAudit({
       mosqueId,

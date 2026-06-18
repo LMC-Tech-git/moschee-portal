@@ -9,7 +9,7 @@ import type { Event, EventRegistration } from "@/types";
 import type { RecordModel } from "pocketbase";
 import { checkDemoLimit } from "@/lib/demo";
 import { sendPushToMosque } from "@/lib/push";
-import { buildRecordFormData, hasAttachmentChanges } from "@/lib/attachments";
+import { applyAttachments, hasAttachmentInput } from "@/lib/attachments";
 import Stripe from "stripe";
 
 // --- Helpers ---
@@ -306,9 +306,10 @@ export async function createEvent(
     if (!demoCheck.allowed) return { success: false, error: demoCheck.error };
 
     const payload = { ...validated, mosque_id: mosqueId, created_by: userId };
-    const record = hasAttachmentChanges(files)
-      ? await pb.collection("events").create(buildRecordFormData(payload, files))
-      : await pb.collection("events").create(payload);
+    let record = await pb.collection("events").create(payload);
+    if (files && hasAttachmentInput(files)) {
+      record = await applyAttachments<RecordModel>(pb, "events", record, files);
+    }
 
     await logAudit({
       mosqueId,
@@ -369,9 +370,10 @@ export async function updateEvent(
       return { success: false, error: "Veranstaltung nicht gefunden" };
     }
 
-    const record = hasAttachmentChanges(files)
-      ? await pb.collection("events").update(eventId, buildRecordFormData(validated, files))
-      : await pb.collection("events").update(eventId, validated);
+    let record = await pb.collection("events").update(eventId, validated);
+    if (files && hasAttachmentInput(files)) {
+      record = await applyAttachments<RecordModel>(pb, "events", record, files);
+    }
 
     await logAudit({
       mosqueId,

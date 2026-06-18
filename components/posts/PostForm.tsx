@@ -82,12 +82,10 @@ export function PostForm({ initialData, onSubmit, isEdit, backPath = "/admin/pos
       fd.append("status", status);
       fd.append("notify_push", String(notifyPush && status === "published"));
 
-      // Anhänge (Bilder + PDFs): neue Dateien + Entfernungen übernehmen
+      // Anhänge (Bilder + PDFs): neue Dateien + Endreihenfolge übernehmen
       const filesFd = attachmentsToFormData(attachments);
       filesFd.getAll("attachments").forEach((f) => fd.append("attachments", f));
-      filesFd
-        .getAll("attachments-")
-        .forEach((n) => fd.append("attachments-", n as string));
+      filesFd.getAll("order").forEach((o) => fd.append("order", o as string));
 
       const result = await onSubmit(fd);
 
