@@ -98,6 +98,10 @@ export function DonationForm({
   // Checkbox nur anzeigen wenn Betrag >= 200 ct (2€), sonst wäre Fixgebühr unverhältnismäßig
   const showBankTransfer = bankTransferEnabled && !isMonthly;
   const isBankTransfer = showBankTransfer && paymentMethodType === "bank_transfer";
+  // Anzahl sichtbarer Zahlungsmethoden (Karte immer + ggf. SEPA + ggf. Überweisung)
+  const paymentMethodCount = 1 + (sepaEnabled ? 1 : 0) + (showBankTransfer ? 1 : 0);
+  const paymentGridCols =
+    paymentMethodCount === 1 ? "grid-cols-1" : paymentMethodCount === 2 ? "grid-cols-2" : "grid-cols-3";
   const showFeeCheckbox = amountCents >= 200 && !isMonthly && !isBankTransfer;
 
   // Vorausfüllen wenn eingeloggt
@@ -460,7 +464,7 @@ export function DonationForm({
           <p className="mb-2 text-sm font-medium text-gray-700">
             {t("paymentMethodTitle")}
           </p>
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3" role="group" aria-label={t("paymentMethodTitle")}>
+          <div className={`grid gap-2 ${paymentGridCols}`} role="group" aria-label={t("paymentMethodTitle")}>
             <button
               type="button"
               onClick={() => setPaymentMethodType("card")}
